@@ -1,0 +1,57 @@
+20
+20
+20
+0
+infinity
+15
+English
+English
+true
+true
+true
+false
+true
+true
+false
+false
+false
+false
+false
+false
+false
+false
+true
+NO PROXY
+null
+true
+false
+false
+1000x680
+center
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+null
+.avi:.bin:.iso:.m2ts:.mkv:.mov:.mp4:.mpeg:.mpg:.rar:.vob:.wmv
+blacklist empty
+ANY LANGUAGE
+ANY COUNTRY
+false
+false
