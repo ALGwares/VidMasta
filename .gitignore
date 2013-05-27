@@ -4,3 +4,14 @@
 *.jar
 *.war
 *.ear
+
+*.svn
+*.lnk
+*~
+
+cnet_*.jpg
+/manifest.mf
+/build.xml
+/nbproject
+/dist
+/build
