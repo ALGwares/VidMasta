@@ -4,13 +4,3 @@
 *.jar
 *.war
 *.ear
-
-*.svn
-*.lnk
-*~
-
-/manifest.mf
-/build.xml
-/nbproject
-/dist
-/build
