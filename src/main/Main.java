@@ -76,7 +76,7 @@ public class Main implements WorkerListener {
         Magnet.setGuiListener(gui);
 
         for (int i = 0; i < Constant.MAX_SUBDIRECTORIES; i++) {
-            Write.fileOp(Constant.CACHE_DIR + String.valueOf(i), Write.MK_DIR);
+            Write.fileOp(Constant.CACHE_DIR + i, Write.MK_DIR);
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -235,7 +235,7 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void searchStarted() {
+    public void summarySearchStopped() {
         if (summaryFinder != null) {
             summaryFinder.cancel(true);
         }
@@ -298,35 +298,35 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void trailerSearchStarted(int action, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season, String episode,
-            int row) {
+    public void trailerSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
+            String episode, int row) {
         if (!isTrailerSearchDone()) {
             return;
         }
-        trailerFinder = new VideoFinder(gui, action, title, summaryLink, isLink, year, isTVShow, season, episode, row);
+        trailerFinder = new VideoFinder(gui, action, titleID, title, summaryLink, null, isLink, year, isTVShow, season, episode, row);
         startPrefetcher(trailerFinder);
         trailerFinder.execute();
     }
 
     @Override
-    public void torrentSearchStarted(int action, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season, String episode,
-            int row) {
+    public void torrentSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
+            String episode, int row) {
         if (!isTorrentSearchDone()) {
             return;
         }
         Magnet.startAzureus();
-        torrentFinder = new VideoFinder(gui, action, title, summaryLink, isLink, year, isTVShow, season, episode, row);
+        torrentFinder = new VideoFinder(gui, action, titleID, title, summaryLink, null, isLink, year, isTVShow, season, episode, row);
         startPrefetcher(torrentFinder);
         torrentFinder.execute();
     }
 
     @Override
-    public void streamSearchStarted(int action, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season, String episode,
-            int row) {
+    public void streamSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
+            String episode, int row) {
         if (!isStreamSearchDone()) {
             return;
         }
-        streamFinder = new VideoFinder(gui, action, title, summaryLink, isLink, year, isTVShow, season, episode, row);
+        streamFinder = new VideoFinder(gui, action, titleID, title, summaryLink, null, isLink, year, isTVShow, season, episode, row);
         startPrefetcher(streamFinder);
         streamFinder.execute();
     }

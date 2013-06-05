@@ -91,7 +91,7 @@ public class VideoSearch {
         }
 
         if (titleEndIndex == -1) {
-            titleTagStr = titleTagStr.replaceAll(Str.get(101), Str.get(102));
+            titleTagStr = Regex.replaceAll(titleTagStr, Str.get(101), Str.get(102));
             titleEndIndex = titleTagStr.length();
         }
 
@@ -102,7 +102,7 @@ public class VideoSearch {
     }
 
     public static String[] getTitleParts(String title, boolean isTVShow) {
-        String titleName = title.replaceAll(Str.get(103), Str.get(104));
+        String titleName = Regex.replaceAll(title, Str.get(103), Str.get(104));
         Collection<Integer> indexes = new ArrayList<Integer>(5);
         indexes.add(titleName.length());
 
@@ -133,25 +133,27 @@ public class VideoSearch {
         if (isTVShow) {
             Matcher tvBoxSetAndEpisodeMatcher = Regex.matcher(Str.get(107), titleName);
             while (!tvBoxSetAndEpisodeMatcher.hitEnd()) {
-                if (tvBoxSetAndEpisodeMatcher.find()) {
-                    if (Debug.DEBUG) {
-                        Debug.print("TV BoxSet/S&E: '" + tvBoxSetAndEpisodeMatcher.group() + "' ");
-                    }
-                    if (Regex.isMatch(tvBoxSetAndEpisodeMatcher.group(), Str.get(108))) {
-                        String[] seasonAndEpisode = tvBoxSetAndEpisodeMatcher.group().trim().replaceFirst(Str.get(109),
-                                Str.get(110)).split(Str.get(111));
-                        int seasonNum = Integer.parseInt(seasonAndEpisode[0]);
-                        if (seasonNum >= 1 && seasonNum <= 100) {
-                            season = String.format(Constant.TV_EPISODE_FORMAT, seasonNum);
-                        }
-                        int episodeNum = Integer.parseInt(seasonAndEpisode[1]);
-                        if (episodeNum >= 0 && episodeNum <= 300) {
-                            episode = String.format(Constant.TV_EPISODE_FORMAT, episodeNum);
-                        }
-                    }
-                    indexes.add(tvBoxSetAndEpisodeMatcher.start());
-                    break;
+                if (!tvBoxSetAndEpisodeMatcher.find()) {
+                    continue;
                 }
+
+                if (Debug.DEBUG) {
+                    Debug.print("TV BoxSet/S&E: '" + tvBoxSetAndEpisodeMatcher.group() + "' ");
+                }
+                if (Regex.isMatch(tvBoxSetAndEpisodeMatcher.group(), Str.get(108))) {
+                    String[] seasonAndEpisode = Regex.split(Regex.replaceFirst(tvBoxSetAndEpisodeMatcher.group().trim(), Str.get(109), Str.get(110)),
+                            Str.get(111));
+                    int seasonNum = Integer.parseInt(seasonAndEpisode[0]);
+                    if (seasonNum >= 1 && seasonNum <= 100) {
+                        season = String.format(Constant.TV_EPISODE_FORMAT, seasonNum);
+                    }
+                    int episodeNum = Integer.parseInt(seasonAndEpisode[1]);
+                    if (episodeNum >= 0 && episodeNum <= 300) {
+                        episode = String.format(Constant.TV_EPISODE_FORMAT, episodeNum);
+                    }
+                }
+                indexes.add(tvBoxSetAndEpisodeMatcher.start());
+                break;
             }
         } else {
             Matcher movieBoxSetMatcher = Regex.matcher(Str.get(239), titleName);

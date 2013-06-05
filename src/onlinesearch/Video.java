@@ -56,9 +56,8 @@ public class Video {
         if (image.exists()) {
             long lastModified = image.lastModified();
             return lastModified != 0L && (System.currentTimeMillis() - lastModified) > MAX_IMAGE_AGE ? imagePath : null;
-        } else {
-            return imagePath;
         }
+        return imagePath;
     }
 
     public Object[] toTableRow(GuiListener guiListener, boolean summaryIsLink, boolean isBold) {
@@ -98,7 +97,7 @@ public class Video {
 
     public static String imagePath(String titleID) {
         long imageName = Str.hashCode(titleID);
-        return String.valueOf(imageName % Constant.MAX_SUBDIRECTORIES) + Constant.FILE_SEPARATOR + String.valueOf(imageName);
+        return (imageName % Constant.MAX_SUBDIRECTORIES) + Constant.FILE_SEPARATOR + imageName;
     }
 
     public static String getMovieTitlePrefix(String dirtyMovieTitle) {
@@ -160,13 +159,11 @@ public class Video {
         }
 
         String summary1 = Regex.match(sourceCode, Str.get(129), Str.get(130));
-        summary1 = summary1.replaceAll(Str.get(203), Str.get(204)).trim();
-        summary1 = summary1.replaceAll(Str.get(241), Str.get(242)).replaceAll(Str.get(243),
-                Str.get(244));
+        summary1 = Regex.replaceAll(summary1, Str.get(203), Str.get(204)).trim();
+        summary1 = Regex.replaceAll(Regex.replaceAll(summary1, Str.get(241), Str.get(242)), Str.get(243), Str.get(244));
         String summary2 = Regex.match(sourceCode, Str.get(131), Str.get(132));
-        summary2 = summary2.replaceAll(Str.get(205), Str.get(206)).trim();
-        summary2 = summary2.replaceAll(Str.get(245), Str.get(246)).replaceAll(Str.get(247),
-                Str.get(248));
+        summary2 = Regex.replaceAll(summary2, Str.get(205), Str.get(206)).trim();
+        summary2 = Regex.replaceAll(Regex.replaceAll(summary2, Str.get(245), Str.get(246)), Str.get(247), Str.get(248));
         String storyline = null;
         boolean isEmpty1 = summary1.isEmpty(), isEmpty2 = summary2.isEmpty();
 
@@ -203,7 +200,7 @@ public class Video {
         if (isTVShow) {
             summary.append("<b id=\"nextEpisode\">Next Episode: </b>").append(Constant.TV_EPISODE_PLACEHOLDER);
         } else {
-            String releaseDate = Regex.match(sourceCode, Str.get(539), Str.get(540)).replaceAll(Str.get(541), Str.get(542));
+            String releaseDate = Regex.replaceAll(Regex.match(sourceCode, Str.get(539), Str.get(540)), Str.get(541), Str.get(542));
             if (Regex.isMatch(releaseDate, Str.get(543))) {
                 releaseDate = dateToString(new SimpleDateFormat(Str.get(544), Locale.ENGLISH), releaseDate, Boolean.parseBoolean(Str.get(556)));
             } else if (Regex.isMatch(releaseDate, Str.get(548))) {

@@ -60,17 +60,12 @@ public class VideoFinder extends AbstractSwingWorker {
         this(guiListener, action, titleID, title, summaryLink, imageLink, isLink, year, isTVShow, season, episode, row, false);
     }
 
-    public VideoFinder(GuiListener guiListener, int action, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
-            String episode, int row) {
-        this(guiListener, action, null, title, summaryLink, null, isLink, year, isTVShow, season, episode, row, false);
-    }
-
     public VideoFinder(int action, VideoFinder finder) {
         this(finder.guiListener, action, finder.titleID, finder.title, finder.summaryLink, finder.imageLink, finder.isLink, finder.year, finder.isTVShow,
                 finder.season, finder.episode, finder.row, true);
     }
 
-    public VideoFinder(GuiListener guiListener, int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year,
+    private VideoFinder(GuiListener guiListener, int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year,
             boolean isTVShow, String season, String episode, int row, boolean prefetch) {
         this.guiListener = guiListener;
         this.action = action;
@@ -247,7 +242,7 @@ public class VideoFinder extends AbstractSwingWorker {
                     Collections.sort(torrents);
                     torrent = torrents.get(0);
                     if (Debug.DEBUG) {
-                        Debug.print(torrents);
+                        Debug.println(torrents);
                     }
                 }
 
@@ -310,7 +305,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 return;
             }
         } else {
-            summaryLink = summaryLink.split(Constant.SEPARATOR2)[0];
+            summaryLink = Regex.split(summaryLink, Constant.SEPARATOR2)[0];
         }
 
         String imagePath = Constant.CACHE_DIR + Video.imagePath(titleID);
@@ -381,9 +376,10 @@ public class VideoFinder extends AbstractSwingWorker {
                 for (int i = nextEpisodes.size() - 1; i > -1; i--) {
                     String currEpisode = nextEpisodes.get(i);
                     if (Regex.isMatch(currEpisode, Str.get(527))) {
-                        String date = Regex.match(source, Str.get(528) + latestSeason + Str.get(529) + currEpisode + Str.get(530), Str.get(531))
-                                .replaceAll(Str.get(532), Str.get(533));
-                        if (Regex.isMatch(date, Str.get(534)) && dateFormat.parse(date.replaceAll(Str.get(535), Str.get(536))).compareTo(currDate.getTime()) <= 0) {
+                        String date = Regex.replaceAll(Regex.match(source, Str.get(528) + latestSeason + Str.get(529) + currEpisode + Str.get(530), Str.get(531)),
+                                Str.get(532), Str.get(533));
+                        if (Regex.isMatch(date, Str.get(534)) && dateFormat.parse(Regex.replaceAll(date, Str.get(535), Str.get(536))).compareTo(currDate.getTime())
+                                <= 0) {
                             if (nextEpisode == null) {
                                 airdate = date;
                                 nextEpisode = currEpisode;
@@ -397,9 +393,9 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 if (nextEpisode != null) {
                     if (Regex.isMatch(airdate, Str.get(534))) {
-                        airdate = Video.dateToString(dateFormat, airdate.replaceAll(Str.get(535), Str.get(536)), Boolean.parseBoolean(Str.get(558)));
+                        airdate = Video.dateToString(dateFormat, Regex.replaceAll(airdate, Str.get(535), Str.get(536)), Boolean.parseBoolean(Str.get(558)));
                     } else if (Regex.isMatch(airdate, Str.get(546))) {
-                        airdate = Video.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), airdate.replaceAll(Str.get(535), Str.get(536)),
+                        airdate = Video.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdate, Str.get(535), Str.get(536)),
                                 Boolean.parseBoolean(Str.get(559)));
                     } else if (airdate.isEmpty() || Regex.isMatch(airdate, Str.get(537))) {
                         airdate = "unknown";
@@ -413,7 +409,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void browse(String torrentFileName) throws Exception {
         String autoDownloader = guiListener.getAutoDownloader();
-        String url = autoDownloader.replaceFirst(Str.get(463), Str.get(464));
+        String url = Regex.replaceFirst(autoDownloader, Str.get(463), Str.get(464));
 
         try {
             Connection.getSourceCode(url, Connection.DOWNLOAD_LINK_INFO);
@@ -442,8 +438,8 @@ public class VideoFinder extends AbstractSwingWorker {
     private void saveTorrent(Torrent torrent) throws Exception {
         String torrentName = torrent.file.getName();
         int extIndex = torrentName.lastIndexOf('.');
-        String saveFileName = torrentName.substring(0, extIndex) + (torrent.isSafe ? "" : "_unsafe") + (torrent.sizeInGiB > 0 ? "_"
-                + String.valueOf(torrent.sizeInGiB) + "GB" : "") + torrent.extensions + torrentName.substring(extIndex);
+        String saveFileName = torrentName.substring(0, extIndex) + (torrent.isSafe ? "" : "_unsafe") + (torrent.sizeInGiB > 0 ? "_" + torrent.sizeInGiB + "GB"
+                : "") + torrent.extensions + torrentName.substring(extIndex);
 
         if (guiListener.canAutoDownload()) {
             String saveFilePath = torrent.file.getParent() + Constant.FILE_SEPARATOR + saveFileName;
@@ -694,31 +690,33 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
-        String[] results = source.split(Constant.STD_NEWLINE);
+        String[] results = Regex.split(source, Constant.STD_NEWLINE);
         for (int i = 0; i < results.length; i += 5) {
-            if (results[i].trim().equals(dirtyTitle) && results[i + 1].trim().equals(year)) {
-                Magnet.waitForAzureusToStart();
+            if (!results[i].trim().equals(dirtyTitle) || !results[i + 1].trim().equals(year)) {
+                continue;
+            }
+
+            Magnet.waitForAzureusToStart();
+            if (isCancelled()) {
+                return;
+            }
+
+            guiListener.enableLinkProgress(true);
+
+            Magnet magnet = new Magnet(results[i + 4].trim(), Str.toFileName(results[i + 2].trim()));
+            try {
+                magnet.download(this);
                 if (isCancelled()) {
                     return;
                 }
-
-                guiListener.enableLinkProgress(true);
-
-                Magnet magnet = new Magnet(results[i + 4].trim(), Str.toFileName(results[i + 2].trim()));
-                try {
-                    magnet.download(this);
-                    if (isCancelled()) {
-                        return;
-                    }
-                    torrents.add(new Torrent("", magnet.torrentFile, FileTypeChecker.getFileExts(magnet.torrentFile, searchState.whitelistedFileExts),
-                            Integer.parseInt(results[i + 3].trim()) == 1, 0, 0));
-                } catch (Exception e) {
-                    if (!isCancelled()) {
-                        guiListener.connectionError(e);
-                    }
+                torrents.add(new Torrent("", magnet.torrentFile, FileTypeChecker.getFileExts(magnet.torrentFile, searchState.whitelistedFileExts),
+                        Integer.parseInt(results[i + 3].trim()) == 1, 0, 0));
+            } catch (Exception e) {
+                if (!isCancelled()) {
+                    guiListener.connectionError(e);
                 }
-                return;
             }
+            return;
         }
     }
 
@@ -874,20 +872,22 @@ public class VideoFinder extends AbstractSwingWorker {
                 return;
             }
 
-            String displayTitle = guiListener.getDisplayTitle(row);
-            int beginOffset = 6, endOffSet = 7;
-            String startHtml = "<html>", endHtml = "</html>";
-            if (displayTitle.startsWith("<html><b>")) {
-                beginOffset = 9;
-                endOffSet = 11;
-                startHtml += "<b>";
-                endHtml = "</b>" + endHtml;
+            String displayTitle = guiListener.getDisplayTitle(row, titleID);
+            if (displayTitle != null) {
+                int beginOffset = 6, endOffSet = 7;
+                String startHtml = "<html>", endHtml = "</html>";
+                if (displayTitle.startsWith("<html><b>")) {
+                    beginOffset = 9;
+                    endOffSet = 11;
+                    startHtml += "<b>";
+                    endHtml = "</b>" + endHtml;
+                }
+                displayTitle = displayTitle.substring(beginOffset, displayTitle.length() - endOffSet);
+                String extraTitleInfo = Regex.match(displayTitle, " \\(Latest Episode: S\\d{2}+E\\d{2}+\\)");
+                displayTitle = Regex.replaceFirst(displayTitle, " \\(Latest Episode: S\\d{2}+E\\d{2}+\\)", "") + " (AKA: " + dirtyOldTitle + ')'
+                        + (extraTitleInfo.isEmpty() ? "" : ' ' + extraTitleInfo);
+                guiListener.setDisplayTitle(startHtml + displayTitle + endHtml, row, titleID);
             }
-            displayTitle = displayTitle.substring(beginOffset, displayTitle.length() - endOffSet);
-            String extraTitleInfo = Regex.match(displayTitle, " \\(Latest Episode: S\\d{2}+E\\d{2}+\\)");
-            displayTitle = displayTitle.replaceFirst(" \\(Latest Episode: S\\d{2}+E\\d{2}+\\)", "") + " (AKA: " + dirtyOldTitle + ')'
-                    + (extraTitleInfo.isEmpty() ? "" : ' ' + extraTitleInfo);
-            guiListener.setDisplayTitle(startHtml + displayTitle + endHtml, row);
         }
 
         if (prefetch) {
@@ -900,15 +900,15 @@ public class VideoFinder extends AbstractSwingWorker {
         if (imageLink.isEmpty()) {
             imageLink = Constant.NULL;
         }
-        guiListener.setDisplaySummary(dirtyTitle + Constant.SEPARATOR1 + summaryLink + Constant.SEPARATOR1 + imageLink + Constant.SEPARATOR1
-                + Constant.FALSE + Constant.SEPARATOR1 + isTVShow, row);
+        guiListener.setDisplaySummary(dirtyTitle + Constant.SEPARATOR1 + summaryLink + Constant.SEPARATOR1 + imageLink + Constant.SEPARATOR1 + Constant.FALSE
+                + Constant.SEPARATOR1 + isTVShow, row, titleID);
     }
 
     private void getOldTitle() throws Exception {
         if (isLink) {
             updateSummary();
         } else {
-            String[] summaryParts = summaryLink.split(Constant.SEPARATOR2);
+            String[] summaryParts = Regex.split(summaryLink, Constant.SEPARATOR2);
             if (summaryParts.length == 2) {
                 dirtyOldTitle = summaryParts[1];
                 oldTitle = Str.clean(dirtyOldTitle);

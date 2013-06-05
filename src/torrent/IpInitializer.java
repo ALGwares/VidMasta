@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import util.Constant;
+import util.Regex;
 import util.io.CleanUp;
 import util.io.Write;
 
@@ -60,7 +61,7 @@ class IpInitializer extends Thread {
                         }
                     }
                 } else {
-                    final String[] ipRangeParts = range.split("-");
+                    final String[] ipRangeParts = Regex.split(range, "-");
                     try {
                         final int startIp = PRHelpers.addressToInt(ipRangeParts[0].trim());
                         final int endIp = PRHelpers.addressToInt(ipRangeParts[1].trim());

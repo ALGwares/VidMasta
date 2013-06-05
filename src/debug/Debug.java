@@ -1,6 +1,5 @@
 package debug;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 public class Debug {
@@ -19,15 +18,15 @@ public class Debug {
         }
     }
 
-    public static void print(Exception e) {
+    public static void println(Collection<?> collection) {
         if (DEBUG) {
-            e.printStackTrace();
+            System.out.println(collection);
         }
     }
 
-    public static void print(Collection<?> collection) {
+    public static void print(Exception e) {
         if (DEBUG) {
-            System.out.println(Arrays.deepToString(collection.toArray()));
+            e.printStackTrace();
         }
     }
 

@@ -284,7 +284,7 @@
                 <Property name="editable" type="boolean" value="false"/>
                 <Property name="contentType" type="java.lang.String" value="text/html" noResource="true"/>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="&quot;&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;table cellpadding=\&quot;5\&quot;&gt;&lt;tr&gt;&lt;td&gt;&quot; + Constant.HTML_FONT + Constant.APP_TITLE + &quot;&lt;br&gt;&lt;br&gt;Version &quot; + String.valueOf(Constant.APP_VERSION) + &quot;&lt;br&gt;&lt;br&gt;Created by Anthony Gray&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;&quot;" type="code"/>
+                  <Connection code="&quot;&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;table cellpadding=\&quot;5\&quot;&gt;&lt;tr&gt;&lt;td&gt;&quot; + Constant.HTML_FONT + Constant.APP_TITLE + &quot;&lt;br&gt;&lt;br&gt;Version &quot; + Constant.APP_VERSION + &quot;&lt;br&gt;&lt;br&gt;Created by Anthony Gray&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;&quot;" type="code"/>
                 </Property>
               </Properties>
             </Component>
@@ -4402,7 +4402,7 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Popular Movies"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="&quot;view popular (i.e. most downloaded) movies (&quot; + CTRL_CLICK + &quot;view new high quality movies)&quot;" type="code"/>
+          <Connection code="&quot;view most downloaded movies (&quot; + CTRL_CLICK + &quot;view new high quality movies)&quot;" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -4415,7 +4415,7 @@
           <Font name="Tahoma" size="12" style="0"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Popular TV Shows"/>
-        <Property name="toolTipText" type="java.lang.String" value="view popular (i.e. most downloaded) tv shows"/>
+        <Property name="toolTipText" type="java.lang.String" value="view most downloaded television shows"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="popularTVShowsButtonActionPerformed"/>

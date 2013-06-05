@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import util.Constant;
+import util.Regex;
 
 public class Write {
 
@@ -71,7 +72,7 @@ public class Write {
                 }
 
                 String fileName = ze.getName();
-                String[] fileNameParts = fileName.split("/");
+                String[] fileNameParts = Regex.split(fileName, "/");
                 mkFile(fileNameParts, 0, fileNameParts.length - 1, outputDir.substring(0, outputDir.length() - 1));
 
                 InputStream bis = null;

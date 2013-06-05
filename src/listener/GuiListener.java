@@ -60,11 +60,11 @@ public interface GuiListener extends EventListener {
 
     boolean tvChoices(String season, String episode);
 
-    String getDisplayTitle(int row);
+    String getDisplayTitle(int row, String titleID);
 
-    void setDisplayTitle(Object val, int row);
+    void setDisplayTitle(Object val, int row, String titleID);
 
-    void setDisplaySummary(Object val, int row);
+    void setDisplaySummary(Object val, int row, String titleID);
 
     String getSeason();
 

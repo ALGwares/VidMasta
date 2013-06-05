@@ -29,9 +29,27 @@ public class SyncTable {
         }
     }
 
-    public Object getModelValueAt(int rowIndex, int columnIndex) {
+    public Object getModelValueAt(int row, int column) {
         synchronized (lock) {
-            return tableModel.getValueAt(rowIndex, columnIndex);
+            return tableModel.getValueAt(row, column);
+        }
+    }
+
+    private boolean rowExists(int row, int idColumn, String rowId) {
+        return row < tableModel.getRowCount() && rowId.equals(tableModel.getValueAt(row, idColumn));
+    }
+
+    public void setModelValueAt(Object aValue, int row, int column, int idColumn, String rowId) {
+        synchronized (lock) {
+            if (rowExists(row, idColumn, rowId)) {
+                tableModel.setValueAt(aValue, row, column);
+            }
+        }
+    }
+
+    public Object getModelValueAt(int row, int column, int idColumn, String rowId) {
+        synchronized (lock) {
+            return rowExists(row, idColumn, rowId) ? tableModel.getValueAt(row, column) : null;
         }
     }
 
@@ -125,9 +143,9 @@ public class SyncTable {
         }
     }
 
-    public Object getViewValueAt(int rowIndex, int columnIndex) {
+    public Object getViewValueAt(int row, int column) {
         synchronized (lock) {
-            return table.getValueAt(rowIndex, columnIndex);
+            return table.getValueAt(row, column);
         }
     }
 

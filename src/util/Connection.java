@@ -211,7 +211,7 @@ public class Connection {
             try {
                 File proxyIndexFile = new File(Constant.APP_DIR + Constant.DOWNLOAD_LINK_INFO_PROXY_INDEX);
                 int proxyIndex = (proxyIndexFile.exists() ? Integer.parseInt(Read.read(proxyIndexFile)) : 0);
-                Write.write(proxyIndexFile, String.valueOf(++proxyIndex >= proxies.split(Constant.SEPARATOR1).length ? 0 : proxyIndex));
+                Write.write(proxyIndexFile, String.valueOf(++proxyIndex >= Regex.split(proxies, Constant.SEPARATOR1).length ? 0 : proxyIndex));
                 Str.update();
             } catch (Exception e) {
                 if (Debug.DEBUG) {
@@ -230,11 +230,11 @@ public class Connection {
         }
 
         int proxyIndex = Integer.parseInt(Read.read(proxyIndexFile));
-        String[] proxies = strs[516].split(Constant.SEPARATOR1), indexesToUpdate = strs[517].split(",");
+        String[] proxies = Regex.split(strs[516], Constant.SEPARATOR1);
         String nextProxy = proxies[proxyIndex >= proxies.length ? 0 : proxyIndex];
         downloadLinkInfoFailUrl = strs[518];
 
-        for (String indexToUpdate : indexesToUpdate) {
+        for (String indexToUpdate : Regex.split(strs[517], ",")) {
             int indexToUpdateNum = Integer.parseInt(indexToUpdate);
             strs[indexToUpdateNum] = nextProxy + strs[indexToUpdateNum].substring(downloadLinkInfoFailUrl.length());
         }
@@ -360,8 +360,7 @@ public class Connection {
             host = url;
             dots = Str.get(304);
         }
-        return host.replaceFirst(Str.get(305), Str.get(306)).replaceFirst(Str.get(307), Str.get(308))
-                + (showDots ? dots : Str.get(309));
+        return Regex.replaceFirst(Regex.replaceFirst(host, Str.get(305), Str.get(306)), Str.get(307), Str.get(308)) + (showDots ? dots : Str.get(309));
     }
 
     public static Proxy getProxy(int connectionType) throws Exception {
@@ -377,7 +376,7 @@ public class Connection {
             return Proxy.NO_PROXY;
         }
 
-        String[] ipPort = getProxy(selectedProxy).split(Str.get(256));
+        String[] ipPort = Regex.split(getProxy(selectedProxy), Str.get(256));
         return new Proxy(Type.HTTP, new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1])));
     }
 
@@ -427,9 +426,9 @@ public class Connection {
             return null;
         }
 
-        String[] ipPort = Regex.match(proxy, Str.get(253)).split(Str.get(254));
+        String[] ipPort = Regex.split(Regex.match(proxy, Str.get(253)), Str.get(254));
         StringBuilder ip = new StringBuilder(16);
-        String[] ipParts = ipPort[0].split(Str.get(255));
+        String[] ipParts = Regex.split(ipPort[0], Str.get(255));
 
         for (int i = 0; i < 4; i++) {
             int ipPartNum = Integer.parseInt(ipParts[i].trim());
@@ -449,7 +448,7 @@ public class Connection {
             return null;
         }
 
-        return (ip.toString() + port).replaceAll(Str.get(251), Str.get(252));
+        return Regex.replaceAll(ip.toString() + port, Str.get(251), Str.get(252));
     }
 
     public static boolean isPeerBlockRunning() {

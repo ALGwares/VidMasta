@@ -21,7 +21,7 @@ class AppUpdater {
     private static GuiListener guiListener;
     private static final String APP_UPDATE = "appUpdate" + Constant.TXT, INSTALL = "install.xml";
     private String[] appUpdateStrs;
-    static final String APP_UPDATE_FAIL = "updateFail" + String.valueOf(Constant.APP_VERSION) + Constant.TXT;
+    static final String APP_UPDATE_FAIL = "updateFail" + Constant.APP_VERSION + Constant.TXT;
 
     static void install() {
         try {
@@ -42,7 +42,7 @@ class AppUpdater {
 
         String[] updateStrs;
         try {
-            updateStrs = Read.read(update).split(Constant.SEPARATOR1);
+            updateStrs = Regex.split(Read.read(update), Constant.SEPARATOR1);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -51,7 +51,7 @@ class AppUpdater {
             return;
         }
 
-        String[] cmd = updateStrs[0].split(Constant.SEPARATOR2);
+        String[] cmd = Regex.split(updateStrs[0], Constant.SEPARATOR2);
         File installer = new File(cmd[cmd.length - 1]), installerScript = new File(Constant.APP_DIR + INSTALL);
 
         try {
@@ -59,7 +59,8 @@ class AppUpdater {
                 throw new UpdateException("auto-setup installer is corrupt");
             }
             String path = Constant.PROGRAM_DIR;
-            String[] pathParts = Constant.FILE_SEPARATOR.compareTo("\\") == 0 ? path.replace('\\', '/').split("/") : path.split(Constant.FILE_SEPARATOR);
+            String[] pathParts = Constant.FILE_SEPARATOR.compareTo("\\") == 0 ? Regex.split(path.replace('\\', '/'), "/") : Regex.split(path,
+                    Constant.FILE_SEPARATOR);
             StringBuilder pathBuf = new StringBuilder(32);
             for (int i = 0; i < pathParts.length - 1; i++) {
                 pathBuf.append(pathParts[i]).append(Constant.FILE_SEPARATOR);
@@ -87,7 +88,7 @@ class AppUpdater {
     void update(boolean showConfirmation) {
         try {
             if (appUpdateStrs == null) {
-                appUpdateStrs = Connection.getUpdateFile(Str.get(295), showConfirmation).split(Constant.NEWLINE);
+                appUpdateStrs = Regex.split(Connection.getUpdateFile(Str.get(295), showConfirmation), Constant.NEWLINE);
             }
             if (!Regex.isMatch(appUpdateStrs[0], "\\d++\\.\\d++")) {
                 throw new UpdateException("invalid app update version file");
@@ -114,35 +115,38 @@ class AppUpdater {
             if ((new File(Constant.APP_DIR + APP_UPDATE_FAIL)).exists()) {
                 throw new UpdateException("app update installation failed");
             }
-            appUpdateStrs = Connection.getUpdateFile(Str.get(295), false).split(Constant.NEWLINE);
+
+            appUpdateStrs = Regex.split(Connection.getUpdateFile(Str.get(295), false), Constant.NEWLINE);
             if (!Regex.isMatch(appUpdateStrs[0], "\\d++\\.\\d++")) {
                 throw new UpdateException("invalid app update version file");
             }
+
             double newAppVersion = Double.parseDouble(appUpdateStrs[0]);
-            if (Constant.APP_VERSION < newAppVersion && !(new File(Constant.APP_DIR + APP_UPDATE)).exists()) {
-                String installerLink, installerChecksum, installerSuffix;
-                if (System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win")) {
-                    installerLink = appUpdateStrs[3];
-                    installerChecksum = appUpdateStrs[4];
-                    installerSuffix = Constant.EXE;
-                } else {
-                    installerLink = appUpdateStrs[5];
-                    installerChecksum = appUpdateStrs[6];
-                    installerSuffix = Constant.JAR;
-                }
-
-                String installer = Constant.APP_DIR + "auto-vidmasta-setup-" + String.valueOf(newAppVersion) + installerSuffix;
-                Connection.saveData(installerLink, installer, Connection.UPDATE, false);
-
-                StringBuilder installerXml = new StringBuilder(512);
-                for (int i = 7; i < appUpdateStrs.length; i++) {
-                    installerXml.append(appUpdateStrs[i]).append(Constant.NEWLINE);
-                }
-
-                Write.write(Constant.APP_DIR + APP_UPDATE, (installerSuffix.compareTo(Constant.JAR) == 0 ? Constant.JAVA + Constant.SEPARATOR2
-                        + Constant.JAR_OPTION + Constant.SEPARATOR2 : "") + installer + Constant.SEPARATOR1 + installerChecksum + Constant.SEPARATOR1
-                        + installerXml.toString().trim());
+            if (Constant.APP_VERSION >= newAppVersion || (new File(Constant.APP_DIR + APP_UPDATE)).exists()) {
+                return;
             }
+
+            String installerLink, installerChecksum, installerSuffix;
+            if (System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win")) {
+                installerLink = appUpdateStrs[3];
+                installerChecksum = appUpdateStrs[4];
+                installerSuffix = Constant.EXE;
+            } else {
+                installerLink = appUpdateStrs[5];
+                installerChecksum = appUpdateStrs[6];
+                installerSuffix = Constant.JAR;
+            }
+
+            String installer = Constant.APP_DIR + "auto-vidmasta-setup-" + newAppVersion + installerSuffix;
+            Connection.saveData(installerLink, installer, Connection.UPDATE, false);
+
+            StringBuilder installerXml = new StringBuilder(512);
+            for (int i = 7; i < appUpdateStrs.length; i++) {
+                installerXml.append(appUpdateStrs[i]).append(Constant.NEWLINE);
+            }
+
+            Write.write(Constant.APP_DIR + APP_UPDATE, (installerSuffix.equals(Constant.JAR) ? Constant.JAVA + Constant.SEPARATOR2 + Constant.JAR_OPTION
+                    + Constant.SEPARATOR2 : "") + installer + Constant.SEPARATOR1 + installerChecksum + Constant.SEPARATOR1 + installerXml.toString().trim());
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);

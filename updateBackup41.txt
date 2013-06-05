@@ -1,4 +1,4 @@
-92
+93
 http://www.ask.com/web?q=
 http://search.yahoo.com/search?q=
 http://www.bing.com/search?q=
@@ -371,7 +371,7 @@ http://www.quicksilverscreen.ch/videos?mt=&q=
 href="
 "
 site:1channel.ch
-1channel\.ch/watch-[^<"]++"
+1channel\.ch/((watch)|(tv))-[^<"]++"
 <\s*+div\s++class\s*+=\s*+"stage_navigation movie_navigation"\s*+>\s*+<\s*+h1\s++class\s*+=\s*+"titles"\s*+>\s*+<\s*+span\s*+>\s*+<\s*+a\s++href\s*+=[^>]++>
 <\s*+/a\s*+>
 EMPTY
@@ -396,7 +396,7 @@ http://www.bitlet.org/download?torrent=file%3A%2F%2F%2F
 http://sites.google.com/site/algwares/bittorrentclient?torrent=file%3A%2F%2F%2F
 -1
 http://www.1channel.ch/index.php?search
-\s++name\s*+=\s*+"key"\s++value\s*+=\s*+"
+(\s++name\s*+=\s*+"key"\s++value\s*+=\s*+")|(\s++title\s*+=\s*+"Submit Search"\s++type\s*+=\s*+")
 "
 http://www.1channel.ch/index.php?search_section=
 2
@@ -404,10 +404,10 @@ http://www.1channel.ch/index.php?search_section=
 &search_keywords=
 &genre=&director=&actor_name=&tag=&country=&search_rating=0&year=
 &month=0&decade=0&host=&advanced=1&key=
-<\s*+div\s++class\s*+=\s*+"index_item index_item_ie"\s*+>\s*+<\s*+a\s++href\s*+=\s*+"/watch-[^"]++"\s++title\s*+=\s*+"Watch\s++[^"]++"\s*+>
+<\s*+div\s++class\s*+=\s*+"index_item index_item_ie"\s*+>\s*+<\s*+a\s++href\s*+=\s*+"(https?+://www\.1channel\.ch)?+/((watch)|(tv))-[^"]++"\s++title\s*+=\s*+"Watch\s++[^"]++"\s*+>
 \s++title\s*+=\s*+"Watch\s++
 "
-<\s*+a\s++href\s*+=\s*+"
+<\s*+a\s++href\s*+=\s*+"(https?+://www\.1channel\.ch)?+
 "
 http://www.1channel.ch
 -1

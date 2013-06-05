@@ -141,8 +141,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
             return true; //TV show's episode imdb title IDs != TV show's general imdb title ID
         }
         String titleLink = Regex.match(result, Str.get(427));
-        String resultID = titleLink.replaceFirst(Str.get(428), Str.get(429)).replaceAll(Str.get(423),
-                Str.get(424));
+        String resultID = Regex.replaceAll(Regex.replaceFirst(titleLink, Str.get(428), Str.get(429)), Str.get(423), Str.get(424));
         if (Debug.DEBUG) {
             Debug.println("subtitle search result: resultID='" + resultID + "' titleID='" + titleID + "'");
         }
@@ -157,7 +156,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
 
         List<Subtitle> subtitles = new ArrayList<Subtitle>(results.size());
         if (isExactResult) {
-            String[] resultParts = results.get(0).split(Constant.SEPARATOR1);
+            String[] resultParts = Regex.split(results.get(0), Constant.SEPARATOR1);
             if (resultMatches(resultParts[0]) && TorrentFinder.isRightFormat(resultParts[2], format)) {
                 subtitles.add(new Subtitle(resultParts[1], -1));
             }
@@ -173,7 +172,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 String titleName = Regex.match(Regex.match(result, Str.get(455)), Str.get(456),
                         Str.get(457));
                 if (Debug.DEBUG) {
-                    Debug.println("subtitle match: name='" + titleName.replaceAll("\\s++", " ") + "' subtitleID='" + subtitleID + "' downloadCount='"
+                    Debug.println("subtitle match: name='" + Regex.replaceAll(titleName, "\\s++", " ") + "' subtitleID='" + subtitleID + "' downloadCount='"
                             + downloadCount + "'");
                 }
 
@@ -308,9 +307,8 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 return -1;
             } else if (downloadCount < result.downloadCount) {
                 return 1;
-            } else {
-                return 0;
             }
+            return 0;
         }
 
         @Override

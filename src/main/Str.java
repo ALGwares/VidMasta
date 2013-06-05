@@ -49,8 +49,7 @@ public class Str {
                 return;
             }
 
-            String[] oldUpdateStrs = Read.read(Constant.APP_DIR + Constant.UPDATE_FILE).split(Constant.NEWLINE);
-            int currVersion = Integer.parseInt(oldUpdateStrs[0]);
+            int currVersion = Integer.parseInt(Regex.split(Read.read(Constant.APP_DIR + Constant.UPDATE_FILE), Constant.NEWLINE)[0]);
             int newVersion = Integer.parseInt(newVersionStr);
 
             if (currVersion < newVersion) {
@@ -188,21 +187,21 @@ public class Str {
     public static String clean(String str) {
         String result = str;
         for (Entry<String, String> entry : Regex.badStrs.entrySet()) {
-            result = result.replaceAll(entry.getKey(), entry.getValue());
+            result = Regex.replaceAll(result, entry.getKey(), entry.getValue());
         }
-        return htmlToPlainText(result).replaceAll(get(136), get(133)).replaceAll(get(339), get(340)).trim();
+        return Regex.replaceAll(Regex.replaceAll(htmlToPlainText(result), get(136), get(133)), get(339), get(340)).trim();
     }
 
     public static String cleanWeirdChars(String str) {
-        String result = Normalizer.normalize(str, Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String result = Regex.replaceAll(Normalizer.normalize(str, Form.NFD), "\\p{InCombiningDiacriticalMarks}+", "");
         for (Entry<String, String> entry : Regex.weirdChars.entrySet()) {
-            result = result.replaceAll(entry.getKey(), entry.getValue());
+            result = Regex.replaceAll(result, entry.getKey(), entry.getValue());
         }
         return result;
     }
 
     public static String toFileName(String str) {
-        return clean(str).replace(' ', '+').replaceAll("[^\\p{Alnum}\\+]", "");
+        return Regex.replaceAll(clean(str).replace(' ', '+'), "[^\\p{Alnum}\\+]", "");
     }
 
     public static void waitForUpdate() {

@@ -1,0 +1,8 @@
+VIDMASTA CHANGELOG
+------------------
+
+2013.06.05   | VidMasta 16.3
+
+CHANGE: Core | Fixed accidental cancellation of summary, download, watch, and subtitle searches when loading more search results or starting a new search
+CHANGE: Core | Overall improved performance by more caching of compiled regular expressions
+CHANGE: UI   | Removed unnecessary messages and confirmations when downloading proxies

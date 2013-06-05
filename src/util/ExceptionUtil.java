@@ -6,7 +6,7 @@ public class ExceptionUtil {
         String msg = e.getMessage();
 
         if (e instanceof IndexOutOfBoundsException && msg != null) {
-            String[] msgParts = msg.split(":");
+            String[] msgParts = Regex.split(msg, ":");
             if (msgParts.length > 0) {
                 String index = msgParts[msgParts.length - 1].trim();
                 if (index.matches("\\d++")) {

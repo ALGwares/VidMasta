@@ -10,7 +10,7 @@ public interface WorkerListener extends EventListener {
 
     void searchStopped(boolean isRegularSearcher);
 
-    void searchStarted();
+    void summarySearchStopped();
 
     void torrentAndStreamSearchStopped();
 
@@ -35,11 +35,14 @@ public interface WorkerListener extends EventListener {
     void summarySearchStarted(int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year, boolean isTVShow,
             String season, String episode, int row);
 
-    void trailerSearchStarted(int action, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season, String episode, int row);
+    void trailerSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
+            String episode, int row);
 
-    void torrentSearchStarted(int action, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season, String episode, int row);
+    void torrentSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
+            String episode, int row);
 
-    void streamSearchStarted(int action, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season, String episode, int row);
+    void streamSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
+            String episode, int row);
 
     void proxyListDownloadStarted();
 

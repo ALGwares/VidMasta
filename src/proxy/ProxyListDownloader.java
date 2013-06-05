@@ -10,6 +10,7 @@ import listener.GuiListener;
 import main.Str;
 import util.Connection;
 import util.Constant;
+import util.Regex;
 import util.io.Read;
 import util.io.Write;
 
@@ -39,7 +40,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
         int latestVersion;
         String latestDate;
         try {
-            String[] versionStrs = Connection.getUpdateFile(Str.get(291)).split(Constant.NEWLINE);
+            String[] versionStrs = Regex.split(Connection.getUpdateFile(Str.get(291)), Constant.NEWLINE);
             latestVersion = Integer.parseInt(versionStrs[0]);
             latestDate = versionStrs[1];
             proxyFile = versionStrs[2];
@@ -78,8 +79,9 @@ public class ProxyListDownloader extends AbstractSwingWorker {
 
     private boolean hasLatestProxies() {
         try {
-            Collection<String> proxies = new ArrayList<String>(Arrays.asList(Read.read(Constant.APP_DIR + "bk_" + Constant.PROXIES).split(Constant.NEWLINE)));
-            proxies.removeAll(Arrays.asList(Read.read(Constant.APP_DIR + Constant.PROXIES).split(Constant.NEWLINE)));
+            Collection<String> proxies = new ArrayList<String>(Arrays.asList(Regex.split(Read.read(Constant.APP_DIR + "bk_" + Constant.PROXIES),
+                    Constant.NEWLINE)));
+            proxies.removeAll(Arrays.asList(Regex.split(Read.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)));
             return proxies.isEmpty();
         } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -90,9 +92,9 @@ public class ProxyListDownloader extends AbstractSwingWorker {
     }
 
     private void addProxies(int latestVersion) throws Exception {
-        String[] newProxies = Connection.getUpdateFile(proxyFile).split(Constant.NEWLINE);
-        String[] oldProxies = new File(Constant.APP_DIR + Constant.PROXIES).exists() ? Read.read(Constant.APP_DIR + Constant.PROXIES).split(Constant.NEWLINE)
-                : Constant.EMPTY_STRS;
+        String[] newProxies = Regex.split(Connection.getUpdateFile(proxyFile), Constant.NEWLINE);
+        String[] oldProxies = new File(Constant.APP_DIR + Constant.PROXIES).exists() ? Regex.split(Read.read(Constant.APP_DIR + Constant.PROXIES),
+                Constant.NEWLINE) : Constant.EMPTY_STRS;
 
         Collection<String> proxies = new ArrayList<String>(newProxies.length + oldProxies.length);
         StringBuilder proxiesStr = new StringBuilder((newProxies.length + oldProxies.length) * 32);

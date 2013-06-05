@@ -37,9 +37,8 @@ public class Torrent implements Comparable<Torrent> {
             return -1;
         } else if (sizeInGiB > torrent.sizeInGiB) {
             return 1;
-        } else {
-            return file.compareTo(torrent.file);
         }
+        return file.compareTo(torrent.file);
     }
 
     @Override

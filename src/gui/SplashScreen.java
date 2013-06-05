@@ -85,7 +85,7 @@ public class SplashScreen extends JFrame {
     }
 
     void progress() {
-        statusBarTextField.setText(" Initializing - " + String.valueOf((int) ((++progress / (double) MAX_PROGRESS) * 100)) + "% Done");
+        statusBarTextField.setText(" Initializing - " + ((int) ((++progress / (double) MAX_PROGRESS) * 100)) + "% Done");
     }
 
     @SuppressWarnings("unchecked")

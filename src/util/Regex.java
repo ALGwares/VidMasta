@@ -14,7 +14,7 @@ import main.Str;
 public class Regex {
 
     private static final int initialCapacity = Integer.parseInt(Str.get(164));
-    private static final Map<String, Pattern> cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 3, .75f, initialCapacity);
+    private static final Map<String, Pattern> cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, .75f, initialCapacity);
     public static final Map<String, String> weirdChars = new TreeMap<String, String>(), badStrs = new TreeMap<String, String>();
     public static final Map<String, String> languages = new TreeMap<String, String>(), countries = new TreeMap<String, String>();
     public static final Map<String, String> subtitleLanguages = new TreeMap<String, String>();
@@ -61,6 +61,18 @@ public class Regex {
         }
     }
 
+    public static String[] split(String input, String regex) {
+        return pattern(regex).split(input);
+    }
+
+    public static String replaceFirst(String input, String regex, String replacement) {
+        return matcher(regex, input).replaceFirst(replacement);
+    }
+
+    public static String replaceAll(String input, String regex, String replacement) {
+        return matcher(regex, input).replaceAll(replacement);
+    }
+
     public static boolean isMatch(String input, String regex) {
         return matcher(regex, input).matches();
     }
@@ -94,23 +106,25 @@ public class Regex {
 
         Matcher startMatcher = matcher(startRegex, input);
         while (!startMatcher.hitEnd()) {
-            if (startMatcher.find()) {
-                int startRegexEnd = startMatcher.end(), endIndex = -1;
-
-                Matcher endMatcher = matcher(endRegex, input.substring(startRegexEnd));
-                while (!endMatcher.hitEnd()) {
-                    if (endMatcher.find()) {
-                        endIndex = endMatcher.start();
-                        break;
-                    }
-                }
-
-                if (endIndex == -1) {
-                    continue;
-                }
-
-                result.add(input.substring(startRegexEnd, endIndex + startRegexEnd).trim());
+            if (!startMatcher.find()) {
+                continue;
             }
+
+            int startRegexEnd = startMatcher.end(), endIndex = -1;
+
+            Matcher endMatcher = matcher(endRegex, input.substring(startRegexEnd));
+            while (!endMatcher.hitEnd()) {
+                if (endMatcher.find()) {
+                    endIndex = endMatcher.start();
+                    break;
+                }
+            }
+
+            if (endIndex == -1) {
+                continue;
+            }
+
+            result.add(input.substring(startRegexEnd, endIndex + startRegexEnd).trim());
         }
 
         return result;
@@ -119,23 +133,25 @@ public class Regex {
     public static String match(String input, String startRegex, String endRegex) {
         Matcher startMatcher = matcher(startRegex, input);
         while (!startMatcher.hitEnd()) {
-            if (startMatcher.find()) {
-                int startRegexEnd = startMatcher.end(), endIndex = -1;
-
-                Matcher endMatcher = matcher(endRegex, input.substring(startRegexEnd));
-                while (!endMatcher.hitEnd()) {
-                    if (endMatcher.find()) {
-                        endIndex = endMatcher.start();
-                        break;
-                    }
-                }
-
-                if (endIndex == -1) {
-                    return "";
-                }
-
-                return input.substring(startRegexEnd, endIndex + startRegexEnd).trim();
+            if (!startMatcher.find()) {
+                continue;
             }
+
+            int startRegexEnd = startMatcher.end(), endIndex = -1;
+
+            Matcher endMatcher = matcher(endRegex, input.substring(startRegexEnd));
+            while (!endMatcher.hitEnd()) {
+                if (endMatcher.find()) {
+                    endIndex = endMatcher.start();
+                    break;
+                }
+            }
+
+            if (endIndex == -1) {
+                return "";
+            }
+
+            return input.substring(startRegexEnd, endIndex + startRegexEnd).trim();
         }
 
         return "";

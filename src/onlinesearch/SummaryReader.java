@@ -75,14 +75,14 @@ public class SummaryReader extends AbstractSwingWorker {
             newSummary = Regex.match(newSummary, br1, "\\z");
         }
 
-        summary = newSummary.replaceAll(Str.get(468), Str.get(469)).replaceAll(Str.get(470), Str.get(471));
+        summary = Regex.replaceAll(Regex.replaceAll(newSummary, Str.get(468), Str.get(469)), Str.get(470), Str.get(471));
         for (Entry<String, String> entry : Regex.badStrs.entrySet()) {
             String hexCode = entry.getKey();
             if (hexCode.charAt(0) == '&') {
-                summary = summary.replaceAll(hexCode, entry.getValue());
+                summary = Regex.replaceAll(summary, hexCode, entry.getValue());
             }
         }
-        summary = Str.htmlToPlainText(summary).replaceAll(Str.get(472), Str.get(473)).replaceAll(Str.get(339), Str.get(340)).trim();
+        summary = Regex.replaceAll(Regex.replaceAll(Str.htmlToPlainText(summary), Str.get(472), Str.get(473)), Str.get(339), Str.get(340)).trim();
 
         List<String> summaryParts = new ArrayList<String>(8);
         getSummaryParts(summaryParts, summary, Integer.parseInt(Str.get(478)));

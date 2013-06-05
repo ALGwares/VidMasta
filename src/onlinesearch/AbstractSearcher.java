@@ -60,9 +60,9 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected Object doInBackground() {
         guiListener.searchStarted();
         if (isNewSearch && isNewSearch()) {
+            guiListener.newSearch(numResultsPerSearch);
             numResults.set(0);
             numSearchResults.set(0);
-            guiListener.newSearch(numResultsPerSearch);
 
             try {
                 initialSearch();
@@ -164,36 +164,38 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     }
 
     private void searchNextPage() throws Exception {
-        if (hasNextSearchPage()) {
-            if (videoBuffer.isEmpty()) {
-                initCurrVideos();
-                if (isCancelled()) {
-                    return;
-                }
-            }
+        if (!hasNextSearchPage()) {
+            return;
+        }
 
-            int numVideos = videoBuffer.size(), numResultsLeft = numResultsPerSearch - numSearchResults.get();
-            if (numResultsLeft >= 0 && numVideos > numResultsLeft) {
-                numVideos = numResultsLeft;
-            }
-            List<Video> subList = videoBuffer.subList(0, numVideos);
-            Iterable<Video> videos = new ArrayList<Video>(subList);
-            subList.clear();
-
-            Collection<SearcherHelper> searchHelpers = new ArrayList<SearcherHelper>(numVideos);
-
-            for (Video video : videos) {
-                searchHelpers.add(new SearcherHelper(video, findImage(video)));
-            }
-
-            SwingWorkerUtil.execute(this, searchHelpers, numVideos);
+        if (videoBuffer.isEmpty()) {
+            initCurrVideos();
             if (isCancelled()) {
                 return;
             }
+        }
 
-            if (videoBuffer.isEmpty()) {
-                currSearchPage++;
-            }
+        int numVideos = videoBuffer.size(), numResultsLeft = numResultsPerSearch - numSearchResults.get();
+        if (numResultsLeft >= 0 && numVideos > numResultsLeft) {
+            numVideos = numResultsLeft;
+        }
+        List<Video> subList = videoBuffer.subList(0, numVideos);
+        Iterable<Video> videos = new ArrayList<Video>(subList);
+        subList.clear();
+
+        Collection<SearcherHelper> searchHelpers = new ArrayList<SearcherHelper>(numVideos);
+
+        for (Video video : videos) {
+            searchHelpers.add(new SearcherHelper(video, findImage(video)));
+        }
+
+        SwingWorkerUtil.execute(this, searchHelpers, numVideos);
+        if (isCancelled()) {
+            return;
+        }
+
+        if (videoBuffer.isEmpty()) {
+            currSearchPage++;
         }
     }
 
@@ -238,25 +240,27 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
     private void startPrefetcher() {
         final int nextPage = currSearchPage + 1;
-        if (hasNextPage(nextPage)) {
-            prefetcher = new SwingWorker<Object, Object[]>() {
-                @Override
-                protected Object doInBackground() throws Exception {
-                    if (Debug.DEBUG) {
-                        Debug.println("prefetching search page " + (nextPage + 1));
-                    }
-                    try {
-                        Connection.getSourceCode(getUrl(nextPage), connectionType(), false);
-                    } catch (Exception e) {
-                        if (Debug.DEBUG) {
-                            Debug.print(e);
-                        }
-                    }
-                    return null;
-                }
-            };
-            prefetcher.execute();
+        if (!hasNextPage(nextPage)) {
+            return;
         }
+
+        prefetcher = new SwingWorker<Object, Object[]>() {
+            @Override
+            protected Object doInBackground() throws Exception {
+                if (Debug.DEBUG) {
+                    Debug.println("prefetching search page " + (nextPage + 1));
+                }
+                try {
+                    Connection.getSourceCode(getUrl(nextPage), connectionType(), false);
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                }
+                return null;
+            }
+        };
+        prefetcher.execute();
     }
 
     private void stopPrefetcher() {
@@ -322,20 +326,18 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 }
             }
 
-            if (isCancelled()) {
+            if (isCancelled() || !allVideos.add(video.id)) {
                 return;
             }
 
-            if (allVideos.add(video.id)) {
-                Object[] row = video.toTableRow(guiListener, !findImage, false);
-                if (isCancelled()) {
-                    allVideos.remove(video.id);
-                    return;
-                }
-                publish(row);
-                synchronized (SearcherHelper.class) {
-                    incrementProgress();
-                }
+            Object[] row = video.toTableRow(guiListener, !findImage, false);
+            if (isCancelled()) {
+                allVideos.remove(video.id);
+                return;
+            }
+            publish(row);
+            synchronized (SearcherHelper.class) {
+                incrementProgress();
             }
         }
     }

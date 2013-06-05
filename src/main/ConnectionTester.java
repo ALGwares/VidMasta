@@ -10,6 +10,7 @@ import javax.swing.SwingWorker;
 import listener.GuiListener;
 import util.ConnectionException;
 import util.Constant;
+import util.Regex;
 import util.io.CleanUp;
 import util.io.Write;
 
@@ -25,11 +26,10 @@ public class ConnectionTester extends SwingWorker<Object, Object[]> {
     protected Object doInBackground() {
         Str.waitForUpdate();
         Collection<String> restrictedConnectionTypes = new HashSet<String>(8);
-        String[] websites = Str.get(387).split(Constant.SEPARATOR2);
         boolean isConnected = false;
 
-        for (String website : websites) {
-            String[] websiteParts = website.split(Constant.SEPARATOR1);
+        for (String website : Regex.split(Str.get(387), Constant.SEPARATOR2)) {
+            String[] websiteParts = Regex.split(website, Constant.SEPARATOR1);
             String site = websiteParts[0];
 
             HttpURLConnection connection = null;

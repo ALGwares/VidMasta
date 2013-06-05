@@ -177,8 +177,7 @@ public class GUI extends JFrame implements GuiListener {
     private JTextFieldDateEditor startDateTextField, endDateTextField;
     boolean usePeerBlock;
     private Thread profileMsgThread;
-    private final Lock findTitleReadLock;
-    private final Lock findTitleWriteLock;
+    private final Lock findTitleReadLock, findTitleWriteLock;
     private final ArrayList<String> findTitles = new ArrayList<String>(0);
     private boolean[] findTitleTwice = new boolean[0];
     private int findTitleRow = -2;
@@ -377,13 +376,12 @@ public class GUI extends JFrame implements GuiListener {
 
             List<String> genreArr = new ArrayList<String>(32);
             genreArr.add(Constant.ANY_GENRE);
-            genreArr.addAll(Arrays.asList(Str.get(359).split(Constant.SEPARATOR1)));
+            genreArr.addAll(Arrays.asList(Regex.split(Str.get(359), Constant.SEPARATOR1)));
             genreList.setListData(genreArr.toArray());
             genreList.setSelectedValue(Constant.ANY_GENRE, true);
 
             ratingComboBox.addItem(Constant.ANY);
-            String[] ratings = Str.get(360).split(Constant.SEPARATOR1);
-            for (String rating : ratings) {
+            for (String rating : Regex.split(Str.get(360), Constant.SEPARATOR1)) {
                 ratingComboBox.addItem(rating);
             }
             ratingComboBox.setSelectedItem(Constant.ANY);
@@ -393,8 +391,7 @@ public class GUI extends JFrame implements GuiListener {
             if (new File(Constant.APP_DIR + Constant.PROXIES).exists()) {
                 proxyComboBox.removeAllItems();
                 proxyComboBox.addItem(Constant.NO_PROXY);
-                String[] proxyList = Read.read(Constant.APP_DIR + Constant.PROXIES).split(Constant.NEWLINE);
-                for (String proxy : proxyList) {
+                for (String proxy : Regex.split(Read.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)) {
                     String newProxy = proxy.trim();
                     if (!newProxy.isEmpty()) {
                         proxyComboBox.addItem(newProxy);
@@ -406,20 +403,20 @@ public class GUI extends JFrame implements GuiListener {
             splashScreen.progress();
 
             profileComboBox.addItem(Constant.DEFAULT_PROFILE);
-            String[] profiles = Read.read(Constant.APP_DIR + Constant.PROFILES).split(Constant.NEWLINE);
+            String[] profiles = Regex.split(Read.read(Constant.APP_DIR + Constant.PROFILES), Constant.NEWLINE);
             if (profiles.length != 9) {
-                profiles = Read.read(Constant.PROGRAM_DIR + Constant.PROFILES).split(Constant.NEWLINE);
+                profiles = Regex.split(Read.read(Constant.PROGRAM_DIR + Constant.PROFILES), Constant.NEWLINE);
             }
             for (int i = 0; i < profiles.length; i++) {
                 profileComboBox.addItem(profiles[i]);
                 updateProfileGUIitems(i + 1);
             }
             profileComboBox.setSelectedItem(Constant.DEFAULT_PROFILE);
-            faqEditorPane.setText(Read.read(Constant.PROGRAM_DIR + "FAQ" + Constant.HTML).replaceFirst("<br><br><br>", Str.get(555) + "<br><br><br>"));
+            faqEditorPane.setText(Regex.replaceFirst(Read.read(Constant.PROGRAM_DIR + "FAQ" + Constant.HTML), "<br><br><br>", Str.get(555) + "<br><br><br>"));
 
             splashScreen.progress();
 
-            AutoCompleteDecorator.decorate(titleTextField, Arrays.asList(Read.read(Constant.PROGRAM_DIR + "autoCompleteTitles" + Constant.TXT).split(
+            AutoCompleteDecorator.decorate(titleTextField, Arrays.asList(Regex.split(Read.read(Constant.PROGRAM_DIR + "autoCompleteTitles" + Constant.TXT),
                     Constant.NEWLINE)), false);
 
             //don't change order of things below this line
@@ -1045,7 +1042,7 @@ public class GUI extends JFrame implements GuiListener {
 
         aboutEditorPane.setEditable(false);
         aboutEditorPane.setContentType("text/html"); // NOI18N
-        aboutEditorPane.setText("<html><head></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Constant.APP_TITLE + "<br><br>Version " + String.valueOf(Constant.APP_VERSION) + "<br><br>Created by Anthony Gray</font></td></tr></table></body></html>");
+        aboutEditorPane.setText("<html><head></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Constant.APP_TITLE + "<br><br>Version " + Constant.APP_VERSION + "<br><br>Created by Anthony Gray</font></td></tr></table></body></html>");
         aboutScrollPane.setViewportView(aboutEditorPane);
 
         GroupLayout aboutDialogLayout = new GroupLayout(aboutDialog.getContentPane());
@@ -2845,7 +2842,7 @@ public class GUI extends JFrame implements GuiListener {
 
         popularMoviesButton.setFont(new Font("Tahoma", 0, 12)); // NOI18N
         popularMoviesButton.setText("Popular Movies");
-        popularMoviesButton.setToolTipText("view popular (i.e. most downloaded) movies (" + CTRL_CLICK + "view new high quality movies)");
+        popularMoviesButton.setToolTipText("view most downloaded movies (" + CTRL_CLICK + "view new high quality movies)");
         popularMoviesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 popularMoviesButtonActionPerformed(evt);
@@ -2854,7 +2851,7 @@ public class GUI extends JFrame implements GuiListener {
 
         popularTVShowsButton.setFont(new Font("Tahoma", 0, 12)); // NOI18N
         popularTVShowsButton.setText("Popular TV Shows");
-        popularTVShowsButton.setToolTipText("view popular (i.e. most downloaded) tv shows");
+        popularTVShowsButton.setToolTipText("view most downloaded television shows");
         popularTVShowsButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 popularTVShowsButtonActionPerformed(evt);
@@ -3679,6 +3676,7 @@ public class GUI extends JFrame implements GuiListener {
         } else {
             return;
         }
+
         TransferHandler th = textField.getTransferHandler();
         if (th != null) {
             th.exportToClipboard(textField, Toolkit.getDefaultToolkit().getSystemClipboard(), TransferHandler.COPY);
@@ -3936,38 +3934,38 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_closeBoxButtonActionPerformed
 
     void resultsTableValueChanged(ListSelectionEvent evt) {
-        if (evt.getSource().equals(resultsSyncTable.getSelectionModel())) {
-            //order matters because of Synthetica bug
-            boolean enable = false;
+        if (!evt.getSource().equals(resultsSyncTable.getSelectionModel())) {
+            return;
+        }
+
+        //order matters because of Synthetica bug
+        boolean enable = false;
+        enableWatch(enable);
+        enableDownload(enable);
+        watchTrailerButton.setEnabled(enable);
+        watchTrailerMenuItem.setEnabled(enable);
+        readSummaryButton.setEnabled(enable);
+        readSummaryMenuItem.setEnabled(enable);
+
+        if (evt.getFirstIndex() < 0 || resultsSyncTable.getSelectedRows().length != 1) {
+            return;
+        }
+
+        //order matters because of Synthetica bug
+        enable = true;
+        if (workerListener.isStreamSearchDone()) {
             enableWatch(enable);
+        }
+        if (workerListener.isTorrentSearchDone()) {
             enableDownload(enable);
+        }
+        if (workerListener.isTrailerSearchDone()) {
             watchTrailerButton.setEnabled(enable);
             watchTrailerMenuItem.setEnabled(enable);
+        }
+        if (workerListener.isSummarySearchDone()) {
             readSummaryButton.setEnabled(enable);
             readSummaryMenuItem.setEnabled(enable);
-
-            if (evt.getFirstIndex() >= 0) {
-                if (resultsSyncTable.getSelectedRows().length != 1) {
-                    return;
-                }
-
-                //order matters because of Synthetica bug
-                enable = true;
-                if (workerListener.isStreamSearchDone()) {
-                    enableWatch(enable);
-                }
-                if (workerListener.isTorrentSearchDone()) {
-                    enableDownload(enable);
-                }
-                if (workerListener.isTrailerSearchDone()) {
-                    watchTrailerButton.setEnabled(enable);
-                    watchTrailerMenuItem.setEnabled(enable);
-                }
-                if (workerListener.isSummarySearchDone()) {
-                    readSummaryButton.setEnabled(enable);
-                    readSummaryMenuItem.setEnabled(enable);
-                }
-            }
         }
     }
 
@@ -4004,8 +4002,8 @@ public class GUI extends JFrame implements GuiListener {
             season = row.content[5];
             episode = row.content[6];
         }
-        workerListener.summarySearchStarted(Constant.SUMMARY_ACTION, row.id(), row.content[0], row.content[1], row.content[2],
-                row.content[3].equals(Constant.TRUE), row.year(), row.content[4].equals(Constant.TRUE), season, episode, row.val);
+        workerListener.summarySearchStarted(Constant.SUMMARY_ACTION, row.id, row.content[0], row.content[1], row.content[2], row.content[3].equals(Constant.TRUE),
+                row.year, row.content[4].equals(Constant.TRUE), season, episode, row.val);
     }//GEN-LAST:event_readSummaryButtonActionPerformed
 
     void watchTrailerButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchTrailerButtonActionPerformed
@@ -4017,7 +4015,7 @@ public class GUI extends JFrame implements GuiListener {
             resultsSyncTable.setModelValueAt(row.content[0] + Constant.SEPARATOR1 + row.content[1] + Constant.SEPARATOR1 + row.content[2] + Constant.SEPARATOR1
                     + row.content[3] + Constant.SEPARATOR1 + row.content[4], row.val, summaryCol);
         }
-        workerListener.trailerSearchStarted(Constant.TRAILER_ACTION, row.content[0], row.content[1], row.content[3].equals(Constant.TRUE), row.year(),
+        workerListener.trailerSearchStarted(Constant.TRAILER_ACTION, row.id, row.content[0], row.content[1], row.content[3].equals(Constant.TRUE), row.year,
                 row.content[4].equals(Constant.TRUE), season, episode, row.val);
     }//GEN-LAST:event_watchTrailerButtonActionPerformed
 
@@ -4028,8 +4026,8 @@ public class GUI extends JFrame implements GuiListener {
             season = row.content[5];
             episode = row.content[6];
         }
-        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? Constant.TORRENT3_ACTION : torrentAction, row.content[0], row.content[1],
-                row.content[3].equals(Constant.TRUE), row.year(), row.content[4].equals(Constant.TRUE), season, episode, row.val);
+        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? Constant.TORRENT3_ACTION : torrentAction, row.id, row.content[0], row.content[1],
+                row.content[3].equals(Constant.TRUE), row.year, row.content[4].equals(Constant.TRUE), season, episode, row.val);
     }
 
     void downloadLink1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink1ButtonActionPerformed
@@ -4098,42 +4096,34 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_textComponentCopyMenuItemActionPerformed
 
     private void popupTextFieldTransfer(int type) {
-        if (popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && popupTextComponent.getSelectedText() != null) {
-            TransferHandler th = popupTextComponent.getTransferHandler();
-            if (th != null) {
-                th.exportToClipboard(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard(), type);
-            }
+        TransferHandler th;
+        if (popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && popupTextComponent.getSelectedText() != null && (th =
+                popupTextComponent.getTransferHandler()) != null) {
+            th.exportToClipboard(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard(), type);
         }
     }
 
     void textComponentPasteMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_textComponentPasteMenuItemActionPerformed
-        if (isClipboardEmpty()) {
-            return;
-        }
-
-        if (popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible()) {
-            TransferHandler th = popupTextComponent.getTransferHandler();
-            if (th != null) {
-                th.importData(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
-            }
+        TransferHandler th;
+        if (!isClipboardEmpty() && popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && (th =
+                popupTextComponent.getTransferHandler()) != null) {
+            th.importData(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
         }
     }//GEN-LAST:event_textComponentPasteMenuItemActionPerformed
 
     void textComponentPasteSearchMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_textComponentPasteSearchMenuItemActionPerformed
-        if (isClipboardEmpty()) {
+        if (isClipboardEmpty() || popupTextComponent == null || !popupTextComponent.getCaret().isSelectionVisible()) {
             return;
         }
 
-        if (popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible()) {
-            TransferHandler th = popupTextComponent.getTransferHandler();
-            if (th != null) {
-                th.importData(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
-            }
-            if (popupTextComponent == findTextField) {
-                findTextFieldKeyPressed(null);
-            } else if (popupTextComponent == titleTextField || popupTextComponent == startDateTextField || popupTextComponent == endDateTextField) {
-                searchButtonActionPerformed(null);
-            }
+        TransferHandler th = popupTextComponent.getTransferHandler();
+        if (th != null) {
+            th.importData(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
+        }
+        if (popupTextComponent == findTextField) {
+            findTextFieldKeyPressed(null);
+        } else if (popupTextComponent == titleTextField || popupTextComponent == startDateTextField || popupTextComponent == endDateTextField) {
+            searchButtonActionPerformed(null);
         }
     }//GEN-LAST:event_textComponentPasteSearchMenuItemActionPerformed
 
@@ -4445,7 +4435,7 @@ public class GUI extends JFrame implements GuiListener {
             oldProxies.add((String) proxyComboBox.getItemAt(i + 1));
         }
 
-        String[] proxyList = proxies.split(Constant.STD_NEWLINE);
+        String[] proxyList = Regex.split(proxies, Constant.STD_NEWLINE);
         Collection<String> validProxies = new ArrayList<String>(proxyList.length);
         for (String proxy : proxyList) {
             String newProxy = proxy.trim();
@@ -4855,7 +4845,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void watchSourceButtonAction(int streamAction) {
         SelectedTableRow row = selectedRow();
-        workerListener.streamSearchStarted(streamAction, row.content[0], row.content[1], row.content[3].equals(Constant.TRUE), row.year(),
+        workerListener.streamSearchStarted(streamAction, row.id, row.content[0], row.content[1], row.content[3].equals(Constant.TRUE), row.year,
                 row.content[4].equals(Constant.TRUE), null, null, row.val);
     }
 
@@ -4885,9 +4875,9 @@ public class GUI extends JFrame implements GuiListener {
 
     void findSubtitleMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findSubtitleMenuItemActionPerformed
         SelectedTableRow row = selectedRow();
-        subtitleTitleID = row.id();
+        subtitleTitleID = row.id;
         subtitleTitle = Str.clean(row.content[0]);
-        subtitleYear = row.year();
+        subtitleYear = row.year;
         isTVShowSubtitle = isTVShowSearch;
 
         if (subtitleFormat != null) {
@@ -5031,10 +5021,9 @@ public class GUI extends JFrame implements GuiListener {
                 findTitles.ensureCapacity(findTitleTwice.length * 2);
 
                 for (int i = 0; i < findTitleTwice.length; i++) {
-                    String[] cellTextParts = ((String) resultsSyncTable.getModelValueAt(i, summaryCol)).split(Constant.SEPARATOR1);
-                    String title = Str.clean(cellTextParts[0]);
+                    String title = Str.clean(Regex.split((String) resultsSyncTable.getModelValueAt(i, summaryCol), Constant.SEPARATOR1)[0]);
                     findTitles.add(title);
-                    String newTitle = title.replaceFirst("\\A(?i)The\\s++", "");
+                    String newTitle = Regex.replaceFirst(title, "\\A(?i)The\\s++", "");
                     if (!findTitles.contains(newTitle)) {
                         findTitles.add(newTitle);
                         findTitleTwice[i] = true;
@@ -5057,47 +5046,51 @@ public class GUI extends JFrame implements GuiListener {
                 }
 
                 String text = findTextField.getText().toLowerCase(Locale.ENGLISH);
-                if (!text.isEmpty()) {
-                    boolean continueFind = (findTitleRow != -2 && selectedRow != -1 && (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_UP));
-                    List<Integer> foundRows = new ArrayList<Integer>(findTitleTwice.length / 4);
-                    for (int i = 0, j = 0; i < findTitleTwice.length; i++, j++) {
-                        if (findTitles.get(j).toLowerCase(Locale.ENGLISH).startsWith(text) || (findTitleTwice[i]
-                                && findTitles.get(++j).toLowerCase(Locale.ENGLISH).startsWith(text))) {
-                            int foundRow = resultsSyncTable.convertRowIndexToView(i);
-                            if (continueFind) {
-                                if (foundRow != findTitleRow) {
-                                    foundRows.add(foundRow);
-                                }
-                            } else {
-                                setFindTitleRow(foundRow);
-                                return;
-                            }
-                        }
-                    }
+                if (text.isEmpty()) {
+                    return;
+                }
 
-                    if (!foundRows.isEmpty()) {
-                        Collections.sort(foundRows);
-                        int numFoundRows = foundRows.size();
-                        if (key == KeyEvent.VK_DOWN) {
-                            for (int i = 0; i < numFoundRows; i++) {
-                                int foundRow = foundRows.get(i);
-                                if (foundRow > findTitleRow) {
-                                    setFindTitleRow(foundRow);
-                                    return;
-                                }
+                boolean continueFind = (findTitleRow != -2 && selectedRow != -1 && (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_UP));
+                List<Integer> foundRows = new ArrayList<Integer>(findTitleTwice.length / 4);
+                for (int i = 0, j = 0; i < findTitleTwice.length; i++, j++) {
+                    if (findTitles.get(j).toLowerCase(Locale.ENGLISH).startsWith(text) || (findTitleTwice[i]
+                            && findTitles.get(++j).toLowerCase(Locale.ENGLISH).startsWith(text))) {
+                        int foundRow = resultsSyncTable.convertRowIndexToView(i);
+                        if (continueFind) {
+                            if (foundRow != findTitleRow) {
+                                foundRows.add(foundRow);
                             }
-                            setFindTitleRow(foundRows.get(0));
                         } else {
-                            for (int i = numFoundRows - 1; i > -1; i--) {
-                                int foundRow = foundRows.get(i);
-                                if (foundRow < findTitleRow) {
-                                    setFindTitleRow(foundRow);
-                                    return;
-                                }
-                            }
-                            setFindTitleRow(foundRows.get(numFoundRows - 1));
+                            setFindTitleRow(foundRow);
+                            return;
                         }
                     }
+                }
+
+                if (foundRows.isEmpty()) {
+                    return;
+                }
+
+                Collections.sort(foundRows);
+                int numFoundRows = foundRows.size();
+                if (key == KeyEvent.VK_DOWN) {
+                    for (int i = 0; i < numFoundRows; i++) {
+                        int foundRow = foundRows.get(i);
+                        if (foundRow > findTitleRow) {
+                            setFindTitleRow(foundRow);
+                            return;
+                        }
+                    }
+                    setFindTitleRow(foundRows.get(0));
+                } else {
+                    for (int i = numFoundRows - 1; i > -1; i--) {
+                        int foundRow = foundRows.get(i);
+                        if (foundRow < findTitleRow) {
+                            setFindTitleRow(foundRow);
+                            return;
+                        }
+                    }
+                    setFindTitleRow(foundRows.get(numFoundRows - 1));
                 }
             } finally {
                 findTitleReadLock.unlock();
@@ -5155,13 +5148,11 @@ public class GUI extends JFrame implements GuiListener {
 
     private void customExtensionTextFieldKeyPressed(KeyEvent evt) {//GEN-FIRST:event_customExtensionTextFieldKeyPressed
         String customExt = customExtensionTextField.getText();
-        if (!customExt.startsWith(".")) {
-            int key = evt.getKeyCode();
-            if (key != KeyEvent.VK_PERIOD && key != KeyEvent.VK_DECIMAL && key != KeyEvent.VK_ALT && key != KeyEvent.VK_ALT_GRAPH && key != KeyEvent.VK_CONTROL
-                    && key != KeyEvent.VK_META && key != KeyEvent.VK_SHIFT && key != KeyEvent.VK_BACK_SPACE && key != KeyEvent.VK_ENTER
-                    && key != KeyEvent.VK_DELETE && key != KeyEvent.VK_ESCAPE && !evt.isActionKey()) {
-                customExtensionTextField.setText("." + customExt);
-            }
+        int key;
+        if (!customExt.startsWith(".") && (key = evt.getKeyCode()) != KeyEvent.VK_PERIOD && key != KeyEvent.VK_DECIMAL && key != KeyEvent.VK_ALT && key
+                != KeyEvent.VK_ALT_GRAPH && key != KeyEvent.VK_CONTROL && key != KeyEvent.VK_META && key != KeyEvent.VK_SHIFT && key != KeyEvent.VK_BACK_SPACE
+                && key != KeyEvent.VK_ENTER && key != KeyEvent.VK_DELETE && key != KeyEvent.VK_ESCAPE && !evt.isActionKey()) {
+            customExtensionTextField.setText('.' + customExt);
         }
     }//GEN-LAST:event_customExtensionTextFieldKeyPressed
 
@@ -5175,11 +5166,9 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_listCopyMenuItemActionPerformed
 
     private void popupListCopy() {
-        if (popupList != null && popupList.getSelectedIndices().length != 0) {
-            TransferHandler th = popupList.getTransferHandler();
-            if (th != null) {
-                th.exportToClipboard(popupList, Toolkit.getDefaultToolkit().getSystemClipboard(), TransferHandler.COPY);
-            }
+        TransferHandler th;
+        if (popupList != null && popupList.getSelectedIndices().length != 0 && (th = popupList.getTransferHandler()) != null) {
+            th.exportToClipboard(popupList, Toolkit.getDefaultToolkit().getSystemClipboard(), TransferHandler.COPY);
         }
     }
 
@@ -5330,18 +5319,20 @@ public class GUI extends JFrame implements GuiListener {
     private void exitBackupMode(MouseEvent evt) {
         if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK && Connection.downloadLinkInfoFail()) {
             Connection.downloadLinkInfoUnFail();
-            if (isAltSearch) {
-                isAltSearch = false;
-                boolean enable = true;
-                if (!downloadLink2Button.isEnabled() && workerListener.isTorrentSearchDone()) {
-                    downloadLink2Button.setEnabled(enable);
-                    downloadLink2MenuItem.setEnabled(enable);
-                    if (downloadLink2Button == evt.getSource()) {
-                        exitBackupMode = true;
-                    }
-                }
-                enableVideoFormats(enable);
+            if (!isAltSearch) {
+                return;
             }
+
+            isAltSearch = false;
+            boolean enable = true;
+            if (!downloadLink2Button.isEnabled() && workerListener.isTorrentSearchDone()) {
+                downloadLink2Button.setEnabled(enable);
+                downloadLink2MenuItem.setEnabled(enable);
+                if (downloadLink2Button == evt.getSource()) {
+                    exitBackupMode = true;
+                }
+            }
+            enableVideoFormats(enable);
         }
     }
 
@@ -5433,17 +5424,19 @@ public class GUI extends JFrame implements GuiListener {
         if (Debug.DEBUG) {
             Debug.print(e);
         }
-        if (!e.getClass().equals(ConnectionException.class)) {
-            showMsg(ExceptionUtil.toString(e), Constant.ERROR_MSG);
-            try {
-                Writer stackTrace = new StringWriter();
-                e.printStackTrace(new PrintWriter(stackTrace));
-                Write.write(Constant.APP_DIR + "errorLog" + Constant.TXT, Calendar.getInstance().getTime().toString() + Constant.NEWLINE + stackTrace.toString()
-                        + Constant.NEWLINE, true);
-            } catch (Exception e2) {
-                if (Debug.DEBUG) {
-                    Debug.print(e2);
-                }
+        if (e.getClass().equals(ConnectionException.class)) {
+            return;
+        }
+
+        showMsg(ExceptionUtil.toString(e), Constant.ERROR_MSG);
+        try {
+            Writer stackTrace = new StringWriter();
+            e.printStackTrace(new PrintWriter(stackTrace));
+            Write.write(Constant.APP_DIR + "errorLog" + Constant.TXT, Calendar.getInstance().getTime().toString() + Constant.NEWLINE + stackTrace.toString()
+                    + Constant.NEWLINE, true);
+        } catch (Exception e2) {
+            if (Debug.DEBUG) {
+                Debug.print(e2);
             }
         }
     }
@@ -5472,7 +5465,7 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
         synchronized (msgDialogLock) {
-            String text = msgEditorPane.getText().replaceAll("\\s++", " ");
+            String text = Regex.replaceAll(msgEditorPane.getText(), "\\s++", " ");
             if (text.contains(msg)) {
                 return;
             }
@@ -5535,8 +5528,8 @@ public class GUI extends JFrame implements GuiListener {
                     imageSize = " width=\"" + Str.get(495) + "\" height=\"" + Str.get(496) + "\"";
                 }
             }
-            s += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + posterFilePath.replaceAll(Str.get(237), Str.get(238)) + "\""
-                    + imageSize + "></td>";
+            s += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, Str.get(237), Str.get(238)) + '"' + imageSize
+                    + "></td>";
         }
         summaryEditorPane.setText(s + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + summary.replace("</body>", "</td></tr></table></body>"));
         summaryEditorPane.setSelectionStart(0);
@@ -5589,10 +5582,10 @@ public class GUI extends JFrame implements GuiListener {
 
         void loadSettings(String settingsFile) {
             try {
-                String[] settings = Read.read(settingsFile).split(Constant.NEWLINE);
+                String[] settings = Regex.split(Read.read(settingsFile), Constant.NEWLINE);
                 boolean updateSettings = false;
                 if (settings.length < Constant.SETTINGS_LEN) {
-                    String[] defaultSettings = Read.read(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS).split(Constant.NEWLINE);
+                    String[] defaultSettings = Regex.split(Read.read(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS), Constant.NEWLINE);
                     System.arraycopy(settings, 0, defaultSettings, 0, settings.length);
                     settings = defaultSettings;
                     updateSettings = true;
@@ -5626,13 +5619,15 @@ public class GUI extends JFrame implements GuiListener {
 
                 restoreButtons(settings, i, downloadWithDefaultAppCheckBoxMenuItem, feedCheckBoxMenuItem);
 
-                if (updateSettings) {
-                    StringBuilder newSettings = new StringBuilder(1024);
-                    for (String setting : settings) {
-                        newSettings.append(setting).append(Constant.NEWLINE);
-                    }
-                    Write.write(settingsFile, newSettings.toString().trim());
+                if (!updateSettings) {
+                    return;
                 }
+
+                StringBuilder newSettings = new StringBuilder(1024);
+                for (String setting : settings) {
+                    newSettings.append(setting).append(Constant.NEWLINE);
+                }
+                Write.write(settingsFile, newSettings.toString().trim());
             } catch (Exception e) {
                 showException(e);
             }
@@ -5727,8 +5722,7 @@ public class GUI extends JFrame implements GuiListener {
                 return;
             }
 
-            String[] strs = str.split(":");
-            for (String currStr : strs) {
+            for (String currStr : Regex.split(str, ":")) {
                 listModel.addElement(currStr);
             }
         }
@@ -5738,7 +5732,7 @@ public class GUI extends JFrame implements GuiListener {
                 return;
             }
 
-            String[] strs = str.split(":");
+            String[] strs = Regex.split(str, ":");
             int[] selection = new int[strs.length];
             ListModel listModel = list.getModel();
             int size = listModel.getSize(), k = 0;
@@ -5760,7 +5754,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         private void restoreSize(Window window, String size) {
-            String[] dimensions = size.split("x");
+            String[] dimensions = Regex.split(size, "x");
             Dimension dimension = new Dimension(Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1]));
             if (window instanceof JFrame && (((JFrame) window).getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH && !isMaxSize(dimension)) {
                 ((JFrame) window).setExtendedState(JFrame.NORMAL);
@@ -5779,7 +5773,7 @@ public class GUI extends JFrame implements GuiListener {
             } else if (location.compareTo(Constant.NULL) == 0) {
                 window.setLocationRelativeTo(GUI.this);
             } else {
-                String[] point = location.split(",");
+                String[] point = Regex.split(location, ",");
                 window.setLocation(new Point(Integer.parseInt(point[0]), Integer.parseInt(point[1])));
             }
         }
@@ -5812,19 +5806,15 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         private void showPopup(MouseEvent evt) {
-            if (evt.isPopupTrigger()) {
-                int row = resultsSyncTable.rowAtPoint(evt.getPoint());
-                if (row == -1) {
-                    return;
-                }
-                int col = resultsSyncTable.columnAtPoint(evt.getPoint());
-                if (col == -1) {
-                    return;
-                }
-                resultsSyncTable.clearSelection();
-                resultsSyncTable.changeSelection(row, col, false, false);
-                tablePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
+            int row, col;
+            if (!evt.isPopupTrigger() || (row = resultsSyncTable.rowAtPoint(evt.getPoint())) == -1 || (col = resultsSyncTable.columnAtPoint(evt.getPoint()))
+                    == -1) {
+                return;
             }
+
+            resultsSyncTable.clearSelection();
+            resultsSyncTable.changeSelection(row, col, false, false);
+            tablePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
         }
     }
 
@@ -5844,19 +5834,15 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         private void showPopup(MouseEvent evt) {
-            if (evt.isPopupTrigger()) {
-                popupTextComponent = (JTextComponent) evt.getSource();
-                if (popupTextComponent.isEnabled()) {
-                    popupTextComponent.getCaret().setSelectionVisible(true);
-                } else {
-                    return;
-                }
-
-                if (popupTextComponent instanceof JTextFieldDateEditor) {
-                    popupTextComponent.removeFocusListener((FocusListener) popupTextComponent);
-                }
-                textComponentPopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
+            if (!evt.isPopupTrigger() || !(popupTextComponent = (JTextComponent) evt.getSource()).isEnabled()) {
+                return;
             }
+
+            popupTextComponent.getCaret().setSelectionVisible(true);
+            if (popupTextComponent instanceof JTextFieldDateEditor) {
+                popupTextComponent.removeFocusListener((FocusListener) popupTextComponent);
+            }
+            textComponentPopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
         }
     }
 
@@ -5890,48 +5876,50 @@ public class GUI extends JFrame implements GuiListener {
 
         @Override
         public void actionPerformed(ActionEvent evt) {
-            if (evt.getActionCommand().compareTo(Constant.COPY) == 0 || evt.getActionCommand().compareTo(Constant.CUT) == 0) {
-                int numRows = resultsSyncTable.getSelectedRowCount(), numCols = resultsSyncTable.getSelectedColumnCount();
-                int[] selectedRows = resultsSyncTable.getSelectedRows(), selectedCols = resultsSyncTable.getSelectedColumns();
-
-                if (!((numRows - 1 == selectedRows[selectedRows.length - 1] - selectedRows[0] && numRows == selectedRows.length)
-                        && (numCols - 1 == selectedCols[selectedCols.length - 1] - selectedCols[0] && numCols == selectedCols.length))) {
-                    showMsg("Invalid copy selection.", Constant.ERROR_MSG);
-                    return;
-                }
-
-                StringBuilder str = new StringBuilder(2048);
-                for (int i = 0; i < numRows; i++) {
-                    StringBuilder str2 = new StringBuilder(64);
-                    for (int j = 0; j < numCols; j++) {
-                        String val = (String) resultsSyncTable.getViewValueAt(selectedRows[i], selectedCols[j]);
-                        if (val.contains(Constant.SEPARATOR1) || val.startsWith(Constant.APP_DIR) || val.startsWith(Constant.PROGRAM_DIR)
-                                || val.startsWith(Constant.NO_IMAGE)) {
-                            continue;
-                        }
-                        if (val.startsWith("<html>")) {
-                            int index = val.indexOf(" (AKA: ");
-                            if (index == -1) {
-                                index = val.indexOf(" (Latest Episode: ");
-                            }
-                            int beginOffset = 6, endOffSet = 7;
-                            if (val.startsWith("<html><b>")) {
-                                beginOffset = 9;
-                                endOffSet = 11;
-                            }
-                            val = val.substring(beginOffset, index == -1 ? val.length() - endOffSet : index);
-                            if (!Regex.isMatch(val, "(\\d{4}+)|(\\d\\.\\d)|(10)|(10.0)|-")) {
-                                val = Str.clean(val);
-                            }
-                        }
-                        str2.append(val).append('\t');
-                    }
-                    str.append(str2.toString().trim()).append(Constant.NEWLINE);
-                }
-
-                StringSelection selectionStr = new StringSelection(str.toString().trim());
-                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selectionStr, selectionStr);
+            if (!evt.getActionCommand().equals(Constant.COPY) && !evt.getActionCommand().equals(Constant.CUT)) {
+                return;
             }
+
+            int numRows = resultsSyncTable.getSelectedRowCount(), numCols = resultsSyncTable.getSelectedColumnCount();
+            int[] selectedRows = resultsSyncTable.getSelectedRows(), selectedCols = resultsSyncTable.getSelectedColumns();
+
+            if (!((numRows - 1 == selectedRows[selectedRows.length - 1] - selectedRows[0] && numRows == selectedRows.length)
+                    && (numCols - 1 == selectedCols[selectedCols.length - 1] - selectedCols[0] && numCols == selectedCols.length))) {
+                showMsg("Invalid copy selection.", Constant.ERROR_MSG);
+                return;
+            }
+
+            StringBuilder str = new StringBuilder(2048);
+            for (int i = 0; i < numRows; i++) {
+                StringBuilder str2 = new StringBuilder(64);
+                for (int j = 0; j < numCols; j++) {
+                    String val = (String) resultsSyncTable.getViewValueAt(selectedRows[i], selectedCols[j]);
+                    if (val.contains(Constant.SEPARATOR1) || val.startsWith(Constant.APP_DIR) || val.startsWith(Constant.PROGRAM_DIR)
+                            || val.startsWith(Constant.NO_IMAGE)) {
+                        continue;
+                    }
+                    if (val.startsWith("<html>")) {
+                        int index = val.indexOf(" (AKA: ");
+                        if (index == -1) {
+                            index = val.indexOf(" (Latest Episode: ");
+                        }
+                        int beginOffset = 6, endOffSet = 7;
+                        if (val.startsWith("<html><b>")) {
+                            beginOffset = 9;
+                            endOffSet = 11;
+                        }
+                        val = val.substring(beginOffset, index == -1 ? val.length() - endOffSet : index);
+                        if (!Regex.isMatch(val, "(\\d{4}+)|(\\d\\.\\d)|(10)|(10.0)|-")) {
+                            val = Str.clean(val);
+                        }
+                    }
+                    str2.append(val).append('\t');
+                }
+                str.append(str2.toString().trim()).append(Constant.NEWLINE);
+            }
+
+            StringSelection selectionStr = new StringSelection(str.toString().trim());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selectionStr, selectionStr);
         }
     }
 
@@ -5939,19 +5927,14 @@ public class GUI extends JFrame implements GuiListener {
 
         int val, viewVal;
         String[] content;
+        String id, year;
 
         SelectedTableRow() {
             viewVal = resultsSyncTable.getSelectedRow();
             val = resultsSyncTable.convertRowIndexToModel(viewVal);
-            content = ((String) resultsSyncTable.getModelValueAt(val, summaryCol)).split(Constant.SEPARATOR1);
-        }
-
-        String year() {
-            return ((String) resultsSyncTable.getModelValueAt(val, yearCol)).replaceAll("(</?+html>)|(</?+b>)", "");
-        }
-
-        String id() {
-            return (String) resultsSyncTable.getModelValueAt(val, idCol);
+            content = Regex.split((String) resultsSyncTable.getModelValueAt(val, summaryCol), Constant.SEPARATOR1);
+            id = (String) resultsSyncTable.getModelValueAt(val, idCol);
+            year = Regex.replaceAll((String) resultsSyncTable.getModelValueAt(val, yearCol), "(</?+html>)|(</?+b>)", "");
         }
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -6403,14 +6386,15 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public boolean canProceedWithUnsafeDownload2() {
-        if (safetyCheckBoxMenuItem.isSelected()) {
-            proceedWithDownload = false;
-            safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + "This download link is "
-                    + "from an untrustworthy source.<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
-            showSafetyDialog();
-            return proceedWithDownload;
+        if (!safetyCheckBoxMenuItem.isSelected()) {
+            return true;
         }
-        return true;
+
+        proceedWithDownload = false;
+        safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + "This download link is "
+                + "from an untrustworthy source.<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
+        showSafetyDialog();
+        return proceedWithDownload;
     }
 
     @Override
@@ -6428,19 +6412,20 @@ public class GUI extends JFrame implements GuiListener {
         try {
             if (text.length() > Constant.TV_EPISODE_PLACEHOLDER_LEN) {
                 summaryEditorPaneDocument.insertAfterEnd(element, Constant.HTML_FONT + text + "</font>");
-            } else {
-                // Handle Java 7 lack of word-wrap bug by replacing exactly text.length() placeholder characters with text
-                SimpleAttributeSet simpleAttributeSet = new SimpleAttributeSet();
-                AttributeSet attributes = element.getAttributes();
-                Enumeration<?> attributeNames = attributes.getAttributeNames();
-                while (attributeNames.hasMoreElements()) {
-                    Object attributeName = attributeNames.nextElement();
-                    if (attributeName != Tag.B && attributeName != Attribute.FONT_WEIGHT) {
-                        simpleAttributeSet.addAttribute(attributeName, attributes.getAttribute(attributeName));
-                    }
-                }
-                summaryEditorPaneDocument.replace(element.getEndOffset(), text.length(), text, simpleAttributeSet);
+                return;
             }
+
+            // Handle Java 7 lack of word-wrap bug by replacing exactly text.length() placeholder characters with text
+            SimpleAttributeSet simpleAttributeSet = new SimpleAttributeSet();
+            AttributeSet attributes = element.getAttributes();
+            Enumeration<?> attributeNames = attributes.getAttributeNames();
+            while (attributeNames.hasMoreElements()) {
+                Object attributeName = attributeNames.nextElement();
+                if (attributeName != Tag.B && attributeName != Attribute.FONT_WEIGHT) {
+                    simpleAttributeSet.addAttribute(attributeName, attributes.getAttribute(attributeName));
+                }
+            }
+            summaryEditorPaneDocument.replace(element.getEndOffset(), text.length(), text, simpleAttributeSet);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -6499,8 +6484,8 @@ public class GUI extends JFrame implements GuiListener {
         if (proxy.equals(Constant.NO_PROXY)) {
             showOptionalMsg(newMsg, browserNotificationCheckBoxMenuItem);
         } else {
-            String[] proxyParts = proxy.split(":");
-            showOptionalMsg(newMsg + " Set your browser's proxy to " + proxyParts[0] + " on port " + proxyParts[1] + ".", browserNotificationCheckBoxMenuItem);
+            String[] proxyParts = Regex.split(proxy, ":");
+            showOptionalMsg(newMsg + " Set your browser's proxy to " + proxyParts[0] + " on port " + proxyParts[1] + '.', browserNotificationCheckBoxMenuItem);
         }
     }
 
@@ -6521,12 +6506,10 @@ public class GUI extends JFrame implements GuiListener {
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
             Write.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", Write.RM_FILE_NOW_AND_ON_EXIT);
             return;
-        } else if (canShowPeerBlock) {
-            if (showOptionalConfirm("Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?", peerBlockNotificationCheckBoxMenuItem)
-                    != JOptionPane.YES_OPTION) {
-                usePeerBlock = false;
-                return;
-            }
+        } else if (canShowPeerBlock && (showOptionalConfirm("Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
+                peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION)) {
+            usePeerBlock = false;
+            return;
         }
 
         usePeerBlock = true;
@@ -6564,6 +6547,7 @@ public class GUI extends JFrame implements GuiListener {
         if (proxyFileChooser.isShowing()) {
             return;
         }
+
         subtitleFileChooser.cancelSelection();
         torrentFileChooser.setFileFilter(Regex.torrentFileFilter);
         torrentFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -6590,6 +6574,7 @@ public class GUI extends JFrame implements GuiListener {
         if (proxyFileChooser.isShowing() || torrentFileChooser.isShowing()) {
             return;
         }
+
         subtitleFileChooser.setFileFilter(Regex.subtitleFileFilter);
         subtitleFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         subtitleFileChooser.setSelectedFile(new File(saveFileName));
@@ -6616,18 +6601,18 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public String getDisplayTitle(int row) {
-        return (String) resultsSyncTable.getModelValueAt(row, titleCol);
+    public String getDisplayTitle(int row, String titleID) {
+        return (String) resultsSyncTable.getModelValueAt(row, titleCol, idCol, titleID);
     }
 
     @Override
-    public void setDisplayTitle(Object val, int row) {
-        resultsSyncTable.setModelValueAt(val, row, titleCol);
+    public void setDisplayTitle(Object val, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(val, row, titleCol, idCol, titleID);
     }
 
     @Override
-    public void setDisplaySummary(Object val, int row) {
-        resultsSyncTable.setModelValueAt(val, row, summaryCol);
+    public void setDisplaySummary(Object val, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(val, row, summaryCol, idCol, titleID);
     }
 
     @Override
@@ -6644,13 +6629,6 @@ public class GUI extends JFrame implements GuiListener {
     public void searchStarted() {
         loading();
 
-        closeBoxButtonActionPerformed(null);
-        workerListener.subtitleSearchStopped();
-        subtitleSearchStopped();
-        workerListener.searchStarted();
-
-        enableVideoFormats(true);
-
         loadMoreResultsButton.setEnabled(false);
         searchButton.setEnabled(false);
 
@@ -6665,6 +6643,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void newSearch(int maxProgress) {
+        enableVideoFormats(true);
         resultsSyncTable.setRowCount(0);
         isAltSearch = false;
         resultsLabel.setText("Results: 0");
@@ -6892,9 +6871,8 @@ public class GUI extends JFrame implements GuiListener {
             return Constant.DVD;
         } else if (hd720RadioButton.isSelected()) {
             return Constant.HD720;
-        } else {
-            return Constant.HD1080;
         }
+        return Constant.HD1080;
     }
 
     @Override

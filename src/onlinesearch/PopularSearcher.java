@@ -152,7 +152,7 @@ public class PopularSearcher extends AbstractSearcher {
     private boolean backupMode() {
         try {
             currSourceCode = Connection.getSourceCode(Str.get(isTVShow ? 483 : 484), Connection.DOWNLOAD_LINK_INFO);
-            String[] results = currSourceCode.split(Constant.STD_NEWLINE);
+            String[] results = Regex.split(currSourceCode, Constant.STD_NEWLINE);
             for (int i = 0; i < results.length; i += 5) {
                 if (!isFeed || isTitleValid(results[i + 2], results[i + 3], results[i + 1])) {
                     addCurrVideo(results[i + 2].trim());
@@ -179,7 +179,7 @@ public class PopularSearcher extends AbstractSearcher {
             return null;
         }
 
-        video.id = titleLink.replaceFirst(Str.get(447), Str.get(448)).replaceAll(Str.get(449), Str.get(450));
+        video.id = Regex.replaceAll(Regex.replaceFirst(titleLink, Str.get(447), Str.get(448)), Str.get(449), Str.get(450));
         if (video.id.isEmpty()) {
             return null;
         }
@@ -219,7 +219,7 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     private static boolean isTitleValid(String titleName, String video) {
-        if (Regex.match(titleName.replaceAll(Str.get(77), Str.get(78)), Str.get(569)).isEmpty() || (Boolean.parseBoolean(Str.get(565)) && Regex.match(video,
+        if (Regex.match(Regex.replaceAll(titleName, Str.get(77), Str.get(78)), Str.get(569)).isEmpty() || (Boolean.parseBoolean(Str.get(565)) && Regex.match(video,
                 Str.get(74), Str.get(75)).isEmpty())) {
             return false; // Wrong format or unsafe source
         }
@@ -240,7 +240,7 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     private static boolean isTitleValid(String titleName, String isSafe, String year) {
-        if (Regex.match(titleName.trim().replaceAll(Str.get(77), Str.get(78)), Str.get(569)).isEmpty() || (Boolean.parseBoolean(Str.get(565))
+        if (Regex.match(Regex.replaceAll(titleName.trim(), Str.get(77), Str.get(78)), Str.get(569)).isEmpty() || (Boolean.parseBoolean(Str.get(565))
                 && Integer.parseInt(isSafe.trim()) != 1) || !isTitleYearValid(year.trim())) {
             return false; // Wrong format or unsafe source or year too old
         }
