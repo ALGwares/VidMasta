@@ -10,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import util.Constant;
-import util.Regex;
 import util.io.CleanUp;
 import util.io.Write;
 
@@ -18,7 +17,7 @@ class IpInitializer extends Thread {
 
     TIntArrayList ips = new TIntArrayList(0), ipRanges = new TIntArrayList(0);
     private static final String IP_REGEX = "\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+";
-    private final Pattern ipPattern = Pattern.compile(IP_REGEX);
+    private final Pattern ipPattern = Pattern.compile(IP_REGEX), ipSeparatorPattern = Pattern.compile("-");
     private final Pattern ipRangePattern = Pattern.compile(IP_REGEX + "\\s*+-\\s*+" + IP_REGEX);
 
     @Override
@@ -61,7 +60,7 @@ class IpInitializer extends Thread {
                         }
                     }
                 } else {
-                    final String[] ipRangeParts = Regex.split(range, "-");
+                    final String[] ipRangeParts = ipSeparatorPattern.split(range);
                     try {
                         final int startIp = PRHelpers.addressToInt(ipRangeParts[0].trim());
                         final int endIp = PRHelpers.addressToInt(ipRangeParts[1].trim());

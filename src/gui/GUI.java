@@ -179,7 +179,6 @@ public class GUI extends JFrame implements GuiListener {
     private Thread profileMsgThread;
     private final Lock findTitleReadLock, findTitleWriteLock;
     private final ArrayList<String> findTitles = new ArrayList<String>(0);
-    private boolean[] findTitleTwice = new boolean[0];
     private int findTitleRow = -2;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
@@ -4998,14 +4997,14 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void findMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findMenuItemActionPerformed
-        if (!findTextField.isEnabled()) {
+        if (findTextField.isEnabled()) {
+            findTextField.requestFocusInWindow();
+        } else {
             findTextField.setBorder(titleTextField.getBorder());
             findTextField.setForeground(titleTextField.getForeground());
             findTextField.requestFocusInWindow();
             findTextField.setEnabled(true);
             updateFindTitles();
-        } else {
-            findTextField.requestFocusInWindow();
         }
     }//GEN-LAST:event_findMenuItemActionPerformed
 
@@ -5016,18 +5015,15 @@ public class GUI extends JFrame implements GuiListener {
 
         if (findTitleWriteLock.tryLock()) {
             try {
-                findTitleTwice = new boolean[resultsSyncTable.getRowCount()];
+                int numRows = resultsSyncTable.getRowCount();
                 findTitles.clear();
-                findTitles.ensureCapacity(findTitleTwice.length * 2);
-
-                for (int i = 0; i < findTitleTwice.length; i++) {
-                    String title = Str.clean(Regex.split((String) resultsSyncTable.getModelValueAt(i, summaryCol), Constant.SEPARATOR1)[0]);
-                    findTitles.add(title);
-                    String newTitle = Regex.replaceFirst(title, "\\A(?i)The\\s++", "");
-                    if (!findTitles.contains(newTitle)) {
-                        findTitles.add(newTitle);
-                        findTitleTwice[i] = true;
-                    }
+                findTitles.ensureCapacity(numRows * 4);
+                for (int row = 0; row < numRows; row++) {
+                    String title = Regex.split((String) resultsSyncTable.getModelValueAt(row, summaryCol), Constant.SEPARATOR1)[0];
+                    findTitles.add(title = Str.htmlToPlainText(title));
+                    findTitles.add(Regex.replaceFirst(title, "\\A(?i)The\\s++", ""));
+                    findTitles.add(title = Str.clean(title));
+                    findTitles.add(Regex.replaceFirst(title, "\\A(?i)The\\s++", ""));
                 }
             } finally {
                 findTitleWriteLock.unlock();
@@ -5051,11 +5047,14 @@ public class GUI extends JFrame implements GuiListener {
                 }
 
                 boolean continueFind = (findTitleRow != -2 && selectedRow != -1 && (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_UP));
-                List<Integer> foundRows = new ArrayList<Integer>(findTitleTwice.length / 4);
-                for (int i = 0, j = 0; i < findTitleTwice.length; i++, j++) {
-                    if (findTitles.get(j).toLowerCase(Locale.ENGLISH).startsWith(text) || (findTitleTwice[i]
-                            && findTitles.get(++j).toLowerCase(Locale.ENGLISH).startsWith(text))) {
-                        int foundRow = resultsSyncTable.convertRowIndexToView(i);
+                int numTitles = findTitles.size();
+                List<Integer> foundRows = new ArrayList<Integer>((numTitles / 16) + 1);
+                for (int i = 0; i < numTitles; i += 4) {
+                    for (int j = i, k = i + 4; j < k; j++) {
+                        if (!findTitles.get(j).toLowerCase(Locale.ENGLISH).startsWith(text)) {
+                            continue;
+                        }
+                        int foundRow = resultsSyncTable.convertRowIndexToView(i / 4);
                         if (continueFind) {
                             if (foundRow != findTitleRow) {
                                 foundRows.add(foundRow);
@@ -5553,10 +5552,6 @@ public class GUI extends JFrame implements GuiListener {
         faqFrame.setVisible(true);
     }
 
-    private void showTVDialog() {
-        tvDialog.setVisible(true);
-    }
-
     private void showAboutDialog() {
         aboutEditorPane.setSelectionStart(0);
         aboutEditorPane.setSelectionEnd(0);
@@ -5880,9 +5875,12 @@ public class GUI extends JFrame implements GuiListener {
                 return;
             }
 
-            int numRows = resultsSyncTable.getSelectedRowCount(), numCols = resultsSyncTable.getSelectedColumnCount();
-            int[] selectedRows = resultsSyncTable.getSelectedRows(), selectedCols = resultsSyncTable.getSelectedColumns();
-
+            int numRows, numCols;
+            int[] selectedRows, selectedCols;
+            if ((numRows = resultsSyncTable.getSelectedRowCount()) == 0 || (numCols = resultsSyncTable.getSelectedColumnCount()) == 0
+                    || (selectedRows = resultsSyncTable.getSelectedRows()).length == 0 || (selectedCols = resultsSyncTable.getSelectedColumns()).length == 0) {
+                return;
+            }
             if (!((numRows - 1 == selectedRows[selectedRows.length - 1] - selectedRows[0] && numRows == selectedRows.length)
                     && (numCols - 1 == selectedCols[selectedCols.length - 1] - selectedCols[0] && numCols == selectedCols.length))) {
                 showMsg("Invalid copy selection.", Constant.ERROR_MSG);
@@ -5909,8 +5907,8 @@ public class GUI extends JFrame implements GuiListener {
                             endOffSet = 11;
                         }
                         val = val.substring(beginOffset, index == -1 ? val.length() - endOffSet : index);
-                        if (!Regex.isMatch(val, "(\\d{4}+)|(\\d\\.\\d)|(10)|(10.0)|-")) {
-                            val = Str.clean(val);
+                        if (!Regex.isMatch(val, "(\\d{4}+)|(\\d\\.\\d)|(10)|(10\\.0)|\\-")) {
+                            val = Str.htmlToPlainText(Regex.replaceFirst(val, "(&nbsp;){3}+", ""));
                         }
                     }
                     str2.append(val).append('\t');
@@ -6596,7 +6594,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         cancelTVSelection = true;
-        showTVDialog();
+        tvDialog.setVisible(true);
         return cancelTVSelection;
     }
 

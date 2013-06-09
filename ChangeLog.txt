@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2013.06.09   | VidMasta 16.4
+
+CHANGE: Core | Fixed rare instance of possible failure to immediately cancel a search if only the last of several helper threads is active during cancellation.
+CHANGE: Core | Improved accuracy of find (under edit menu) functionality
+CHANGE: Core | Improved result of table clipboard copy/cut functionality by better conversion of punctuation and special characters.
+CHANGE: UI   | Updated autocompletion titles
+
+
+
+
 2013.06.05   | VidMasta 16.3
 
 CHANGE: Core | Fixed accidental cancellation of summary, download, watch, and subtitle searches when loading more search results or starting a new search
