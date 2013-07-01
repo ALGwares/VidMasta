@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2013.07.01   | VidMasta 16.6
+
+CHANGE: Core | Updated watch source 1 search to use updated source website
+CHANGE: UI   | Updated proxy dialog tool tip messages
+CHANGE: UI   | Title text field gains focus if it is enabled and there are no search results
+
+
+
+
 2013.06.09   | VidMasta 16.4
 
 CHANGE: Core | Fixed rare instance of possible failure to immediately cancel a search if only the last of several helper threads is active during cancellation

@@ -59,8 +59,7 @@ class AppUpdater {
                 throw new UpdateException("auto-setup installer is corrupt");
             }
             String path = Constant.PROGRAM_DIR;
-            String[] pathParts = Constant.FILE_SEPARATOR.compareTo("\\") == 0 ? Regex.split(path.replace('\\', '/'), "/") : Regex.split(path,
-                    Constant.FILE_SEPARATOR);
+            String[] pathParts = (Constant.FILE_SEPARATOR.equals("\\") ? Regex.split(path.replace('\\', '/'), "/") : Regex.split(path, Constant.FILE_SEPARATOR));
             StringBuilder pathBuf = new StringBuilder(32);
             for (int i = 0; i < pathParts.length - 1; i++) {
                 pathBuf.append(pathParts[i]).append(Constant.FILE_SEPARATOR);

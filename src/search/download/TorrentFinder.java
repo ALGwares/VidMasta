@@ -227,27 +227,18 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
             int sizeInGiB = 1;
             String size = Regex.match(videoStr, Str.get(62), Str.get(63));
             if (size.isEmpty()) {
-                size = Regex.match(videoStr, Str.get(64), Str.get(65));
-                if (!size.isEmpty()) {
+                if (!(size = Regex.match(videoStr, Str.get(64), Str.get(65))).isEmpty()) {
                     sizeInGiB = (int) Math.ceil(Double.parseDouble(size));
-                    if (!isBoxSet || !searchState.canIgnoreDownloadSize) {
-                        int minGiB = Integer.parseInt(searchState.minSize);
-                        if (sizeInGiB < minGiB) {
-                            continue;
-                        }
-                        if (searchState.maxSize.compareTo(Constant.INFINITY) != 0) {
-                            int maxGiB = Integer.parseInt(searchState.maxSize);
-                            if (sizeInGiB > maxGiB) {
-                                continue;
-                            }
-                        }
+                    if ((!isBoxSet || !searchState.canIgnoreDownloadSize) && (sizeInGiB < Integer.parseInt(searchState.minSize)
+                            || (!searchState.maxSize.equals(Constant.INFINITY) && sizeInGiB > Integer.parseInt(searchState.maxSize)))) {
+                        continue;
                     }
                 }
             } else if ((!isBoxSet || !searchState.canIgnoreDownloadSize) && Integer.parseInt(searchState.minSize) >= 1) {
                 continue;
             }
 
-            if (isBoxSet && video.isTVShow && video.season.compareTo(Constant.ANY) != 0 && !isRightSeason(Integer.parseInt(video.season), titleName)) {
+            if (isBoxSet && video.isTVShow && !video.season.equals(Constant.ANY) && !isRightSeason(Integer.parseInt(video.season), titleName)) {
                 continue;
             }
 
@@ -259,8 +250,7 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
                 return null;
             }
 
-            String numSources = orderBy.compareTo(Str.get(163)) == 0 ? Regex.match(videoStr, Str.get(70),
-                    Str.get(71)) : Regex.match(videoStr, Str.get(72), Str.get(73));
+            String numSources = (orderBy.equals(Str.get(163)) ? Regex.match(videoStr, Str.get(70), Str.get(71)) : Regex.match(videoStr, Str.get(72), Str.get(73)));
             int numSourcesNum = 0;
             if (!numSources.isEmpty()) {
                 numSourcesNum = Integer.parseInt(numSources);
@@ -318,7 +308,7 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
                 if (Debug.DEBUG) {
                     Debug.print("\tcorrectSeasonNum: '" + correctSeasonNum + '\'');
                 }
-                if (seasonNum.compareToIgnoreCase(correctSeasonNum) != 0) {
+                if (!seasonNum.equalsIgnoreCase(correctSeasonNum)) {
                     if (Debug.DEBUG) {
                         Debug.println("\tWrong Season!");
                     }
@@ -429,11 +419,11 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
 
     public static boolean isRightFormat(String titleName, String format) {
         String tempTitle = Regex.replaceAll(titleName, Str.get(77), Str.get(78));
-        if (format.compareTo(Constant.ANY) == 0) {
+        if (format.equals(Constant.ANY)) {
             return true;
-        } else if (format.compareTo(Constant.DVD) == 0) {
+        } else if (format.equals(Constant.DVD)) {
             return hasType(tempTitle, Str.get(79));
-        } else if (format.compareTo(Constant.HD720) == 0) {
+        } else if (format.equals(Constant.HD720)) {
             return (hasType(tempTitle, Str.get(80)) || hasType(tempTitle, Str.get(81))) && !hasType(tempTitle, Str.get(82));
         }
         return hasType(tempTitle, Str.get(83));

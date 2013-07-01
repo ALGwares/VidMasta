@@ -1789,7 +1789,9 @@
           <Properties>
             <Property name="selected" type="boolean" value="true"/>
             <Property name="text" type="java.lang.String" value="Download Link Info"/>
-            <Property name="toolTipText" type="java.lang.String" value="e.g. http://thepiratebay.se"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;e.g. &quot; + Str.get(577)" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="proxyUseForLabel">
@@ -1800,13 +1802,17 @@
         <Component class="javax.swing.JCheckBox" name="proxyVideoInfoCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Video Info"/>
-            <Property name="toolTipText" type="java.lang.String" value="e.g. http://www.imdb.com"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;e.g. &quot; + Str.get(578)" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="proxySearchEnginesCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Search Engines"/>
-            <Property name="toolTipText" type="java.lang.String" value="e.g. http://www.google.com"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;e.g. &quot; + Str.get(579)" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="proxyOKButton">
@@ -1828,7 +1834,9 @@
         <Component class="javax.swing.JCheckBox" name="proxyTrailersCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Trailers"/>
-            <Property name="toolTipText" type="java.lang.String" value="e.g. http://www.youtube.com"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;e.g. &quot; + Str.get(580)" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="proxyLoadingLabel">
@@ -1857,19 +1865,25 @@
         <Component class="javax.swing.JCheckBox" name="proxyVideoStreamersCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Video Streamers"/>
-            <Property name="toolTipText" type="java.lang.String" value="e.g. http://www.1channel.ch"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;e.g. &quot; + Str.get(581)" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="proxyUpdatesCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Updates"/>
-            <Property name="toolTipText" type="java.lang.String" value="e.g. https://docs.google.com"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;e.g. &quot; + Str.get(582)" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="proxySubtitlesCheckBox">
           <Properties>
             <Property name="text" type="java.lang.String" value="Subtitles"/>
-            <Property name="toolTipText" type="java.lang.String" value="e.g. http://www.opensubtitles.org"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;e.g. &quot; + Str.get(583)" type="code"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>

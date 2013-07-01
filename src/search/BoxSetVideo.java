@@ -32,7 +32,7 @@ public class BoxSetVideo {
     }
 
     public boolean isSameTitle(String imdbTitle, String imdbYear) throws Exception {
-        if (imdbYear.compareTo(year) != 0) {
+        if (!imdbYear.equals(year)) {
             return false;
         }
         String escapedImdbTitle = Regex.replaceAll(Regex.replaceAll(escapeTitle(imdbTitle), Str.get(313), Str.get(314)), Str.get(315), Str.get(316)).trim();
@@ -40,7 +40,7 @@ public class BoxSetVideo {
             return false;
         }
         String escapedWikiTitle = Regex.replaceAll(Regex.replaceAll(title, Str.get(317), Str.get(318)), Str.get(319), Str.get(320)).trim();
-        return isTitleValid(escapedWikiTitle) && escapedImdbTitle.compareToIgnoreCase(escapedWikiTitle) == 0;
+        return isTitleValid(escapedWikiTitle) && escapedImdbTitle.equalsIgnoreCase(escapedWikiTitle);
     }
 
     private static String escapeTitle(String title) throws Exception {
@@ -80,7 +80,7 @@ public class BoxSetVideo {
 
         for (int i = 0; i < maxLen && !done; i++) {
             for (int j = 1; j < numVideos; j++) {
-                if (String.valueOf(firstTitle.charAt(i)).compareToIgnoreCase(String.valueOf(titles.get(j).charAt(i))) != 0) {
+                if (!String.valueOf(firstTitle.charAt(i)).equalsIgnoreCase(String.valueOf(titles.get(j).charAt(i)))) {
                     prefix = firstTitle.substring(0, i);
                     done = true;
                     break;
@@ -89,7 +89,7 @@ public class BoxSetVideo {
         }
 
         prefix = validatePrefix(firstTitle, prefix);
-        if (prefix != null && prefix.compareToIgnoreCase(boxSetName) != 0) {
+        if (prefix != null && !prefix.equalsIgnoreCase(boxSetName)) {
             result[1] = prefix;
         }
         return result;

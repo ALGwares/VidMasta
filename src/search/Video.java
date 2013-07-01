@@ -117,7 +117,7 @@ public class Video {
         }
 
         String prefix = dirtyMovieTitle.substring(0, index);
-        if (prefix.compareTo(dirtyMovieTitle) == 0) {
+        if (prefix.equals(dirtyMovieTitle)) {
             return null;
         }
 
@@ -167,7 +167,7 @@ public class Video {
         String storyline = null;
         boolean isEmpty1 = summary1.isEmpty(), isEmpty2 = summary2.isEmpty();
 
-        if ((!isEmpty1 && !isEmpty2) && summary1.compareTo(summary2) == 0) {
+        if ((!isEmpty1 && !isEmpty2) && summary1.equals(summary2)) {
             summary.append(summary1);
         } else if (isEmpty1 && !isEmpty2) {
             summary.append(summary2);

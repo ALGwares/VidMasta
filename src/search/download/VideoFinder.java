@@ -310,7 +310,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
         String imagePath = Constant.CACHE_DIR + Video.imagePath(titleID);
         if (!(new File(imagePath)).exists()) {
-            if (imageLink.compareTo(Constant.NULL) == 0) {
+            if (imageLink.equals(Constant.NULL)) {
                 imagePath = null;
             } else {
                 try {
@@ -567,7 +567,7 @@ public class VideoFinder extends AbstractSwingWorker {
         if (Debug.DEBUG) {
             Debug.println("Stream result: '" + newTitle + "' '" + newYear + "'");
         }
-        return newTitle.compareTo(findOldTitleStream ? oldTitle : title) == 0 && newYear.compareTo(year) == 0;
+        return newTitle.equals(findOldTitleStream ? oldTitle : title) && newYear.equals(year);
     }
 
     private String indirectStreamSearchHelper() throws Exception {
@@ -591,14 +591,22 @@ public class VideoFinder extends AbstractSwingWorker {
             }
             results = Regex.matches(source, Str.get(isTVShow ? 262 : 263));
         } else {
-            String source = Connection.getSourceCode(Str.get(396), Connection.VIDEO_STREAMER, !prefetch);
-            String key = Regex.match(source, Str.get(397), Str.get(398));
-            if (isCancelled() || key.isEmpty()) {
-                return;
+            String source, key;
+            if (Boolean.parseBoolean(Str.get(572))) {
+                source = Connection.getSourceCode(Str.get(396), Connection.VIDEO_STREAMER, !prefetch);
+                if (isCancelled()) {
+                    return;
+                }
+                key = Regex.match(source, Str.get(573), Str.get(574));
+                if (!key.isEmpty()) {
+                    key = Str.get(575) + key;
+                }
+            } else {
+                key = "";
             }
 
             source = Connection.getSourceCode(Str.get(399) + Str.get(isTVShow ? 400 : 401) + Str.get(402) + URLEncoder.encode(findOldTitleStream ? oldTitle
-                    : title, Constant.UTF8) + Str.get(459) + key, Connection.VIDEO_STREAMER, !prefetch);
+                    : title, Constant.UTF8) + Str.get(576) + key, Connection.VIDEO_STREAMER, !prefetch);
             if (prefetch || isCancelled()) {
                 return;
             }

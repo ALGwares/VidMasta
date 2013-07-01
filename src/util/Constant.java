@@ -13,7 +13,7 @@ public class Constant {
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
     public static final int WARNING_MSG = JOptionPane.WARNING_MESSAGE;
     public static final int QUESTION_MSG = JOptionPane.QUESTION_MESSAGE;
-    public static final double APP_VERSION = 16.4;
+    public static final double APP_VERSION = 16.6;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -40,7 +40,7 @@ public class Constant {
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + Constant.TXT;
     public static final String PROFILES = "profiles" + TXT;
-    private static final String UPDATE_FILE_VERSION = "41";
+    private static final String UPDATE_FILE_VERSION = "42";
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 57;
@@ -77,7 +77,7 @@ public class Constant {
     static {
         FILE_SEPARATOR = System.getProperty("file.separator", "/");
         String java = System.getProperty("java.home", "java");
-        JAVA = java + (java.compareTo("java") == 0 ? "" : FILE_SEPARATOR + "bin" + FILE_SEPARATOR + "java");
+        JAVA = java + (java.equals("java") ? "" : FILE_SEPARATOR + "bin" + FILE_SEPARATOR + "java");
         PROGRAM_DIR = initProgramDir();
         APP_DIR = initAppDir();
         CACHE_DIR = APP_DIR + "cache" + FILE_SEPARATOR;

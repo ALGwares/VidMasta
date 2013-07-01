@@ -233,10 +233,11 @@ public class Connection {
         String[] proxies = Regex.split(strs[516], Constant.SEPARATOR1);
         String nextProxy = proxies[proxyIndex >= proxies.length ? 0 : proxyIndex];
         downloadLinkInfoFailUrl = strs[518];
+        int downloadLinkInfoFailUrlLen = downloadLinkInfoFailUrl.length();
 
         for (String indexToUpdate : Regex.split(strs[517], ",")) {
             int indexToUpdateNum = Integer.parseInt(indexToUpdate);
-            strs[indexToUpdateNum] = nextProxy + strs[indexToUpdateNum].substring(downloadLinkInfoFailUrl.length());
+            strs[indexToUpdateNum] = nextProxy + strs[indexToUpdateNum].substring(downloadLinkInfoFailUrlLen);
         }
     }
 

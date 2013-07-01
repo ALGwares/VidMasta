@@ -1704,15 +1704,15 @@ public class GUI extends JFrame implements GuiListener {
 
         proxyDownloadLinkInfoCheckBox.setSelected(true);
         proxyDownloadLinkInfoCheckBox.setText("Download Link Info");
-        proxyDownloadLinkInfoCheckBox.setToolTipText("e.g. http://thepiratebay.se");
+        proxyDownloadLinkInfoCheckBox.setToolTipText("e.g. " + Str.get(577));
 
         proxyUseForLabel.setText("Use for:");
 
         proxyVideoInfoCheckBox.setText("Video Info");
-        proxyVideoInfoCheckBox.setToolTipText("e.g. http://www.imdb.com");
+        proxyVideoInfoCheckBox.setToolTipText("e.g. " + Str.get(578));
 
         proxySearchEnginesCheckBox.setText("Search Engines");
-        proxySearchEnginesCheckBox.setToolTipText("e.g. http://www.google.com");
+        proxySearchEnginesCheckBox.setToolTipText("e.g. " + Str.get(579));
 
         proxyOKButton.setText("OK");
         proxyOKButton.addActionListener(new ActionListener() {
@@ -1729,7 +1729,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         proxyTrailersCheckBox.setText("Trailers");
-        proxyTrailersCheckBox.setToolTipText("e.g. http://www.youtube.com");
+        proxyTrailersCheckBox.setToolTipText("e.g. " + Str.get(580));
 
         proxyLoadingLabel.setText(null);
 
@@ -1748,13 +1748,13 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         proxyVideoStreamersCheckBox.setText("Video Streamers");
-        proxyVideoStreamersCheckBox.setToolTipText("e.g. http://www.1channel.ch");
+        proxyVideoStreamersCheckBox.setToolTipText("e.g. " + Str.get(581));
 
         proxyUpdatesCheckBox.setText("Updates");
-        proxyUpdatesCheckBox.setToolTipText("e.g. https://docs.google.com");
+        proxyUpdatesCheckBox.setToolTipText("e.g. " + Str.get(582));
 
         proxySubtitlesCheckBox.setText("Subtitles");
-        proxySubtitlesCheckBox.setToolTipText("e.g. http://www.opensubtitles.org");
+        proxySubtitlesCheckBox.setToolTipText("e.g. " + Str.get(583));
 
         GroupLayout proxyDialogLayout = new GroupLayout(proxyDialog.getContentPane());
         proxyDialog.getContentPane().setLayout(proxyDialogLayout);
@@ -3867,14 +3867,13 @@ public class GUI extends JFrame implements GuiListener {
             toListModel.addElement(extension);
         }
 
-        sort(fromListModel);
         sort(toListModel);
     }
 
     private static int indexOf(DefaultListModel listModel, String element) {
         Object[] items = listModel.toArray();
         for (int i = 0; i < items.length; i++) {
-            if (element.compareToIgnoreCase((String) items[i]) == 0) {
+            if (element.equalsIgnoreCase((String) items[i])) {
                 return i;
             }
         }
@@ -4784,7 +4783,7 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        if (newProfileName.compareTo(Constant.DEFAULT_PROFILE) == 0) {
+        if (newProfileName.equals(Constant.DEFAULT_PROFILE)) {
             profileNameChangeDialog.setAlwaysOnTop(false);
             showMsg("The name is already in use by another profile. Choose a different name.", Constant.ERROR_MSG);
             profileNameChangeDialog.setAlwaysOnTop(true);
@@ -4797,7 +4796,7 @@ public class GUI extends JFrame implements GuiListener {
                 profileNames[i - 1] = newProfileName;
             } else {
                 String profileName = (String) profileComboBox.getItemAt(i);
-                if (newProfileName.compareTo(profileName) == 0) {
+                if (newProfileName.equals(profileName)) {
                     profileNameChangeDialog.setAlwaysOnTop(false);
                     showMsg("The name is already in use by another profile. Choose a different name.", Constant.ERROR_MSG);
                     profileNameChangeDialog.setAlwaysOnTop(true);
@@ -5344,7 +5343,7 @@ public class GUI extends JFrame implements GuiListener {
         ListModel listModel = list.getModel();
         for (int i = 0; i < selection.length; i++) {
             String currStr = (String) listModel.getElementAt(selection[i]);
-            if (currStr.compareTo(anyStr) == 0) {
+            if (currStr.equals(anyStr)) {
                 int[] newSelection = new int[selection.length - 1];
 
                 int k = 0, j = 0;
@@ -5364,7 +5363,7 @@ public class GUI extends JFrame implements GuiListener {
     private void updateDownloadSizeComboBoxes() {
         String min = (String) minDownloadSizeComboBox.getSelectedItem();
         String max = (String) maxDownloadSizeComboBox.getSelectedItem();
-        if (max.compareTo(Constant.INFINITY) != 0 && Integer.parseInt(min) >= Integer.parseInt(max)) {
+        if (!max.equals(Constant.INFINITY) && Integer.parseInt(min) >= Integer.parseInt(max)) {
             maxDownloadSizeComboBox.setSelectedItem(Constant.INFINITY);
         }
     }
@@ -5372,7 +5371,7 @@ public class GUI extends JFrame implements GuiListener {
     private void updatedTVComboBoxes() {
         String season = (String) tvSeasonComboBox.getSelectedItem();
         String episode = (String) tvEpisodeComboBox.getSelectedItem();
-        boolean allSeasons = season.compareTo(Constant.ANY) == 0, allEpisodes = episode.compareTo(Constant.ANY) == 0;
+        boolean allSeasons = season.equals(Constant.ANY), allEpisodes = episode.equals(Constant.ANY);
 
         if (allSeasons && !allEpisodes) {
             if (tvEpisodeComboBox.isEnabled()) {
@@ -5578,12 +5577,11 @@ public class GUI extends JFrame implements GuiListener {
         void loadSettings(String settingsFile) {
             try {
                 String[] settings = Regex.split(Read.read(settingsFile), Constant.NEWLINE);
-                boolean updateSettings = false;
-                if (settings.length < Constant.SETTINGS_LEN) {
+                boolean updateSettings = (settings.length < Constant.SETTINGS_LEN);
+                if (updateSettings) {
                     String[] defaultSettings = Regex.split(Read.read(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS), Constant.NEWLINE);
                     System.arraycopy(settings, 0, defaultSettings, 0, settings.length);
                     settings = defaultSettings;
-                    updateSettings = true;
                 }
                 int i = -1;
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
@@ -5734,7 +5732,7 @@ public class GUI extends JFrame implements GuiListener {
 
             for (int j = 0; j < size; j++) {
                 for (String currStr : strs) {
-                    if (currStr.compareTo((String) listModel.getElementAt(j)) == 0) {
+                    if (currStr.equals(listModel.getElementAt(j))) {
                         selection[k++] = j;
                     }
                 }
@@ -5763,9 +5761,9 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         private void restorePosition(Window window, String location) {
-            if (location.compareTo("center") == 0) {
+            if (location.equals("center")) {
                 centerOnScreen(window);
-            } else if (location.compareTo(Constant.NULL) == 0) {
+            } else if (location.equals(Constant.NULL)) {
                 window.setLocationRelativeTo(GUI.this);
             } else {
                 String[] point = Regex.split(location, ",");
@@ -5935,295 +5933,6 @@ public class GUI extends JFrame implements GuiListener {
             year = Regex.replaceAll((String) resultsSyncTable.getModelValueAt(val, yearCol), "(</?+html>)|(</?+b>)", "");
         }
     }
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    JDialog aboutDialog;
-    JEditorPane aboutEditorPane;
-    JMenuItem aboutMenuItem;
-    JScrollPane aboutScrollPane;
-    JButton addProxiesAddButton;
-    JButton addProxiesCancelButton;
-    JDialog addProxiesDialog;
-    JLabel addProxiesLabel;
-    JScrollPane addProxiesScrollPane;
-    JTextArea addProxiesTextArea;
-    JCheckBox anyTitleCheckBox;
-    JRadioButton anyVideoTypeRadioButton;
-    JLabel authenticationMessageLabel;
-    JPanel authenticationPanel;
-    JPasswordField authenticationPasswordField;
-    JLabel authenticationPasswordLabel;
-    JLabel authenticationUsernameLabel;
-    JTextField authenticationUsernameTextField;
-    ButtonGroup autoDownloadersButtonGroup;
-    JCheckBoxMenuItem autoDownloadingCheckBoxMenuItem;
-    JLabel blacklistedLabel;
-    JList blacklistedList;
-    JScrollPane blacklistedScrollPane;
-    JButton blacklistedToWhitelistedButton;
-    JCheckBoxMenuItem browserNotificationCheckBoxMenuItem;
-    JButton closeBoxButton;
-    JDialog commentsDialog;
-    JScrollPane commentsScrollPane;
-    JTextPane commentsTextPane;
-    JButton connectionIssueButton;
-    JMenuItem copyMenuItem;
-    JLabel countryLabel;
-    JList countryList;
-    JScrollPane countryScrollPane;
-    JTextField customExtensionTextField;
-    JRadioButtonMenuItem customRadioButtonMenuItem;
-    JMenuItem cutMenuItem;
-    JRadioButtonMenuItem defaultRadioButtonMenuItem;
-    JMenuItem deleteMenuItem;
-    JButton downloadLink1Button;
-    JMenuItem downloadLink1MenuItem;
-    JButton downloadLink2Button;
-    JMenuItem downloadLink2MenuItem;
-    JMenu downloadMenu;
-    Separator downloadMenuSeparator1;
-    Separator downloadMenuSeparator2;
-    Separator downloadMenuSeparator3;
-    Separator downloadMenuSeparator4;
-    JButton downloadSizeButton;
-    JDialog downloadSizeDialog;
-    JCheckBox downloadSizeIgnoreCheckBox;
-    JLabel downloadSizeLabel;
-    JMenuItem downloadSizeMenuItem;
-    JLabel downloadSizeToLabel;
-    JCheckBoxMenuItem downloadWithDefaultAppCheckBoxMenuItem;
-    JMenu downloaderMenu;
-    JRadioButton dvdRadioButton;
-    JMenu editMenu;
-    Separator editMenuSeparator1;
-    Separator editMenuSeparator2;
-    JMenuItem editProfilesMenuItem;
-    JDateChooser endDateChooser;
-    JLabel episodeLabel;
-    JMenuItem exitMenuItem;
-    JButton extensionsButton;
-    JDialog extensionsDialog;
-    JEditorPane faqEditorPane;
-    JFrame faqFrame;
-    JMenuItem faqMenuItem;
-    JScrollPane faqScrollPane;
-    JCheckBoxMenuItem feedCheckBoxMenuItem;
-    JLabel fileExtensionsLabel;
-    JMenuItem fileExtensionsMenuItem;
-    JMenu fileMenu;
-    Separator fileMenuSeparator1;
-    Separator fileMenuSeparator2;
-    Separator fileMenuSeparator3;
-    JMenuItem findMenuItem;
-    JMenuItem findSubtitleMenuItem;
-    JTextField findTextField;
-    JLabel genreLabel;
-    JList genreList;
-    JScrollPane genreScrollPane;
-    JRadioButton hd1080RadioButton;
-    JRadioButton hd720RadioButton;
-    JMenu helpMenu;
-    Separator helpMenuSeparator1;
-    Separator helpMenuSeparator2;
-    JButton langaugeCountryOkButton;
-    JDialog languageCountryDialog;
-    JMenuItem languageCountryMenuItem;
-    JLabel languageCountryWarningLabel;
-    JLabel languageLabel;
-    JList languageList;
-    JScrollPane languageScrollPane;
-    JProgressBar linkProgressBar;
-    JMenuItem listCopyMenuItem;
-    JMenuItem listCutMenuItem;
-    JMenuItem listDeleteMenuItem;
-    JPopupMenu listPopupMenu;
-    Separator listPopupMenuSeparator1;
-    JMenuItem listSelectAllMenuItem;
-    JButton loadMoreResultsButton;
-    JLabel loadingLabel;
-    JComboBox maxDownloadSizeComboBox;
-    JMenuBar menuBar;
-    JComboBox minDownloadSizeComboBox;
-    JButton movieSubtitleCancelButton;
-    JDialog movieSubtitleDialog;
-    JButton movieSubtitleDownloadMatch1Button;
-    JButton movieSubtitleDownloadMatch2Button;
-    JComboBox movieSubtitleFormatComboBox;
-    JLabel movieSubtitleFormatLabel;
-    JComboBox movieSubtitleLanguageComboBox;
-    JLabel movieSubtitleLanguageLabel;
-    JLabel movieSubtitleLoadingLabel;
-    JDialog msgDialog;
-    JEditorPane msgEditorPane;
-    JButton msgOKButton;
-    JScrollPane msgScrollPane;
-    JButton noButton;
-    JCheckBox optionalMsgCheckBox;
-    JPanel optionalMsgPanel;
-    JTextArea optionalMsgTextArea;
-    JMenuItem pasteMenuItem;
-    JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
-    JButton popularMoviesButton;
-    JComboBox popularMoviesResultsPerSearchComboBox;
-    JLabel popularMoviesResultsPerSearchLabel;
-    JButton popularTVShowsButton;
-    JComboBox popularTVShowsResultsPerSearchComboBox;
-    JLabel popularTVShowsResultsPerSearchLabel;
-    JDialog portDialog;
-    JLabel portLabel;
-    JMenuItem portMenuItem;
-    JButton portOkButton;
-    JCheckBox portRandomizeCheckBox;
-    JTextField portTextField;
-    JMenuItem printMenuItem;
-    JMenuItem profile0MenuItem;
-    JMenuItem profile1MenuItem;
-    JMenuItem profile2MenuItem;
-    JMenuItem profile3MenuItem;
-    JMenuItem profile4MenuItem;
-    JMenuItem profile5MenuItem;
-    JMenuItem profile6MenuItem;
-    JMenuItem profile7MenuItem;
-    JMenuItem profile8MenuItem;
-    JMenuItem profile9MenuItem;
-    JButton profileClearButton;
-    JComboBox profileComboBox;
-    JDialog profileDialog;
-    JDialog profileMsgDialog;
-    JLabel profileMsgLabel;
-    JButton profileNameChangeCancelButton;
-    JDialog profileNameChangeDialog;
-    JLabel profileNameChangeLabel;
-    JButton profileNameChangeOKButton;
-    JTextField profileNameChangeTextField;
-    JButton profileOKButton;
-    JButton profileRenameButton;
-    JButton profileSetButton;
-    JButton profileUseButton;
-    JProgressBar progressBar;
-    JLabel progressBarLabel;
-    JButton proxyAddButton;
-    JComboBox proxyComboBox;
-    JDialog proxyDialog;
-    JButton proxyDownloadButton;
-    JCheckBox proxyDownloadLinkInfoCheckBox;
-    JButton proxyExportButton;
-    JFileChooser proxyFileChooser;
-    JButton proxyImportButton;
-    JLabel proxyLoadingLabel;
-    JMenuItem proxyMenuItem;
-    JButton proxyOKButton;
-    JButton proxyRemoveButton;
-    JCheckBox proxySearchEnginesCheckBox;
-    JCheckBox proxySubtitlesCheckBox;
-    JCheckBox proxyTrailersCheckBox;
-    JCheckBox proxyUpdatesCheckBox;
-    JLabel proxyUseForLabel;
-    JCheckBox proxyVideoInfoCheckBox;
-    JCheckBox proxyVideoStreamersCheckBox;
-    JComboBox ratingComboBox;
-    JLabel ratingLabel;
-    JButton readSummaryButton;
-    JMenuItem readSummaryMenuItem;
-    JComboBox regularResultsPerSearchComboBox;
-    JLabel regularResultsPerSearchLabel;
-    JLabel releasedLabel;
-    JLabel releasedToLabel;
-    JButton removeProxiesCancelButton;
-    JDialog removeProxiesDialog;
-    JLabel removeProxiesLabel;
-    JList removeProxiesList;
-    JButton removeProxiesRemoveButton;
-    JScrollPane removeProxiesScrollPane;
-    JMenuItem resetWindowMenuItem;
-    JLabel resultsLabel;
-    JButton resultsPerSearchButton;
-    JDialog resultsPerSearchDialog;
-    JMenuItem resultsPerSearchMenuItem;
-    JScrollPane resultsScrollPane;
-    JTable resultsTable;
-    JCheckBoxMenuItem safetyCheckBoxMenuItem;
-    JDialog safetyDialog;
-    JEditorPane safetyEditorPane;
-    JLabel safetyLoadingLabel;
-    JScrollPane safetyScrollPane;
-    JButton searchButton;
-    JMenu searchMenu;
-    Separator searchMenuSeparator1;
-    Separator searchMenuSeparator2;
-    Separator searchMenuSeparator3;
-    Separator searchMenuSeparator4;
-    JLabel seasonLabel;
-    JMenuItem selectAllMenuItem;
-    JDateChooser startDateChooser;
-    JTextField statusBarTextField;
-    JButton stopButton;
-    JFileChooser subtitleFileChooser;
-    JButton summaryCloseButton;
-    JDialog summaryDialog;
-    JEditorPane summaryEditorPane;
-    JLabel summaryLoadingLabel;
-    JScrollPane summaryScrollPane;
-    JButton summaryTextToSpeechButton;
-    JMenuItem tableCopyMenuItem;
-    JPopupMenu tablePopupMenu;
-    Separator tablePopupMenuSeparator1;
-    Separator tablePopupMenuSeparator2;
-    JMenuItem textComponentCopyMenuItem;
-    JMenuItem textComponentCutMenuItem;
-    JMenuItem textComponentDeleteMenuItem;
-    JMenuItem textComponentPasteMenuItem;
-    JMenuItem textComponentPasteSearchMenuItem;
-    JPopupMenu textComponentPopupMenu;
-    Separator textComponentPopupMenuSeparator1;
-    JMenuItem textComponentSelectAllMenuItem;
-    JButton timeoutButton;
-    JComboBox timeoutComboBox;
-    JDialog timeoutDialog;
-    JLabel timeoutLabel;
-    JMenuItem timeoutMenuItem;
-    JLabel titleLabel;
-    JTextField titleTextField;
-    JFileChooser torrentFileChooser;
-    JButton trashCanButton;
-    JButton tvCancelButton;
-    JDialog tvDialog;
-    JComboBox tvEpisodeComboBox;
-    JComboBox tvSeasonComboBox;
-    JLabel tvSelectionLabel;
-    JButton tvSubmitButton;
-    JButton tvSubtitleCancelButton;
-    JDialog tvSubtitleDialog;
-    JButton tvSubtitleDownloadMatch1Button;
-    JButton tvSubtitleDownloadMatch2Button;
-    JComboBox tvSubtitleEpisodeComboBox;
-    JLabel tvSubtitleEpisodeLabel;
-    JComboBox tvSubtitleFormatComboBox;
-    JLabel tvSubtitleFormatLabel;
-    JComboBox tvSubtitleLanguageComboBox;
-    JLabel tvSubtitleLanguageLabel;
-    JLabel tvSubtitleLoadingLabel;
-    JComboBox tvSubtitleSeasonComboBox;
-    JLabel tvSubtitleSeasonLabel;
-    JComboBox typeComboBox;
-    JLabel typeLabel;
-    JCheckBoxMenuItem updateCheckBoxMenuItem;
-    JMenuItem updateMenuItem;
-    JMenu useProfileMenu;
-    Separator useProfileMenuSeparator1;
-    ButtonGroup videoFormatsButtonGroup;
-    JMenu viewMenu;
-    JButton watchSource1Button;
-    JMenuItem watchSource1MenuItem;
-    JButton watchSource2Button;
-    JMenuItem watchSource2MenuItem;
-    JButton watchTrailerButton;
-    JMenuItem watchTrailerMenuItem;
-    JLabel whitelistLabel;
-    JList whitelistedList;
-    JScrollPane whitelistedScrollPane;
-    JButton whitelistedToBlacklistedButton;
-    JButton yesButton;
-    // End of variables declaration//GEN-END:variables
 
     @Override
     public void loading(boolean isLoading) {
@@ -6695,6 +6404,9 @@ public class GUI extends JFrame implements GuiListener {
         stopSearch();
         stopButton.setEnabled(false);
         updateFindTitles();
+        if (titleTextField.isEnabled() && resultsSyncTable.getRowCount() == 0) {
+            titleTextField.requestFocusInWindow();
+        }
     }
 
     @Override
@@ -6809,7 +6521,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void setStatusBar(String msg) {
-        if (statusBarTextField.getText().compareTo(msg) != 0) {
+        if (!statusBarTextField.getText().equals(msg)) {
             statusBarTextField.setText(msg);
         }
     }
@@ -7083,4 +6795,293 @@ public class GUI extends JFrame implements GuiListener {
         }
         return Integer.parseInt(port);
     }
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    JDialog aboutDialog;
+    JEditorPane aboutEditorPane;
+    JMenuItem aboutMenuItem;
+    JScrollPane aboutScrollPane;
+    JButton addProxiesAddButton;
+    JButton addProxiesCancelButton;
+    JDialog addProxiesDialog;
+    JLabel addProxiesLabel;
+    JScrollPane addProxiesScrollPane;
+    JTextArea addProxiesTextArea;
+    JCheckBox anyTitleCheckBox;
+    JRadioButton anyVideoTypeRadioButton;
+    JLabel authenticationMessageLabel;
+    JPanel authenticationPanel;
+    JPasswordField authenticationPasswordField;
+    JLabel authenticationPasswordLabel;
+    JLabel authenticationUsernameLabel;
+    JTextField authenticationUsernameTextField;
+    ButtonGroup autoDownloadersButtonGroup;
+    JCheckBoxMenuItem autoDownloadingCheckBoxMenuItem;
+    JLabel blacklistedLabel;
+    JList blacklistedList;
+    JScrollPane blacklistedScrollPane;
+    JButton blacklistedToWhitelistedButton;
+    JCheckBoxMenuItem browserNotificationCheckBoxMenuItem;
+    JButton closeBoxButton;
+    JDialog commentsDialog;
+    JScrollPane commentsScrollPane;
+    JTextPane commentsTextPane;
+    JButton connectionIssueButton;
+    JMenuItem copyMenuItem;
+    JLabel countryLabel;
+    JList countryList;
+    JScrollPane countryScrollPane;
+    JTextField customExtensionTextField;
+    JRadioButtonMenuItem customRadioButtonMenuItem;
+    JMenuItem cutMenuItem;
+    JRadioButtonMenuItem defaultRadioButtonMenuItem;
+    JMenuItem deleteMenuItem;
+    JButton downloadLink1Button;
+    JMenuItem downloadLink1MenuItem;
+    JButton downloadLink2Button;
+    JMenuItem downloadLink2MenuItem;
+    JMenu downloadMenu;
+    Separator downloadMenuSeparator1;
+    Separator downloadMenuSeparator2;
+    Separator downloadMenuSeparator3;
+    Separator downloadMenuSeparator4;
+    JButton downloadSizeButton;
+    JDialog downloadSizeDialog;
+    JCheckBox downloadSizeIgnoreCheckBox;
+    JLabel downloadSizeLabel;
+    JMenuItem downloadSizeMenuItem;
+    JLabel downloadSizeToLabel;
+    JCheckBoxMenuItem downloadWithDefaultAppCheckBoxMenuItem;
+    JMenu downloaderMenu;
+    JRadioButton dvdRadioButton;
+    JMenu editMenu;
+    Separator editMenuSeparator1;
+    Separator editMenuSeparator2;
+    JMenuItem editProfilesMenuItem;
+    JDateChooser endDateChooser;
+    JLabel episodeLabel;
+    JMenuItem exitMenuItem;
+    JButton extensionsButton;
+    JDialog extensionsDialog;
+    JEditorPane faqEditorPane;
+    JFrame faqFrame;
+    JMenuItem faqMenuItem;
+    JScrollPane faqScrollPane;
+    JCheckBoxMenuItem feedCheckBoxMenuItem;
+    JLabel fileExtensionsLabel;
+    JMenuItem fileExtensionsMenuItem;
+    JMenu fileMenu;
+    Separator fileMenuSeparator1;
+    Separator fileMenuSeparator2;
+    Separator fileMenuSeparator3;
+    JMenuItem findMenuItem;
+    JMenuItem findSubtitleMenuItem;
+    JTextField findTextField;
+    JLabel genreLabel;
+    JList genreList;
+    JScrollPane genreScrollPane;
+    JRadioButton hd1080RadioButton;
+    JRadioButton hd720RadioButton;
+    JMenu helpMenu;
+    Separator helpMenuSeparator1;
+    Separator helpMenuSeparator2;
+    JButton langaugeCountryOkButton;
+    JDialog languageCountryDialog;
+    JMenuItem languageCountryMenuItem;
+    JLabel languageCountryWarningLabel;
+    JLabel languageLabel;
+    JList languageList;
+    JScrollPane languageScrollPane;
+    JProgressBar linkProgressBar;
+    JMenuItem listCopyMenuItem;
+    JMenuItem listCutMenuItem;
+    JMenuItem listDeleteMenuItem;
+    JPopupMenu listPopupMenu;
+    Separator listPopupMenuSeparator1;
+    JMenuItem listSelectAllMenuItem;
+    JButton loadMoreResultsButton;
+    JLabel loadingLabel;
+    JComboBox maxDownloadSizeComboBox;
+    JMenuBar menuBar;
+    JComboBox minDownloadSizeComboBox;
+    JButton movieSubtitleCancelButton;
+    JDialog movieSubtitleDialog;
+    JButton movieSubtitleDownloadMatch1Button;
+    JButton movieSubtitleDownloadMatch2Button;
+    JComboBox movieSubtitleFormatComboBox;
+    JLabel movieSubtitleFormatLabel;
+    JComboBox movieSubtitleLanguageComboBox;
+    JLabel movieSubtitleLanguageLabel;
+    JLabel movieSubtitleLoadingLabel;
+    JDialog msgDialog;
+    JEditorPane msgEditorPane;
+    JButton msgOKButton;
+    JScrollPane msgScrollPane;
+    JButton noButton;
+    JCheckBox optionalMsgCheckBox;
+    JPanel optionalMsgPanel;
+    JTextArea optionalMsgTextArea;
+    JMenuItem pasteMenuItem;
+    JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
+    JButton popularMoviesButton;
+    JComboBox popularMoviesResultsPerSearchComboBox;
+    JLabel popularMoviesResultsPerSearchLabel;
+    JButton popularTVShowsButton;
+    JComboBox popularTVShowsResultsPerSearchComboBox;
+    JLabel popularTVShowsResultsPerSearchLabel;
+    JDialog portDialog;
+    JLabel portLabel;
+    JMenuItem portMenuItem;
+    JButton portOkButton;
+    JCheckBox portRandomizeCheckBox;
+    JTextField portTextField;
+    JMenuItem printMenuItem;
+    JMenuItem profile0MenuItem;
+    JMenuItem profile1MenuItem;
+    JMenuItem profile2MenuItem;
+    JMenuItem profile3MenuItem;
+    JMenuItem profile4MenuItem;
+    JMenuItem profile5MenuItem;
+    JMenuItem profile6MenuItem;
+    JMenuItem profile7MenuItem;
+    JMenuItem profile8MenuItem;
+    JMenuItem profile9MenuItem;
+    JButton profileClearButton;
+    JComboBox profileComboBox;
+    JDialog profileDialog;
+    JDialog profileMsgDialog;
+    JLabel profileMsgLabel;
+    JButton profileNameChangeCancelButton;
+    JDialog profileNameChangeDialog;
+    JLabel profileNameChangeLabel;
+    JButton profileNameChangeOKButton;
+    JTextField profileNameChangeTextField;
+    JButton profileOKButton;
+    JButton profileRenameButton;
+    JButton profileSetButton;
+    JButton profileUseButton;
+    JProgressBar progressBar;
+    JLabel progressBarLabel;
+    JButton proxyAddButton;
+    JComboBox proxyComboBox;
+    JDialog proxyDialog;
+    JButton proxyDownloadButton;
+    JCheckBox proxyDownloadLinkInfoCheckBox;
+    JButton proxyExportButton;
+    JFileChooser proxyFileChooser;
+    JButton proxyImportButton;
+    JLabel proxyLoadingLabel;
+    JMenuItem proxyMenuItem;
+    JButton proxyOKButton;
+    JButton proxyRemoveButton;
+    JCheckBox proxySearchEnginesCheckBox;
+    JCheckBox proxySubtitlesCheckBox;
+    JCheckBox proxyTrailersCheckBox;
+    JCheckBox proxyUpdatesCheckBox;
+    JLabel proxyUseForLabel;
+    JCheckBox proxyVideoInfoCheckBox;
+    JCheckBox proxyVideoStreamersCheckBox;
+    JComboBox ratingComboBox;
+    JLabel ratingLabel;
+    JButton readSummaryButton;
+    JMenuItem readSummaryMenuItem;
+    JComboBox regularResultsPerSearchComboBox;
+    JLabel regularResultsPerSearchLabel;
+    JLabel releasedLabel;
+    JLabel releasedToLabel;
+    JButton removeProxiesCancelButton;
+    JDialog removeProxiesDialog;
+    JLabel removeProxiesLabel;
+    JList removeProxiesList;
+    JButton removeProxiesRemoveButton;
+    JScrollPane removeProxiesScrollPane;
+    JMenuItem resetWindowMenuItem;
+    JLabel resultsLabel;
+    JButton resultsPerSearchButton;
+    JDialog resultsPerSearchDialog;
+    JMenuItem resultsPerSearchMenuItem;
+    JScrollPane resultsScrollPane;
+    JTable resultsTable;
+    JCheckBoxMenuItem safetyCheckBoxMenuItem;
+    JDialog safetyDialog;
+    JEditorPane safetyEditorPane;
+    JLabel safetyLoadingLabel;
+    JScrollPane safetyScrollPane;
+    JButton searchButton;
+    JMenu searchMenu;
+    Separator searchMenuSeparator1;
+    Separator searchMenuSeparator2;
+    Separator searchMenuSeparator3;
+    Separator searchMenuSeparator4;
+    JLabel seasonLabel;
+    JMenuItem selectAllMenuItem;
+    JDateChooser startDateChooser;
+    JTextField statusBarTextField;
+    JButton stopButton;
+    JFileChooser subtitleFileChooser;
+    JButton summaryCloseButton;
+    JDialog summaryDialog;
+    JEditorPane summaryEditorPane;
+    JLabel summaryLoadingLabel;
+    JScrollPane summaryScrollPane;
+    JButton summaryTextToSpeechButton;
+    JMenuItem tableCopyMenuItem;
+    JPopupMenu tablePopupMenu;
+    Separator tablePopupMenuSeparator1;
+    Separator tablePopupMenuSeparator2;
+    JMenuItem textComponentCopyMenuItem;
+    JMenuItem textComponentCutMenuItem;
+    JMenuItem textComponentDeleteMenuItem;
+    JMenuItem textComponentPasteMenuItem;
+    JMenuItem textComponentPasteSearchMenuItem;
+    JPopupMenu textComponentPopupMenu;
+    Separator textComponentPopupMenuSeparator1;
+    JMenuItem textComponentSelectAllMenuItem;
+    JButton timeoutButton;
+    JComboBox timeoutComboBox;
+    JDialog timeoutDialog;
+    JLabel timeoutLabel;
+    JMenuItem timeoutMenuItem;
+    JLabel titleLabel;
+    JTextField titleTextField;
+    JFileChooser torrentFileChooser;
+    JButton trashCanButton;
+    JButton tvCancelButton;
+    JDialog tvDialog;
+    JComboBox tvEpisodeComboBox;
+    JComboBox tvSeasonComboBox;
+    JLabel tvSelectionLabel;
+    JButton tvSubmitButton;
+    JButton tvSubtitleCancelButton;
+    JDialog tvSubtitleDialog;
+    JButton tvSubtitleDownloadMatch1Button;
+    JButton tvSubtitleDownloadMatch2Button;
+    JComboBox tvSubtitleEpisodeComboBox;
+    JLabel tvSubtitleEpisodeLabel;
+    JComboBox tvSubtitleFormatComboBox;
+    JLabel tvSubtitleFormatLabel;
+    JComboBox tvSubtitleLanguageComboBox;
+    JLabel tvSubtitleLanguageLabel;
+    JLabel tvSubtitleLoadingLabel;
+    JComboBox tvSubtitleSeasonComboBox;
+    JLabel tvSubtitleSeasonLabel;
+    JComboBox typeComboBox;
+    JLabel typeLabel;
+    JCheckBoxMenuItem updateCheckBoxMenuItem;
+    JMenuItem updateMenuItem;
+    JMenu useProfileMenu;
+    Separator useProfileMenuSeparator1;
+    ButtonGroup videoFormatsButtonGroup;
+    JMenu viewMenu;
+    JButton watchSource1Button;
+    JMenuItem watchSource1MenuItem;
+    JButton watchSource2Button;
+    JMenuItem watchSource2MenuItem;
+    JButton watchTrailerButton;
+    JMenuItem watchTrailerMenuItem;
+    JLabel whitelistLabel;
+    JList whitelistedList;
+    JScrollPane whitelistedScrollPane;
+    JButton whitelistedToBlacklistedButton;
+    JButton yesButton;
+    // End of variables declaration//GEN-END:variables
 }

@@ -145,7 +145,7 @@ public class Str {
             return null;
         }
         String[] updateStrs = update.split(Constant.NEWLINE);
-        return updateStrs.length < 2 || !updateStrs[0].matches("\\d++") || updateStrs[updateStrs.length - 1].compareTo("eof") != 0 ? null : updateStrs;
+        return updateStrs.length < 2 || !updateStrs[0].matches("\\d++") || !updateStrs[updateStrs.length - 1].equals("eof") ? null : updateStrs;
     }
 
     static void setGuiListener(GuiListener listener) {
