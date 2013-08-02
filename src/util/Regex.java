@@ -23,41 +23,24 @@ public class Regex {
     public static final FileFilter subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", Str.get(452).split(","));
 
     static {
-        String[] keysVals = Str.get(552).split(Str.get(553));
-        for (String currKeyVal : keysVals) {
-            String[] keyVal = currKeyVal.split(Str.get(554));
-            weirdChars.put(keyVal[0], keyVal[1]);
-        }
-
+        init(weirdChars, 552, Str.get(553), Str.get(554));
         badStrs.put("&(?i)tilde;", "~");
         badStrs.put("&(?i)nbsp;", " ");
         badStrs.put(":", " ");
         badStrs.put(Str.get(224), Str.get(225));
         badStrs.put(Str.get(226), Str.get(227));
-        keysVals = Str.get(228).split(Str.get(229));
-        for (String currKeyVal : keysVals) {
-            String[] keyVal = currKeyVal.split(Str.get(230));
-            badStrs.put(keyVal[0], keyVal[1]);
-        }
-
-        countries.put(Constant.ANY_COUNTRY, Constant.ANY_COUNTRY);
-        keysVals = Str.get(231).split(Str.get(232));
-        for (String currKeyVal : keysVals) {
-            String[] keyVal = currKeyVal.split(Str.get(233));
-            countries.put(keyVal[0], keyVal[1]);
-        }
-
+        init(badStrs, 228, Str.get(229), Str.get(230));
         languages.put(Constant.ANY_LANGUAGE, Constant.ANY_LANGUAGE);
-        keysVals = Str.get(234).split(Str.get(235));
-        for (String currKeyVal : keysVals) {
-            String[] keyVal = currKeyVal.split(Str.get(236));
-            languages.put(keyVal[0], keyVal[1]);
-        }
+        init(languages, 234, Str.get(235), Str.get(236));
+        countries.put(Constant.ANY_COUNTRY, Constant.ANY_COUNTRY);
+        init(countries, 231, Str.get(232), Str.get(233));
+        init(subtitleLanguages, 420, Constant.SEPARATOR2, Constant.SEPARATOR1);
+    }
 
-        keysVals = Str.get(420).split(Constant.SEPARATOR2);
-        for (String currKeyVal : keysVals) {
-            String[] keyVal = currKeyVal.split(Constant.SEPARATOR1);
-            subtitleLanguages.put(keyVal[0], keyVal[1]);
+    private static void init(Map<String, String> map, int strIndex, String splitStr1, String splitStr2) {
+        for (String currKeyVal : Str.get(strIndex).split(splitStr1)) {
+            String[] keyVal = currKeyVal.split(splitStr2);
+            map.put(keyVal[0], keyVal[1]);
         }
     }
 

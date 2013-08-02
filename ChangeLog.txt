@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2013.08.02   | VidMasta 16.7
+
+CHANGE: UI   | Made icons for disabled components translucent
+CHANGE: UI   | Shortened some tooltip messages
+
+
+
+
 2013.07.01   | VidMasta 16.6
 
 CHANGE: Core | Updated watch source 1 search to use updated source website

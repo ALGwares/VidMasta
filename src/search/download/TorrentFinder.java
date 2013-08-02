@@ -352,6 +352,9 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
         counter1++;
         String[] titleParts = VideoSearch.getTitleParts(titleName, video.isTVShow);
         String titleLink = VideoSearch.getTitleLink(titleParts[0], titleParts[1]);
+        if (Debug.DEBUG) {
+            Debug.println('\'' + titleParts[0] + "' '" + titleParts[1] + "' '" + titleParts[2] + "' '" + titleParts[3] + "' '" + titleName + '\'');
+        }
         if (titleLink == null) {
             return false;
         }
@@ -418,19 +421,21 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
     }
 
     public static boolean isRightFormat(String titleName, String format) {
-        String tempTitle = Regex.replaceAll(titleName, Str.get(77), Str.get(78));
         if (format.equals(Constant.ANY)) {
             return true;
-        } else if (format.equals(Constant.DVD)) {
-            return hasType(tempTitle, Str.get(79));
-        } else if (format.equals(Constant.HD720)) {
-            return (hasType(tempTitle, Str.get(80)) || hasType(tempTitle, Str.get(81))) && !hasType(tempTitle, Str.get(82));
         }
-        return hasType(tempTitle, Str.get(83));
+
+        String title = Regex.replaceAll(titleName, Str.get(77), Str.get(78));
+        if (format.equals(Constant.DVD)) {
+            return hasType(title, Str.get(79));
+        } else if (format.equals(Constant.HD720)) {
+            return (hasType(title, Str.get(80)) || hasType(title, Str.get(81))) && !hasType(title, Str.get(82));
+        }
+        return hasType(title, Str.get(83));
     }
 
-    private static boolean hasType(String str, String typeRegex) {
-        Matcher typeMatcher = Regex.matcher(Str.get(84) + typeRegex + Str.get(85), str);
+    private static boolean hasType(String title, String typeRegex) {
+        Matcher typeMatcher = Regex.matcher(Str.get(84) + typeRegex + Str.get(85), title);
         while (!typeMatcher.hitEnd()) {
             if (typeMatcher.find()) {
                 return true;

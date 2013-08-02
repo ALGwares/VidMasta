@@ -102,7 +102,7 @@ public class VideoSearch {
     }
 
     public static String[] getTitleParts(String title, boolean isTVShow) {
-        String titleName = Regex.replaceAll(title, Str.get(103), Str.get(104));
+        String titleName = Regex.replaceAll(title, Str.get(103), Str.get(104)), year = "", season = null, episode = null;
         Collection<Integer> indexes = new ArrayList<Integer>(5);
         indexes.add(titleName.length());
 
@@ -117,8 +117,6 @@ public class VideoSearch {
             }
         }
 
-        String year = "";
-
         Matcher yearMatcher = Regex.matcher(Str.get(106), titleName);
         while (!yearMatcher.hitEnd()) {
             if (yearMatcher.find()) {
@@ -128,8 +126,6 @@ public class VideoSearch {
             }
         }
 
-        String episode = null;
-        String season = null;
         if (isTVShow) {
             Matcher tvBoxSetAndEpisodeMatcher = Regex.matcher(Str.get(107), titleName);
             while (!tvBoxSetAndEpisodeMatcher.hitEnd()) {
@@ -168,21 +164,7 @@ public class VideoSearch {
             }
         }
 
-        String[] titleParts = new String[5];
-        titleParts[0] = titleName.substring(0, Collections.min(indexes)).trim();
-        titleParts[1] = year;
-
-        if (isTVShow && season != null && episode != null) {
-            titleParts[2] = season;
-            titleParts[3] = episode;
-        } else {
-            titleParts[2] = null;
-            titleParts[3] = null;
-        }
-        if (Debug.DEBUG) {
-            Debug.println('\'' + titleParts[0] + "' '" + titleParts[1] + "' '" + titleParts[2] + "' '" + titleParts[3] + "' '" + title + '\'');
-        }
-        return titleParts;
+        return new String[]{titleName.substring(0, Collections.min(indexes)).trim(), year, season, episode};
     }
 
     private VideoSearch() {

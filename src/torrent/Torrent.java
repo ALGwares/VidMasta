@@ -46,13 +46,9 @@ public class Torrent implements Comparable<Torrent> {
         if (this == obj) {
             return true;
         }
-
-        if (!(obj instanceof Torrent)) {
-            return false;
-        }
-
-        Torrent torrent = (Torrent) obj;
-        return isSafe == torrent.isSafe && numSources == torrent.numSources && sizeInGiB == torrent.sizeInGiB && file.equals(torrent.file);
+        Torrent torrent;
+        return obj instanceof Torrent ? isSafe == (torrent = (Torrent) obj).isSafe && numSources == torrent.numSources && sizeInGiB == torrent.sizeInGiB
+                && file.equals(torrent.file) : false;
     }
 
     @Override

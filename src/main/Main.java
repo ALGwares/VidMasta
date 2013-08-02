@@ -277,10 +277,7 @@ public class Main implements WorkerListener {
 
     @Override
     public String getSafetyComments() {
-        if (torrentFinder == null) {
-            return CommentsFinder.NO_COMMENTS;
-        }
-        return torrentFinder.getComments();
+        return torrentFinder == null ? CommentsFinder.NO_COMMENTS : torrentFinder.getComments();
     }
 
     @Override
@@ -435,8 +432,10 @@ public class Main implements WorkerListener {
                     new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{17, 16, 16, 96, -75},
                     new byte[]{17, 16, 0, 96, -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6},
                     new byte[]{0, 29, -102, 0, 6}));
-            UIManager.put("Synthetica.text.antialias", Boolean.TRUE);
-            UIManager.put("Synthetica.menuItem.toolTipEnabled", Boolean.TRUE);
+            UIManager.put("Synthetica.text.antialias", true);
+            UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
+            UIManager.put("Synthetica.translucency4DisabledIcons.enabled", true);
+            UIManager.put("Synthetica.translucency4DisabledIcons.alpha", 25);
             SyntheticaLookAndFeel.setLookAndFeel("de.javasoft.plaf.synthetica.SyntheticaBlackMoonLookAndFeel");
         } catch (Exception e) {
             if (Debug.DEBUG) {

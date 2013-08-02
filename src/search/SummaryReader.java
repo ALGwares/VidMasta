@@ -99,8 +99,7 @@ public class SummaryReader extends AbstractSwingWorker {
             return;
         }
 
-        Movie speech = convertMoviesToAudioClip();
-        speech.encodeToFile(new File(swfSpeech));
+        convertMoviesToAudioClip().encodeToFile(new File(swfSpeech));
 
         String page = Str.get(479).replace(Str.get(480), swfSpeech).replace(Str.get(481), Str.cleanWeirdChars(title) + " (" + year + ")"), imagePath;
         page = page.replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + Video.imagePath(titleID))).exists() ? imagePath : Constant.PROGRAM_DIR

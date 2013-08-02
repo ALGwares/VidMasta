@@ -4107,7 +4107,7 @@
           <ComponentRef name="titleTextField"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Title:"/>
-        <Property name="toolTipText" type="java.lang.String" value="enter a title or check Any to search for all titles"/>
+        <Property name="toolTipText" type="java.lang.String" value="enter title"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="releasedLabel">
@@ -4122,7 +4122,7 @@
           <ComponentRef name="genreScrollPane"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Genre:"/>
-        <Property name="toolTipText" type="java.lang.String" value="select genre(s) of title(s)"/>
+        <Property name="toolTipText" type="java.lang.String" value="select genre"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="ratingComboBox">
@@ -4142,7 +4142,7 @@
           <ComponentRef name="ratingComboBox"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Rating (minimum):"/>
-        <Property name="toolTipText" type="java.lang.String" value="select minimum rating of title(s)"/>
+        <Property name="toolTipText" type="java.lang.String" value="select minimum rating"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="resultsScrollPane">
@@ -4289,7 +4289,7 @@
     <Component class="javax.swing.JCheckBox" name="anyTitleCheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" value="Any"/>
-        <Property name="toolTipText" type="java.lang.String" value="check to search for all titles (if checked the title field is disabled and ignored)"/>
+        <Property name="toolTipText" type="java.lang.String" value="check to search for all titles"/>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="null"/>
         </Property>

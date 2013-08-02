@@ -133,6 +133,9 @@ public class PopularSearcher extends AbstractSearcher {
 
     private void addCurrVideo(String titleName) {
         String[] titleParts = VideoSearch.getTitleParts(titleName, isTVShow);
+        if (Debug.DEBUG) {
+            Debug.println('\'' + titleParts[0] + "' '" + titleParts[1] + "' '" + titleParts[2] + "' '" + titleParts[3] + "' '" + titleName + '\'');
+        }
         Video video = new Video(titleParts[0].toLowerCase(Locale.ENGLISH) + titleParts[1], titleParts[0], titleParts[1], null, null, Constant.NULL, null, null,
                 isTVShow);
         if (!videoBuffer.contains(video)) {

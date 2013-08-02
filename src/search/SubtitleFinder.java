@@ -316,13 +316,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
             if (this == obj) {
                 return true;
             }
-
-            if (!(obj instanceof Subtitle)) {
-                return false;
-            }
-
-            Subtitle subtitle = (Subtitle) obj;
-            return downloadCount == subtitle.downloadCount;
+            return obj instanceof Subtitle ? downloadCount == ((Subtitle) obj).downloadCount : false;
         }
 
         @Override

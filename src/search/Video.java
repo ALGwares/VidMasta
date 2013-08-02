@@ -76,14 +76,13 @@ public class Video {
         if (isBold) {
             startHtml += "<b>";
             endHtml = "</b>" + endHtml;
-            titleStr = startHtml + "&nbsp;&nbsp;&nbsp;" + displayTitle + endHtml;
             yearStr = startHtml + year + endHtml;
             ratingStr = startHtml + rating + endHtml;
         } else {
-            titleStr = startHtml + "&nbsp;&nbsp;&nbsp;" + displayTitle + endHtml;
             yearStr = year;
             ratingStr = rating;
         }
+        titleStr = startHtml + "&nbsp;&nbsp;&nbsp;" + displayTitle + endHtml;
 
         String summaryStr = title + Constant.SEPARATOR1 + summaryLink + Constant.SEPARATOR1 + imageLink + Constant.SEPARATOR1
                 + (summaryIsLink ? Constant.TRUE : Constant.FALSE) + Constant.SEPARATOR1 + (isTVShow ? Constant.TRUE : Constant.FALSE) + seasonAndEpisode;
@@ -282,10 +281,7 @@ public class Video {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Video)) {
-            return false;
-        }
-        return id.equals(((Video) obj).id);
+        return obj instanceof Video ? id.equals(((Video) obj).id) : false;
     }
 
     @Override

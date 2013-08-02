@@ -159,9 +159,9 @@ public class VideoFinder extends AbstractSwingWorker {
         guiListener.msg(msg, msgType);
     }
 
-    private void browse(String item, String action, int type, String url) throws Exception {
+    private void browseStream(String url) throws Exception {
         linkProgressDone();
-        guiListener.browserNotification(item, action, type);
+        guiListener.browserNotification("video", BROWSE_ACTION, Connection.VIDEO_STREAMER);
         Connection.browse(url);
     }
 
@@ -471,7 +471,7 @@ public class VideoFinder extends AbstractSwingWorker {
         if (streamLink == null) {
             indirectStreamSearch();
         } else {
-            browse("video", BROWSE_ACTION, Connection.VIDEO_STREAMER, Str.get(isStream2 ? 265 : 410) + streamLink);
+            browseStream(Str.get(isStream2 ? 265 : 410) + streamLink);
         }
     }
 
@@ -491,7 +491,7 @@ public class VideoFinder extends AbstractSwingWorker {
             }
 
             if (isValidStream) {
-                browse("video", BROWSE_ACTION, Connection.VIDEO_STREAMER, link);
+                browseStream(link);
             } else {
                 findOldTitleStream();
             }

@@ -1,4 +1,4 @@
-99
+100
 http://www.ask.com/web?q=
 http://search.yahoo.com/search?q=
 http://www.bing.com/search?q=
@@ -29,9 +29,9 @@ http://www.imdb.com
 <\s*+span\s++class\s*+=\s*+"year_type"\s*+>
 <\s*+/span\s*+>
 (\d{4}+)
-<\s*+span\s++class\s*+=\s*+"rating-rating"\s*+>\s*+<\s*+span\s++class\s*+=\s*+"value"\s*+>
-<\s*+/span\s*+>
-\d\.\d
+(<\s*+span\s++class\s*+=\s*+"rating-rating"\s*+>\s*+<\s*+span\s++class\s*+=\s*+"value"\s*+>)|(<\s*+div\s++class\s*+=\s*+"rating(?=(\-ineligible"\s*+>)))
+(<\s*+/span\s*+>)|(ineligible"\s*+>)
+(\d\.\d)|(\-)
 http://www.pirateproxy.net/search/
 /0/99/200
 <\s*+abbr\s++title\s*+=\s*+"

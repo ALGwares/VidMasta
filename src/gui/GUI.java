@@ -2634,21 +2634,21 @@ public class GUI extends JFrame implements GuiListener {
 
         titleLabel.setLabelFor(titleTextField);
         titleLabel.setText("Title:");
-        titleLabel.setToolTipText("enter a title or check Any to search for all titles");
+        titleLabel.setToolTipText("enter title");
 
         releasedLabel.setText("Released:");
         releasedLabel.setToolTipText("select release date");
 
         genreLabel.setLabelFor(genreScrollPane);
         genreLabel.setText("Genre:");
-        genreLabel.setToolTipText("select genre(s) of title(s)");
+        genreLabel.setToolTipText("select genre");
 
         ratingComboBox.setMaximumRowCount(11);
         ratingComboBox.setToolTipText(null);
 
         ratingLabel.setLabelFor(ratingComboBox);
         ratingLabel.setText("Rating (minimum):");
-        ratingLabel.setToolTipText("select minimum rating of title(s)");
+        ratingLabel.setToolTipText("select minimum rating");
 
         resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         resultsScrollPane.setAutoscrolls(true);
@@ -2747,7 +2747,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         anyTitleCheckBox.setText("Any");
-        anyTitleCheckBox.setToolTipText("check to search for all titles (if checked the title field is disabled and ignored)");
+        anyTitleCheckBox.setToolTipText("check to search for all titles");
         anyTitleCheckBox.setBorder(null);
         anyTitleCheckBox.setFocusPainted(false);
         anyTitleCheckBox.setMargin(new Insets(2, 0, 2, 2));

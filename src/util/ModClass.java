@@ -127,10 +127,7 @@ public class ModClass {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof ModClass)) {
-            return false;
-        }
-        return binaryName.equals(((ModClass) obj).binaryName);
+        return obj instanceof ModClass ? binaryName.equals(((ModClass) obj).binaryName) : false;
     }
 
     @Override

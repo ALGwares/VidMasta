@@ -84,17 +84,15 @@ public class Str {
     private static void initStrs() {
         try {
             String[] updateStrs;
-            String updateTxt;
             try {
-                updateTxt = Read.read(Constant.APP_DIR + Constant.UPDATE_FILE);
-                if ((updateStrs = isValidUpdateFile(updateTxt)) == null) {
+                if ((updateStrs = isValidUpdateFile(Read.read(Constant.APP_DIR + Constant.UPDATE_FILE))) == null) {
                     throw new UpdateException(Constant.UPDATE_FILE + " is invalid");
                 }
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                updateTxt = Read.read(Constant.PROGRAM_DIR + Constant.UPDATE_BACKUP_FILE);
+                String updateTxt = Read.read(Constant.PROGRAM_DIR + Constant.UPDATE_BACKUP_FILE);
                 if ((updateStrs = isValidUpdateFile(updateTxt)) == null) {
                     throw new UpdateException(Constant.UPDATE_BACKUP_FILE + " is invalid");
                 } else {

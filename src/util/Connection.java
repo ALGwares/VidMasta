@@ -549,12 +549,7 @@ public class Connection {
             if (this == obj) {
                 return true;
             }
-
-            if (!(obj instanceof Msg)) {
-                return false;
-            }
-            Msg msgObj = (Msg) obj;
-            return thread.equals(msgObj.thread);
+            return obj instanceof Msg ? thread.equals(((Msg) obj).thread) : false;
         }
 
         @Override
