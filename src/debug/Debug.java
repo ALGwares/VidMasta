@@ -4,7 +4,7 @@ import java.util.Collection;
 
 public class Debug {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     public static void print(String str) {
         if (DEBUG) {

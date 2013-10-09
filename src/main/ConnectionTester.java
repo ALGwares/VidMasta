@@ -10,9 +10,8 @@ import javax.swing.SwingWorker;
 import listener.GuiListener;
 import util.ConnectionException;
 import util.Constant;
+import util.IO;
 import util.Regex;
-import util.io.CleanUp;
-import util.io.Write;
 
 public class ConnectionTester extends SwingWorker<Object, Object[]> {
 
@@ -55,17 +54,11 @@ public class ConnectionTester extends SwingWorker<Object, Object[]> {
                 }
                 restrictedConnectionTypes.add(websiteParts[1]);
             } finally {
-                CleanUp.close(connection, is);
+                IO.close(connection, is);
             }
         }
 
-        try {
-            Write.write(Constant.APP_DIR + Constant.CONNECTIVITY, "");
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        }
+        IO.fileOp(Constant.APP_DIR + Constant.CONNECTIVITY, IO.MK_FILE);
 
         if (isConnected && !restrictedConnectionTypes.isEmpty()) {
             for (String connectionType : restrictedConnectionTypes) {

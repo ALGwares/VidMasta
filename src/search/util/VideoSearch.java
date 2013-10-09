@@ -23,19 +23,11 @@ public class VideoSearch {
     private static final int MAX_NUM_SEARCH_ENGINES = Integer.parseInt(Str.get(94));
 
     public static boolean isImdbVideoType(String sourceCode, boolean isTVShow) {
-        String titleTagStr = Regex.match(sourceCode, Str.get(352), Str.get(353));
-        Pattern videoTypePattern = Regex.pattern(Str.get(isTVShow ? 354 : 355));
-        int lastIndex = titleTagStr.length() - 1;
+        return isImdbVideoType(sourceCode, isTVShow ? 586 : 587);
+    }
 
-        for (int i = lastIndex; i > -1; i--) {
-            Matcher videoTypeMatcher = videoTypePattern.matcher(titleTagStr.substring(i));
-            while (!videoTypeMatcher.hitEnd()) {
-                if (videoTypeMatcher.find()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public static boolean isImdbVideoType(String sourceCode, int typeRegexIndex) {
+        return Regex.isMatch(Regex.match(sourceCode, Str.get(584), Str.get(585)), Str.get(typeRegexIndex));
     }
 
     public static String searchEngineQuery(String query) throws Exception {

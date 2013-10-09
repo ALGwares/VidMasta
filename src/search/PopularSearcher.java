@@ -137,7 +137,7 @@ public class PopularSearcher extends AbstractSearcher {
             Debug.println('\'' + titleParts[0] + "' '" + titleParts[1] + "' '" + titleParts[2] + "' '" + titleParts[3] + "' '" + titleName + '\'');
         }
         Video video = new Video(titleParts[0].toLowerCase(Locale.ENGLISH) + titleParts[1], titleParts[0], titleParts[1], null, null, Constant.NULL, null, null,
-                isTVShow);
+                isTVShow, false);
         if (!videoBuffer.contains(video)) {
             video.season = titleParts[2];
             video.episode = titleParts[3];
@@ -212,6 +212,7 @@ public class PopularSearcher extends AbstractSearcher {
 
         String rating = Regex.match(sourceCode, Str.get(127), Str.get(128));
         video.rating = rating.isEmpty() ? "-" : rating;
+        video.isTVShowAndMovie = VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590);
 
         return sourceCode;
     }

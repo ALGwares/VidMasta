@@ -89,7 +89,7 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
                 torrent = getTorrent(false, generalSearch = !generalSearch);
             } catch (Exception e) {
                 if (!isCancelled()) {
-                    guiListener.connectionError(e);
+                    guiListener.error(e);
                 }
             }
 
@@ -195,7 +195,8 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
 
             String videoStr = Regex.match(sourceStr.substring(titleMatcher.end()), Str.get(49), Str.get(50));
             String titleName = Regex.match(videoStr, Str.get(51), Str.get(52));
-            if (titleName.isEmpty() || !Regex.isMatch(Regex.match(videoStr, Str.get(53), Str.get(54)), Str.get(video.isTVShow ? 562 : 563))) {
+            if (titleName.isEmpty() || !Regex.isMatch(Regex.match(videoStr, Str.get(53), Str.get(54)), Str.get(video.isTVShowAndMovie ? 588 : (video.isTVShow ? 562
+                    : 563)))) {
                 continue;
             }
 

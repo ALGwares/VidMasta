@@ -1315,6 +1315,9 @@
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
             <Component class="javax.swing.JList" name="blacklistedList">
+              <Events>
+                <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="blacklistedListKeyPressed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -1334,6 +1337,9 @@
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
             <Component class="javax.swing.JList" name="whitelistedList">
+              <Events>
+                <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="whitelistedListKeyPressed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

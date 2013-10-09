@@ -18,10 +18,9 @@ import listener.GuiListener;
 import util.Connection;
 import util.Constant;
 import util.ExceptionUtil;
+import util.IO;
 import util.Regex;
 import util.UpdateException;
-import util.io.Read;
-import util.io.Write;
 
 public class Str {
 
@@ -49,7 +48,7 @@ public class Str {
                 return;
             }
 
-            int currVersion = Integer.parseInt(Regex.split(Read.read(Constant.APP_DIR + Constant.UPDATE_FILE), Constant.NEWLINE)[0]);
+            int currVersion = Integer.parseInt(Regex.split(IO.read(Constant.APP_DIR + Constant.UPDATE_FILE), Constant.NEWLINE)[0]);
             int newVersion = Integer.parseInt(newVersionStr);
 
             if (currVersion < newVersion) {
@@ -59,7 +58,7 @@ public class Str {
                     return;
                 }
 
-                Write.write(Constant.APP_DIR + Constant.UPDATE_FILE, newUpdateTxt);
+                IO.write(Constant.APP_DIR + Constant.UPDATE_FILE, newUpdateTxt);
                 initStrs();
                 if (showConfirmation) {
                     guiListener.msg("The application's search engine has been updated to version " + newVersion + ".", Constant.INFO_MSG);
@@ -85,18 +84,18 @@ public class Str {
         try {
             String[] updateStrs;
             try {
-                if ((updateStrs = isValidUpdateFile(Read.read(Constant.APP_DIR + Constant.UPDATE_FILE))) == null) {
+                if ((updateStrs = isValidUpdateFile(IO.read(Constant.APP_DIR + Constant.UPDATE_FILE))) == null) {
                     throw new UpdateException(Constant.UPDATE_FILE + " is invalid");
                 }
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                String updateTxt = Read.read(Constant.PROGRAM_DIR + Constant.UPDATE_BACKUP_FILE);
+                String updateTxt = IO.read(Constant.PROGRAM_DIR + Constant.UPDATE_BACKUP_FILE);
                 if ((updateStrs = isValidUpdateFile(updateTxt)) == null) {
                     throw new UpdateException(Constant.UPDATE_BACKUP_FILE + " is invalid");
                 } else {
-                    Write.write(Constant.APP_DIR + Constant.UPDATE_FILE, updateTxt);
+                    IO.write(Constant.APP_DIR + Constant.UPDATE_FILE, updateTxt);
                 }
             }
 

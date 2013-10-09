@@ -6,10 +6,7 @@ import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import debug.Debug;
 import gnu.trove.iterator.TIntIterator;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -39,8 +36,7 @@ import search.util.SwingWorkerUtil;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
-import util.io.CleanUp;
-import util.io.Write;
+import util.IO;
 
 public class Magnet extends Thread {
 
@@ -55,11 +51,12 @@ public class Magnet extends Thread {
     private static volatile String ipBlockMsg = "";
     private static SwingWorker<?, ?> azureusStarter;
     private static IpInitializer ipInitializer;
+    private static Method serialiseToByteArray;
     public final File torrentFile;
 
     public Magnet(String magnetLink, String torrentName) {
         this.magnetLink = magnetLink;
-        Write.fileOp(Constant.TORRENTS_DIR, Write.MK_DIR);
+        IO.fileOp(Constant.TORRENTS_DIR, IO.MK_DIR);
         torrentFile = new File(Constant.TORRENTS_DIR + torrentName + ".torrent");
     }
 
@@ -130,8 +127,10 @@ public class Magnet extends Thread {
                 TorrentUtils.addCreatedTorrent(toTorrent);
             }
 
-            Method serialiseToByteArray = TOTorrentImpl.class.getDeclaredMethod("serialiseToByteArray");
-            serialiseToByteArray.setAccessible(true);
+            if (serialiseToByteArray == null) {
+                serialiseToByteArray = TOTorrentImpl.class.getDeclaredMethod("serialiseToByteArray");
+                serialiseToByteArray.setAccessible(true);
+            }
             byte[] torrentBytes = (byte[]) serialiseToByteArray.invoke(toTorrent);
 
             String vuzeDir = System.getProperty(Str.get(564));
@@ -139,14 +138,7 @@ public class Magnet extends Thread {
                 throw new Exception(torrentFile.getName() + " is corrupt");
             }
 
-            OutputStream bos = null;
-            try {
-                bos = new BufferedOutputStream(new FileOutputStream(torrentFile), 8192);
-                bos.write(torrentBytes);
-                bos.flush();
-            } finally {
-                CleanUp.close(bos);
-            }
+            IO.write(torrentFile, torrentBytes);
         }
 
         if (Debug.DEBUG) {
@@ -205,7 +197,7 @@ public class Magnet extends Thread {
             System.setProperty("azureus.security.manager.permitexit", "1");
             System.setProperty("MULTI_INSTANCE", Constant.TRUE);
             String vuzeDir = Constant.APP_DIR + "vuze" + Constants.AZUREUS_VERSION.replace(".", "") + Constant.FILE_SEPARATOR + "vuze" + Constant.FILE_SEPARATOR;
-            Write.fileOp(vuzeDir, Write.MK_DIR);
+            IO.fileOp(vuzeDir, IO.MK_DIR);
             System.setProperty("azureus.install.path", vuzeDir);
             System.setProperty("azureus.config.path", vuzeDir);
             System.setProperty("azureus.portable.root", vuzeDir);

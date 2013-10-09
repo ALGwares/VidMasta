@@ -3,6 +3,7 @@ package util;
 import debug.Debug;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,9 +33,6 @@ import java.util.zip.InflaterInputStream;
 import listener.GuiListener;
 import main.Str;
 import main.Str.UpdateListener;
-import util.io.CleanUp;
-import util.io.Read;
-import util.io.Write;
 
 public class Connection {
 
@@ -112,12 +110,12 @@ public class Connection {
                 Debug.println("fetching " + url);
             }
             try {
-                sourceCode = Read.read(sourceCodePath);
+                sourceCode = IO.read(sourceCodePath);
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                Write.fileOp(sourceCodePath, Write.RM_FILE);
+                IO.fileOp(sourceCodePath, IO.RM_FILE);
                 sourceCode = getSource(url, connectionType, showStatus, emptyOK, true, false);
                 addToCache(sourceCode, sourceCodePath, urlHashCode);
             }
@@ -173,7 +171,7 @@ public class Connection {
             if (showStatus) {
                 unsetStatusBar();
             }
-            CleanUp.close(connection, br);
+            IO.close(connection, br);
         }
 
         if (!emptyOK && source.length() == 0) {
@@ -210,8 +208,8 @@ public class Connection {
         if (downloadLinkInfoProxyLock.tryLock()) {
             try {
                 File proxyIndexFile = new File(Constant.APP_DIR + Constant.DOWNLOAD_LINK_INFO_PROXY_INDEX);
-                int proxyIndex = (proxyIndexFile.exists() ? Integer.parseInt(Read.read(proxyIndexFile)) : 0);
-                Write.write(proxyIndexFile, String.valueOf(++proxyIndex >= Regex.split(proxies, Constant.SEPARATOR1).length ? 0 : proxyIndex));
+                int proxyIndex = (proxyIndexFile.exists() ? Integer.parseInt(IO.read(proxyIndexFile)) : 0);
+                IO.write(proxyIndexFile, String.valueOf(++proxyIndex >= Regex.split(proxies, Constant.SEPARATOR1).length ? 0 : proxyIndex));
                 Str.update();
             } catch (Exception e) {
                 if (Debug.DEBUG) {
@@ -229,7 +227,7 @@ public class Connection {
             return;
         }
 
-        int proxyIndex = Integer.parseInt(Read.read(proxyIndexFile));
+        int proxyIndex = Integer.parseInt(IO.read(proxyIndexFile));
         String[] proxies = Regex.split(strs[516], Constant.SEPARATOR1);
         String nextProxy = proxies[proxyIndex >= proxies.length ? 0 : proxyIndex];
         downloadLinkInfoFailUrl = strs[518];
@@ -286,13 +284,13 @@ public class Connection {
 
     private static void addToCache(String sourceCode, String sourceCodePath, Long urlHashCode) {
         try {
-            Write.write(sourceCodePath, sourceCode);
+            IO.write(sourceCodePath, sourceCode);
             cache.add(urlHashCode);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            Write.fileOp(sourceCodePath, Write.RM_FILE);
+            IO.fileOp(sourceCodePath, IO.RM_FILE);
         }
     }
 
@@ -306,7 +304,7 @@ public class Connection {
 
     public static void removeFromCache(String url) {
         Long urlHashCode = Str.hashCode(url);
-        Write.fileOp(Constant.CACHE_DIR + urlHashCode.toString() + Constant.HTML, Write.RM_FILE);
+        IO.fileOp(Constant.CACHE_DIR + urlHashCode.toString() + Constant.HTML, IO.RM_FILE);
         cache.remove(urlHashCode);
     }
 
@@ -315,7 +313,7 @@ public class Connection {
         if (files != null) {
             for (File file : files) {
                 if (file.getName().endsWith(Constant.HTML)) {
-                    Write.fileOp(file, Write.RM_FILE);
+                    IO.fileOp(file, IO.RM_FILE);
                 }
             }
         }
@@ -340,18 +338,18 @@ public class Connection {
             connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
             setConnectionProperties(connection);
             is = connection.getInputStream();
-            os = new FileOutputStream(outputPath);
+            os = new BufferedOutputStream(new FileOutputStream(outputPath));
 
             if (showStatus) {
                 setStatusBar(Constant.TRANSFERRING + statusMsg);
             }
 
-            Write.write(is, os);
+            IO.write(is, os);
         } finally {
             if (showStatus) {
                 unsetStatusBar();
             }
-            CleanUp.close(connection, is, os);
+            IO.close(connection, is, os);
         }
     }
 
@@ -411,7 +409,7 @@ public class Connection {
                 if (showStatus) {
                     unsetStatusBar();
                 }
-                CleanUp.close(connection, is);
+                IO.close(connection, is);
             }
         }
 
@@ -436,10 +434,11 @@ public class Connection {
             if (ipPartNum < 0 || ipPartNum > 255) {
                 return null;
             }
+            ip.append(ipPartNum);
             if (i < 3) {
-                ip.append(ipPartNum).append('.');
+                ip.append('.');
             } else {
-                ip.append(ipPartNum).append(':');
+                ip.append(':');
             }
         }
 
@@ -468,7 +467,7 @@ public class Connection {
                 Debug.print(e);
             }
         } finally {
-            CleanUp.close(br);
+            IO.close(br);
         }
         return false;
     }
@@ -559,8 +558,9 @@ public class Connection {
     }
 
     public static void browse(String url) throws Exception {
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Action.BROWSE)) {
-            Desktop.getDesktop().browse(URI.create(url));
+        Desktop desktop;
+        if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.BROWSE)) {
+            desktop.browse(URI.create(url));
         } else {
             guiListener.msg("Update Java on your computer at http://www.java.com in order to complete your action. Or manually enter the following URL into a"
                     + " web browser:" + Constant.NEWLINE2 + url + Constant.NEWLINE, Constant.ERROR_MSG);
@@ -582,8 +582,9 @@ public class Connection {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Action.OPEN)) {
-                Desktop.getDesktop().open(new File(file));
+            Desktop desktop;
+            if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.OPEN)) {
+                desktop.open(new File(file));
             } else {
                 guiListener.msg("Update Java on your computer at http://www.java.com in order to complete your action. Or manually enter the following file"
                         + " location into a web browser:" + Constant.NEWLINE2 + "file://" + file + Constant.NEWLINE, Constant.ERROR_MSG);

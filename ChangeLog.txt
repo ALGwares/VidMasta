@@ -1,6 +1,20 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2013.10.09   | VidMasta 16.8
+
+CHANGE: CORE | Improved accuracy and performance of download link searches
+CHANGE: CORE | Improved accuracy and performance of subtitle searches
+CHANGE: CORE | Added use of language and country settings for 'High Quality Movies' search option
+CHANGE: CORE | Buffered all file reads and writes for improved performance
+CHANGE: CORE | Fixed minor bug in rare recursive search of temporary subtitle folder
+CHANGE: CORE | Fixed minor bug in which if an error occurs during initialization subsequent startup attempts may fail
+CHANGE: UI   | Added more keyboard shortcuts to file extensions management
+CHANGE: UI   | Removed connection issue button animation
+
+
+
+
 2013.08.02   | VidMasta 16.7
 
 CHANGE: UI   | Made icons for disabled components translucent

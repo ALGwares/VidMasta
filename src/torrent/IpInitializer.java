@@ -10,8 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import util.Constant;
-import util.io.CleanUp;
-import util.io.Write;
+import util.IO;
 
 class IpInitializer extends Thread {
 
@@ -33,8 +32,8 @@ class IpInitializer extends Thread {
 
     private void initIPs() throws Exception {
         if (!(new File(Constant.APP_DIR + Constant.IP_FILTER)).exists() || !(new File(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION)).exists()) {
-            Write.unzip(Constant.PROGRAM_DIR + Constant.IP_FILTER + Constant.ZIP, Constant.APP_DIR);
-            Write.write(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION, "");
+            IO.unzip(Constant.PROGRAM_DIR + Constant.IP_FILTER + Constant.ZIP, Constant.APP_DIR);
+            IO.fileOp(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION, IO.MK_FILE);
         }
 
         final Runtime runtime = Runtime.getRuntime();
@@ -76,7 +75,7 @@ class IpInitializer extends Thread {
         } finally {
             ips.trimToSize();
             ipRanges.trimToSize();
-            CleanUp.close(br);
+            IO.close(br);
         }
     }
 

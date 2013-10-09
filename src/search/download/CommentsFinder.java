@@ -51,7 +51,7 @@ public class CommentsFinder extends SwingWorker<Object, Object[]> {
             }
         } catch (Exception e) {
             if (!isCancelled()) {
-                guiListener.commentsFinderConnectionError(e);
+                guiListener.commentsFinderError(e);
             }
         }
         guiListener.commentsFinderStopped();

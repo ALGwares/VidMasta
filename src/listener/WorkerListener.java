@@ -10,8 +10,6 @@ public interface WorkerListener extends EventListener {
 
     void searchStopped(boolean isRegularSearcher);
 
-    void summarySearchStopped();
-
     void torrentAndStreamSearchStopped();
 
     void loadMoreSearchResults(boolean isRegularSearcher);
@@ -33,20 +31,21 @@ public interface WorkerListener extends EventListener {
     String getSafetyComments();
 
     void summarySearchStarted(int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year, boolean isTVShow,
+            boolean isTVShowAndMovie, String season, String episode, int row);
+
+    void trailerSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow,
+            boolean isTVShowAndMovie, String season, String episode, int row);
+
+    void torrentSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow,
+            boolean isTVShowAndMovie, String season, String episode, int row);
+
+    void streamSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, boolean isTVShowAndMovie,
             String season, String episode, int row);
-
-    void trailerSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
-            String episode, int row);
-
-    void torrentSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
-            String episode, int row);
-
-    void streamSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, String season,
-            String episode, int row);
 
     void proxyListDownloadStarted();
 
-    void subtitleSearchStarted(String format, String languageID, String titleID, String title, String year, String season, String episode, boolean firstMatch);
+    void subtitleSearchStarted(String format, String languageID, String titleID, String title, String year, boolean isTVShow, boolean isTVShowAndMovie,
+            String season, String episode, boolean firstMatch);
 
     void subtitleSearchStopped();
 

@@ -23,8 +23,8 @@ import search.util.SwingWorkerUtil;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
+import util.IO;
 import util.Regex;
-import util.io.Write;
 
 public class SummaryReader extends AbstractSwingWorker {
 
@@ -49,7 +49,7 @@ public class SummaryReader extends AbstractSwingWorker {
             readSummary();
         } catch (Exception e) {
             if (!isCancelled()) {
-                guiListener.connectionError(e);
+                guiListener.error(e);
             }
         }
         guiListener.summaryReadStopped();
@@ -58,7 +58,7 @@ public class SummaryReader extends AbstractSwingWorker {
     }
 
     public void readSummary() throws Exception {
-        Write.fileOp(Constant.TEMP_DIR, Write.MK_DIR);
+        IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
         swfName = Str.hashCodeStr(titleID);
         String swfSpeech = Constant.TEMP_DIR + swfName + Constant.SWF;
         String swfPage = Constant.TEMP_DIR + swfName + Constant.HTML;
@@ -105,7 +105,7 @@ public class SummaryReader extends AbstractSwingWorker {
         page = page.replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + Video.imagePath(titleID))).exists() ? imagePath : Constant.PROGRAM_DIR
                 + "noPosterBig.jpg");
 
-        Write.write(swfPage, page);
+        IO.write(swfPage, page);
         browse(swfPage);
     }
 
@@ -135,7 +135,7 @@ public class SummaryReader extends AbstractSwingWorker {
                     prevTag = tag;
                 }
             }
-            Write.fileOp(moviePart, Write.RM_FILE);
+            IO.fileOp(moviePart, IO.RM_FILE);
         }
         audioClip.add(audioClip.getObjects().get(0));
 
@@ -206,7 +206,7 @@ public class SummaryReader extends AbstractSwingWorker {
             } catch (Exception e) {
                 failure.set(true);
                 if (!isCancelled()) {
-                    guiListener.connectionError(e);
+                    guiListener.error(e);
                 }
             }
             return null;

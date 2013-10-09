@@ -10,9 +10,8 @@ import listener.GuiListener;
 import main.Str;
 import util.Connection;
 import util.Constant;
+import util.IO;
 import util.Regex;
-import util.io.Read;
-import util.io.Write;
 
 public class ProxyListDownloader extends AbstractSwingWorker {
 
@@ -59,7 +58,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
 
         int currVersion = 0;
         try {
-            currVersion = Integer.parseInt(Read.read(Constant.APP_DIR + Constant.PROXY_VERSION));
+            currVersion = Integer.parseInt(IO.read(Constant.APP_DIR + Constant.PROXY_VERSION));
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -79,9 +78,9 @@ public class ProxyListDownloader extends AbstractSwingWorker {
 
     private boolean hasLatestProxies() {
         try {
-            Collection<String> proxies = new ArrayList<String>(Arrays.asList(Regex.split(Read.read(Constant.APP_DIR + "bk_" + Constant.PROXIES),
+            Collection<String> proxies = new ArrayList<String>(Arrays.asList(Regex.split(IO.read(Constant.APP_DIR + "bk_" + Constant.PROXIES),
                     Constant.NEWLINE)));
-            proxies.removeAll(Arrays.asList(Regex.split(Read.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)));
+            proxies.removeAll(Arrays.asList(Regex.split(IO.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)));
             return proxies.isEmpty();
         } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -93,7 +92,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
 
     private void addProxies(int latestVersion) throws Exception {
         String[] newProxies = Regex.split(Connection.getUpdateFile(proxyFile), Constant.NEWLINE);
-        String[] oldProxies = new File(Constant.APP_DIR + Constant.PROXIES).exists() ? Regex.split(Read.read(Constant.APP_DIR + Constant.PROXIES),
+        String[] oldProxies = new File(Constant.APP_DIR + Constant.PROXIES).exists() ? Regex.split(IO.read(Constant.APP_DIR + Constant.PROXIES),
                 Constant.NEWLINE) : Constant.EMPTY_STRS;
 
         Collection<String> proxies = new ArrayList<String>(newProxies.length + oldProxies.length);
@@ -120,9 +119,9 @@ public class ProxyListDownloader extends AbstractSwingWorker {
         }
 
         File proxiesFile = new File(Constant.APP_DIR + Constant.PROXIES);
-        Write.write(proxiesFile, proxiesStr.toString().trim());
-        Write.write(proxiesFile, new File(Constant.APP_DIR + "bk_" + Constant.PROXIES));
-        Write.write(Constant.APP_DIR + Constant.PROXY_VERSION, String.valueOf(latestVersion));
+        IO.write(proxiesFile, proxiesStr.toString().trim());
+        IO.write(proxiesFile, new File(Constant.APP_DIR + "bk_" + Constant.PROXIES));
+        IO.write(Constant.APP_DIR + Constant.PROXY_VERSION, String.valueOf(latestVersion));
 
         guiListener.newProxies(proxies);
 

@@ -5,6 +5,7 @@ import gui.AbstractSwingWorker;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -24,7 +25,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected boolean isTVShow;
     protected AtomicInteger numResults, numSearchResults;
     private boolean isNewSearch = true;
-    protected Collection<String> allVideos;
+    protected Set<String> allVideos;
     protected List<Video> videoBuffer;
     protected String currSourceCode;
     private String prevSourceCode;
@@ -68,7 +69,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 initialSearch();
             } catch (Exception e) {
                 if (!isCancelled()) {
-                    guiListener.connectionError(e);
+                    guiListener.error(e);
                 }
             }
 
@@ -83,7 +84,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             } catch (Exception e) {
                 restore();
                 if (!isCancelled()) {
-                    guiListener.connectionError(e);
+                    guiListener.error(e);
                 }
             }
         }
@@ -291,7 +292,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 search();
             } catch (Exception e) {
                 if (!isCancelled()) {
-                    guiListener.connectionError(e);
+                    guiListener.error(e);
                 }
             }
             return null;

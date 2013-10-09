@@ -8,7 +8,7 @@ public interface GuiListener extends EventListener {
 
     void loading(boolean isLoading);
 
-    void connectionError(Exception e);
+    void error(Exception e);
 
     void readSummaryStarted();
 
@@ -32,8 +32,6 @@ public interface GuiListener extends EventListener {
 
     void msg(String msg, int msgType);
 
-    void error(Exception e);
-
     void initSafetyDialog();
 
     void safetyDialogMsg(String statistic, String link);
@@ -44,7 +42,7 @@ public interface GuiListener extends EventListener {
 
     boolean canProceedWithUnsafeDownload2();
 
-    void summary(String summaryLink, String imagePath);
+    void summary(String summary, String imagePath);
 
     Element getSummaryElement(String id);
 
@@ -154,7 +152,7 @@ public interface GuiListener extends EventListener {
 
     void commentsFinderStopped();
 
-    void commentsFinderConnectionError(Exception e);
+    void commentsFinderError(Exception e);
 
     Object[] makeRow(String titleID, String imagePath, String title, String year, String rating, String summary);
 

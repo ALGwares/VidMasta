@@ -35,9 +35,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -50,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -142,9 +140,8 @@ import util.Connection;
 import util.ConnectionException;
 import util.Constant;
 import util.ExceptionUtil;
+import util.IO;
 import util.Regex;
-import util.io.Read;
-import util.io.Write;
 
 public class GUI extends JFrame implements GuiListener {
 
@@ -159,7 +156,8 @@ public class GUI extends JFrame implements GuiListener {
     String randomPort;
     private static final String CTRL_CLICK = KeyEvent.getKeyModifiersText(KeyEvent.CTRL_MASK).toLowerCase(Locale.ENGLISH) + "+click to ";
     private String subtitleTitleID, subtitleTitle, subtitleYear, subtitleFormat;
-    private final Collection<Integer> subtitleEpisodes = new HashSet<Integer>(4), downloadLinkEpisodes = new HashSet<Integer>(4);
+    private boolean subtitleIsTVShow, subtitleIsTVShowAndMovie;
+    private final Set<Integer> subtitleEpisodes = new HashSet<Integer>(4), downloadLinkEpisodes = new HashSet<Integer>(4);
     private Icon loadingIcon, notLoadingIcon, noWarningIcon, warningIcon;
     JList popupList;
     JTextComponent popupTextComponent;
@@ -184,7 +182,7 @@ public class GUI extends JFrame implements GuiListener {
     JDialog dummyDialog = new JDialog();
     JMenuItem dummyMenuItem = new JMenuItem();
 
-    public GUI(WorkerListener workerListener, SplashScreen splashScreen) {
+    public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
         this.workerListener = workerListener;
         this.splashScreen = splashScreen;
         ReentrantReadWriteLock findTitleReadWriteLock = new ReentrantReadWriteLock();
@@ -197,286 +195,276 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        try {
-            hideFindTextField();
-            AutoCompleteDecorator.decorate(findTextField, findTitles, false);
+        hideFindTextField();
+        AutoCompleteDecorator.decorate(findTextField, findTitles, false);
 
-            splashScreen.progress();
+        splashScreen.progress();
 
-            JOptionPane tempOptionPane = new JOptionPane();
-            Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
-            Font font = tempOptionPane.getFont();
-            for (JComponent component : new JComponent[]{optionalMsgTextArea, optionalMsgCheckBox, optionalMsgPanel, profileMsgLabel}) {
-                component.setForeground(fgColor);
-                component.setBackground(bgColor);
-                component.setFont(font);
+        JOptionPane tempOptionPane = new JOptionPane();
+        Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
+        Font font = tempOptionPane.getFont();
+        for (JComponent component : new JComponent[]{optionalMsgTextArea, optionalMsgCheckBox, optionalMsgPanel, profileMsgLabel}) {
+            component.setForeground(fgColor);
+            component.setBackground(bgColor);
+            component.setFont(font);
+        }
+
+        splashScreen.progress();
+
+        resultsSyncTable = new SyncTable(resultsTable);
+        JScrollBar resultsScrollBar = resultsScrollPane.getVerticalScrollBar();
+        int increment = 30;
+        resultsScrollBar.setUnitIncrement(increment);
+        resultsScrollBar.setBlockIncrement(increment);
+
+        splashScreen.progress();
+
+        for (JCalendar calendar : new JCalendar[]{startCalendar, endCalendar}) {
+            calendar.setTodayButtonVisible(true);
+            calendar.setNullDateButtonVisible(true);
+        }
+        startDateTextField = (JTextFieldDateEditor) startDateChooser.getDateEditor().getUiComponent();
+        endDateTextField = (JTextFieldDateEditor) endDateChooser.getDateEditor().getUiComponent();
+
+        splashScreen.progress();
+
+        ActionListener enterKeyListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                searchButtonActionPerformed(evt);
             }
+        };
+        KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false);
+        for (JComponent component : new JComponent[]{anyTitleCheckBox, titleTextField, genreList, typeComboBox, ratingComboBox, startDateTextField,
+            endDateTextField}) {
+            component.registerKeyboardAction(enterKeyListener, "Enter", enterKey, JComponent.WHEN_FOCUSED);
+        }
 
-            splashScreen.progress();
+        splashScreen.progress();
 
-            resultsSyncTable = new SyncTable(resultsTable);
-            JScrollBar resultsScrollBar = resultsScrollPane.getVerticalScrollBar();
-            int increment = 30;
-            resultsScrollBar.setUnitIncrement(increment);
-            resultsScrollBar.setBlockIncrement(increment);
+        statusBarTextField.setBackground(bgColor = getBackground());
+        statusBarTextField.setForeground(fgColor = getForeground());
+        statusBarTextField.setSelectionColor(bgColor);
+        statusBarTextField.setSelectedTextColor(fgColor);
 
-            splashScreen.progress();
+        splashScreen.progress();
 
-            for (JCalendar calendar : new JCalendar[]{startCalendar, endCalendar}) {
-                calendar.setTodayButtonVisible(true);
-                calendar.setNullDateButtonVisible(true);
+        addMouseListener(new TablePopupListener(), resultsTable);
+        addMouseListener(textComponentPopupListener, titleTextField, findTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField,
+                portTextField, optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
+                authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField);
+        addMouseListener(listPopupListener, removeProxiesList, whitelistedList, blacklistedList);
+
+        splashScreen.progress();
+
+        summaryEditorPaneDocument = (HTMLDocument) summaryEditorPane.getDocument();
+
+        TableColumnModel colModel = resultsTable.getColumnModel();
+        imageCol = colModel.getColumnIndex(Constant.IMAGE_COL);
+        titleCol = colModel.getColumnIndex(Constant.TITLE_COL);
+        yearCol = colModel.getColumnIndex(Constant.YEAR_COL);
+        ratingCol = colModel.getColumnIndex(Constant.RATING_COL);
+        summaryCol = colModel.getColumnIndex(Constant.SUMMARY_COL);
+        idCol = colModel.getColumnIndex(Constant.ID_COL);
+        //must remove rightmost column first
+        resultsTable.removeColumn(resultsTable.getColumn(Constant.ID_COL));
+        resultsTable.removeColumn(resultsTable.getColumn(Constant.SUMMARY_COL));
+
+        splashScreen.progress();
+
+        colModel.getColumn(imageCol).setCellRenderer(new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
+            private final JLabel label = new JLabel();
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                String imagePath = (String) value;
+                if (imagePath == null || imagePath.startsWith(Constant.NO_IMAGE)) {
+                    imagePath = Constant.PROGRAM_DIR + "noPoster.jpg";
+                }
+                label.setIcon(getPoster(imagePath));
+                return label;
             }
-            startDateTextField = (JTextFieldDateEditor) startDateChooser.getDateEditor().getUiComponent();
-            endDateTextField = (JTextFieldDateEditor) endDateChooser.getDateEditor().getUiComponent();
+        });
 
-            splashScreen.progress();
+        resultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent evt) {
+                resultsTableValueChanged(evt);
+            }
+        });
 
-            ActionListener enterKeyListener = new ActionListener() {
+        splashScreen.progress();
+
+        blacklistedList.setModel(blacklistListModel = new DefaultListModel());
+        whitelistedList.setModel(whitelistListModel = new DefaultListModel());
+        removeProxiesList.setModel(removeProxiesListModel = new DefaultListModel());
+
+        splashScreen.progress();
+
+        resultsTable.registerKeyboardAction(tableCopyListener, Constant.COPY, KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false),
+                JComponent.WHEN_FOCUSED);
+        resultsTable.registerKeyboardAction(tableCopyListener, Constant.CUT, KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK, false),
+                JComponent.WHEN_FOCUSED);
+        resultsTable.registerKeyboardAction(tableCopyListener, Constant.PASTE, KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false),
+                JComponent.WHEN_FOCUSED);
+
+        resultsTable.setRowSorter(new TableRowSorter<TableModel>(resultsTable.getModel()) {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void setSortKeys(List<? extends SortKey> sortKeys) {
+                List newSortKeys = sortKeys;
+                SortKey primarySortKey;
+                if (sortKeys != null && !sortKeys.isEmpty() && (primarySortKey = sortKeys.get(0)) != null) {
+                    int sortCol = primarySortKey.getColumn();
+                    SortOrder sortOrder = null;
+
+                    for (SortKey sortKey : getSortKeys()) {
+                        if (sortKey.getColumn() == sortCol) {
+                            sortOrder = sortKey.getSortOrder();
+                            break;
+                        }
+                    }
+
+                    if (sortCol == yearCol || sortCol == ratingCol) {
+                        if (sortOrder == null) {
+                            (newSortKeys = new ArrayList<SortKey>(sortKeys)).set(0, new SortKey(sortCol, SortOrder.DESCENDING));
+                        }
+                        sortOrder = primarySortKey.getSortOrder();
+                    }
+
+                    if (sortOrder == SortOrder.DESCENDING) {
+                        newSortKeys = null;
+                    }
+                }
+                super.setSortKeys(newSortKeys);
+            }
+        });
+
+        splashScreen.progress();
+
+        addButtons(videoFormatsButtonGroup, anyVideoTypeRadioButton, dvdRadioButton, hd720RadioButton, hd1080RadioButton);
+        videoFormatsButtonGroup.setSelected(anyVideoTypeRadioButton.getModel(), true);
+        addButtons(autoDownloadersButtonGroup, defaultRadioButtonMenuItem, customRadioButtonMenuItem);
+
+        splashScreen.progress();
+
+        loadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "loading.gif");
+        notLoadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "notLoading.gif");
+        for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel,
+            summaryLoadingLabel}) {
+            label.setIcon(notLoadingIcon);
+        }
+        noWarningIcon = new ImageIcon(Constant.PROGRAM_DIR + "noWarning.png");
+        warningIcon = new ImageIcon(Constant.PROGRAM_DIR + "warning.png");
+        connectionIssueButton.setIcon(noWarningIcon);
+        trashCanButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "trashCan.png"));
+        closeBoxButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "closeBox.png"));
+        summaryTextToSpeechButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "speaker.png"));
+
+        splashScreen.progress();
+
+        List<String> genreArr = new ArrayList<String>(32);
+        genreArr.add(Constant.ANY_GENRE);
+        genreArr.addAll(Arrays.asList(Regex.split(Str.get(359), Constant.SEPARATOR1)));
+        genreList.setListData(genreArr.toArray());
+        genreList.setSelectedValue(Constant.ANY_GENRE, true);
+
+        ratingComboBox.addItem(Constant.ANY);
+        for (String rating : Regex.split(Str.get(360), Constant.SEPARATOR1)) {
+            ratingComboBox.addItem(rating);
+        }
+        ratingComboBox.setSelectedItem(Constant.ANY);
+
+        splashScreen.progress();
+
+        if (new File(Constant.APP_DIR + Constant.PROXIES).exists()) {
+            proxyComboBox.removeAllItems();
+            proxyComboBox.addItem(Constant.NO_PROXY);
+            for (String proxy : Regex.split(IO.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)) {
+                String newProxy = proxy.trim();
+                if (!newProxy.isEmpty()) {
+                    proxyComboBox.addItem(newProxy);
+                }
+            }
+            proxyComboBox.setSelectedItem(Constant.NO_PROXY);
+        }
+
+        splashScreen.progress();
+
+        profileComboBox.addItem(Constant.DEFAULT_PROFILE);
+        String[] profiles = Regex.split(IO.read(Constant.APP_DIR + Constant.PROFILES), Constant.NEWLINE);
+        if (profiles.length != 9) {
+            profiles = Regex.split(IO.read(Constant.PROGRAM_DIR + Constant.PROFILES), Constant.NEWLINE);
+        }
+        for (int i = 0; i < profiles.length; i++) {
+            profileComboBox.addItem(profiles[i]);
+            updateProfileGUIitems(i + 1);
+        }
+        profileComboBox.setSelectedItem(Constant.DEFAULT_PROFILE);
+        faqEditorPane.setText(Regex.replaceFirst(IO.read(Constant.PROGRAM_DIR + "FAQ" + Constant.HTML), "<br><br><br>", Str.get(555) + "<br><br><br>"));
+
+        splashScreen.progress();
+
+        AutoCompleteDecorator.decorate(titleTextField, Arrays.asList(Regex.split(IO.read(Constant.PROGRAM_DIR + "autoCompleteTitles" + Constant.TXT),
+                Constant.NEWLINE)), false);
+
+        //don't change order of things below this line
+
+        splashScreen.progress();
+
+        updatedTVComboBoxes();
+
+        for (String language : Regex.subtitleLanguages.keySet()) {
+            tvSubtitleLanguageComboBox.addItem(language);
+            movieSubtitleLanguageComboBox.addItem(language);
+        }
+
+        languageList.setListData(Regex.languages.keySet().toArray());
+        countryList.setListData(Regex.countries.keySet().toArray());
+
+        initCountComboBoxes(414, 502, regularResultsPerSearchComboBox);
+        initCountComboBoxes(412, 413, popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox);
+
+        splashScreen.progress();
+
+        String escapeKeyWindowClosingActionMapKey = "VK_ESCAPE:WINDOW_CLOSING", enterKeyWindowClosingActionMapKey = "VK_ENTER:WINDOW_CLOSING";
+        KeyStroke escapeKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
+        Image icon = Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png");
+        profileMsgDialog.setIconImage(icon);
+        for (final Window window : windows()) {
+            window.setIconImage(icon);
+            if (window == this) {
+                continue;
+            }
+            AbstractAction windowClosingAction = new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+
                 @Override
                 public void actionPerformed(ActionEvent evt) {
-                    searchButtonActionPerformed(evt);
+                    window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
                 }
             };
-            KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false);
-            for (JComponent component : new JComponent[]{anyTitleCheckBox, titleTextField, genreList, typeComboBox, ratingComboBox, startDateTextField,
-                endDateTextField}) {
-                component.registerKeyboardAction(enterKeyListener, "Enter", enterKey, JComponent.WHEN_FOCUSED);
-            }
-
-            splashScreen.progress();
-
-            bgColor = getBackground();
-            fgColor = getForeground();
-            statusBarTextField.setBackground(bgColor);
-            statusBarTextField.setForeground(fgColor);
-            statusBarTextField.setSelectionColor(bgColor);
-            statusBarTextField.setSelectedTextColor(fgColor);
-
-            splashScreen.progress();
-
-            addMouseListener(new TablePopupListener(), resultsTable);
-            addMouseListener(textComponentPopupListener, titleTextField, findTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField,
-                    portTextField, optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
-                    authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField);
-            addMouseListener(listPopupListener, removeProxiesList, whitelistedList, blacklistedList);
-
-            splashScreen.progress();
-
-            summaryEditorPaneDocument = (HTMLDocument) summaryEditorPane.getDocument();
-
-            TableColumnModel colModel = resultsTable.getColumnModel();
-            imageCol = colModel.getColumnIndex(Constant.IMAGE_COL);
-            titleCol = colModel.getColumnIndex(Constant.TITLE_COL);
-            yearCol = colModel.getColumnIndex(Constant.YEAR_COL);
-            ratingCol = colModel.getColumnIndex(Constant.RATING_COL);
-            summaryCol = colModel.getColumnIndex(Constant.SUMMARY_COL);
-            idCol = colModel.getColumnIndex(Constant.ID_COL);
-            //must remove rightmost column first
-            resultsTable.removeColumn(resultsTable.getColumn(Constant.ID_COL));
-            resultsTable.removeColumn(resultsTable.getColumn(Constant.SUMMARY_COL));
-
-            splashScreen.progress();
-
-            colModel.getColumn(imageCol).setCellRenderer(new DefaultTableCellRenderer() {
-                private static final long serialVersionUID = 1L;
-                private final JLabel label = new JLabel();
-
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    String imagePath = (String) value;
-                    if (imagePath == null || imagePath.startsWith(Constant.NO_IMAGE)) {
-                        imagePath = Constant.PROGRAM_DIR + "noPoster.jpg";
-                    }
-                    label.setIcon(getPoster(imagePath));
-                    return label;
-                }
-            });
-
-            resultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-                @Override
-                public void valueChanged(ListSelectionEvent evt) {
-                    resultsTableValueChanged(evt);
-                }
-            });
-
-            splashScreen.progress();
-
-            blacklistListModel = new DefaultListModel();
-            whitelistListModel = new DefaultListModel();
-            blacklistedList.setModel(blacklistListModel);
-            whitelistedList.setModel(whitelistListModel);
-
-            removeProxiesListModel = new DefaultListModel();
-            removeProxiesList.setModel(removeProxiesListModel);
-
-            splashScreen.progress();
-
-            KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false);
-            KeyStroke cut = KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK, false);
-            KeyStroke paste = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false);
-            resultsTable.registerKeyboardAction(tableCopyListener, Constant.COPY, copy, JComponent.WHEN_FOCUSED);
-            resultsTable.registerKeyboardAction(tableCopyListener, Constant.CUT, cut, JComponent.WHEN_FOCUSED);
-            resultsTable.registerKeyboardAction(tableCopyListener, Constant.PASTE, paste, JComponent.WHEN_FOCUSED);
-
-            resultsTable.setRowSorter(new TableRowSorter<TableModel>(resultsTable.getModel()) {
-                @Override
-                @SuppressWarnings("unchecked")
-                public void setSortKeys(List<? extends SortKey> sortKeys) {
-                    List newSortKeys = sortKeys;
-                    SortKey primarySortKey;
-                    if (sortKeys != null && !sortKeys.isEmpty() && (primarySortKey = sortKeys.get(0)) != null) {
-                        int sortCol = primarySortKey.getColumn();
-                        SortOrder sortOrder = null;
-
-                        for (SortKey sortKey : getSortKeys()) {
-                            if (sortKey.getColumn() == sortCol) {
-                                sortOrder = sortKey.getSortOrder();
-                                break;
-                            }
-                        }
-
-                        if (sortCol == yearCol || sortCol == ratingCol) {
-                            if (sortOrder == null) {
-                                (newSortKeys = new ArrayList<SortKey>(sortKeys)).set(0, new SortKey(sortCol, SortOrder.DESCENDING));
-                            }
-                            sortOrder = primarySortKey.getSortOrder();
-                        }
-
-                        if (sortOrder == SortOrder.DESCENDING) {
-                            newSortKeys = null;
-                        }
-                    }
-                    super.setSortKeys(newSortKeys);
-                }
-            });
-
-            splashScreen.progress();
-
-            addButtons(videoFormatsButtonGroup, anyVideoTypeRadioButton, dvdRadioButton, hd720RadioButton, hd1080RadioButton);
-            videoFormatsButtonGroup.setSelected(anyVideoTypeRadioButton.getModel(), true);
-            addButtons(autoDownloadersButtonGroup, defaultRadioButtonMenuItem, customRadioButtonMenuItem);
-
-            splashScreen.progress();
-
-            loadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "loading.gif");
-            notLoadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "notLoading.gif");
-            for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel,
-                summaryLoadingLabel}) {
-                label.setIcon(notLoadingIcon);
-            }
-            noWarningIcon = new ImageIcon(Constant.PROGRAM_DIR + "noWarning.png");
-            warningIcon = new ImageIcon(Constant.PROGRAM_DIR + "warning.gif");
-            connectionIssueButton.setIcon(noWarningIcon);
-            trashCanButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "trashCan.png"));
-            closeBoxButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "closeBox.png"));
-            summaryTextToSpeechButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "speaker.png"));
-
-            splashScreen.progress();
-
-            List<String> genreArr = new ArrayList<String>(32);
-            genreArr.add(Constant.ANY_GENRE);
-            genreArr.addAll(Arrays.asList(Regex.split(Str.get(359), Constant.SEPARATOR1)));
-            genreList.setListData(genreArr.toArray());
-            genreList.setSelectedValue(Constant.ANY_GENRE, true);
-
-            ratingComboBox.addItem(Constant.ANY);
-            for (String rating : Regex.split(Str.get(360), Constant.SEPARATOR1)) {
-                ratingComboBox.addItem(rating);
-            }
-            ratingComboBox.setSelectedItem(Constant.ANY);
-
-            splashScreen.progress();
-
-            if (new File(Constant.APP_DIR + Constant.PROXIES).exists()) {
-                proxyComboBox.removeAllItems();
-                proxyComboBox.addItem(Constant.NO_PROXY);
-                for (String proxy : Regex.split(Read.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)) {
-                    String newProxy = proxy.trim();
-                    if (!newProxy.isEmpty()) {
-                        proxyComboBox.addItem(newProxy);
-                    }
-                }
-                proxyComboBox.setSelectedItem(Constant.NO_PROXY);
-            }
-
-            splashScreen.progress();
-
-            profileComboBox.addItem(Constant.DEFAULT_PROFILE);
-            String[] profiles = Regex.split(Read.read(Constant.APP_DIR + Constant.PROFILES), Constant.NEWLINE);
-            if (profiles.length != 9) {
-                profiles = Regex.split(Read.read(Constant.PROGRAM_DIR + Constant.PROFILES), Constant.NEWLINE);
-            }
-            for (int i = 0; i < profiles.length; i++) {
-                profileComboBox.addItem(profiles[i]);
-                updateProfileGUIitems(i + 1);
-            }
-            profileComboBox.setSelectedItem(Constant.DEFAULT_PROFILE);
-            faqEditorPane.setText(Regex.replaceFirst(Read.read(Constant.PROGRAM_DIR + "FAQ" + Constant.HTML), "<br><br><br>", Str.get(555) + "<br><br><br>"));
-
-            splashScreen.progress();
-
-            AutoCompleteDecorator.decorate(titleTextField, Arrays.asList(Regex.split(Read.read(Constant.PROGRAM_DIR + "autoCompleteTitles" + Constant.TXT),
-                    Constant.NEWLINE)), false);
-
-            //don't change order of things below this line
-
-            splashScreen.progress();
-
-            updatedTVComboBoxes();
-
-            for (String language : Regex.subtitleLanguages.keySet()) {
-                tvSubtitleLanguageComboBox.addItem(language);
-                movieSubtitleLanguageComboBox.addItem(language);
-            }
-
-            languageList.setListData(Regex.languages.keySet().toArray());
-            countryList.setListData(Regex.countries.keySet().toArray());
-
-            initCountComboBoxes(414, 502, regularResultsPerSearchComboBox);
-            initCountComboBoxes(412, 413, popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox);
-
-            splashScreen.progress();
-
-            String escapeKeyWindowClosingActionMapKey = "VK_ESCAPE:WINDOW_CLOSING", enterKeyWindowClosingActionMapKey = "VK_ENTER:WINDOW_CLOSING";
-            KeyStroke escapeKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
-            Image icon = Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png");
-            profileMsgDialog.setIconImage(icon);
-            for (final Window window : windows()) {
-                window.setIconImage(icon);
-                if (window == this) {
-                    continue;
-                }
-                AbstractAction windowClosingAction = new AbstractAction() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void actionPerformed(ActionEvent evt) {
-                        window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
-                    }
-                };
-                JRootPane root = ((RootPaneContainer) window).getRootPane();
-                InputMap inputMap = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-                ActionMap actionMap = root.getActionMap();
-                inputMap.put(escapeKey, escapeKeyWindowClosingActionMapKey);
-                inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
-                actionMap.put(escapeKeyWindowClosingActionMapKey, windowClosingAction);
-                actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
-            }
-
-            splashScreen.progress();
-
-            settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS); //this must always come last unless overriding settings
-            if (!Constant.CAN_PEER_BLOCK) {
-                peerBlockNotificationCheckBoxMenuItem.setEnabled(false);
-                peerBlockNotificationCheckBoxMenuItem.setSelected(false);
-                peerBlockNotificationCheckBoxMenuItem.setToolTipText("Only available for Windows 2000, XP, Vista, and 7");
-                usePeerBlock = false;
-            }
-
-            splashScreen.progress();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, getTextArea(e.getMessage()), Constant.APP_TITLE, Constant.ERROR_MSG);
+            JRootPane root = ((RootPaneContainer) window).getRootPane();
+            InputMap inputMap = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            ActionMap actionMap = root.getActionMap();
+            inputMap.put(escapeKey, escapeKeyWindowClosingActionMapKey);
+            inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
+            actionMap.put(escapeKeyWindowClosingActionMapKey, windowClosingAction);
+            actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
         }
+
+        splashScreen.progress();
+
+        settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS); //this must always come last unless overriding settings
+        if (!Constant.CAN_PEER_BLOCK) {
+            peerBlockNotificationCheckBoxMenuItem.setEnabled(false);
+            peerBlockNotificationCheckBoxMenuItem.setSelected(false);
+            peerBlockNotificationCheckBoxMenuItem.setToolTipText("Only available for Windows 2000, XP, Vista, and 7");
+            usePeerBlock = false;
+        }
+
+        splashScreen.progress();
     }
 
     private static void initCountComboBoxes(int incrementSizeIndex, int maxCountIndex, JComboBox... comboBoxes) {
@@ -551,19 +539,8 @@ public class GUI extends JFrame implements GuiListener {
         isTVShowSearch = false;
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) popularMoviesResultsPerSearchComboBox.getSelectedItem());
-        workerListener.popularSearchStarted(numResultsPerSearch, false, new String[]{Constant.ANY_LANGUAGE}, new String[]{Constant.ANY_COUNTRY}, true, !isStartUp);
-    }
-
-    private void loading() {
-        if (loadingLabel.getIcon().equals(notLoadingIcon)) {
-            loadingLabel.setIcon(loadingIcon);
-        }
-    }
-
-    private void notLoading() {
-        if (workerListener.areWorkersDone()) {
-            loadingLabel.setIcon(notLoadingIcon);
-        }
+        String[] languages = copy(languageList, Constant.ANY_LANGUAGE), countries = copy(countryList, Constant.ANY_COUNTRY);
+        workerListener.popularSearchStarted(numResultsPerSearch, isTVShowSearch, languages, countries, true, !isStartUp);
     }
 
     @SuppressWarnings("unchecked")
@@ -1350,11 +1327,23 @@ public class GUI extends JFrame implements GuiListener {
         extensionsDialog.setModal(true);
 
         blacklistedScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        blacklistedList.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                blacklistedListKeyPressed(evt);
+            }
+        });
         blacklistedScrollPane.setViewportView(blacklistedList);
 
         blacklistedLabel.setText("Blacklisted Extensions");
 
         whitelistedScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        whitelistedList.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                whitelistedListKeyPressed(evt);
+            }
+        });
         whitelistedScrollPane.setViewportView(whitelistedList);
 
         whitelistedToBlacklistedButton.setText("->");
@@ -3531,7 +3520,7 @@ public class GUI extends JFrame implements GuiListener {
                 Debug.print(e);
             }
             try {
-                Write.write(Constant.APP_DIR + Constant.USER_SETTINGS, Read.read(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS));
+                IO.write(Constant.APP_DIR + Constant.USER_SETTINGS, IO.read(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS));
             } catch (Exception e2) {
                 if (Debug.DEBUG) {
                     Debug.print(e2);
@@ -3545,7 +3534,7 @@ public class GUI extends JFrame implements GuiListener {
             profileNames.append((String) profileComboBox.getItemAt(i)).append(Constant.NEWLINE);
         }
         try {
-            Write.write(Constant.APP_DIR + Constant.PROFILES, profileNames.toString().trim());
+            IO.write(Constant.APP_DIR + Constant.PROFILES, profileNames.toString().trim());
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -3995,37 +3984,28 @@ public class GUI extends JFrame implements GuiListener {
 
     void readSummaryButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_readSummaryButtonActionPerformed
         SelectedTableRow row = selectedRow();
-        String season = null, episode = null;
-        if (row.content.length == 7) {
-            season = row.content[5];
-            episode = row.content[6];
-        }
-        workerListener.summarySearchStarted(Constant.SUMMARY_ACTION, row.id, row.content[0], row.content[1], row.content[2], row.content[3].equals(Constant.TRUE),
-                row.year, row.content[4].equals(Constant.TRUE), season, episode, row.val);
+        workerListener.summarySearchStarted(Constant.SUMMARY_ACTION, row.id, row.title, row.summaryLink, row.imageLink, row.isLink, row.year, row.isTVShow,
+                row.isTVShowAndMovie, row.season, row.episode, row.val);
     }//GEN-LAST:event_readSummaryButtonActionPerformed
 
     void watchTrailerButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchTrailerButtonActionPerformed
         SelectedTableRow row = selectedRow();
-        String season = null, episode = null;
-        if (row.content.length == 7) {
-            season = row.content[5];
-            episode = row.content[6];
-            resultsSyncTable.setModelValueAt(row.content[0] + Constant.SEPARATOR1 + row.content[1] + Constant.SEPARATOR1 + row.content[2] + Constant.SEPARATOR1
-                    + row.content[3] + Constant.SEPARATOR1 + row.content[4], row.val, summaryCol);
+        if (row.season != null) {
+            resultsSyncTable.setModelValueAt(row.title + Constant.SEPARATOR1 + row.summaryLink + Constant.SEPARATOR1 + row.imageLink + Constant.SEPARATOR1
+                    + row.isLink + Constant.SEPARATOR1 + row.isTVShow + Constant.SEPARATOR1 + row.isTVShowAndMovie, row.val, summaryCol);
         }
-        workerListener.trailerSearchStarted(Constant.TRAILER_ACTION, row.id, row.content[0], row.content[1], row.content[3].equals(Constant.TRUE), row.year,
-                row.content[4].equals(Constant.TRUE), season, episode, row.val);
+        workerListener.trailerSearchStarted(Constant.TRAILER_ACTION, row.id, row.title, row.summaryLink, row.isLink, row.year, row.isTVShow, row.isTVShowAndMovie,
+                row.season, row.episode, row.val);
     }//GEN-LAST:event_watchTrailerButtonActionPerformed
 
     private void downloadLinkButtonAction(int torrentAction) {
         SelectedTableRow row = selectedRow();
-        String season = null, episode = null;
-        if (row.content.length == 7 && downloadLinkEpisodes.add(row.val)) {
-            season = row.content[5];
-            episode = row.content[6];
+        if (!downloadLinkEpisodes.add(row.val)) {
+            row.season = null;
+            row.episode = null;
         }
-        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? Constant.TORRENT3_ACTION : torrentAction, row.id, row.content[0], row.content[1],
-                row.content[3].equals(Constant.TRUE), row.year, row.content[4].equals(Constant.TRUE), season, episode, row.val);
+        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? Constant.TORRENT3_ACTION : torrentAction, row.id, row.title, row.summaryLink,
+                row.isLink, row.year, row.isTVShow, row.isTVShowAndMovie, row.season, row.episode, row.val);
     }
 
     void downloadLink1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink1ButtonActionPerformed
@@ -4387,7 +4367,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         try {
-            Write.write(Constant.APP_DIR + Constant.PROXIES, proxiesBuf.toString().trim());
+            IO.write(Constant.APP_DIR + Constant.PROXIES, proxiesBuf.toString().trim());
         } catch (Exception e) {
             removeProxiesDialog.setAlwaysOnTop(false);
             showException(e);
@@ -4486,7 +4466,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         try {
-            Write.write(Constant.APP_DIR + Constant.PROXIES, proxiesBuf.toString().trim());
+            IO.write(Constant.APP_DIR + Constant.PROXIES, proxiesBuf.toString().trim());
         } catch (Exception e) {
             if (addButtonPressed) {
                 addProxiesDialog.setAlwaysOnTop(false);
@@ -4516,7 +4496,7 @@ public class GUI extends JFrame implements GuiListener {
 
         if (proxyFileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             try {
-                addProxies(Read.read(proxyFileChooser.getSelectedFile()), false);
+                addProxies(IO.read(proxyFileChooser.getSelectedFile()), false);
             } catch (Exception e) {
                 showException(e);
             }
@@ -4561,7 +4541,7 @@ public class GUI extends JFrame implements GuiListener {
                     }
                 }
 
-                Write.write(proxyFileChooser.getSelectedFile(), proxiesBuf.toString().trim());
+                IO.write(proxyFileChooser.getSelectedFile(), proxiesBuf.toString().trim());
                 numProxies = proxies.size();
                 showMsg(numProxies + (numProxies == 1 ? " proxy has " : " proxies have ") + "been exported.", Constant.INFO_MSG);
             } catch (Exception e) {
@@ -4829,7 +4809,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void profileClearButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileClearButtonActionPerformed
         int profile = profileComboBox.getSelectedIndex();
-        Write.fileOp(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT, Write.RM_FILE);
+        IO.fileOp(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT, IO.RM_FILE);
         updateProfileGUIitems(profile);
     }//GEN-LAST:event_profileClearButtonActionPerformed
 
@@ -4843,8 +4823,8 @@ public class GUI extends JFrame implements GuiListener {
 
     private void watchSourceButtonAction(int streamAction) {
         SelectedTableRow row = selectedRow();
-        workerListener.streamSearchStarted(streamAction, row.id, row.content[0], row.content[1], row.content[3].equals(Constant.TRUE), row.year,
-                row.content[4].equals(Constant.TRUE), null, null, row.val);
+        workerListener.streamSearchStarted(streamAction, row.id, row.title, row.summaryLink, row.isLink, row.year, row.isTVShow, row.isTVShowAndMovie, null, null,
+                row.val);
     }
 
     void watchSource2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource2ButtonActionPerformed
@@ -4874,8 +4854,10 @@ public class GUI extends JFrame implements GuiListener {
     void findSubtitleMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findSubtitleMenuItemActionPerformed
         SelectedTableRow row = selectedRow();
         subtitleTitleID = row.id;
-        subtitleTitle = Str.clean(row.content[0]);
+        subtitleTitle = Str.clean(row.title);
         subtitleYear = row.year;
+        subtitleIsTVShow = row.isTVShow;
+        subtitleIsTVShowAndMovie = row.isTVShowAndMovie;
         isTVShowSubtitle = isTVShowSearch;
 
         if (subtitleFormat != null) {
@@ -4886,9 +4868,9 @@ public class GUI extends JFrame implements GuiListener {
 
         if (isTVShowSubtitle) {
             if (subtitleEpisodes.add(row.val)) {
-                if (row.content.length == 7) {
-                    tvSubtitleSeasonComboBox.setSelectedItem(row.content[5]);
-                    tvSubtitleEpisodeComboBox.setSelectedItem(row.content[6]);
+                if (row.season != null) {
+                    tvSubtitleSeasonComboBox.setSelectedItem(row.season);
+                    tvSubtitleEpisodeComboBox.setSelectedItem(row.episode);
                     subtitleEpisodes.remove(-1);
                 } else if (subtitleEpisodes.contains(-1)) {
                     tvSubtitleSeasonComboBox.setSelectedItem(tvSeasonComboBox.getSelectedItem());
@@ -4966,8 +4948,8 @@ public class GUI extends JFrame implements GuiListener {
 
     private void startSubtitleSearch(JComboBox format, JComboBox language, JComboBox season, JComboBox episode, boolean firstMatch) {
         workerListener.subtitleSearchStarted((String) format.getSelectedItem(), Regex.subtitleLanguages.get((String) language.getSelectedItem()), subtitleTitleID,
-                subtitleTitle, subtitleYear, season == null ? null : (String) season.getSelectedItem(), episode == null ? null
-                : (String) episode.getSelectedItem(), firstMatch);
+                subtitleTitle, subtitleYear, subtitleIsTVShow, subtitleIsTVShowAndMovie, season == null ? null : (String) season.getSelectedItem(),
+                episode == null ? null : (String) episode.getSelectedItem(), firstMatch);
     }
 
     private void tvSubtitleDownloadMatch1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleDownloadMatch1ButtonActionPerformed
@@ -5145,11 +5127,15 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_textComponentPopupMenuPopupMenuWillBecomeInvisible
 
     private void customExtensionTextFieldKeyPressed(KeyEvent evt) {//GEN-FIRST:event_customExtensionTextFieldKeyPressed
-        String customExt = customExtensionTextField.getText();
-        int key;
-        if (!customExt.startsWith(".") && (key = evt.getKeyCode()) != KeyEvent.VK_PERIOD && key != KeyEvent.VK_DECIMAL && key != KeyEvent.VK_ALT && key
-                != KeyEvent.VK_ALT_GRAPH && key != KeyEvent.VK_CONTROL && key != KeyEvent.VK_META && key != KeyEvent.VK_SHIFT && key != KeyEvent.VK_BACK_SPACE
-                && key != KeyEvent.VK_ENTER && key != KeyEvent.VK_DELETE && key != KeyEvent.VK_ESCAPE && !evt.isActionKey()) {
+        String customExt;
+        int key = evt.getKeyCode();
+        if (key == KeyEvent.VK_RIGHT || key == KeyEvent.VK_KP_RIGHT) {
+            whitelistedToBlacklistedButtonActionPerformed(null);
+        } else if (key == KeyEvent.VK_LEFT || key == KeyEvent.VK_KP_LEFT) {
+            blacklistedToWhitelistedButtonActionPerformed(null);
+        } else if (!(customExt = customExtensionTextField.getText()).startsWith(".") && key != KeyEvent.VK_PERIOD && key != KeyEvent.VK_DECIMAL && key
+                != KeyEvent.VK_ALT && key != KeyEvent.VK_ALT_GRAPH && key != KeyEvent.VK_CONTROL && key != KeyEvent.VK_META && key != KeyEvent.VK_SHIFT && key
+                != KeyEvent.VK_BACK_SPACE && key != KeyEvent.VK_ENTER && key != KeyEvent.VK_DELETE && key != KeyEvent.VK_ESCAPE && !evt.isActionKey()) {
             customExtensionTextField.setText('.' + customExt);
         }
     }//GEN-LAST:event_customExtensionTextFieldKeyPressed
@@ -5314,6 +5300,24 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_autoDownloadingCheckBoxMenuItemActionPerformed
 
+    private void whitelistedListKeyPressed(KeyEvent evt) {//GEN-FIRST:event_whitelistedListKeyPressed
+        int key = evt.getKeyCode();
+        if (key == KeyEvent.VK_RIGHT || key == KeyEvent.VK_KP_RIGHT) {
+            whitelistedToBlacklistedButtonActionPerformed(null);
+        } else if (key == KeyEvent.VK_DELETE) {
+            trashCanButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_whitelistedListKeyPressed
+
+    private void blacklistedListKeyPressed(KeyEvent evt) {//GEN-FIRST:event_blacklistedListKeyPressed
+        int key = evt.getKeyCode();
+        if (key == KeyEvent.VK_LEFT || key == KeyEvent.VK_KP_LEFT) {
+            blacklistedToWhitelistedButtonActionPerformed(null);
+        } else if (key == KeyEvent.VK_DELETE) {
+            trashCanButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_blacklistedListKeyPressed
+
     private void exitBackupMode(MouseEvent evt) {
         if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK && Connection.downloadLinkInfoFail()) {
             Connection.downloadLinkInfoUnFail();
@@ -5361,17 +5365,14 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void updateDownloadSizeComboBoxes() {
-        String min = (String) minDownloadSizeComboBox.getSelectedItem();
         String max = (String) maxDownloadSizeComboBox.getSelectedItem();
-        if (!max.equals(Constant.INFINITY) && Integer.parseInt(min) >= Integer.parseInt(max)) {
+        if (!max.equals(Constant.INFINITY) && Integer.parseInt((String) minDownloadSizeComboBox.getSelectedItem()) >= Integer.parseInt(max)) {
             maxDownloadSizeComboBox.setSelectedItem(Constant.INFINITY);
         }
     }
 
     private void updatedTVComboBoxes() {
-        String season = (String) tvSeasonComboBox.getSelectedItem();
-        String episode = (String) tvEpisodeComboBox.getSelectedItem();
-        boolean allSeasons = season.equals(Constant.ANY), allEpisodes = episode.equals(Constant.ANY);
+        boolean allSeasons = tvSeasonComboBox.getSelectedItem().equals(Constant.ANY), allEpisodes = tvEpisodeComboBox.getSelectedItem().equals(Constant.ANY);
 
         if (allSeasons && !allEpisodes) {
             if (tvEpisodeComboBox.isEnabled()) {
@@ -5427,16 +5428,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         showMsg(ExceptionUtil.toString(e), Constant.ERROR_MSG);
-        try {
-            Writer stackTrace = new StringWriter();
-            e.printStackTrace(new PrintWriter(stackTrace));
-            Write.write(Constant.APP_DIR + "errorLog" + Constant.TXT, Calendar.getInstance().getTime().toString() + Constant.NEWLINE + stackTrace.toString()
-                    + Constant.NEWLINE, true);
-        } catch (Exception e2) {
-            if (Debug.DEBUG) {
-                Debug.print(e2);
-            }
-        }
+        IO.writeToErrorLog(e);
     }
 
     private void showOptionalMsg(String msg, JMenuItem menuItem) {
@@ -5480,7 +5472,7 @@ public class GUI extends JFrame implements GuiListener {
                 connectionIssueButton.setEnabled(true);
                 connectionIssueButton.setBorderPainted(true);
                 connectionIssueButton.setIcon(warningIcon);
-                connectionIssueButton.setToolTipText("view connection issues (click to view or " + CTRL_CLICK + "hide)");
+                connectionIssueButton.setToolTipText("view connection issues (" + CTRL_CLICK + "hide)");
             }
         }
     }
@@ -5499,41 +5491,6 @@ public class GUI extends JFrame implements GuiListener {
         synchronized (optionDialogLock) {
             return showOptionDialog(getTextArea(msg), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
         }
-    }
-
-    private void showSummaryDialog(String summary, String imagePath) {
-        String s = "<html><head><title></title></head><body><table><tr>";
-        if (imagePath != null) {
-            String imageSize = "";
-            String posterFilePath = Constant.TEMP_DIR + (new File(imagePath)).getName();
-            File posterFile = new File(posterFilePath);
-            if (!posterFile.exists()) {
-                try {
-                    Icon posterIcon = new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(Integer.parseInt(Str.get(495)),
-                            Integer.parseInt(Str.get(496)), Image.SCALE_SMOOTH));
-                    BufferedImage posterImage = new BufferedImage(posterIcon.getIconWidth(), posterIcon.getIconHeight(), BufferedImage.TYPE_INT_RGB);
-                    Graphics graphics = posterImage.createGraphics();
-                    posterIcon.paintIcon(null, graphics, 0, 0);
-                    graphics.dispose();
-                    Write.fileOp(Constant.TEMP_DIR, Write.MK_DIR);
-                    ImageIO.write(posterImage, "png", posterFile);
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                    Write.fileOp(posterFile, Write.RM_FILE);
-                    posterFilePath = imagePath;
-                    imageSize = " width=\"" + Str.get(495) + "\" height=\"" + Str.get(496) + "\"";
-                }
-            }
-            s += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, Str.get(237), Str.get(238)) + '"' + imageSize
-                    + "></td>";
-        }
-        summaryEditorPane.setText(s + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + summary.replace("</body>", "</td></tr></table></body>"));
-        summaryEditorPane.setSelectionStart(0);
-        summaryEditorPane.setSelectionEnd(0);
-        summaryDialog.setVisible(true);
-        summaryCloseButton.requestFocusInWindow();
     }
 
     private void setSafetyDialog(String statistic, String link) {
@@ -5576,10 +5533,10 @@ public class GUI extends JFrame implements GuiListener {
 
         void loadSettings(String settingsFile) {
             try {
-                String[] settings = Regex.split(Read.read(settingsFile), Constant.NEWLINE);
+                String[] settings = Regex.split(IO.read(settingsFile), Constant.NEWLINE);
                 boolean updateSettings = (settings.length < Constant.SETTINGS_LEN);
                 if (updateSettings) {
-                    String[] defaultSettings = Regex.split(Read.read(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS), Constant.NEWLINE);
+                    String[] defaultSettings = Regex.split(IO.read(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS), Constant.NEWLINE);
                     System.arraycopy(settings, 0, defaultSettings, 0, settings.length);
                     settings = defaultSettings;
                 }
@@ -5620,7 +5577,7 @@ public class GUI extends JFrame implements GuiListener {
                 for (String setting : settings) {
                     newSettings.append(setting).append(Constant.NEWLINE);
                 }
-                Write.write(settingsFile, newSettings.toString().trim());
+                IO.write(settingsFile, newSettings.toString().trim());
             } catch (Exception e) {
                 showException(e);
             }
@@ -5651,7 +5608,7 @@ public class GUI extends JFrame implements GuiListener {
 
             saveButtons(settings, downloadWithDefaultAppCheckBoxMenuItem, feedCheckBoxMenuItem);
 
-            Write.write(fileName, settings.toString().trim());
+            IO.write(fileName, settings.toString().trim());
         }
 
         private JComboBox[] comboBoxSet1() {
@@ -5921,30 +5878,43 @@ public class GUI extends JFrame implements GuiListener {
 
     private class SelectedTableRow {
 
-        int val, viewVal;
-        String[] content;
-        String id, year;
+        final int viewVal, val;
+        final String id, year, title, summaryLink, imageLink;
+        final boolean isLink, isTVShow, isTVShowAndMovie;
+        String season, episode;
 
         SelectedTableRow() {
             viewVal = resultsSyncTable.getSelectedRow();
             val = resultsSyncTable.convertRowIndexToModel(viewVal);
-            content = Regex.split((String) resultsSyncTable.getModelValueAt(val, summaryCol), Constant.SEPARATOR1);
             id = (String) resultsSyncTable.getModelValueAt(val, idCol);
             year = Regex.replaceAll((String) resultsSyncTable.getModelValueAt(val, yearCol), "(</?+html>)|(</?+b>)", "");
+            String[] content = Regex.split((String) resultsSyncTable.getModelValueAt(val, summaryCol), Constant.SEPARATOR1);
+            title = content[0];
+            summaryLink = content[1];
+            imageLink = content[2];
+            isLink = content[3].equals(Constant.TRUE);
+            isTVShow = content[4].equals(Constant.TRUE);
+            isTVShowAndMovie = content[5].equals(Constant.TRUE);
+            if (content.length == 8) {
+                season = content[6];
+                episode = content[7];
+            }
         }
     }
 
     @Override
     public void loading(boolean isLoading) {
         if (isLoading) {
-            loading();
-        } else {
-            notLoading();
+            if (loadingLabel.getIcon().equals(notLoadingIcon)) {
+                loadingLabel.setIcon(loadingIcon);
+            }
+        } else if (workerListener.areWorkersDone()) {
+            loadingLabel.setIcon(notLoadingIcon);
         }
     }
 
     @Override
-    public void connectionError(Exception e) {
+    public void error(Exception e) {
         showConnectionException(e);
         showException(e);
     }
@@ -6050,11 +6020,6 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void error(Exception e) {
-        showException(e);
-    }
-
-    @Override
     public void initSafetyDialog() {
         proceedWithDownload = false;
         setSafetyDialog(null, null);
@@ -6105,8 +6070,39 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void summary(String summaryLink, String imagePath) {
-        showSummaryDialog(summaryLink, imagePath);
+    public void summary(String summary, String imagePath) {
+        String s = "<html><head><title></title></head><body><table><tr>";
+        if (imagePath != null) {
+            String imageSize = "";
+            String posterFilePath = Constant.TEMP_DIR + (new File(imagePath)).getName();
+            File posterFile = new File(posterFilePath);
+            if (!posterFile.exists()) {
+                try {
+                    Icon posterIcon = new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(Integer.parseInt(Str.get(495)),
+                            Integer.parseInt(Str.get(496)), Image.SCALE_SMOOTH));
+                    BufferedImage posterImage = new BufferedImage(posterIcon.getIconWidth(), posterIcon.getIconHeight(), BufferedImage.TYPE_INT_RGB);
+                    Graphics graphics = posterImage.createGraphics();
+                    posterIcon.paintIcon(null, graphics, 0, 0);
+                    graphics.dispose();
+                    IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
+                    ImageIO.write(posterImage, "png", posterFile);
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                    IO.fileOp(posterFile, IO.RM_FILE);
+                    posterFilePath = imagePath;
+                    imageSize = " width=\"" + Str.get(495) + "\" height=\"" + Str.get(496) + "\"";
+                }
+            }
+            s += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, Str.get(237), Str.get(238)) + '"' + imageSize
+                    + "></td>";
+        }
+        summaryEditorPane.setText(s + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + summary.replace("</body>", "</td></tr></table></body>"));
+        summaryEditorPane.setSelectionStart(0);
+        summaryEditorPane.setSelectionEnd(0);
+        summaryDialog.setVisible(true);
+        summaryCloseButton.requestFocusInWindow();
     }
 
     @Override
@@ -6211,7 +6207,7 @@ public class GUI extends JFrame implements GuiListener {
         } else if ((new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).exists() || Connection.isPeerBlockRunning()) {
             usePeerBlock = false;
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
-            Write.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", Write.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
         } else if (canShowPeerBlock && (showOptionalConfirm("Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
                 peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION)) {
@@ -6222,7 +6218,7 @@ public class GUI extends JFrame implements GuiListener {
         usePeerBlock = true;
         try {
             if (!(new File(Constant.APP_DIR + Constant.PEER_BLOCK)).exists()) {
-                Write.unzip(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.ZIP, Constant.APP_DIR);
+                IO.unzip(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.ZIP, Constant.APP_DIR);
             }
             List<String> command = new ArrayList<String>(8);
             command.add(Constant.JAVA);
@@ -6268,7 +6264,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         } else if (save(torrentFileChooser)) {
             try {
-                Write.write(torrentFile, torrentFileChooser.getSelectedFile());
+                IO.write(torrentFile, torrentFileChooser.getSelectedFile());
             } catch (Exception e) {
                 showException(e);
             }
@@ -6288,7 +6284,7 @@ public class GUI extends JFrame implements GuiListener {
 
         if (save(subtitleFileChooser)) {
             try {
-                Write.write(subtitleFile, subtitleFileChooser.getSelectedFile());
+                IO.write(subtitleFile, subtitleFileChooser.getSelectedFile());
             } catch (Exception e) {
                 showException(e);
             }
@@ -6334,7 +6330,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void searchStarted() {
-        loading();
+        loading(true);
 
         loadMoreResultsButton.setEnabled(false);
         searchButton.setEnabled(false);
@@ -6636,9 +6632,9 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void commentsFinderConnectionError(Exception e) {
+    public void commentsFinderError(Exception e) {
         safetyDialog.setAlwaysOnTop(false);
-        connectionError(e);
+        error(e);
         safetyDialog.setAlwaysOnTop(true);
     }
 

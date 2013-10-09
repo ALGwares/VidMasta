@@ -15,16 +15,17 @@ import main.Str;
 import search.util.VideoSearch;
 import util.Connection;
 import util.Constant;
+import util.IO;
 import util.Regex;
-import util.io.Write;
 
 public class Video {
 
     private static final long MAX_IMAGE_AGE = Long.parseLong(Str.get(501));
     public String originalTitle, id, title, year, rating, summaryLink, imageLink, season, episode;
-    public boolean isTVShow;
+    public boolean isTVShow, isTVShowAndMovie;
 
-    public Video(String id, String title, String year, String rating, String summaryLink, String imageLink, String season, String episode, boolean isTVShow) {
+    public Video(String id, String title, String year, String rating, String summaryLink, String imageLink, String season, String episode, boolean isTVShow,
+            boolean isTVShowAndMovie) {
         this.id = id;
         this.title = title;
         this.year = year;
@@ -34,6 +35,7 @@ public class Video {
         this.season = season;
         this.episode = episode;
         this.isTVShow = isTVShow;
+        this.isTVShowAndMovie = isTVShowAndMovie;
     }
 
     public void saveImage() throws Exception {
@@ -45,7 +47,7 @@ public class Video {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                Write.fileOp(imagePath, Write.RM_FILE_NOW_AND_ON_EXIT);
+                IO.fileOp(imagePath, IO.RM_FILE_NOW_AND_ON_EXIT);
             }
         }
     }
@@ -85,7 +87,8 @@ public class Video {
         titleStr = startHtml + "&nbsp;&nbsp;&nbsp;" + displayTitle + endHtml;
 
         String summaryStr = title + Constant.SEPARATOR1 + summaryLink + Constant.SEPARATOR1 + imageLink + Constant.SEPARATOR1
-                + (summaryIsLink ? Constant.TRUE : Constant.FALSE) + Constant.SEPARATOR1 + (isTVShow ? Constant.TRUE : Constant.FALSE) + seasonAndEpisode;
+                + (summaryIsLink ? Constant.TRUE : Constant.FALSE) + Constant.SEPARATOR1 + (isTVShow ? Constant.TRUE : Constant.FALSE) + Constant.SEPARATOR1
+                + (isTVShowAndMovie ? Constant.TRUE : Constant.FALSE) + seasonAndEpisode;
 
         String imageStr = imagePath(id);
         String imagePath = Constant.CACHE_DIR + imageStr;
@@ -272,8 +275,8 @@ public class Video {
 
     @Override
     public String toString() {
-        return isTVShow + " " + title + '(' + originalTitle + ") " + year + ' ' + season + ' ' + episode + ' ' + rating + ' ' + summaryLink + ' ' + imageLink
-                + ' ' + id;
+        return isTVShow + " " + isTVShowAndMovie + " " + title + '(' + originalTitle + ") " + year + ' ' + season + ' ' + episode + ' ' + rating + ' '
+                + summaryLink + ' ' + imageLink + ' ' + id;
     }
 
     @Override

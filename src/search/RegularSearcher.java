@@ -126,8 +126,10 @@ public class RegularSearcher extends AbstractSearcher {
         if (imageLink.isEmpty()) {
             imageLink = Constant.NULL;
         }
+        boolean isTVShowAndMovie = VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590);
 
-        Video video = new Video(titleID, titleParts[0], titleParts[1], rating.isEmpty() ? "-" : rating, summary, imageLink, null, null, isTVShow);
+        Video video = new Video(titleID, titleParts[0], titleParts[1], rating.isEmpty() ? "-" : rating, summary, imageLink, null, null, isTVShow,
+                isTVShowAndMovie);
         video.originalTitle = dirtyOldTitle;
         if (!imageLink.equals(Constant.NULL)) {
             video.saveImage();
@@ -191,7 +193,8 @@ public class RegularSearcher extends AbstractSearcher {
     @Override
     protected void addVideo(String titleMatch) {
         String videoTitle = Regex.match(titleMatch, Str.get(25), Str.get(26));
-        String year = Regex.match(Regex.match(titleMatch, Str.get(27), Str.get(28)), Str.get(29));
+        String yearAndType = Regex.match(titleMatch, Str.get(27), Str.get(28));
+        String year = Regex.match(yearAndType, Str.get(29));
         String summaryLink = Str.get(22) + Regex.match(titleMatch, Str.get(23), Str.get(24));
         String titleID = Regex.replaceAll(Regex.replaceFirst(summaryLink, Str.get(447), Str.get(448)), Str.get(449), Str.get(450));
         if (videoTitle.isEmpty() || year.isEmpty() || titleID.isEmpty()) {
@@ -202,8 +205,9 @@ public class RegularSearcher extends AbstractSearcher {
         }
         String rating = Regex.match(Regex.match(titleMatch, Str.get(30), Str.get(31)), Str.get(32));
         String imageLink = Regex.match(titleMatch, Str.get(384), Str.get(385));
+        boolean isTVShowAndMovie = !Regex.match(yearAndType, Str.get(isTVShow ? 591 : 592)).isEmpty();
 
-        Video video = new Video(titleID, videoTitle, year, rating.isEmpty() ? "-" : rating, summaryLink, Constant.NULL, null, null, isTVShow);
+        Video video = new Video(titleID, videoTitle, year, rating.isEmpty() ? "-" : rating, summaryLink, Constant.NULL, null, null, isTVShow, isTVShowAndMovie);
         if (Regex.isMatch(imageLink, Str.get(386))) {
             noImageTitles.add(video.id);
         }

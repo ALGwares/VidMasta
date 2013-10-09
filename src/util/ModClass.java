@@ -14,8 +14,6 @@ import java.util.ListIterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.tools.JavaFileObject.Kind;
-import util.io.CleanUp;
-import util.io.Write;
 
 public class ModClass {
 
@@ -63,7 +61,7 @@ public class ModClass {
                 }
             }
         } finally {
-            CleanUp.close(zf);
+            IO.close(zf);
         }
 
         if (!modClasses3.isEmpty()) {
@@ -76,10 +74,10 @@ public class ModClass {
     }
 
     private void mod(InputStream classInputStream) throws Exception {
-        InputStream bis = null;
+        InputStream is = null;
         ByteArrayOutputStream baos = null;
         try {
-            Write.write(bis = new BufferedInputStream(classInputStream), baos = new ByteArrayOutputStream());
+            IO.write(is = new BufferedInputStream(classInputStream), baos = new ByteArrayOutputStream());
             bytes = baos.toByteArray();
 
             for (int i = 0; i < byteReplacements.length; i += 2) {
@@ -118,7 +116,7 @@ public class ModClass {
                 }
             }
         } finally {
-            CleanUp.close(bis, baos);
+            IO.close(is, baos);
         }
     }
 

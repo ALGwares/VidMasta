@@ -11,17 +11,16 @@ import listener.GuiListener;
 import util.Connection;
 import util.Constant;
 import util.ExceptionUtil;
+import util.IO;
 import util.Regex;
 import util.UpdateException;
-import util.io.Read;
-import util.io.Write;
 
 class AppUpdater {
 
     private static GuiListener guiListener;
     private static final String APP_UPDATE = "appUpdate" + Constant.TXT, INSTALL = "install.xml";
     private String[] appUpdateStrs;
-    static final String APP_UPDATE_FAIL = "updateFail" + Constant.APP_VERSION + Constant.TXT;
+    static final String APP_UPDATE_FAIL = "updateFail" + Constant.APP_VERSION;
 
     static void install() {
         try {
@@ -42,12 +41,12 @@ class AppUpdater {
 
         String[] updateStrs;
         try {
-            updateStrs = Regex.split(Read.read(update), Constant.SEPARATOR1);
+            updateStrs = Regex.split(IO.read(update), Constant.SEPARATOR1);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            Write.fileOp(update, Write.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(update, IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
         }
 
@@ -55,7 +54,7 @@ class AppUpdater {
         File installer = new File(cmd[cmd.length - 1]), installerScript = new File(Constant.APP_DIR + INSTALL);
 
         try {
-            if (Long.parseLong(updateStrs[1]) != Read.checksum(installer)) {
+            if (Long.parseLong(updateStrs[1]) != IO.checksum(installer)) {
                 throw new UpdateException("auto-setup installer is corrupt");
             }
             String path = Constant.PROGRAM_DIR;
@@ -64,7 +63,7 @@ class AppUpdater {
             for (int i = 0; i < pathParts.length - 1; i++) {
                 pathBuf.append(pathParts[i]).append(Constant.FILE_SEPARATOR);
             }
-            Write.write(Constant.APP_DIR + INSTALL, updateStrs[2].replace(Str.get(347), Str.get(348) + pathBuf.toString()
+            IO.write(Constant.APP_DIR + INSTALL, updateStrs[2].replace(Str.get(347), Str.get(348) + pathBuf.toString()
                     + Str.get(349)));
 
             StringBuilder installCmd = new StringBuilder(128);
@@ -78,9 +77,9 @@ class AppUpdater {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            Write.fileOp(update, Write.RM_FILE_NOW_AND_ON_EXIT);
-            Write.fileOp(installerScript, Write.RM_FILE_NOW_AND_ON_EXIT);
-            Write.fileOp(installer, Write.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(update, IO.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(installerScript, IO.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(installer, IO.RM_FILE_NOW_AND_ON_EXIT);
         }
     }
 
@@ -144,7 +143,7 @@ class AppUpdater {
                 installerXml.append(appUpdateStrs[i]).append(Constant.NEWLINE);
             }
 
-            Write.write(Constant.APP_DIR + APP_UPDATE, (installerSuffix.equals(Constant.JAR) ? Constant.JAVA + Constant.SEPARATOR2 + Constant.JAR_OPTION
+            IO.write(Constant.APP_DIR + APP_UPDATE, (installerSuffix.equals(Constant.JAR) ? Constant.JAVA + Constant.SEPARATOR2 + Constant.JAR_OPTION
                     + Constant.SEPARATOR2 : "") + installer + Constant.SEPARATOR1 + installerChecksum + Constant.SEPARATOR1 + installerXml.toString().trim());
         } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -177,13 +176,7 @@ class AppUpdater {
                     if (Debug.DEBUG) {
                         Debug.print(e);
                     }
-                    try {
-                        Write.write(Constant.APP_DIR + APP_UPDATE_FAIL, "");
-                    } catch (Exception e2) {
-                        if (Debug.DEBUG) {
-                            Debug.print(e2);
-                        }
-                    }
+                    IO.fileOp(Constant.APP_DIR + APP_UPDATE_FAIL, IO.MK_FILE);
                 }
             }
         });
