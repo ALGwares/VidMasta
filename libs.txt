@@ -1,7 +1,6 @@
 Synthetica 2.17.0 (libs) http://www.javasoft.de/synthetica/download
 Synthetica blackmoon theme 2.9.5 (libsbm) http://www.javasoft.de/synthetica/themes
 Vuze 5.0.0.0 (libv) http://dev.vuze.com
-Trove 3.0.3 (libt) (only TIntArrayList) http://grepcode.com/snapshot/repo1.maven.org/maven2/net.sf.trove4j/trove4j/3.0.3
 org.jdesktop.swingx.autocomplete 1.6.4 (libac) http://grepcode.com/snapshot/repo1.maven.org/maven2/org.swinglabs.swingx/swingx-all/1.6.4
 JCalendar 1.4 (libjc) http://www.toedter.com/download/jcalendar-1.4.zip
 Transform 3.0.2 (libtf) http://www.flagstonesoftware.com/downloads/transform-3.0.2.jar

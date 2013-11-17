@@ -23,18 +23,22 @@ public class Regex {
     public static final FileFilter subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", Str.get(452).split(","));
 
     static {
-        init(weirdChars, 552, Str.get(553), Str.get(554));
+        init(weirdChars, 552);
         badStrs.put("&(?i)tilde;", "~");
         badStrs.put("&(?i)nbsp;", " ");
         badStrs.put(":", " ");
         badStrs.put(Str.get(224), Str.get(225));
         badStrs.put(Str.get(226), Str.get(227));
-        init(badStrs, 228, Str.get(229), Str.get(230));
+        init(badStrs, 228);
         languages.put(Constant.ANY_LANGUAGE, Constant.ANY_LANGUAGE);
-        init(languages, 234, Str.get(235), Str.get(236));
+        init(languages, 234);
         countries.put(Constant.ANY_COUNTRY, Constant.ANY_COUNTRY);
-        init(countries, 231, Str.get(232), Str.get(233));
+        init(countries, 231);
         init(subtitleLanguages, 420, Constant.SEPARATOR2, Constant.SEPARATOR1);
+    }
+
+    private static void init(Map<String, String> map, int strIndex) {
+        init(map, strIndex, Str.get(strIndex + 1), Str.get(strIndex + 2));
     }
 
     private static void init(Map<String, String> map, int strIndex, String splitStr1, String splitStr2) {
@@ -147,8 +151,7 @@ public class Regex {
     public static Pattern pattern(String regex) {
         Pattern pattern = cache.get(regex);
         if (pattern == null) {
-            pattern = Pattern.compile(regex);
-            cache.put(regex, pattern); // Not a concurrency bug
+            cache.put(regex, pattern = Pattern.compile(regex)); // Not a concurrency bug
         }
         return pattern;
     }

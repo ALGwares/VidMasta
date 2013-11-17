@@ -41,7 +41,7 @@ public class CommentsFinder extends SwingWorker<Object, Object[]> {
                         numFakeComments++;
                     }
                 }
-                percentage = (new DecimalFormat(Str.get(154))).format(((double) numFakeComments / (double) numComments) * 100.00);
+                percentage = (new DecimalFormat(Str.get(154))).format((numFakeComments / (double) numComments) * 100);
             }
 
             if (!isCancelled() && numComments != 0) {

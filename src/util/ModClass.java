@@ -68,8 +68,9 @@ public class ModClass {
             throw new FileNotFoundException("A class for modification is missing");
         }
 
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         for (ModClass modClass : modClasses2) {
-            defineClass.invoke(ClassLoader.getSystemClassLoader(), modClass.binaryName, modClass.bytes, 0, modClass.bytes.length);
+            defineClass.invoke(systemClassLoader, modClass.binaryName, modClass.bytes, 0, modClass.bytes.length);
         }
     }
 

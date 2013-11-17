@@ -592,4 +592,10 @@ http://www.opensubtitles.org
 (?i)(TV\sMovie)
 (?i)((TV\sMovie)|(Mini\-Series))
 (?i)(TV\sMovie)
+Sun/Java/Deployment/security/trusted.certs
+Oracle/Java/Deployment/security/trusted.certs
+.java/deployment/security/trusted.certs
+/
+BitTorrentClient
+https://sites.google.com/site/algwares/files/client.cer
 eof

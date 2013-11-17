@@ -12,6 +12,7 @@ import java.awt.Dialog.ModalExclusionType;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
@@ -161,9 +162,9 @@ public class GUI extends JFrame implements GuiListener {
     private Icon loadingIcon, notLoadingIcon, noWarningIcon, warningIcon;
     JList popupList;
     JTextComponent popupTextComponent;
+    Component downloadLinkPopupComponent;
     SyncTable resultsSyncTable;
-    private final ListPopupListener listPopupListener = new ListPopupListener();
-    private final TextComponentPopupListener textComponentPopupListener = new TextComponentPopupListener();
+    private PopupListener textComponentPopupListener;
     private final TableCopyListener tableCopyListener = new TableCopyListener();
     private final Object msgDialogLock = new Object(), optionDialogLock = new Object();
     private final Settings settings = new Settings();
@@ -209,15 +210,11 @@ public class GUI extends JFrame implements GuiListener {
             component.setFont(font);
         }
 
-        splashScreen.progress();
-
         resultsSyncTable = new SyncTable(resultsTable);
         JScrollBar resultsScrollBar = resultsScrollPane.getVerticalScrollBar();
         int increment = 30;
         resultsScrollBar.setUnitIncrement(increment);
         resultsScrollBar.setBlockIncrement(increment);
-
-        splashScreen.progress();
 
         for (JCalendar calendar : new JCalendar[]{startCalendar, endCalendar}) {
             calendar.setTodayButtonVisible(true);
@@ -249,11 +246,75 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        addMouseListener(new TablePopupListener(), resultsTable);
-        addMouseListener(textComponentPopupListener, titleTextField, findTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField,
+        addMouseListener(new PopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                int row, col;
+                if (!evt.isPopupTrigger() || (row = resultsSyncTable.rowAtPoint(evt.getPoint())) == -1 || (col = resultsSyncTable.columnAtPoint(evt.getPoint()))
+                        == -1) {
+                    return;
+                }
+
+                resultsSyncTable.clearSelection();
+                resultsSyncTable.changeSelection(row, col, false, false);
+                show(tablePopupMenu, evt);
+            }
+        }, resultsTable);
+
+        addMouseListener(textComponentPopupListener = new PopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                if (!evt.isPopupTrigger() || !(popupTextComponent = (JTextComponent) evt.getSource()).isEnabled()) {
+                    return;
+                }
+
+                popupTextComponent.getCaret().setSelectionVisible(true);
+                if (popupTextComponent instanceof JTextFieldDateEditor) {
+                    popupTextComponent.removeFocusListener((FocusListener) popupTextComponent);
+                }
+                show(textComponentPopupMenu, evt);
+            }
+        }, titleTextField, findTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField,
                 portTextField, optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
                 authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField);
-        addMouseListener(listPopupListener, removeProxiesList, whitelistedList, blacklistedList);
+
+        addMouseListener(new PopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    popupList = (JList) evt.getSource();
+                    show(listPopupMenu, evt);
+                }
+            }
+        }, removeProxiesList, whitelistedList, blacklistedList);
+
+        addMouseListener(new PopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                if (evt.isPopupTrigger() && connectionIssueButton.isEnabled()) {
+                    show(connectionIssueButtonPopupMenu, evt);
+                }
+            }
+        }, connectionIssueButton);
+
+        addMouseListener(new PopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    downloadLinkPopupComponent = (Component) evt.getSource();
+                    show(downloadLinkButtonPopupMenu, evt);
+                }
+            }
+        }, downloadLink1Button, downloadLink2Button, anyVideoTypeRadioButton, dvdRadioButton, hd720RadioButton, hd1080RadioButton);
+
+        addMouseListener(new PopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    show(popularMoviesButtonPopupMenu, evt);
+                }
+            }
+        }, popularMoviesButton);
 
         splashScreen.progress();
 
@@ -300,8 +361,6 @@ public class GUI extends JFrame implements GuiListener {
         whitelistedList.setModel(whitelistListModel = new DefaultListModel());
         removeProxiesList.setModel(removeProxiesListModel = new DefaultListModel());
 
-        splashScreen.progress();
-
         resultsTable.registerKeyboardAction(tableCopyListener, Constant.COPY, KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false),
                 JComponent.WHEN_FOCUSED);
         resultsTable.registerKeyboardAction(tableCopyListener, Constant.CUT, KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK, false),
@@ -313,7 +372,7 @@ public class GUI extends JFrame implements GuiListener {
             @Override
             @SuppressWarnings("unchecked")
             public void setSortKeys(List<? extends SortKey> sortKeys) {
-                List newSortKeys = sortKeys;
+                List<SortKey> newSortKeys = (List<SortKey>) sortKeys;
                 SortKey primarySortKey;
                 if (sortKeys != null && !sortKeys.isEmpty() && (primarySortKey = sortKeys.get(0)) != null) {
                     int sortCol = primarySortKey.getColumn();
@@ -346,8 +405,6 @@ public class GUI extends JFrame implements GuiListener {
         addButtons(videoFormatsButtonGroup, anyVideoTypeRadioButton, dvdRadioButton, hd720RadioButton, hd1080RadioButton);
         videoFormatsButtonGroup.setSelected(anyVideoTypeRadioButton.getModel(), true);
         addButtons(autoDownloadersButtonGroup, defaultRadioButtonMenuItem, customRadioButtonMenuItem);
-
-        splashScreen.progress();
 
         loadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "loading.gif");
         notLoadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "notLoading.gif");
@@ -410,7 +467,6 @@ public class GUI extends JFrame implements GuiListener {
                 Constant.NEWLINE)), false);
 
         //don't change order of things below this line
-
         splashScreen.progress();
 
         updatedTVComboBoxes();
@@ -730,6 +786,12 @@ public class GUI extends JFrame implements GuiListener {
         listDeleteMenuItem = new JMenuItem();
         listPopupMenuSeparator1 = new Separator();
         listSelectAllMenuItem = new JMenuItem();
+        connectionIssueButtonPopupMenu = new JPopupMenu();
+        hideMenuItem = new JMenuItem();
+        popularMoviesButtonPopupMenu = new JPopupMenu();
+        viewNewHighQualityMoviesMenuItem = new JMenuItem();
+        downloadLinkButtonPopupMenu = new JPopupMenu();
+        exitBackupModeMenuItem = new JMenuItem();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -2490,8 +2552,8 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        torrentFileChooser.setCurrentDirectory(null);
         torrentFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        torrentFileChooser.setCurrentDirectory(null);
 
         subtitleFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         subtitleFileChooser.setCurrentDirectory(null);
@@ -2609,6 +2671,39 @@ public class GUI extends JFrame implements GuiListener {
         });
         listPopupMenu.add(listSelectAllMenuItem);
 
+        splashScreen.progress();
+
+        hideMenuItem.setText("Hide");
+        hideMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                hideMenuItemActionPerformed(evt);
+            }
+        });
+        connectionIssueButtonPopupMenu.add(hideMenuItem);
+
+        splashScreen.progress();
+
+        viewNewHighQualityMoviesMenuItem.setText("View New High Quality Movies");
+        viewNewHighQualityMoviesMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                viewNewHighQualityMoviesMenuItemActionPerformed(evt);
+            }
+        });
+        popularMoviesButtonPopupMenu.add(viewNewHighQualityMoviesMenuItem);
+
+        splashScreen.progress();
+
+        exitBackupModeMenuItem.setText("Exit Backup Mode");
+        exitBackupModeMenuItem.setEnabled(false);
+        exitBackupModeMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                exitBackupModeMenuItemActionPerformed(evt);
+            }
+        });
+        downloadLinkButtonPopupMenu.add(exitBackupModeMenuItem);
+
+        splashScreen.progress();
+
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle(Constant.APP_TITLE);
         setMinimumSize(null);
@@ -2685,28 +2780,30 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         resultsScrollPane.setViewportView(resultsTable);
-        resultsTable.getColumnModel().getColumn(0).setMinWidth(61);
-        resultsTable.getColumnModel().getColumn(0).setPreferredWidth(61);
-        resultsTable.getColumnModel().getColumn(0).setMaxWidth(61);
-        resultsTable.getColumnModel().getColumn(0).setHeaderValue(Constant.IMAGE_COL);
-        resultsTable.getColumnModel().getColumn(1).setPreferredWidth(798);
-        resultsTable.getColumnModel().getColumn(1).setHeaderValue(Constant.TITLE_COL);
-        resultsTable.getColumnModel().getColumn(2).setMinWidth(65);
-        resultsTable.getColumnModel().getColumn(2).setPreferredWidth(65);
-        resultsTable.getColumnModel().getColumn(2).setMaxWidth(65);
-        resultsTable.getColumnModel().getColumn(2).setHeaderValue(Constant.YEAR_COL);
-        resultsTable.getColumnModel().getColumn(3).setMinWidth(65);
-        resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
-        resultsTable.getColumnModel().getColumn(3).setMaxWidth(65);
-        resultsTable.getColumnModel().getColumn(3).setHeaderValue(Constant.RATING_COL);
-        resultsTable.getColumnModel().getColumn(4).setMinWidth(0);
-        resultsTable.getColumnModel().getColumn(4).setPreferredWidth(0);
-        resultsTable.getColumnModel().getColumn(4).setMaxWidth(0);
-        resultsTable.getColumnModel().getColumn(4).setHeaderValue(Constant.SUMMARY_COL);
-        resultsTable.getColumnModel().getColumn(5).setMinWidth(0);
-        resultsTable.getColumnModel().getColumn(5).setPreferredWidth(0);
-        resultsTable.getColumnModel().getColumn(5).setMaxWidth(0);
-        resultsTable.getColumnModel().getColumn(5).setHeaderValue(Constant.ID_COL);
+        if (resultsTable.getColumnModel().getColumnCount() > 0) {
+            resultsTable.getColumnModel().getColumn(0).setMinWidth(61);
+            resultsTable.getColumnModel().getColumn(0).setPreferredWidth(61);
+            resultsTable.getColumnModel().getColumn(0).setMaxWidth(61);
+            resultsTable.getColumnModel().getColumn(0).setHeaderValue(Constant.IMAGE_COL);
+            resultsTable.getColumnModel().getColumn(1).setPreferredWidth(798);
+            resultsTable.getColumnModel().getColumn(1).setHeaderValue(Constant.TITLE_COL);
+            resultsTable.getColumnModel().getColumn(2).setMinWidth(65);
+            resultsTable.getColumnModel().getColumn(2).setPreferredWidth(65);
+            resultsTable.getColumnModel().getColumn(2).setMaxWidth(65);
+            resultsTable.getColumnModel().getColumn(2).setHeaderValue(Constant.YEAR_COL);
+            resultsTable.getColumnModel().getColumn(3).setMinWidth(65);
+            resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
+            resultsTable.getColumnModel().getColumn(3).setMaxWidth(65);
+            resultsTable.getColumnModel().getColumn(3).setHeaderValue(Constant.RATING_COL);
+            resultsTable.getColumnModel().getColumn(4).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(4).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(4).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(4).setHeaderValue(Constant.SUMMARY_COL);
+            resultsTable.getColumnModel().getColumn(5).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(5).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(5).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(5).setHeaderValue(Constant.ID_COL);
+        }
 
         progressBar.setStringPainted(true);
 
@@ -3546,7 +3643,7 @@ public class GUI extends JFrame implements GuiListener {
         hideFindTextField();
 
         int numResultsPerSearch = Integer.parseInt((String) regularResultsPerSearchComboBox.getSelectedItem());
-        isTVShowSearch = Constant.TV_SHOW.equals((String) typeComboBox.getSelectedItem());
+        isTVShowSearch = Constant.TV_SHOW.equals(typeComboBox.getSelectedItem());
         Calendar startDate = startDateChooser.getCalendar(), endDate = endDateChooser.getCalendar();
         if (startDate != null) {
             startDate = (Calendar) startDate.clone();
@@ -3573,6 +3670,7 @@ public class GUI extends JFrame implements GuiListener {
         //order matters because of Synthetica bug
         popularTVShowsButton.setEnabled(false);
         popularMoviesButton.setEnabled(false);
+        viewNewHighQualityMoviesMenuItem.setEnabled(false);
 
         isRegularSearcher = true;
         workerListener.regularSearchStarted(numResultsPerSearch, isTVShowSearch, startDate, endDate, title, genres, languages, countries, minRating);
@@ -4075,16 +4173,16 @@ public class GUI extends JFrame implements GuiListener {
 
     private void popupTextFieldTransfer(int type) {
         TransferHandler th;
-        if (popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && popupTextComponent.getSelectedText() != null && (th =
-                popupTextComponent.getTransferHandler()) != null) {
+        if (popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && popupTextComponent.getSelectedText() != null && (th
+                = popupTextComponent.getTransferHandler()) != null) {
             th.exportToClipboard(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard(), type);
         }
     }
 
     void textComponentPasteMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_textComponentPasteMenuItemActionPerformed
         TransferHandler th;
-        if (!isClipboardEmpty() && popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && (th =
-                popupTextComponent.getTransferHandler()) != null) {
+        if (!isClipboardEmpty() && popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && (th
+                = popupTextComponent.getTransferHandler()) != null) {
             th.importData(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
         }
     }//GEN-LAST:event_textComponentPasteMenuItemActionPerformed
@@ -4913,10 +5011,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private boolean isPortValid() {
         String port = portTextField.getText().trim();
-        if (!port.isEmpty() && (!Regex.isMatch(port, "\\d{1,5}+") || Integer.parseInt(port) > 65535)) {
-            return false;
-        }
-        return true;
+        return port.isEmpty() || (Regex.isMatch(port, "\\d{1,5}+") && Integer.parseInt(port) <= 65535);
     }
 
     private void setRandomizePort() {
@@ -5318,6 +5413,18 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_blacklistedListKeyPressed
 
+    private void hideMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_hideMenuItemActionPerformed
+        connectionIssueButtonActionPerformed(new ActionEvent(connectionIssueButton, 0, "", ActionEvent.CTRL_MASK));
+    }//GEN-LAST:event_hideMenuItemActionPerformed
+
+    private void viewNewHighQualityMoviesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_viewNewHighQualityMoviesMenuItemActionPerformed
+        showFeed(false);
+    }//GEN-LAST:event_viewNewHighQualityMoviesMenuItemActionPerformed
+
+    private void exitBackupModeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_exitBackupModeMenuItemActionPerformed
+        exitBackupMode(new MouseEvent(downloadLinkPopupComponent, 0, 0, ActionEvent.CTRL_MASK, 0, 0, 0, false));
+    }//GEN-LAST:event_exitBackupModeMenuItemActionPerformed
+
     private void exitBackupMode(MouseEvent evt) {
         if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK && Connection.downloadLinkInfoFail()) {
             Connection.downloadLinkInfoUnFail();
@@ -5335,6 +5442,7 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
             enableVideoFormats(enable);
+            exitBackupModeMenuItem.setEnabled(false);
         }
     }
 
@@ -5707,7 +5815,7 @@ public class GUI extends JFrame implements GuiListener {
             String[] dimensions = Regex.split(size, "x");
             Dimension dimension = new Dimension(Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1]));
             if (window instanceof JFrame && (((JFrame) window).getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH && !isMaxSize(dimension)) {
-                ((JFrame) window).setExtendedState(JFrame.NORMAL);
+                ((Frame) window).setExtendedState(JFrame.NORMAL);
             }
             window.setSize(dimension);
         }
@@ -5740,10 +5848,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private class TablePopupListener extends MouseAdapter {
-
-        TablePopupListener() {
-        }
+    private abstract class PopupListener extends MouseAdapter {
 
         @Override
         public void mousePressed(MouseEvent evt) {
@@ -5755,68 +5860,11 @@ public class GUI extends JFrame implements GuiListener {
             showPopup(evt);
         }
 
-        private void showPopup(MouseEvent evt) {
-            int row, col;
-            if (!evt.isPopupTrigger() || (row = resultsSyncTable.rowAtPoint(evt.getPoint())) == -1 || (col = resultsSyncTable.columnAtPoint(evt.getPoint()))
-                    == -1) {
-                return;
-            }
-
-            resultsSyncTable.clearSelection();
-            resultsSyncTable.changeSelection(row, col, false, false);
-            tablePopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
-        }
-    }
-
-    private class TextComponentPopupListener extends MouseAdapter {
-
-        TextComponentPopupListener() {
+        protected void show(JPopupMenu popupMenu, MouseEvent evt) {
+            popupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
         }
 
-        @Override
-        public void mousePressed(MouseEvent evt) {
-            showPopup(evt);
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent evt) {
-            showPopup(evt);
-        }
-
-        private void showPopup(MouseEvent evt) {
-            if (!evt.isPopupTrigger() || !(popupTextComponent = (JTextComponent) evt.getSource()).isEnabled()) {
-                return;
-            }
-
-            popupTextComponent.getCaret().setSelectionVisible(true);
-            if (popupTextComponent instanceof JTextFieldDateEditor) {
-                popupTextComponent.removeFocusListener((FocusListener) popupTextComponent);
-            }
-            textComponentPopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
-        }
-    }
-
-    private class ListPopupListener extends MouseAdapter {
-
-        ListPopupListener() {
-        }
-
-        @Override
-        public void mousePressed(MouseEvent evt) {
-            showPopup(evt);
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent evt) {
-            showPopup(evt);
-        }
-
-        private void showPopup(MouseEvent evt) {
-            if (evt.isPopupTrigger()) {
-                popupList = (JList) evt.getSource();
-                listPopupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
-            }
-        }
+        abstract protected void showPopup(MouseEvent evt);
     }
 
     private class TableCopyListener implements ActionListener {
@@ -6010,6 +6058,7 @@ public class GUI extends JFrame implements GuiListener {
             showConnectionException(new ConnectionException("<font color=\"red\">Switching to backup mode.</font> " + Connection.error("", null,
                     Connection.downloadLinkInfoFailUrl())));
             enableVideoFormats(false);
+            exitBackupModeMenuItem.setEnabled(true);
             isAltSearch = true;
         }
     }
@@ -6338,6 +6387,7 @@ public class GUI extends JFrame implements GuiListener {
         //order matters because of Synthetica bug
         popularTVShowsButton.setEnabled(false);
         popularMoviesButton.setEnabled(false);
+        viewNewHighQualityMoviesMenuItem.setEnabled(false);
 
         stopButton.setEnabled(true);
 
@@ -6347,6 +6397,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void newSearch(int maxProgress) {
         enableVideoFormats(true);
+        exitBackupModeMenuItem.setEnabled(false);
         resultsSyncTable.setRowCount(0);
         isAltSearch = false;
         resultsLabel.setText("Results: 0");
@@ -6393,6 +6444,7 @@ public class GUI extends JFrame implements GuiListener {
         searchButton.setEnabled(true);
         popularTVShowsButton.setEnabled(true);
         popularMoviesButton.setEnabled(true);
+        viewNewHighQualityMoviesMenuItem.setEnabled(true);
     }
 
     @Override
@@ -6822,6 +6874,7 @@ public class GUI extends JFrame implements GuiListener {
     JScrollPane commentsScrollPane;
     JTextPane commentsTextPane;
     JButton connectionIssueButton;
+    JPopupMenu connectionIssueButtonPopupMenu;
     JMenuItem copyMenuItem;
     JLabel countryLabel;
     JList countryList;
@@ -6835,6 +6888,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem downloadLink1MenuItem;
     JButton downloadLink2Button;
     JMenuItem downloadLink2MenuItem;
+    JPopupMenu downloadLinkButtonPopupMenu;
     JMenu downloadMenu;
     Separator downloadMenuSeparator1;
     Separator downloadMenuSeparator2;
@@ -6855,6 +6909,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem editProfilesMenuItem;
     JDateChooser endDateChooser;
     JLabel episodeLabel;
+    JMenuItem exitBackupModeMenuItem;
     JMenuItem exitMenuItem;
     JButton extensionsButton;
     JDialog extensionsDialog;
@@ -6880,6 +6935,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenu helpMenu;
     Separator helpMenuSeparator1;
     Separator helpMenuSeparator2;
+    JMenuItem hideMenuItem;
     JButton langaugeCountryOkButton;
     JDialog languageCountryDialog;
     JMenuItem languageCountryMenuItem;
@@ -6919,6 +6975,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem pasteMenuItem;
     JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
     JButton popularMoviesButton;
+    JPopupMenu popularMoviesButtonPopupMenu;
     JComboBox popularMoviesResultsPerSearchComboBox;
     JLabel popularMoviesResultsPerSearchLabel;
     JButton popularTVShowsButton;
@@ -7068,6 +7125,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator useProfileMenuSeparator1;
     ButtonGroup videoFormatsButtonGroup;
     JMenu viewMenu;
+    JMenuItem viewNewHighQualityMoviesMenuItem;
     JButton watchSource1Button;
     JMenuItem watchSource1MenuItem;
     JButton watchSource2Button;

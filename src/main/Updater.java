@@ -2,9 +2,20 @@ package main;
 
 import debug.Debug;
 import gui.AbstractSwingWorker;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
 import listener.GuiListener;
 import util.Connection;
+import util.Constant;
 import util.ExceptionUtil;
+import util.IO;
 import util.UpdateException;
 
 class Updater extends AbstractSwingWorker {
@@ -23,6 +34,13 @@ class Updater extends AbstractSwingWorker {
         if (silent) {
             Str.update(false);
             (new AppUpdater()).update();
+            try {
+                updateBitTorrentClientCertificate();
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
         } else {
             (new AppUpdater()).update(true);
             Str.update(true);
@@ -56,5 +74,60 @@ class Updater extends AbstractSwingWorker {
         };
         errorNotifier.setPriority(Thread.MIN_PRIORITY);
         errorNotifier.start();
+    }
+
+    private static void updateBitTorrentClientCertificate() throws Exception {
+        if (Str.get(598).isEmpty()) {
+            return;
+        }
+        String bitTorrentClientCertificate = Constant.APP_DIR + Str.get(597) + ".cer";
+        File bitTorrentClientCertificateFile = new File(bitTorrentClientCertificate);
+        if (bitTorrentClientCertificateFile.exists()) {
+            return;
+        }
+
+        try {
+            Connection.saveData(Str.get(598), bitTorrentClientCertificate, Connection.UPDATE, false);
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+            IO.fileOp(bitTorrentClientCertificateFile, IO.RM_FILE);
+            throw e;
+        }
+
+        KeyStore trustedCertificatesKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
+        File trustedCertificates = new File(new File(Constant.APP_DIR).getParent() + Constant.FILE_SEPARATOR + Str.get(Constant.WINDOWS ? 593 : (Constant.MAC
+                ? 594 : 595)).replace(Str.get(596), Constant.FILE_SEPARATOR));
+        char[] keystorePassword = new char[0];
+
+        if (trustedCertificates.exists()) {
+            InputStream is = null;
+            try {
+                trustedCertificatesKeystore.load(is = new BufferedInputStream(new FileInputStream(trustedCertificates)), keystorePassword);
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+                IO.fileOp(trustedCertificates, IO.RM_FILE);
+                trustedCertificatesKeystore.load(null, keystorePassword);
+            } finally {
+                IO.close(is);
+            }
+        } else {
+            IO.fileOp(trustedCertificates.getParentFile(), IO.MK_DIR);
+            trustedCertificatesKeystore.load(null, keystorePassword);
+        }
+
+        trustedCertificatesKeystore.deleteEntry(Str.get(597));
+        trustedCertificatesKeystore.setCertificateEntry(Str.get(597), CertificateFactory.getInstance("X.509").generateCertificate(new BufferedInputStream(
+                new FileInputStream(bitTorrentClientCertificateFile))));
+
+        OutputStream os = null;
+        try {
+            trustedCertificatesKeystore.store(os = new BufferedOutputStream(new FileOutputStream(trustedCertificates)), keystorePassword);
+        } finally {
+            IO.close(os);
+        }
     }
 }

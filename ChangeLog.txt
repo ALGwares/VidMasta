@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2013.11.17   | VidMasta 16.9
+
+CHANGE: Core | Improved overall performance by processing regular expressions more efficiently
+CHANGE: UI   | Added a popup menu to each button with ctrl+click functionality
+
+
+
+
 2013.10.09   | VidMasta 16.8
 
 CHANGE: CORE | Improved accuracy and performance of download link searches
@@ -36,7 +44,7 @@ CHANGE: UI   | Title text field gains focus if it is enabled and there are no se
 
 CHANGE: Core | Fixed rare instance of possible failure to immediately cancel a search if only the last of several helper threads is active during cancellation
 CHANGE: Core | Improved accuracy of find (under edit menu) functionality
-CHANGE: Core | Improved result of table clipboard copy/cut functionality by better conversion of special characters and html codes
+CHANGE: Core | Improved result of table clipboard copy/cut functionality by better conversion of special characters and HTML codes
 CHANGE: UI   | Updated autocompletion titles
 
 
@@ -45,5 +53,5 @@ CHANGE: UI   | Updated autocompletion titles
 2013.06.05   | VidMasta 16.3
 
 CHANGE: Core | Fixed accidental cancellation of summary, download, watch, and subtitle searches when loading more search results or starting a new search
-CHANGE: Core | Overall improved performance by more caching of compiled regular expressions
+CHANGE: Core | Improved overall performance by caching more compiled regular expressions
 CHANGE: UI   | Removed unnecessary messages and confirmations when downloading proxies

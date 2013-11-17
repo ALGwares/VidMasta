@@ -163,7 +163,7 @@ public class Main implements WorkerListener {
             (new ConnectionTester(gui)).execute();
         }
 
-        Magnet.initIPs();
+        Magnet.initIpFilter();
     }
 
     private static void singleInstance() {

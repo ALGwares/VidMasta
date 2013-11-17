@@ -425,21 +425,15 @@ public class Connection {
             return null;
         }
 
-        String[] ipPort = Regex.split(Regex.match(proxy, Str.get(253)), Str.get(254));
+        String[] ipPort = Regex.split(Regex.match(proxy, Str.get(253)), Str.get(254)), ipParts = Regex.split(ipPort[0], Str.get(255));
         StringBuilder ip = new StringBuilder(16);
-        String[] ipParts = Regex.split(ipPort[0], Str.get(255));
 
         for (int i = 0; i < 4; i++) {
             int ipPartNum = Integer.parseInt(ipParts[i].trim());
             if (ipPartNum < 0 || ipPartNum > 255) {
                 return null;
             }
-            ip.append(ipPartNum);
-            if (i < 3) {
-                ip.append('.');
-            } else {
-                ip.append(':');
-            }
+            ip.append(ipPartNum).append(i < 3 ? '.' : ':');
         }
 
         String port = ipPort[1].trim();

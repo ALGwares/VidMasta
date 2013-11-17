@@ -237,24 +237,15 @@ public class PopularSearcher extends AbstractSearcher {
             return false; // Upload year too old
         }
         String numSeeders = Regex.match(video, Str.get(72), Str.get(73));
-        if (!numSeeders.isEmpty() && Integer.parseInt(numSeeders) < Integer.parseInt(Str.get(566))) {
-            return false; // Seeders too few
-        }
-        return true;
+        return numSeeders.isEmpty() || Integer.parseInt(numSeeders) >= Integer.parseInt(Str.get(566)); // Seeders too few if false
     }
 
     private static boolean isTitleValid(String titleName, String isSafe, String year) {
-        if (Regex.match(Regex.replaceAll(titleName.trim(), Str.get(77), Str.get(78)), Str.get(569)).isEmpty() || (Boolean.parseBoolean(Str.get(565))
-                && Integer.parseInt(isSafe.trim()) != 1) || !isTitleYearValid(year.trim())) {
-            return false; // Wrong format or unsafe source or year too old
-        }
-        return true;
+        return !Regex.match(Regex.replaceAll(titleName.trim(), Str.get(77), Str.get(78)), Str.get(569)).isEmpty() && (!Boolean.parseBoolean(Str.get(565))
+                || Integer.parseInt(isSafe.trim()) == 1) && isTitleYearValid(year.trim()); // Wrong format or unsafe source or year too old if false
     }
 
     private static boolean isTitleYearValid(String year) {
-        if (Integer.parseInt(year) + Integer.parseInt(Str.get(570)) < Calendar.getInstance().get(Calendar.YEAR)) {
-            return false; // Year too old
-        }
-        return true;
+        return Integer.parseInt(year) + Integer.parseInt(Str.get(570)) >= Calendar.getInstance().get(Calendar.YEAR); // Year too old if false
     }
 }

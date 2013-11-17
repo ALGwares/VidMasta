@@ -167,11 +167,11 @@ public class Str {
         try {
             (new ParserDelegator()).parse(new InputStreamReader(new ByteArrayInputStream(htmlText.getBytes(Constant.UTF8)), Constant.UTF8),
                     new HTMLEditorKit.ParserCallback() {
-                @Override
-                public void handleText(final char[] data, final int pos) {
-                    plainText.append(data);
-                }
-            }, true);
+                        @Override
+                        public void handleText(final char[] data, final int pos) {
+                            plainText.append(data);
+                        }
+                    }, true);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);

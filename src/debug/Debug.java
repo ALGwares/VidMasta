@@ -24,9 +24,9 @@ public class Debug {
         }
     }
 
-    public static void print(Exception e) {
+    public static void print(Throwable t) {
         if (DEBUG) {
-            e.printStackTrace();
+            t.printStackTrace();
         }
     }
 

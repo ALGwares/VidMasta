@@ -263,9 +263,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 }
 
                 File subtitleFile = getSubtitle(new File(subtitleDir));
-                if (subtitleFile == null) {
-                    continue;
-                } else {
+                if (subtitleFile != null) {
                     String subtitleFileName = subtitleFile.getName();
                     if (tempFirstMatch) {
                         guiListener.saveSubtitle(subtitleFileName, subtitleFile);

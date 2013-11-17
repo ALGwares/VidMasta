@@ -361,8 +361,8 @@ public class VideoFinder extends AbstractSwingWorker {
                 String url = Str.get(519) + titleID;
                 String source = Connection.getSourceCode(url, Connection.VIDEO_INFO, false);
                 String latestSeason;
-                if (!Regex.isMatch(latestSeason = Regex.match(source, Str.get(550), Str.get(551)), Str.get(522)) && !Regex.isMatch(latestSeason =
-                        Regex.match(source, Str.get(520), Str.get(521)), Str.get(522))) {
+                if (!Regex.isMatch(latestSeason = Regex.match(source, Str.get(550), Str.get(551)), Str.get(522)) && !Regex.isMatch(latestSeason
+                        = Regex.match(source, Str.get(520), Str.get(521)), Str.get(522))) {
                     return;
                 }
 

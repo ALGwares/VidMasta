@@ -383,8 +383,8 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
         if (isBoxSet) {
             if (boxSet == null) {
                 String cleanTitle1, cleanTitle2;
-                return startsWith(video.title, title) || startsWith(title, video.title) || startsWith(cleanTitle1 = Str.htmlToPlainText(video.title), cleanTitle2 =
-                        Str.htmlToPlainText(title)) || startsWith(cleanTitle2, cleanTitle1);
+                return startsWith(video.title, title) || startsWith(title, video.title) || startsWith(cleanTitle1 = Str.htmlToPlainText(video.title), cleanTitle2
+                        = Str.htmlToPlainText(title)) || startsWith(cleanTitle2, cleanTitle1);
             } else {
                 int numTitles = boxSet.size();
                 for (int i = 1; i < numTitles; i++) {

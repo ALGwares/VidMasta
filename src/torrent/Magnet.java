@@ -5,8 +5,10 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import debug.Debug;
-import gnu.trove.iterator.TIntIterator;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -15,6 +17,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.SwingWorker;
 import listener.GuiListener;
 import main.Str;
@@ -42,7 +46,7 @@ public class Magnet extends Thread {
 
     private static GuiListener guiListener;
     private static final Object saveTorrentLock = new Object(), azureusConfigLock = new Object();
-    private static final CountDownLatch ipInitializerStartSignal = new CountDownLatch(1);
+    private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
     private static boolean isAzureusConfigured;
     private static volatile AzureusCore core;
     private String magnetLink;
@@ -50,7 +54,7 @@ public class Magnet extends Thread {
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
     private static volatile String ipBlockMsg = "";
     private static SwingWorker<?, ?> azureusStarter;
-    private static IpInitializer ipInitializer;
+    private static IpFilterInitializer ipFilterInitializer;
     private static Method serialiseToByteArray;
     public final File torrentFile;
 
@@ -73,6 +77,7 @@ public class Magnet extends Thread {
         }
 
         start();
+
         for (int i = 0; i < numChecks; i++) {
             try {
                 if (isDHTConnecting()) {
@@ -90,7 +95,10 @@ public class Magnet extends Thread {
                 Connection.unsetStatusBar();
             }
         }
-        interrupt();
+
+        if (!isDoneDownloading.get()) {
+            interrupt();
+        }
 
         if (!torrentExists()) {
             throw new ConnectionException(Connection.error("downloading a torrent", "", ""));
@@ -164,12 +172,12 @@ public class Magnet extends Thread {
         SwingWorkerUtil.waitFor(azureusStarter);
     }
 
-    public static void initIPs() {
+    public static void initIpFilter() {
         configAzureus();
-        ipInitializer = new IpInitializer();
-        ipInitializer.setPriority(Thread.MIN_PRIORITY);
-        ipInitializer.start();
-        ipInitializerStartSignal.countDown();
+        ipFilterInitializer = new IpFilterInitializer();
+        ipFilterInitializer.setPriority(Thread.MIN_PRIORITY);
+        ipFilterInitializer.start();
+        ipFilterInitializerStartSignal.countDown();
     }
 
     public static synchronized void startAzureus() {
@@ -234,7 +242,19 @@ public class Magnet extends Thread {
             setPorts(guiListener.getPort());
 
             core = AzureusCoreFactory.create();
-            initIpFilter();
+
+            try {
+                ipFilterInitializerStartSignal.await();
+                ipFilterInitializer.join();
+                setIpBlockMsg(IpFilterImpl.getInstance());
+                if (Debug.DEBUG) {
+                    Debug.println(ipBlockMsg);
+                }
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
 
             Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file" + ipBlockMsg);
 
@@ -370,37 +390,6 @@ public class Magnet extends Thread {
         return false;
     }
 
-    private static synchronized void initIpFilter() {
-        try {
-            ipInitializerStartSignal.await();
-            ipInitializer.join();
-
-            IpFilter ipFilter = IpFilterImpl.getInstance();
-
-            TIntIterator iterator = ipInitializer.ips.iterator();
-            while (iterator.hasNext()) {
-                final int ip = iterator.next();
-                ipFilter.addRange(new IpRangeImpl("", ip, ip, true));
-            }
-            ipInitializer.ips.clear(0);
-
-            iterator = ipInitializer.ipRanges.iterator();
-            while (iterator.hasNext()) {
-                ipFilter.addRange(new IpRangeImpl("", iterator.next(), iterator.next(), true));
-            }
-            ipInitializer.ipRanges.clear(0);
-
-            setIpBlockMsg(ipFilter);
-            if (Debug.DEBUG) {
-                Debug.println(ipBlockMsg);
-            }
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        }
-    }
-
     public static synchronized void enableIpFilter(boolean enable) {
         if (core == null) {
             return;
@@ -417,5 +406,66 @@ public class Magnet extends Thread {
         long numBlockedIps;
         ipBlockMsg = (ipFilter != null && (numBlockedIps = ipFilter.getTotalAddressesInRange()) > 0 ? " (blocking "
                 + (new DecimalFormat("#,###")).format(numBlockedIps) + " untrusty IPs with " + Constant.IP_FILTER + ")" : "");
+    }
+
+    private static class IpFilterInitializer extends Thread {
+
+        @Override
+        public void run() {
+            try {
+                initIpFilter();
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            } catch (OutOfMemoryError e) {
+                System.gc();
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
+        }
+
+        private static void initIpFilter() throws Exception {
+            if (!(new File(Constant.APP_DIR + Constant.IP_FILTER)).exists() || !(new File(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION)).exists()) {
+                IO.unzip(Constant.PROGRAM_DIR + Constant.IP_FILTER + Constant.ZIP, Constant.APP_DIR);
+                IO.fileOp(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION, IO.MK_FILE);
+            }
+
+            String line;
+            BufferedReader br = null;
+            Pattern ipPattern = Pattern.compile("\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+");
+            IpFilter ipFilter = IpFilterImpl.getInstance();
+
+            try {
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(Constant.APP_DIR + Constant.IP_FILTER), Constant.UTF8));
+                while ((line = br.readLine()) != null) {
+                    Matcher ipMatcher = ipPattern.matcher(line);
+                    while (!ipMatcher.hitEnd()) {
+                        if (!ipMatcher.find()) {
+                            continue;
+                        }
+
+                        String startIp = ipMatcher.group(), endIp = startIp;
+                        int index = line.indexOf('-', ipMatcher.end());
+
+                        if (index != -1) {
+                            ipMatcher = ipPattern.matcher(line.substring(index + 1));
+                            while (!ipMatcher.hitEnd()) {
+                                if (ipMatcher.find()) {
+                                    endIp = ipMatcher.group();
+                                    break;
+                                }
+                            }
+                        }
+
+                        ipFilter.addRange(new IpRangeImpl("", startIp, endIp, true));
+                        break;
+                    }
+                }
+            } finally {
+                IO.close(br);
+            }
+        }
     }
 }
