@@ -61,7 +61,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     @Override
     protected void initialSearch() {
-        if (!isFeed || startAsap) {
+        if (SLEEP != 0 && (!isFeed || startAsap)) {
             return;
         }
         try {
@@ -188,10 +188,6 @@ public class PopularSearcher extends AbstractSearcher {
         }
 
         String sourceCode = Connection.getSourceCode(titleLink, Connection.VIDEO_INFO);
-        if (isCancelled()) {
-            return null;
-        }
-
         String[] titleParts = VideoSearch.getImdbTitleParts(sourceCode);
         video.title = titleParts[0];
         video.year = titleParts[1];

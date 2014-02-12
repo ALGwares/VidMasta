@@ -2440,8 +2440,6 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.ButtonGroup" name="videoFormatsButtonGroup">
-    </Component>
     <Container class="javax.swing.JPanel" name="optionalMsgPanel">
       <Properties>
         <Property name="opaque" type="boolean" value="false"/>
@@ -2466,8 +2464,8 @@
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="1" attributes="0">
-                  <EmptySpace pref="12" max="32767" attributes="3"/>
-                  <Component id="optionalMsgTextArea" min="-2" pref="26" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="3"/>
+                  <Component id="optionalMsgTextArea" min="-2" pref="28" max="-2" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Component id="optionalMsgCheckBox" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -2597,7 +2595,7 @@
         <Component class="javax.swing.JComboBox" name="tvSubtitleFormatComboBox">
           <Properties>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="new DefaultComboBoxModel(new String[]{Constant.ANY, Constant.DVD, Constant.HD720, Constant.HD1080})" type="code"/>
+              <Connection code="new DefaultComboBoxModel(new String[]{Constant.ANY, Constant.HQ, Constant.DVD, Constant.HD720, Constant.HD1080})" type="code"/>
             </Property>
           </Properties>
           <Events>
@@ -3153,7 +3151,7 @@
         <Component class="javax.swing.JComboBox" name="movieSubtitleFormatComboBox">
           <Properties>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="new DefaultComboBoxModel(new String[]{Constant.ANY, Constant.DVD, Constant.HD720, Constant.HD1080})" type="code"/>
+              <Connection code="new DefaultComboBoxModel(new String[]{Constant.ANY, Constant.HQ, Constant.DVD, Constant.HD720, Constant.HD1080})" type="code"/>
             </Property>
           </Properties>
           <Events>
@@ -3420,7 +3418,9 @@
       <SubComponents>
         <MenuItem class="javax.swing.JMenuItem" name="viewNewHighQualityMoviesMenuItem">
           <Properties>
-            <Property name="text" type="java.lang.String" value="View New High Quality Movies"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;View New &quot; + Str.capitalize(HQ_FORMAT) + &quot;Movies&quot;" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="viewNewHighQualityMoviesMenuItemActionPerformed"/>
@@ -3776,7 +3776,10 @@
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="feedCheckBoxMenuItem">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Show New High Quality Movies on Startup"/>
+                <Property name="text" type="java.lang.String" value="Show New HQ Movies on Startup"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="&quot;show new &quot; + HQ_FORMAT + &quot;movies on startup&quot;" type="code"/>
+                </Property>
               </Properties>
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator4">
@@ -3784,7 +3787,7 @@
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="browserNotificationCheckBoxMenuItem">
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Show Browser Start Notification"/>
+                <Property name="text" type="java.lang.String" value="Show Web Browser Start Notification"/>
               </Properties>
             </MenuItem>
           </SubComponents>
@@ -3830,9 +3833,7 @@
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="Show Link Safety Warning"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="&quot;&lt;html&gt;If disabled, then when a download link is&lt;br&gt;clicked the link safety dialog will not be&lt;br&gt;shown before downloading a video from&lt;br&gt;an unsafe source.&lt;/html&gt;&quot;" type="code"/>
-                </Property>
+                <Property name="toolTipText" type="java.lang.String" value="warn before downloading from unsafe source"/>
               </Properties>
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="peerBlockNotificationCheckBoxMenuItem">
@@ -3867,9 +3868,7 @@
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="Enable Auto-Downloading"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="&quot;&lt;html&gt;If disabled, then clicking a download link&lt;br&gt;will download a .torrent file for a video&lt;br&gt;so that you can open it yourself in a&lt;br&gt;BitTorrent client, instead of the&lt;br&gt;online torrent downloader.&lt;/html&gt;&quot;" type="code"/>
-                </Property>
+                <Property name="toolTipText" type="java.lang.String" value="start downloads in web browser"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="autoDownloadingCheckBoxMenuItemActionPerformed"/>
@@ -3995,13 +3994,13 @@
                       <Component id="progressBar" pref="395" max="32767" attributes="0"/>
                       <EmptySpace pref="146" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="dvdRadioButton" linkSize="64" min="-2" max="-2" attributes="2"/>
-                          <Component id="anyVideoTypeRadioButton" linkSize="64" alignment="0" min="-2" max="-2" attributes="2"/>
+                          <Component id="dvdCheckBox" linkSize="64" min="-2" max="-2" attributes="2"/>
+                          <Component id="hqVideoTypeCheckBox" linkSize="64" alignment="0" min="-2" max="-2" attributes="2"/>
                       </Group>
                       <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="hd720RadioButton" linkSize="76" min="-2" max="-2" attributes="0"/>
-                          <Component id="hd1080RadioButton" linkSize="76" min="-2" max="-2" attributes="0"/>
+                          <Component id="hd720CheckBox" linkSize="76" min="-2" max="-2" attributes="0"/>
+                          <Component id="hd1080CheckBox" linkSize="76" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="linkProgressBar" min="-2" pref="258" max="-2" attributes="0"/>
@@ -4139,14 +4138,14 @@
                   <Component id="closeBoxButton" alignment="2" min="-2" max="-2" attributes="0"/>
                   <Component id="linkProgressBar" linkSize="41" alignment="2" max="32767" attributes="1"/>
                   <Group type="102" alignment="2" attributes="0">
-                      <Component id="hd720RadioButton" min="-2" max="-2" attributes="1"/>
+                      <Component id="hd720CheckBox" min="-2" max="-2" attributes="1"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="hd1080RadioButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="hd1080CheckBox" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="2" attributes="0">
-                      <Component id="anyVideoTypeRadioButton" min="-2" max="-2" attributes="1"/>
+                      <Component id="hqVideoTypeCheckBox" min="-2" max="-2" attributes="1"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="dvdRadioButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="dvdCheckBox" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="progressBar" linkSize="41" alignment="2" min="-2" pref="21" max="-2" attributes="0"/>
                   <Component id="progressBarLabel" linkSize="13" alignment="2" min="-2" max="-2" attributes="0"/>
@@ -4428,19 +4427,21 @@
         <Property name="string" type="java.lang.String" value="Searching"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="anyVideoTypeRadioButton">
+    <Component class="javax.swing.JCheckBox" name="hqVideoTypeCheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="Constant.ANY" type="code"/>
+          <Connection code="Constant.HQ" type="code"/>
         </Property>
-        <Property name="toolTipText" type="java.lang.String" value="any video format for the download links"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="HQ_FORMAT + &quot;video formats for the download links&quot;" type="code"/>
+        </Property>
       </Properties>
       <Events>
-        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="anyVideoTypeRadioButtonMousePressed"/>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="anyVideoTypeRadioButtonActionPerformed"/>
+        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="hqVideoTypeCheckBoxMousePressed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hqVideoTypeCheckBoxActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="dvdRadioButton">
+    <Component class="javax.swing.JCheckBox" name="dvdCheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="Constant.DVD" type="code"/>
@@ -4448,11 +4449,11 @@
         <Property name="toolTipText" type="java.lang.String" value="DVD video format for the download links"/>
       </Properties>
       <Events>
-        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="dvdRadioButtonMousePressed"/>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dvdRadioButtonActionPerformed"/>
+        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="dvdCheckBoxMousePressed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dvdCheckBoxActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="hd720RadioButton">
+    <Component class="javax.swing.JCheckBox" name="hd720CheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="Constant.HD720" type="code"/>
@@ -4460,11 +4461,11 @@
         <Property name="toolTipText" type="java.lang.String" value="720p high-definition video format for the download links"/>
       </Properties>
       <Events>
-        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="hd720RadioButtonMousePressed"/>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hd720RadioButtonActionPerformed"/>
+        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="hd720CheckBoxMousePressed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hd720CheckBoxActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="hd1080RadioButton">
+    <Component class="javax.swing.JCheckBox" name="hd1080CheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="Constant.HD1080" type="code"/>
@@ -4472,8 +4473,8 @@
         <Property name="toolTipText" type="java.lang.String" value="1080i/p high-definition video format for the download links"/>
       </Properties>
       <Events>
-        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="hd1080RadioButtonMousePressed"/>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hd1080RadioButtonActionPerformed"/>
+        <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="hd1080CheckBoxMousePressed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hd1080CheckBoxActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="popularMoviesButton">
@@ -4483,7 +4484,7 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Popular Movies"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="&quot;view most downloaded movies (&quot; + CTRL_CLICK + &quot;view new high quality movies)&quot;" type="code"/>
+          <Connection code="&quot;view most downloaded movies (&quot; + CTRL_CLICK + &quot;view new &quot; + HQ_FORMAT + &quot;movies)&quot;" type="code"/>
         </Property>
       </Properties>
       <Events>

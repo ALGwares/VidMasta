@@ -9,7 +9,7 @@ import util.Connection;
 import util.Constant;
 import util.Regex;
 
-public class CommentsFinder extends SwingWorker<Object, Object[]> {
+public class CommentsFinder extends SwingWorker<Object, Object> {
 
     private GuiListener guiListener;
     private String link;

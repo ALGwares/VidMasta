@@ -15,7 +15,6 @@ import main.Str;
 import search.util.VideoSearch;
 import util.Connection;
 import util.Constant;
-import util.IO;
 import util.Regex;
 
 public class Video {
@@ -47,7 +46,6 @@ public class Video {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                IO.fileOp(imagePath, IO.RM_FILE_NOW_AND_ON_EXIT);
             }
         }
     }

@@ -86,19 +86,11 @@ class Updater extends AbstractSwingWorker {
             return;
         }
 
-        try {
-            Connection.saveData(Str.get(598), bitTorrentClientCertificate, Connection.UPDATE, false);
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-            IO.fileOp(bitTorrentClientCertificateFile, IO.RM_FILE);
-            throw e;
-        }
+        Connection.saveData(Str.get(598), bitTorrentClientCertificate, Connection.UPDATE, false);
 
         KeyStore trustedCertificatesKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        File trustedCertificates = new File(new File(Constant.APP_DIR).getParent() + Constant.FILE_SEPARATOR + Str.get(Constant.WINDOWS ? 593 : (Constant.MAC
-                ? 594 : 595)).replace(Str.get(596), Constant.FILE_SEPARATOR));
+        File trustedCertificates = new File(IO.parentDir(Constant.APP_DIR) + Str.get(Constant.WINDOWS ? 593 : (Constant.MAC ? 594 : 595)).replace(Str.get(596),
+                Constant.FILE_SEPARATOR));
         char[] keystorePassword = new char[0];
 
         if (trustedCertificates.exists()) {
@@ -109,6 +101,7 @@ class Updater extends AbstractSwingWorker {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
+                IO.close(is);
                 IO.fileOp(trustedCertificates, IO.RM_FILE);
                 trustedCertificatesKeystore.load(null, keystorePassword);
             } finally {

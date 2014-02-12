@@ -3,7 +3,7 @@ package main;
 import debug.Debug;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.JOptionPane;
@@ -57,14 +57,7 @@ class AppUpdater {
             if (Long.parseLong(updateStrs[1]) != IO.checksum(installer)) {
                 throw new UpdateException("auto-setup installer is corrupt");
             }
-            String path = Constant.PROGRAM_DIR;
-            String[] pathParts = (Constant.FILE_SEPARATOR.equals("\\") ? Regex.split(path.replace('\\', '/'), "/") : Regex.split(path, Constant.FILE_SEPARATOR));
-            StringBuilder pathBuf = new StringBuilder(32);
-            for (int i = 0; i < pathParts.length - 1; i++) {
-                pathBuf.append(pathParts[i]).append(Constant.FILE_SEPARATOR);
-            }
-            IO.write(Constant.APP_DIR + INSTALL, updateStrs[2].replace(Str.get(347), Str.get(348) + pathBuf.toString()
-                    + Str.get(349)));
+            IO.write(Constant.APP_DIR + INSTALL, updateStrs[2].replace(Str.get(347), Str.get(348) + IO.parentDir(Constant.PROGRAM_DIR) + Str.get(349)));
 
             StringBuilder installCmd = new StringBuilder(128);
             for (String cmdPart : cmd) {
@@ -169,7 +162,7 @@ class AppUpdater {
                 command.add(String.valueOf(System.currentTimeMillis()));
                 command.add(Str.get(350));
                 command.add(Str.get(351));
-                command.addAll(Arrays.asList(args));
+                Collections.addAll(command, args);
                 try {
                     (new ProcessBuilder(command)).start();
                 } catch (Exception e) {

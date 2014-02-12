@@ -13,8 +13,8 @@ import main.Str;
 
 public class Regex {
 
-    private static final int initialCapacity = Integer.parseInt(Str.get(164));
-    private static final Map<String, Pattern> cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, .75f, initialCapacity);
+    private static final int INITIAL_CAPACITY = Integer.parseInt(Str.get(164));
+    private static final Map<String, Pattern> cache = new ConcurrentHashMap<String, Pattern>(INITIAL_CAPACITY * 24, .75f, INITIAL_CAPACITY);
     public static final Map<String, String> weirdChars = new TreeMap<String, String>(), badStrs = new TreeMap<String, String>();
     public static final Map<String, String> languages = new TreeMap<String, String>(), countries = new TreeMap<String, String>();
     public static final Map<String, String> subtitleLanguages = new TreeMap<String, String>();
@@ -50,6 +50,31 @@ public class Regex {
 
     public static String[] split(String input, String regex) {
         return pattern(regex).split(input);
+    }
+
+    public static List<String> split(String input, String splitCharClassRegex, int maxPartLen) {
+        List<String> parts = new ArrayList<String>((input.length() / maxPartLen) + 2);
+        split(input, splitCharClassRegex, maxPartLen, parts);
+        return parts;
+    }
+
+    private static void split(String input, String splitCharClassRegex, int maxPartLen, List<String> parts) {
+        int len = input.length();
+        if (len <= maxPartLen) {
+            parts.add(input);
+            return;
+        }
+
+        for (int i = 0, j = maxPartLen; i < len; i++) {
+            if (i == maxPartLen) {
+                parts.add(input.substring(0, j).trim());
+                split(input.substring(j), splitCharClassRegex, maxPartLen, parts);
+                return;
+            }
+            if (isMatch(String.valueOf(input.charAt(i)), splitCharClassRegex)) {
+                j = i + 1;
+            }
+        }
     }
 
     public static String replaceFirst(String input, String regex, String replacement) {

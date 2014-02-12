@@ -35,6 +35,7 @@ import util.Constant;
 import util.ExceptionUtil;
 import util.IO;
 import util.ModClass;
+import util.RunnableUtil.AbstractWorker;
 
 public class Main implements WorkerListener {
 
@@ -88,7 +89,7 @@ public class Main implements WorkerListener {
 
         final Main main = new Main(splashScreen);
         final GUI gui = (GUI) main.gui;
-        Connection.setGuiListener(gui);
+        Connection.init(gui);
         Str.setGuiListener(gui);
         AppUpdater.setGuiListener(gui);
         Magnet.setGuiListener(gui);
@@ -103,6 +104,7 @@ public class Main implements WorkerListener {
             @Override
             public void run() {
                 gui.saveUserSettings();
+                AbstractWorker.shutdown();
                 removeTempFiles();
                 gui.stopPosterCacher();
                 Connection.stopStatusBar();
@@ -147,9 +149,8 @@ public class Main implements WorkerListener {
         (new Thread() {
             @Override
             public void run() {
-                // Warm cache
-                File[] files = (new File(Constant.CACHE_DIR)).listFiles();
-                for (File file : files) {
+                // Warm and clean cache
+                for (File file : (new File(Constant.CACHE_DIR)).listFiles()) {
                     if (file.isDirectory()) {
                         file.listFiles();
                     } else {
@@ -189,8 +190,8 @@ public class Main implements WorkerListener {
     }
 
     static void removeTempFiles() {
-        IO.rmDir(new File(Constant.TORRENTS_DIR));
-        IO.rmDir(new File(Constant.TEMP_DIR));
+        IO.fileOp(Constant.TORRENTS_DIR, IO.RM_DIR);
+        IO.fileOp(Constant.TEMP_DIR, IO.RM_DIR);
     }
 
     static void releaseSingleInstance() {
@@ -433,8 +434,8 @@ public class Main implements WorkerListener {
         try {
             String classNamePrefix = "de.javasoft.plaf.synthetica.Synthetica", rootPaneUIClass = classNamePrefix + "RootPaneUI", anonymousInnerClass1 = "$1";
             ModClass.mod(Constant.PROGRAM_DIR + "lib" + Constant.FILE_SEPARATOR + "libs" + Constant.JAR, new ModClass(rootPaneUIClass, new byte[]{0, 2, 4, -84, 0},
-                    new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{17, 16, 16, 96, -75},
-                    new byte[]{17, 16, 0, 96, -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6},
+                    new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{77, 16, 16, 96, -75},
+                    new byte[]{77, 16, 0, 96, -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6},
                     new byte[]{0, 29, -102, 0, 6}));
             UIManager.put("Synthetica.text.antialias", true);
             UIManager.put("Synthetica.menuItem.toolTipEnabled", true);

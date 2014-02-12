@@ -1,6 +1,21 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.02.11   | VidMasta 17.0
+
+CHANGE: Core | Added automatic opening of magnet link in default application (e.g. a BitTorrent client) if conversion to torrent fails
+CHANGE: Core | Improved accuracy of TV show episode download link searches
+CHANGE: Core | Improved connection error detection by adding HTTP status code check
+CHANGE: Core | Made cancellation of connection-related actions instantaneous (e.g. searches)
+CHANGE: UI   | Added high video quality (TV video quality or better) option for download link and subtitle searches
+CHANGE: UI   | Remembered all file browse paths (e.g. import/export proxy paths, save torrent path, save subtitle path)
+CHANGE: UI   | Updated user interface library
+CHANGE: UI   | Shortened and improved understandability of tooltip messages
+CHANGE: UI   | Improved copying of summary text
+
+
+
+
 2013.11.17   | VidMasta 16.9
 
 CHANGE: Core | Improved overall performance by processing regular expressions more efficiently

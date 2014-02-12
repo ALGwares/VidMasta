@@ -84,13 +84,13 @@
                       <Component id="progressBar" pref="394" max="32767" attributes="0"/>
                       <EmptySpace pref="145" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="dvdRadioButton" linkSize="64" min="-2" max="-2" attributes="2"/>
-                          <Component id="anyVideoTypeRadioButton" linkSize="64" alignment="0" min="-2" max="-2" attributes="2"/>
+                          <Component id="dvdCheckBox" linkSize="64" min="-2" max="-2" attributes="2"/>
+                          <Component id="hqVideoTypeCheckBox" linkSize="64" alignment="0" min="-2" max="-2" attributes="2"/>
                       </Group>
                       <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="hd720RadioButton" linkSize="76" min="-2" max="-2" attributes="0"/>
-                          <Component id="hd1080RadioButton" linkSize="76" min="-2" max="-2" attributes="0"/>
+                          <Component id="hd720CheckBox" linkSize="76" min="-2" max="-2" attributes="0"/>
+                          <Component id="hd1080CheckBox" linkSize="76" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="linkProgressBar" min="-2" pref="258" max="-2" attributes="0"/>
@@ -228,14 +228,14 @@
                   <Component id="closeBoxButton" alignment="2" min="-2" max="-2" attributes="0"/>
                   <Component id="linkProgressBar" linkSize="41" alignment="2" max="32767" attributes="1"/>
                   <Group type="102" alignment="2" attributes="0">
-                      <Component id="hd720RadioButton" min="-2" max="-2" attributes="1"/>
+                      <Component id="hd720CheckBox" min="-2" max="-2" attributes="1"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="hd1080RadioButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="hd1080CheckBox" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="2" attributes="0">
-                      <Component id="anyVideoTypeRadioButton" min="-2" max="-2" attributes="1"/>
+                      <Component id="hqVideoTypeCheckBox" min="-2" max="-2" attributes="1"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="dvdRadioButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="dvdCheckBox" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="progressBar" linkSize="41" alignment="2" min="-2" pref="21" max="-2" attributes="0"/>
                   <Component id="progressBarLabel" linkSize="13" alignment="2" min="-2" max="-2" attributes="0"/>
@@ -487,15 +487,15 @@
         <Property name="string" type="java.lang.String" value="Searching"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="anyVideoTypeRadioButton">
+    <Component class="javax.swing.JCheckBox" name="hqVideoTypeCheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="Constant.ANY" type="code"/>
+          <Connection code="Constant.HQ" type="code"/>
         </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="dvdRadioButton">
+    <Component class="javax.swing.JCheckBox" name="dvdCheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="Constant.DVD" type="code"/>
@@ -503,7 +503,7 @@
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="hd720RadioButton">
+    <Component class="javax.swing.JCheckBox" name="hd720CheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="Constant.HD720" type="code"/>
@@ -511,7 +511,7 @@
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="hd1080RadioButton">
+    <Component class="javax.swing.JCheckBox" name="hd1080CheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="Constant.HD1080" type="code"/>

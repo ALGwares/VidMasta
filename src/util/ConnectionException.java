@@ -3,7 +3,7 @@ package util;
 public class ConnectionException extends Exception {
 
     private static final long serialVersionUID = 1L;
-    public final String url;
+    public final String URL;
 
     public ConnectionException() {
         this("", null);
@@ -15,7 +15,7 @@ public class ConnectionException extends Exception {
 
     public ConnectionException(String msg, String url) {
         super(msg);
-        this.url = url;
+        this.URL = url;
     }
 
     @Override

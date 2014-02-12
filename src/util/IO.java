@@ -26,7 +26,7 @@ import java.util.zip.ZipFile;
 
 public class IO {
 
-    public static final int MK_DIR = 0, RM_FILE = 1, MK_FILE = 2, RM_FILE_NOW_AND_ON_EXIT = 3;
+    public static final int MK_DIR = 0, RM_FILE = 1, MK_FILE = 2, RM_FILE_NOW_AND_ON_EXIT = 3, RM_DIR = 4;
 
     public static String read(String fileName) throws Exception {
         return read(new File(fileName));
@@ -166,15 +166,20 @@ public class IO {
         }
     }
 
-    public static void rmDir(File dir) {
-        if (dir.exists()) {
-            File[] files = dir.listFiles();
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    rmDir(file);
-                } else {
-                    fileOp(file, RM_FILE);
-                }
+    private static boolean rmDir(File dir) {
+        if (!dir.isDirectory()) {
+            return false;
+        }
+        rmDirHelper(dir);
+        return !dir.exists();
+    }
+
+    private static void rmDirHelper(File dir) {
+        for (File file : dir.listFiles()) {
+            if (file.isDirectory()) {
+                rmDirHelper(file);
+            } else {
+                fileOp(file, RM_FILE);
             }
         }
         fileOp(dir, RM_FILE);
@@ -194,6 +199,8 @@ public class IO {
                 } else {
                     file.deleteOnExit();
                 }
+            } else if (operation == RM_DIR) {
+                return rmDir(file);
             }
         } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -203,8 +210,8 @@ public class IO {
         return false;
     }
 
-    public static boolean fileOp(String fileName, int operation) {
-        return fileOp(new File(fileName), operation);
+    public static boolean fileOp(String path, int operation) {
+        return fileOp(new File(path), operation);
     }
 
     public static void close(ZipFile zipFile) {
@@ -250,6 +257,21 @@ public class IO {
                 }
             }
         }
+    }
+
+    public static String parentDir(String path) {
+        return parentDir(new File(path));
+    }
+
+    public static String parentDir(File file) {
+        return dir(file.getParent());
+    }
+
+    public static String dir(String dir) {
+        if (dir == null || dir.isEmpty()) {
+            return "";
+        }
+        return dir.endsWith(Constant.FILE_SEPARATOR) ? dir : dir + Constant.FILE_SEPARATOR;
     }
 
     private IO() {

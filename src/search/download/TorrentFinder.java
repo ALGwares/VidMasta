@@ -1,6 +1,7 @@
 package search.download;
 
 import debug.Debug;
+import java.io.File;
 import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +20,7 @@ import util.ConnectionException;
 import util.Constant;
 import util.Regex;
 
-public class TorrentFinder extends SwingWorker<Object, Object[]> {
+public class TorrentFinder extends SwingWorker<Object, Object> {
 
     private GuiListener guiListener;
     private static final Object saveTorrentLock = new Object();
@@ -258,22 +259,32 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
             }
 
             Magnet magnet = new Magnet(Str.get(388) + Regex.match(videoStr, Str.get(389), Str.get(390)), Str.toFileName(titleName));
-            magnet.download(this);
+            boolean isTorrentDownloaded = magnet.download(this);
             if (isCancelled()) {
                 return null;
             }
 
-            FileTypeChecker fileTypeChecker = new FileTypeChecker(searchState.whitelistedFileExts, searchState.blacklistedFileExts);
-            if (!fileTypeChecker.isValidFileType(magnet.torrentFile)) {
-                continue;
+            File torrent;
+            String extensions;
+            if (isTorrentDownloaded) {
+                FileTypeChecker fileTypeChecker = new FileTypeChecker(searchState.whitelistedFileExts, searchState.blacklistedFileExts);
+                if (!fileTypeChecker.isValidFileType(magnet.TORRENT)) {
+                    continue;
+                }
+
+                if (isCancelled()) {
+                    return null;
+                }
+
+                torrent = magnet.TORRENT;
+                extensions = fileTypeChecker.getFileExts();
+            } else {
+                torrent = null;
+                extensions = "";
             }
 
-            if (isCancelled()) {
-                return null;
-            }
-
-            boolean isSafe = !Regex.match(videoStr, Str.get(74), Str.get(75)).isEmpty();
-            return new Torrent(torrentID, magnet.torrentFile, fileTypeChecker.getFileExts(), isSafe, numSourcesNum, sizeInGiB);
+            return new Torrent(torrentID, magnet.MAGNET_LINK, magnet.NAME, torrent, extensions, !Regex.match(videoStr, Str.get(74), Str.get(75)).isEmpty(),
+                    numSourcesNum, sizeInGiB);
         }
         return null;
     }
@@ -427,21 +438,17 @@ public class TorrentFinder extends SwingWorker<Object, Object[]> {
         }
 
         String title = Regex.replaceAll(titleName, Str.get(77), Str.get(78));
-        if (format.equals(Constant.DVD)) {
-            return hasType(title, Str.get(79));
+        if (format.equals(Constant.HQ)) {
+            return hasType(title, 569);
+        } else if (format.equals(Constant.DVD)) {
+            return hasType(title, 79);
         } else if (format.equals(Constant.HD720)) {
-            return (hasType(title, Str.get(80)) || hasType(title, Str.get(81))) && !hasType(title, Str.get(82));
+            return hasType(title, 600) && !hasType(title, 82);
         }
-        return hasType(title, Str.get(83));
+        return hasType(title, 83);
     }
 
-    private static boolean hasType(String title, String typeRegex) {
-        Matcher typeMatcher = Regex.matcher(Str.get(84) + typeRegex + Str.get(85), title);
-        while (!typeMatcher.hitEnd()) {
-            if (typeMatcher.find()) {
-                return true;
-            }
-        }
-        return false;
+    private static boolean hasType(String title, int typeRegexIndex) {
+        return !Regex.match(title, Str.get(typeRegexIndex)).isEmpty();
     }
 }

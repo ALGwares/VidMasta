@@ -93,7 +93,7 @@ public class RegularSearcher extends AbstractSearcher {
         }
 
         String titleLink = VideoSearch.getTitleLink(title, year);
-        if (isCancelled() || titleLink == null) {
+        if (titleLink == null) {
             return;
         }
 
@@ -103,10 +103,6 @@ public class RegularSearcher extends AbstractSearcher {
         }
 
         String sourceCode = Connection.getSourceCode(titleLink, Connection.VIDEO_INFO);
-        if (isCancelled()) {
-            return;
-        }
-
         String[] titleParts = VideoSearch.getImdbTitleParts(sourceCode);
         if (titleParts[0].isEmpty() || titleParts[1].isEmpty()) {
             return;

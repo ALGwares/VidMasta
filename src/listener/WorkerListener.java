@@ -1,9 +1,8 @@
 package listener;
 
 import java.util.Calendar;
-import java.util.EventListener;
 
-public interface WorkerListener extends EventListener {
+public interface WorkerListener {
 
     void regularSearchStarted(int numResultsPerSearch, boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres, String[] languages,
             String[] countries, String minRating);

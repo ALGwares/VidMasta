@@ -64,12 +64,9 @@ public class SubtitleFinder extends AbstractSwingWorker {
         String searchTitle = URLEncoder.encode(title, Constant.UTF8), searchYear = String.valueOf(Integer.parseInt(year) - Integer.parseInt(Str.get(342)));
         String source = getSourceCode(isTVShow ? Str.get(439) + languageID + Str.get(440) + season + Str.get(441) + episode + Str.get(442) + searchYear
                 + Str.get(443) + searchTitle : Str.get(444) + languageID + Str.get(445) + searchYear + Str.get(446) + searchTitle);
-        if (isCancelled()) {
-            return;
-        }
-
-        List<String> results;
         String titleLink = Regex.match(source, Str.get(506), Str.get(507));
+        List<String> results;
+
         if (!titleLink.isEmpty()) {
             results = new ArrayList<String>(1);
             String subtitleID = Regex.match(source, Str.get(508), Str.get(509));
@@ -91,13 +88,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                     if (!resultMatches(result)) {
                         continue;
                     }
-
-                    source = getSourceCode(Str.get(454) + Regex.match(result, Str.get(430), Str.get(431)));
-                    if (isCancelled()) {
-                        return;
-                    }
-
-                    saveSubtitle(Regex.matches(source, Str.get(425)), false);
+                    saveSubtitle(Regex.matches(getSourceCode(Str.get(454) + Regex.match(result, Str.get(430), Str.get(431))), Str.get(425)), false);
                     return;
                 }
                 notFound();
@@ -113,14 +104,14 @@ public class SubtitleFinder extends AbstractSwingWorker {
             source = Connection.getSourceCode(url, Connection.SUBTITLE);
         } catch (ConnectionException e) {
             // Handle server's unencoded redirect URL bug
-            if (e.url == null || e.url.equals(url)) {
+            if (e.URL == null || e.URL.equals(url)) {
                 throw e;
             }
-            String titleName = Regex.match(e.url, Str.get(510), Str.get(511));
+            String titleName = Regex.match(e.URL, Str.get(510), Str.get(511));
             if (!titleName.equals(URLDecoder.decode(titleName, Constant.UTF8))) {
                 throw e;
             }
-            source = Connection.getSourceCode(url = e.url.replace(Str.get(512) + titleName, Str.get(512) + URLEncoder.encode(titleName, Constant.UTF8)),
+            source = Connection.getSourceCode(url = e.URL.replace(Str.get(512) + titleName, Str.get(512) + URLEncoder.encode(titleName, Constant.UTF8)),
                     Connection.SUBTITLE);
         }
 
@@ -148,6 +139,9 @@ public class SubtitleFinder extends AbstractSwingWorker {
     }
 
     private void notFound() throws Exception {
+        if (isCancelled()) {
+            return;
+        }
         if (isTVShowAndMovie) {
             isTVShowAndMovie = false;
             isTVShow = !isTVShow;
@@ -245,10 +239,6 @@ public class SubtitleFinder extends AbstractSwingWorker {
                     continue;
                 }
 
-                if (isCancelled()) {
-                    return;
-                }
-
                 try {
                     IO.unzip(subtitleZip, subtitleDir);
                 } catch (Exception e) {
@@ -279,7 +269,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                     return;
                 }
             } finally {
-                IO.rmDir(new File(subtitleDir));
+                IO.fileOp(subtitleDir, IO.RM_DIR);
             }
         }
         notFound();

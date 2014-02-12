@@ -1,10 +1,9 @@
 package listener;
 
 import java.io.File;
-import java.util.EventListener;
 import javax.swing.text.Element;
 
-public interface GuiListener extends EventListener {
+public interface GuiListener {
 
     void loading(boolean isLoading);
 

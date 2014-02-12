@@ -12,11 +12,11 @@ import java.util.regex.Matcher;
 import javax.swing.SwingWorker;
 import listener.GuiListener;
 import main.Str;
-import search.util.SwingWorkerUtil;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
 import util.Regex;
+import util.RunnableUtil;
 
 public abstract class AbstractSearcher extends AbstractSwingWorker {
 
@@ -102,7 +102,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 break;
             }
 
-            if (videoBuffer.isEmpty() && hasNextSearchPage()) {
+            if (SLEEP != 0 && videoBuffer.isEmpty() && hasNextSearchPage()) {
                 try {
                     Thread.sleep(SLEEP);
                 } catch (InterruptedException e) {
@@ -190,7 +190,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             searchHelpers.add(new SearcherHelper(video, findImage(video)));
         }
 
-        SwingWorkerUtil.execute(this, searchHelpers, numVideos);
+        RunnableUtil.execute(searchHelpers);
         if (isCancelled()) {
             return;
         }
@@ -245,7 +245,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             return;
         }
 
-        prefetcher = new SwingWorker<Object, Object[]>() {
+        prefetcher = new SwingWorker<Object, Object>() {
             @Override
             protected Object doInBackground() throws Exception {
                 if (Debug.DEBUG) {
@@ -310,7 +310,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
             if (findImage) {
                 String sourceCode = getSourceCode(video);
-                if (isCancelled() || sourceCode == null) {
+                if (sourceCode == null) {
                     return;
                 }
 

@@ -36,7 +36,7 @@ public class VideoSearch {
             return Connection.getSourceCode(searchEngine + encodedQuery, Connection.SEARCH_ENGINE);
         } catch (ConnectionException e) {
             if (Debug.DEBUG) {
-                Debug.println("Retrying search query: " + e.url);
+                Debug.println("Retrying search query: " + e.URL);
             }
 
             if (MAX_NUM_SEARCH_ENGINES != 1) {
@@ -63,16 +63,18 @@ public class VideoSearch {
     }
 
     public static String[] getImdbTitleParts(String sourceCode) {
-        String titleTagStr = Regex.match(sourceCode, Str.get(98), Str.get(99));
-        Pattern yearPattern = Regex.pattern(Str.get(100));
+        return getImdbTitleParts(sourceCode, 98);
+    }
 
+    public static String[] getImdbTitleParts(String sourceCode, int startRegexIndex) {
+        String title = Regex.match(sourceCode, Str.get(startRegexIndex), Str.get(startRegexIndex + 1));
+        Pattern yearPattern = Regex.pattern(Str.get(100));
         String[] result = new String[2];
         result[1] = "";
         int titleEndIndex = -1;
 
-        int lastIndex = titleTagStr.length() - 1;
-        for (int i = lastIndex; i > -1 && titleEndIndex == -1; i--) {
-            Matcher yearMatcher = yearPattern.matcher(titleTagStr.substring(i));
+        for (int i = title.length() - 1; i > -1 && titleEndIndex == -1; i--) {
+            Matcher yearMatcher = yearPattern.matcher(title.substring(i));
             while (!yearMatcher.hitEnd()) {
                 if (yearMatcher.find()) {
                     result[1] = yearMatcher.group();
@@ -83,11 +85,11 @@ public class VideoSearch {
         }
 
         if (titleEndIndex == -1) {
-            titleTagStr = Regex.replaceAll(titleTagStr, Str.get(101), Str.get(102));
-            titleEndIndex = titleTagStr.length();
+            title = Regex.replaceAll(title, Str.get(101), Str.get(102));
+            titleEndIndex = title.length();
         }
 
-        result[0] = titleTagStr.substring(0, titleEndIndex).trim();
+        result[0] = title.substring(0, titleEndIndex).trim();
         result[1] = Regex.match(result[1], Str.get(135));
 
         return result;

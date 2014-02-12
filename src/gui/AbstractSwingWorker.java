@@ -3,7 +3,7 @@ package gui;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
 
-public abstract class AbstractSwingWorker extends SwingWorker<Object, Object[]> {
+public abstract class AbstractSwingWorker extends SwingWorker<Object, Object> {
 
     private final AtomicBoolean isWorkDone = new AtomicBoolean();
 

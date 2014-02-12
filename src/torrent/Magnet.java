@@ -36,11 +36,10 @@ import org.gudy.azureus2.plugins.PluginManagerDefaults;
 import org.gudy.azureus2.plugins.PluginState;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
-import search.util.SwingWorkerUtil;
 import util.Connection;
-import util.ConnectionException;
 import util.Constant;
 import util.IO;
+import util.RunnableUtil;
 
 public class Magnet extends Thread {
 
@@ -49,24 +48,26 @@ public class Magnet extends Thread {
     private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
     private static boolean isAzureusConfigured;
     private static volatile AzureusCore core;
-    private String magnetLink;
+    public final String MAGNET_LINK;
+    public final String NAME;
+    public final File TORRENT;
     private static final AtomicBoolean isPortPossiblyBlocked = new AtomicBoolean(true), magnetDownloadAttempted = new AtomicBoolean();
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
     private static volatile String ipBlockMsg = "";
     private static SwingWorker<?, ?> azureusStarter;
     private static IpFilterInitializer ipFilterInitializer;
     private static Method serialiseToByteArray;
-    public final File torrentFile;
 
-    public Magnet(String magnetLink, String torrentName) {
-        this.magnetLink = magnetLink;
+    public Magnet(String magnetLink, String name) {
+        MAGNET_LINK = magnetLink;
+        NAME = name;
         IO.fileOp(Constant.TORRENTS_DIR, IO.MK_DIR);
-        torrentFile = new File(Constant.TORRENTS_DIR + torrentName + ".torrent");
+        TORRENT = new File(Constant.TORRENTS_DIR + name + Constant.TORRENT);
     }
 
-    public void download(SwingWorker<?, ?> parent) throws Exception {
+    public boolean download(SwingWorker<?, ?> parent) throws Exception {
         if (torrentExists()) {
-            return;
+            return true;
         }
 
         int timeout = guiListener.getTimeout(), waitTime = Integer.parseInt(Str.get(391)), numChecks, milliSeconds = 1000;
@@ -100,9 +101,7 @@ public class Magnet extends Thread {
             interrupt();
         }
 
-        if (!torrentExists()) {
-            throw new ConnectionException(Connection.error("downloading a torrent", "", ""));
-        }
+        return torrentExists();
     }
 
     @Override
@@ -118,7 +117,7 @@ public class Magnet extends Thread {
 
     private void download() throws Exception {
         magnetDownloadAttempted.set(true);
-        TorrentImpl torrent = (TorrentImpl) TorrentManagerImpl.getSingleton().getURLDownloader(new URL(magnetLink)).download();
+        TorrentImpl torrent = (TorrentImpl) TorrentManagerImpl.getSingleton().getURLDownloader(new URL(MAGNET_LINK)).download();
         isPortPossiblyBlocked.set(false);
         isDoneDownloading.set(true);
 
@@ -126,7 +125,7 @@ public class Magnet extends Thread {
             return;
         }
         synchronized (saveTorrentLock) {
-            if (torrentFile.exists()) {
+            if (TORRENT.exists()) {
                 return;
             }
 
@@ -143,14 +142,14 @@ public class Magnet extends Thread {
 
             String vuzeDir = System.getProperty(Str.get(564));
             if (vuzeDir != null && (new String(torrentBytes, Constant.UTF8)).contains(vuzeDir)) {
-                throw new Exception(torrentFile.getName() + " is corrupt");
+                throw new Exception(TORRENT.getName() + " is corrupt");
             }
 
-            IO.write(torrentFile, torrentBytes);
+            IO.write(TORRENT, torrentBytes);
         }
 
         if (Debug.DEBUG) {
-            Debug.println(torrentFile.getName() + " converted");
+            Debug.println(TORRENT.getName() + " converted");
         }
         isDoneSaving.set(true);
     }
@@ -161,7 +160,7 @@ public class Magnet extends Thread {
 
     private boolean torrentExists() {
         synchronized (saveTorrentLock) {
-            return torrentFile.exists();
+            return TORRENT.exists();
         }
     }
 
@@ -169,7 +168,7 @@ public class Magnet extends Thread {
         if (azureusStarter == null) {
             return;
         }
-        SwingWorkerUtil.waitFor(azureusStarter);
+        RunnableUtil.waitFor(azureusStarter);
     }
 
     public static void initIpFilter() {
@@ -184,7 +183,7 @@ public class Magnet extends Thread {
         if (core != null) {
             return;
         }
-        (azureusStarter = new SwingWorker<Object, Object[]>() {
+        (azureusStarter = new SwingWorker<Object, Object>() {
             @Override
             protected Object doInBackground() {
                 initAzureus();
@@ -270,8 +269,7 @@ public class Magnet extends Thread {
             Collections.addAll(enabledPluginIDs, "azutp", "azbpdht", "azbpdhdtracker", "azbpmagnet", "azextseed", "azlocaltracker");
 
             PluginManagerDefaults pluginManagerDefaults = core.getPluginManagerDefaults();
-            String[] pluginNames = pluginManagerDefaults.getDefaultPlugins();
-            for (String pluginName : pluginNames) {
+            for (String pluginName : pluginManagerDefaults.getDefaultPlugins()) {
                 boolean isEnabled = enabledPluginNames.contains(pluginName);
                 if (Debug.DEBUG) {
                     Debug.println((isEnabled ? "Enabled" : "Disabled") + " (Default): '" + pluginName + "'");
@@ -284,8 +282,7 @@ public class Magnet extends Thread {
                 Debug.println("Azureus core started");
             }
 
-            PluginInterface[] pluginInterfaces = core.getPluginManager().getPlugins();
-            for (PluginInterface pluginInterface : pluginInterfaces) {
+            for (PluginInterface pluginInterface : core.getPluginManager().getPlugins()) {
                 PluginState state = pluginInterface.getPluginState();
                 if (enabledPluginIDs.contains(pluginInterface.getPluginID())) {
                     if (state.isDisabled()) {

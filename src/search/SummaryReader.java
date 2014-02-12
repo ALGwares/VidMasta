@@ -19,12 +19,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
 import listener.GuiListener;
 import main.Str;
-import search.util.SwingWorkerUtil;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
 import util.IO;
 import util.Regex;
+import util.RunnableUtil;
 
 public class SummaryReader extends AbstractSwingWorker {
 
@@ -84,17 +84,15 @@ public class SummaryReader extends AbstractSwingWorker {
         }
         summary = Regex.replaceAll(Regex.replaceAll(Str.htmlToPlainText(summary), Str.get(472), Str.get(473)), Str.get(339), Str.get(340)).trim();
 
-        List<String> summaryParts = new ArrayList<String>(8);
-        getSummaryParts(summaryParts, summary, Integer.parseInt(Str.get(478)));
-
+        List<String> summaryParts = Regex.split(summary, Str.get(477), Integer.parseInt(Str.get(478)));
         Collection<MoviePartFinder> moviePartFinders = new ArrayList<MoviePartFinder>(8);
-
         int numSummaryParts = summaryParts.size();
+
         for (int i = 0; i < numSummaryParts; i++) {
             moviePartFinders.add(new MoviePartFinder(i, Str.get(474) + URLEncoder.encode(summaryParts.get(i), Constant.UTF8)));
         }
 
-        SwingWorkerUtil.execute(this, moviePartFinders);
+        RunnableUtil.execute(moviePartFinders);
         if (isCancelled() || failure.get()) {
             return;
         }
@@ -147,26 +145,7 @@ public class SummaryReader extends AbstractSwingWorker {
         Connection.browseFile(swfPage);
     }
 
-    private static void getSummaryParts(Collection<String> summaryParts, String summary, int maxLen) {
-        int len = summary.length();
-        if (len <= maxLen) {
-            summaryParts.add(summary);
-            return;
-        }
-
-        for (int i = 0, j = maxLen; i < len; i++) {
-            if (i == maxLen) {
-                summaryParts.add(summary.substring(0, j).trim());
-                getSummaryParts(summaryParts, summary.substring(j), maxLen);
-                return;
-            }
-            if (Regex.isMatch(String.valueOf(summary.charAt(i)), Str.get(477))) {
-                j = i + 1;
-            }
-        }
-    }
-
-    private class MoviePartFinder extends SwingWorker<Object, Object[]> {
+    private class MoviePartFinder extends SwingWorker<Object, Object> {
 
         private Integer partNumber;
         private String url;

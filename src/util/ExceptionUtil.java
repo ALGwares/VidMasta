@@ -1,5 +1,7 @@
 package util;
 
+import java.util.concurrent.ExecutionException;
+
 public class ExceptionUtil {
 
     public static String toString(Exception e) {
@@ -23,6 +25,14 @@ public class ExceptionUtil {
         }
 
         return msg;
+    }
+
+    public static Exception cause(ExecutionException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof Exception) {
+            return (Exception) cause;
+        }
+        return new Exception(cause);
     }
 
     private ExceptionUtil() {

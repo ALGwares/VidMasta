@@ -3,6 +3,8 @@ package util;
 import debug.Debug;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,9 +21,11 @@ import java.net.Proxy;
 import java.net.Proxy.Type;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Queue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,19 +37,20 @@ import java.util.zip.InflaterInputStream;
 import listener.GuiListener;
 import main.Str;
 import main.Str.UpdateListener;
+import util.RunnableUtil.AbstractWorker;
 
 public class Connection {
 
     private static GuiListener guiListener;
     public static final int DOWNLOAD_LINK_INFO = 0, VIDEO_INFO = 1, SEARCH_ENGINE = 2, TRAILER = 3, VIDEO_STREAMER = 4, UPDATE = 5, SUBTITLE = 6;
-    private static final Queue<Msg> statusBarMessages = new ConcurrentLinkedQueue<Msg>();
     private static final StatusBar statusBar = new StatusBar();
     private static final Collection<Long> cache = new ConcurrentSkipListSet<Long>();
     private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
     private static final AtomicBoolean downloadLinkInfoFail = new AtomicBoolean();
     private static volatile String downloadLinkInfoFailUrl;
 
-    static {
+    public static void init(GuiListener listener) {
+        guiListener = listener;
         Str.addListener(new UpdateListener() {
             @Override
             public void update(String[] strs) {
@@ -69,9 +74,7 @@ public class Connection {
                 if (guiListener.isAuthorizationConfirmed(msg)) {
                     char[] password = guiListener.getAuthorizationPassword();
                     PasswordAuthentication passwordAuthentication = new PasswordAuthentication(guiListener.getAuthorizationUsername(), password);
-                    for (int i = 0; i < password.length; i++) {
-                        password[i] = '\0';
-                    }
+                    Arrays.fill(password, '\0');
                     return passwordAuthentication;
                 }
                 return null;
@@ -84,7 +87,7 @@ public class Connection {
     }
 
     public static String getUpdateFile(String file, boolean showStatus) throws Exception {
-        return getSource(file, UPDATE, showStatus, true, false, true).trim();
+        return getSourceCode(file, UPDATE, showStatus, true, false, true).trim();
     }
 
     public static String getSourceCode(String url, int connectionType) throws Exception {
@@ -116,69 +119,88 @@ public class Connection {
                     Debug.print(e);
                 }
                 IO.fileOp(sourceCodePath, IO.RM_FILE);
-                sourceCode = getSource(url, connectionType, showStatus, emptyOK, true, false);
-                addToCache(sourceCode, sourceCodePath, urlHashCode);
+                addToCache(sourceCode = getSourceCode(url, connectionType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
             }
         } else {
-            sourceCode = getSource(url, connectionType, showStatus, emptyOK, true, false);
-            addToCache(sourceCode, sourceCodePath, urlHashCode);
+            addToCache(sourceCode = getSourceCode(url, connectionType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
         }
 
         return sourceCode;
     }
 
-    private static String getSource(String url, int connectionType, boolean showStatus, boolean emptyOK, boolean compress, boolean throwException)
-            throws Exception {
+    private static String getSourceCode(final String url, final int connectionType, final boolean showStatus, final boolean emptyOK, final boolean compress,
+            final boolean throwException) throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);
         }
-        HttpURLConnection connection = null;
-        BufferedReader br = null;
-        StringBuilder source = new StringBuilder(262144);
-        try {
-            Proxy proxy = getProxy(connectionType);
-            String statusMsg = checkProxy(proxy, url, showStatus);
-            connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
-            setConnectionProperties(connection, compress);
-            br = new BufferedReader(new InputStreamReader(connect(connection), Constant.UTF8));
+        return (new AbstractWorker<String>() {
+            @Override
+            protected String call() throws Exception {
+                HttpURLConnection connection = null;
+                BufferedReader br = null;
+                StringBuilder source = new StringBuilder(262144);
+                try {
+                    Proxy proxy = getProxy(connectionType);
+                    String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
+                    if (isCancelled()) {
+                        return "";
+                    }
 
-            if (showStatus) {
-                setStatusBar(Constant.TRANSFERRING + statusMsg);
-            }
+                    connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
+                    if (isCancelled()) {
+                        return "";
+                    }
 
-            String line;
-            while ((line = br.readLine()) != null) {
-                source.append(line).append(Constant.NEWLINE);
-            }
-        } catch (IOException e) {
-            if (throwException) {
-                throw e;
-            }
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-            if (showStatus) {
-                String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(url);
-                if (downloadLinkInfoUrl != null) {
-                    selectNextDownloadLinkInfoProxy();
-                    return getSourceCode(downloadLinkInfoUrl, connectionType, showStatus, emptyOK);
-                } else if (url.startsWith(Str.get(467))) {
-                    downloadLinkInfoFail.set(true);
+                    setConnectionProperties(connection, compress);
+                    br = new BufferedReader(new InputStreamReader(connect(connection), Constant.UTF8));
+                    if (isCancelled()) {
+                        return "";
+                    }
+
+                    if (showStatus) {
+                        setStatusBar(Constant.TRANSFERRING + statusMsg);
+                    }
+
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        if (isCancelled()) {
+                            return "";
+                        }
+                        source.append(line).append(Constant.NEWLINE);
+                    }
+
+                    checkConnectionResponse(connection, url);
+                } catch (IOException e) {
+                    if (throwException) {
+                        throw e;
+                    }
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                    if (showStatus) {
+                        String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(url);
+                        if (downloadLinkInfoUrl != null) {
+                            selectNextDownloadLinkInfoProxy();
+                            return getSourceCode(downloadLinkInfoUrl, connectionType, showStatus, emptyOK);
+                        } else if (url.startsWith(Str.get(467))) {
+                            downloadLinkInfoFail.set(true);
+                        }
+                    }
+                    throw new ConnectionException(error("", "", url), connection == null ? null : connection.getURL().toString());
+                } finally {
+                    if (showStatus) {
+                        unsetStatusBar();
+                    }
+                    IO.close(connection, br);
                 }
-            }
-            throw new ConnectionException(error("", "", url), connection == null ? null : connection.getURL().toString());
-        } finally {
-            if (showStatus) {
-                unsetStatusBar();
-            }
-            IO.close(connection, br);
-        }
 
-        if (!emptyOK && source.length() == 0) {
-            throw new ConnectionException(error("", "", url));
-        }
+                if (!emptyOK && source.length() == 0) {
+                    throw new ConnectionException(error("", "", url));
+                }
 
-        return source.toString();
+                return source.toString();
+            }
+        }).runAndWaitFor();
     }
 
     public static String error(String problem, String solution, String url) {
@@ -282,6 +304,15 @@ public class Connection {
         connection.setReadTimeout(timeout);
     }
 
+    public static void checkConnectionResponse(HttpURLConnection connection, String url) throws IOException {
+        if (!Regex.isMatch(String.valueOf(connection.getResponseCode()), Str.get(599))) {
+            if (Debug.DEBUG) {
+                Debug.println("'" + url + "' response: '" + connection.getResponseMessage() + "'");
+            }
+            throw new IOException(error("", "", url));
+        }
+    }
+
     private static void addToCache(String sourceCode, String sourceCodePath, Long urlHashCode) {
         try {
             IO.write(sourceCodePath, sourceCode);
@@ -325,32 +356,68 @@ public class Connection {
         saveData(url, outputPath, connectionType, true);
     }
 
-    public static void saveData(String url, String outputPath, int connectionType, boolean showStatus) throws Exception {
+    public static void saveData(final String url, final String outputPath, final int connectionType, final boolean showStatus) throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);
         }
-        HttpURLConnection connection = null;
-        InputStream is = null;
-        OutputStream os = null;
-        try {
-            Proxy proxy = getProxy(connectionType);
-            String statusMsg = checkProxy(proxy, url, showStatus);
-            connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
-            setConnectionProperties(connection);
-            is = connection.getInputStream();
-            os = new BufferedOutputStream(new FileOutputStream(outputPath));
+        (new AbstractWorker<Object>() {
+            @Override
+            protected Object call() throws Exception {
+                HttpURLConnection connection = null;
+                InputStream is = null;
+                OutputStream os = null;
+                boolean outputStarted = false;
+                try {
+                    Proxy proxy = getProxy(connectionType);
+                    String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
+                    if (isCancelled()) {
+                        return null;
+                    }
 
-            if (showStatus) {
-                setStatusBar(Constant.TRANSFERRING + statusMsg);
-            }
+                    connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
+                    if (isCancelled()) {
+                        return null;
+                    }
 
-            IO.write(is, os);
-        } finally {
-            if (showStatus) {
-                unsetStatusBar();
+                    setConnectionProperties(connection);
+                    is = connection.getInputStream();
+                    if (isCancelled()) {
+                        return null;
+                    }
+
+                    os = new BufferedOutputStream(new FileOutputStream(outputPath)) {
+                        @Override
+                        public void write(byte[] bytes, int startOffset, int numBytes) throws IOException {
+                            if (isCancelled()) {
+                                throw new CancellationException();
+                            }
+                            super.write(bytes, startOffset, numBytes);
+                        }
+                    };
+
+                    if (showStatus) {
+                        setStatusBar(Constant.TRANSFERRING + statusMsg);
+                    }
+
+                    outputStarted = true;
+                    IO.write(is, os);
+
+                    checkConnectionResponse(connection, url);
+                } catch (Exception e) {
+                    if (outputStarted) {
+                        IO.close(os);
+                        IO.fileOp(outputPath, IO.RM_FILE);
+                    }
+                    throw e;
+                } finally {
+                    if (showStatus) {
+                        unsetStatusBar();
+                    }
+                    IO.close(connection, is, os);
+                }
+                return null;
             }
-            IO.close(connection, is, os);
-        }
+        }).runAndWaitFor();
     }
 
     public static String getShortUrl(String url, boolean showDots) {
@@ -379,8 +446,21 @@ public class Connection {
         return new Proxy(Type.HTTP, new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1])));
     }
 
-    public static String checkProxy(Proxy proxy, String url, boolean showStatus) throws Exception {
-        String statusMsg = (showStatus ? getShortUrl(url, true) : null);
+    private static String checkProxyAndSetStatusBar(Proxy proxy, String url, boolean showStatus, AbstractWorker<?> callingWorker) throws Exception {
+        String statusMsg;
+        if (showStatus) {
+            final Thread runner = Thread.currentThread();
+            callingWorker.doneListener = new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    statusBar.unset(runner);
+                }
+            };
+            statusMsg = getShortUrl(url, true);
+        } else {
+            statusMsg = null;
+        }
+
         if (proxy != Proxy.NO_PROXY) {
             InputStream is = null;
             HttpURLConnection connection = null;
@@ -392,14 +472,26 @@ public class Connection {
                 }
 
                 connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
+                if (callingWorker.isCancelled()) {
+                    return "";
+                }
+
                 setConnectionProperties(connection);
                 is = connection.getInputStream();
+                if (callingWorker.isCancelled()) {
+                    return "";
+                }
 
                 if (showStatus) {
                     setStatusBar(Constant.TRANSFERRING + statusMsg);
                 }
 
                 is.read();
+                if (callingWorker.isCancelled()) {
+                    return "";
+                }
+
+                checkConnectionResponse(connection, url);
             } catch (IOException e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
@@ -466,10 +558,6 @@ public class Connection {
         return false;
     }
 
-    public static void setGuiListener(GuiListener listener) {
-        guiListener = listener;
-    }
-
     public static void startStatusBar() {
         statusBar.setPriority(Thread.MIN_PRIORITY);
         statusBar.start();
@@ -480,18 +568,28 @@ public class Connection {
     }
 
     public static void setStatusBar(String str) {
-        Msg msg = new Msg(Thread.currentThread(), str);
-        statusBarMessages.remove(msg);
-        statusBarMessages.add(msg);
+        statusBar.set(Thread.currentThread(), str);
     }
 
     public static void unsetStatusBar() {
-        statusBarMessages.remove(new Msg(Thread.currentThread(), null));
+        statusBar.unset(Thread.currentThread());
     }
 
     private static class StatusBar extends Thread {
 
+        private final Queue<Msg> msgs = new ConcurrentLinkedQueue<Msg>();
+
         StatusBar() {
+        }
+
+        void set(Thread thread, String str) {
+            Msg msg = new Msg(thread, str);
+            msgs.remove(msg);
+            msgs.add(msg);
+        }
+
+        void unset(Thread thread) {
+            msgs.remove(new Msg(thread, null));
         }
 
         @Override
@@ -499,12 +597,12 @@ public class Connection {
             try {
                 while (true) {
                     try {
-                        Msg msg = statusBarMessages.peek();
+                        Msg msg = msgs.peek();
                         if (msg == null) {
                             guiListener.clearStatusBar();
                         } else {
                             if (!msg.thread.isAlive()) {
-                                statusBarMessages.remove(msg);
+                                msgs.remove(msg);
                                 if (Debug.DEBUG) {
                                     Debug.println("status bar message thread died");
                                 }
@@ -525,36 +623,48 @@ public class Connection {
                 }
             }
         }
-    }
 
-    private static class Msg {
+        private static class Msg {
 
-        Thread thread;
-        String msg;
+            Thread thread;
+            String msg;
 
-        Msg(Thread thread, String msg) {
-            this.thread = thread;
-            this.msg = msg;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
+            Msg(Thread thread, String msg) {
+                this.thread = thread;
+                this.msg = msg;
             }
-            return obj instanceof Msg ? thread.equals(((Msg) obj).thread) : false;
-        }
 
-        @Override
-        public int hashCode() {
-            return 7 * 31 + (thread == null ? 0 : thread.hashCode());
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj) {
+                    return true;
+                }
+                return obj instanceof Msg ? thread.equals(((Msg) obj).thread) : false;
+            }
+
+            @Override
+            public int hashCode() {
+                return 7 * 31 + (thread == null ? 0 : thread.hashCode());
+            }
         }
     }
 
-    public static void browse(String url) throws Exception {
+    public static void browse(String url) {
+        browse(url, "web browser", "HTTP");
+    }
+
+    public static void browse(String url, String applicationType, String linkType) {
         Desktop desktop;
         if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.BROWSE)) {
-            desktop.browse(URI.create(url));
+            try {
+                desktop.browse(URI.create(url));
+            } catch (IOException e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+                guiListener.msg("Associate/install an application (e.g. a " + applicationType + ") for " + linkType + " links and then retry.",
+                        Constant.ERROR_MSG);
+            }
         } else {
             guiListener.msg("Update Java on your computer at http://www.java.com in order to complete your action. Or manually enter the following URL into a"
                     + " web browser:" + Constant.NEWLINE2 + url + Constant.NEWLINE, Constant.ERROR_MSG);

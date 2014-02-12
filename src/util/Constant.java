@@ -11,7 +11,7 @@ public class Constant {
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
     public static final int WARNING_MSG = JOptionPane.WARNING_MESSAGE;
     public static final int QUESTION_MSG = JOptionPane.QUESTION_MESSAGE;
-    public static final double APP_VERSION = 16.9;
+    public static final double APP_VERSION = 17.0;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -29,19 +29,20 @@ public class Constant {
     public static final int SUMMARY_ACTION = 0, TRAILER_ACTION = 1;
     public static final int TORRENT1_ACTION = 2, TORRENT2_ACTION = 3, TORRENT3_ACTION = 4, STREAM1_ACTION = 5, STREAM2_ACTION = 6;
     public static final String TV_EPISODE_FORMAT = "%02d";
+    public static final String ZERO_WIDTH_SPACE;
     public static final int TV_EPISODE_PLACEHOLDER_LEN = 100;
     public static final String TV_EPISODE_PLACEHOLDER;
     public static final String HTML_FONT = "<font face=\"Verdana, Geneva, sans-serif\" size=\"4\">";
     public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
     public static final String TRUE = Boolean.TRUE.toString(), FALSE = Boolean.FALSE.toString();
     public static final String IMAGES = "images";
-    public static final String TXT = ".txt", HTML = ".html", SWF = ".swf";
+    public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + Constant.TXT;
     public static final String PROFILES = "profiles" + TXT;
-    private static final String UPDATE_FILE_VERSION = "45";
+    private static final String UPDATE_FILE_VERSION = "46";
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
-    public static final int SETTINGS_LEN = 57;
+    public static final int SETTINGS_LEN = 61;
     private static final String SETTINGS_VERSION = "11";
     public static final String PROFILE = "profile" + SETTINGS_VERSION + "_";
     public static final String USER_SETTINGS = "userSettings" + SETTINGS_VERSION + TXT;
@@ -50,7 +51,7 @@ public class Constant {
     public static final String ANY_GENRE = "ANY GENRE";
     public static final String ANY_LANGUAGE = "ANY LANGUAGE";
     public static final String ANY_COUNTRY = "ANY COUNTRY";
-    public static final String DVD = "DVD", HD720 = "720 HD", HD1080 = "1080 HD";
+    public static final String HQ = "HQ", DVD = "DVD", HD720 = "720 HD", HD1080 = "1080 HD";
     public static final String NULL = "null";
     public static final String NO_IMAGE = "zzzzz_" + NULL;
     public static final String ZIP = ".zip";
@@ -83,7 +84,9 @@ public class Constant {
         TORRENTS_DIR = APP_DIR + TORRENTS + FILE_SEPARATOR;
         CAN_PEER_BLOCK = WINDOWS && !OS_NAME.equals("windows 95") && !OS_NAME.equals("windows 98") && !OS_NAME.equals("windows me");
 
-        String placeholderChar = "&#8203;";
+        int zeroWidthSpaceCharPoint = 8203;
+        ZERO_WIDTH_SPACE = new String(new int[]{zeroWidthSpaceCharPoint}, 0, 1);
+        String placeholderChar = "&#" + zeroWidthSpaceCharPoint + ";";
         StringBuilder placeholder = new StringBuilder(placeholderChar.length() * TV_EPISODE_PLACEHOLDER_LEN);
         for (int i = 0; i < TV_EPISODE_PLACEHOLDER_LEN; i++) {
             placeholder.append(placeholderChar);

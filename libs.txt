@@ -1,4 +1,4 @@
-Synthetica 2.17.0 (libs) http://www.javasoft.de/synthetica/download
+Synthetica 2.18.0 (libs) http://www.javasoft.de/synthetica/download
 Synthetica blackmoon theme 2.9.5 (libsbm) http://www.javasoft.de/synthetica/themes
 Vuze 5.0.0.0 (libv) http://dev.vuze.com
 org.jdesktop.swingx.autocomplete 1.6.4 (libac) http://grepcode.com/snapshot/repo1.maven.org/maven2/org.swinglabs.swingx/swingx-all/1.6.4

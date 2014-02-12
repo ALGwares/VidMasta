@@ -25,7 +25,6 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JProgressBar;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -113,10 +112,10 @@ public class SplashScreen extends JFrame {
         typeComboBox = new JComboBox();
         toLabel = new JLabel();
         linkProgressBar = new JProgressBar();
-        anyVideoTypeRadioButton = new JRadioButton();
-        dvdRadioButton = new JRadioButton();
-        hd720RadioButton = new JRadioButton();
-        hd1080RadioButton = new JRadioButton();
+        hqVideoTypeCheckBox = new JCheckBox();
+        dvdCheckBox = new JCheckBox();
+        hd720CheckBox = new JCheckBox();
+        hd1080CheckBox = new JCheckBox();
         popularMoviesButton = new JButton();
         popularTVShowsButton = new JButton();
         closeBoxButton = new JButton();
@@ -200,28 +199,30 @@ public class SplashScreen extends JFrame {
         resultsTable.setPreferredSize(null);
         resultsTable.setRowHeight(90);
         resultsScrollPane.setViewportView(resultsTable);
-        resultsTable.getColumnModel().getColumn(0).setMinWidth(61);
-        resultsTable.getColumnModel().getColumn(0).setPreferredWidth(61);
-        resultsTable.getColumnModel().getColumn(0).setMaxWidth(61);
-        resultsTable.getColumnModel().getColumn(0).setHeaderValue(Constant.IMAGE_COL);
-        resultsTable.getColumnModel().getColumn(1).setPreferredWidth(798);
-        resultsTable.getColumnModel().getColumn(1).setHeaderValue(Constant.TITLE_COL);
-        resultsTable.getColumnModel().getColumn(2).setMinWidth(65);
-        resultsTable.getColumnModel().getColumn(2).setPreferredWidth(65);
-        resultsTable.getColumnModel().getColumn(2).setMaxWidth(65);
-        resultsTable.getColumnModel().getColumn(2).setHeaderValue(Constant.YEAR_COL);
-        resultsTable.getColumnModel().getColumn(3).setMinWidth(65);
-        resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
-        resultsTable.getColumnModel().getColumn(3).setMaxWidth(65);
-        resultsTable.getColumnModel().getColumn(3).setHeaderValue(Constant.RATING_COL);
-        resultsTable.getColumnModel().getColumn(4).setMinWidth(0);
-        resultsTable.getColumnModel().getColumn(4).setPreferredWidth(0);
-        resultsTable.getColumnModel().getColumn(4).setMaxWidth(0);
-        resultsTable.getColumnModel().getColumn(4).setHeaderValue(Constant.SUMMARY_COL);
-        resultsTable.getColumnModel().getColumn(5).setMinWidth(0);
-        resultsTable.getColumnModel().getColumn(5).setPreferredWidth(0);
-        resultsTable.getColumnModel().getColumn(5).setMaxWidth(0);
-        resultsTable.getColumnModel().getColumn(5).setHeaderValue(Constant.ID_COL);
+        if (resultsTable.getColumnModel().getColumnCount() > 0) {
+            resultsTable.getColumnModel().getColumn(0).setMinWidth(61);
+            resultsTable.getColumnModel().getColumn(0).setPreferredWidth(61);
+            resultsTable.getColumnModel().getColumn(0).setMaxWidth(61);
+            resultsTable.getColumnModel().getColumn(0).setHeaderValue(Constant.IMAGE_COL);
+            resultsTable.getColumnModel().getColumn(1).setPreferredWidth(798);
+            resultsTable.getColumnModel().getColumn(1).setHeaderValue(Constant.TITLE_COL);
+            resultsTable.getColumnModel().getColumn(2).setMinWidth(65);
+            resultsTable.getColumnModel().getColumn(2).setPreferredWidth(65);
+            resultsTable.getColumnModel().getColumn(2).setMaxWidth(65);
+            resultsTable.getColumnModel().getColumn(2).setHeaderValue(Constant.YEAR_COL);
+            resultsTable.getColumnModel().getColumn(3).setMinWidth(65);
+            resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
+            resultsTable.getColumnModel().getColumn(3).setMaxWidth(65);
+            resultsTable.getColumnModel().getColumn(3).setHeaderValue(Constant.RATING_COL);
+            resultsTable.getColumnModel().getColumn(4).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(4).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(4).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(4).setHeaderValue(Constant.SUMMARY_COL);
+            resultsTable.getColumnModel().getColumn(5).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(5).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(5).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(5).setHeaderValue(Constant.ID_COL);
+        }
 
         progressBar.setEnabled(false);
         progressBar.setStringPainted(true);
@@ -267,17 +268,17 @@ public class SplashScreen extends JFrame {
         linkProgressBar.setRequestFocusEnabled(false);
         linkProgressBar.setString("Searching");
 
-        anyVideoTypeRadioButton.setText(Constant.ANY);
-        anyVideoTypeRadioButton.setEnabled(false);
+        hqVideoTypeCheckBox.setText(Constant.HQ);
+        hqVideoTypeCheckBox.setEnabled(false);
 
-        dvdRadioButton.setText(Constant.DVD);
-        dvdRadioButton.setEnabled(false);
+        dvdCheckBox.setText(Constant.DVD);
+        dvdCheckBox.setEnabled(false);
 
-        hd720RadioButton.setText(Constant.HD720);
-        hd720RadioButton.setEnabled(false);
+        hd720CheckBox.setText(Constant.HD720);
+        hd720CheckBox.setEnabled(false);
 
-        hd1080RadioButton.setText(Constant.HD1080);
-        hd1080RadioButton.setEnabled(false);
+        hd1080CheckBox.setText(Constant.HD1080);
+        hd1080CheckBox.setEnabled(false);
 
         popularMoviesButton.setFont(new Font("Tahoma", 0, 12)); // NOI18N
         popularMoviesButton.setText("Popular Movies");
@@ -369,12 +370,12 @@ public class SplashScreen extends JFrame {
                         .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
                         .addPreferredGap(ComponentPlacement.RELATED, 145, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                            .addComponent(dvdRadioButton)
-                            .addComponent(anyVideoTypeRadioButton))
+                            .addComponent(dvdCheckBox)
+                            .addComponent(hqVideoTypeCheckBox))
                         .addGap(0, 0, 0)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                            .addComponent(hd720RadioButton)
-                            .addComponent(hd1080RadioButton))
+                            .addComponent(hd720CheckBox)
+                            .addComponent(hd1080CheckBox))
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(linkProgressBar, GroupLayout.PREFERRED_SIZE, 258, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -440,9 +441,9 @@ public class SplashScreen extends JFrame {
                 .addContainerGap())
         );
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {anyVideoTypeRadioButton, dvdRadioButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {dvdCheckBox, hqVideoTypeCheckBox});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {hd1080RadioButton, hd720RadioButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {hd1080CheckBox, hd720CheckBox});
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {searchButton, stopButton});
 
@@ -504,13 +505,13 @@ public class SplashScreen extends JFrame {
                     .addComponent(closeBoxButton)
                     .addComponent(linkProgressBar, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(hd720RadioButton)
+                        .addComponent(hd720CheckBox)
                         .addGap(0, 0, 0)
-                        .addComponent(hd1080RadioButton))
+                        .addComponent(hd1080CheckBox))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(anyVideoTypeRadioButton)
+                        .addComponent(hqVideoTypeCheckBox)
                         .addGap(0, 0, 0)
-                        .addComponent(dvdRadioButton))
+                        .addComponent(dvdCheckBox))
                     .addComponent(progressBar, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE)
                     .addComponent(progressBarLabel))
                 .addPreferredGap(ComponentPlacement.RELATED)
@@ -538,13 +539,12 @@ public class SplashScreen extends JFrame {
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
     JCheckBox anyTitleCheckBox;
-    JRadioButton anyVideoTypeRadioButton;
     JButton closeBoxButton;
     JButton connectionIssueButton;
     JButton downloadLink1Button;
     JButton downloadLink2Button;
     JMenu downloadMenu;
-    JRadioButton dvdRadioButton;
+    JCheckBox dvdCheckBox;
     JMenu editMenu;
     JTextField endDateTextField;
     JMenu fileMenu;
@@ -552,9 +552,10 @@ public class SplashScreen extends JFrame {
     JLabel genreLabel;
     JList genreList;
     JScrollPane genreScrollPane;
-    JRadioButton hd1080RadioButton;
-    JRadioButton hd720RadioButton;
+    JCheckBox hd1080CheckBox;
+    JCheckBox hd720CheckBox;
     JMenu helpMenu;
+    JCheckBox hqVideoTypeCheckBox;
     JProgressBar linkProgressBar;
     JButton loadMoreResultsButton;
     JLabel loadingLabel;

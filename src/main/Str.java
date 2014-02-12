@@ -194,11 +194,25 @@ public class Str {
         for (Entry<String, String> entry : Regex.weirdChars.entrySet()) {
             result = Regex.replaceAll(result, entry.getKey(), entry.getValue());
         }
-        return result;
+        return result.trim();
     }
 
     public static String toFileName(String str) {
         return Regex.replaceAll(clean(str).replace(' ', '+'), "[^\\p{Alnum}\\+]", "");
+    }
+
+    public static String capitalize(String str) {
+        char[] chars = str.toCharArray();
+        boolean capitalizeNext = true;
+        for (int i = 0; i < chars.length; i++) {
+            if (chars[i] == ' ') {
+                capitalizeNext = true;
+            } else if (capitalizeNext) {
+                chars[i] = Character.toTitleCase(chars[i]);
+                capitalizeNext = false;
+            }
+        }
+        return new String(chars);
     }
 
     public static void waitForUpdate() {

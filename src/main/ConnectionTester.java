@@ -8,12 +8,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import javax.swing.SwingWorker;
 import listener.GuiListener;
-import util.ConnectionException;
+import util.Connection;
 import util.Constant;
 import util.IO;
 import util.Regex;
 
-public class ConnectionTester extends SwingWorker<Object, Object[]> {
+public class ConnectionTester extends SwingWorker<Object, Object> {
 
     private GuiListener guiListener;
 
@@ -45,9 +45,8 @@ public class ConnectionTester extends SwingWorker<Object, Object[]> {
                 isConnected = true;
                 is = connection.getInputStream();
                 is.read();
-                if (connection.getResponseCode() != 200 || !connection.getResponseMessage().equalsIgnoreCase("OK")) {
-                    throw new ConnectionException("restricted website: " + site);
-                }
+
+                Connection.checkConnectionResponse(connection, site);
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
