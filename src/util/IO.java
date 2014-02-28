@@ -33,17 +33,18 @@ public class IO {
     }
 
     public static String read(File file) throws Exception {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), Constant.UTF8));
-        StringBuilder result = new StringBuilder(4096);
+        BufferedReader br = null;
         try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(file), Constant.UTF8));
+            StringBuilder result = new StringBuilder(4096);
             String line;
             while ((line = br.readLine()) != null) {
                 result.append(line).append(Constant.NEWLINE);
             }
+            return result.toString().trim();
         } finally {
             close(br);
         }
-        return result.toString().trim();
     }
 
     public static long checksum(File file) throws Exception {

@@ -135,6 +135,7 @@ import listener.GuiListener;
 import listener.WorkerListener;
 import main.Str;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import search.Feed;
 import torrent.Magnet;
 import util.Connection;
 import util.ConnectionException;
@@ -6900,6 +6901,16 @@ public class GUI extends JFrame implements GuiListener {
         }
         return Integer.parseInt(port);
     }
+
+    @Override
+    public boolean confirmFeedOffer() throws Exception {
+        JMenuItem feedOfferMenuItem = new JMenuItem();
+        feedOfferMenuItem.setSelected(true);
+        boolean subscribe = showOptionalConfirm("Show new " + HQ_FORMAT + "movies on startup?", feedOfferMenuItem) == JOptionPane.YES_OPTION;
+        Feed.neverOfferAgain(!feedOfferMenuItem.isSelected());
+        return subscribe;
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     JDialog aboutDialog;
     JEditorPane aboutEditorPane;

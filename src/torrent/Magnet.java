@@ -24,6 +24,7 @@ import listener.GuiListener;
 import main.Str;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.ipfilter.impl.IpFilterImpl;
 import org.gudy.azureus2.core3.ipfilter.impl.IpRangeImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -54,7 +55,7 @@ public class Magnet extends Thread {
     private static final AtomicBoolean isPortPossiblyBlocked = new AtomicBoolean(true), magnetDownloadAttempted = new AtomicBoolean();
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
     private static volatile String ipBlockMsg = "";
-    private static SwingWorker<?, ?> azureusStarter;
+    private static volatile SwingWorker<?, ?> azureusStarter;
     private static IpFilterInitializer ipFilterInitializer;
     private static Method serialiseToByteArray;
 
@@ -179,7 +180,8 @@ public class Magnet extends Thread {
         ipFilterInitializerStartSignal.countDown();
     }
 
-    public static synchronized void startAzureus() {
+    // Intentionally un-synchronized because caller is event dispatch thread
+    public static void startAzureus() {
         if (core != null) {
             return;
         }
@@ -234,9 +236,13 @@ public class Magnet extends Thread {
     }
 
     private static synchronized void initAzureus() {
-        try {
-            Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file");
+        if (core != null) {
+            return;
+        }
 
+        Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file");
+
+        try {
             configAzureus();
             setPorts(guiListener.getPort());
 
@@ -403,6 +409,17 @@ public class Magnet extends Thread {
         long numBlockedIps;
         ipBlockMsg = (ipFilter != null && (numBlockedIps = ipFilter.getTotalAddressesInRange()) > 0 ? " (blocking "
                 + (new DecimalFormat("#,###")).format(numBlockedIps) + " untrusty IPs with " + Constant.IP_FILTER + ")" : "");
+    }
+
+    public static boolean isIpBlocked(String ip) throws InterruptedException {
+        ipFilterInitializerStartSignal.await();
+        ipFilterInitializer.join();
+        for (IpRange ipRange : IpFilterImpl.getInstance().getRanges()) {
+            if (ipRange.isInRange(ip)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class IpFilterInitializer extends Thread {

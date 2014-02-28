@@ -178,4 +178,6 @@ public interface GuiListener {
     void setCanProxy(int type);
 
     int getPort();
+
+    boolean confirmFeedOffer() throws Exception;
 }

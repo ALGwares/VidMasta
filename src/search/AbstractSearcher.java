@@ -92,6 +92,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         guiListener.searchStopped();
         workDone();
         guiListener.loading(false);
+        Feed.offer(guiListener);
         return null;
     }
 
