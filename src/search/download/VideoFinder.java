@@ -218,6 +218,11 @@ public class VideoFinder extends AbstractSwingWorker {
                     }
                 }
 
+                if (isCancelled()) {
+                    downloadStopped();
+                    return;
+                }
+
                 Torrent torrent = null;
                 if (!torrents.isEmpty()) {
                     Collections.sort(torrents);
@@ -660,12 +665,11 @@ public class VideoFinder extends AbstractSwingWorker {
                 continue;
             }
 
+            guiListener.enableLinkProgress(true);
             Magnet.waitForAzureusToStart();
             if (isCancelled()) {
                 return;
             }
-
-            guiListener.enableLinkProgress(true);
 
             Magnet magnet = new Magnet(results[i + 4].trim(), Str.toFileName(results[i + 2].trim()));
             try {
@@ -700,12 +704,11 @@ public class VideoFinder extends AbstractSwingWorker {
                 return false;
             }
 
+            guiListener.enableLinkProgress(true);
             Magnet.waitForAzureusToStart();
             if (isCancelled()) {
                 return false;
             }
-
-            guiListener.enableLinkProgress(true);
 
             season = guiListener.getSeason();
             episode = guiListener.getEpisode();
@@ -749,12 +752,11 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void findMovieDownloadLink() throws Exception {
         if (!prefetch) {
+            guiListener.enableLinkProgress(true);
             Magnet.waitForAzureusToStart();
             if (isCancelled()) {
                 return;
             }
-
-            guiListener.enableLinkProgress(true);
         }
 
         getOldTitle();

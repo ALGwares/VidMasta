@@ -128,7 +128,7 @@ public class Connection {
         return sourceCode;
     }
 
-    private static String getSourceCode(final String url, final int connectionType, final boolean showStatus, final boolean emptyOK, final boolean compress,
+    public static String getSourceCode(final String url, final int connectionType, final boolean showStatus, final boolean emptyOK, final boolean compress,
             final boolean throwException) throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);

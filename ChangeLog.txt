@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.02.27   | VidMasta 17.1
+
+CHANGE: Core | Fixed bug in which user interface can become temporarily unresponsive after canceling a TV show download link search and then quickly starting a download link search again for the first time
+CHANGE: Core | Improved file IO error handling for reading files
+CHANGE: UI   | Enabled cancel button for download link searches sooner
+
+
+
+
 2014.02.11   | VidMasta 17.0
 
 CHANGE: Core | Added automatic opening of magnet link in default application (e.g. a BitTorrent client) if conversion to torrent fails
