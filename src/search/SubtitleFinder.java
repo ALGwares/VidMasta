@@ -197,7 +197,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
 
         Collections.sort(subtitles);
 
-        String subtitleName = Str.hashCodeStr(titleID);
+        long subtitleName = Str.hashCode(titleID);
         String subtitleDir = Constant.APP_DIR + subtitleName + Constant.FILE_SEPARATOR;
         String subtitleZip = subtitleDir + subtitleName + Constant.ZIP;
         int numSubtitles = subtitles.size(), maxNumSubtitles = Integer.parseInt(Str.get(458));

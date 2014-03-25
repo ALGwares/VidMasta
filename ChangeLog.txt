@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.03.24   | VidMasta 17.2
+
+CHANGE: Core | Cached download links longer for faster downloads
+CHANGE: Core | Added hash code of magnet link to download link filename to prevent overwriting download links with the same name
+CHANGE: UI   | Added download link name to safety warning message that is shown when download link is from an untrustworthy source
+CHANGE: UI   | Selected all find text when find (under edit menu) functionality is reactivated while active
+
+
+
+
 2014.02.27   | VidMasta 17.1
 
 CHANGE: Core | Fixed bug in which user interface can become temporarily unresponsive after canceling a TV show download link search and then quickly starting a download link search again for the first time

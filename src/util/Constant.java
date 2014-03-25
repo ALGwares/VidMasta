@@ -11,7 +11,7 @@ public class Constant {
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
     public static final int WARNING_MSG = JOptionPane.WARNING_MESSAGE;
     public static final int QUESTION_MSG = JOptionPane.QUESTION_MESSAGE;
-    public static final double APP_VERSION = 17.1;
+    public static final double APP_VERSION = 17.2;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -39,7 +39,7 @@ public class Constant {
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + Constant.TXT;
     public static final String PROFILES = "profiles" + TXT;
-    private static final String UPDATE_FILE_VERSION = "47";
+    private static final String UPDATE_FILE_VERSION = "48";
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 61;

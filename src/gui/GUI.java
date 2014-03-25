@@ -135,7 +135,6 @@ import listener.GuiListener;
 import listener.WorkerListener;
 import main.Str;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-import search.Feed;
 import torrent.Magnet;
 import util.Connection;
 import util.ConnectionException;
@@ -5083,6 +5082,7 @@ public class GUI extends JFrame implements GuiListener {
     private void findMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findMenuItemActionPerformed
         if (findTextField.isEnabled()) {
             findTextField.requestFocusInWindow();
+            findTextField.selectAll();
         } else {
             findTextField.setBorder(titleTextField.getBorder());
             findTextField.setForeground(titleTextField.getForeground());
@@ -5619,13 +5619,11 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private void setSafetyDialog(String statistic, String link) {
-        String stat = "";
-        if (statistic != null && link != null) {
-            stat = " " + statistic + " of the <a href=\"" + link + "\">comments</a> on the video indicate that it may be fake.";
-        }
-        safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + "This download link is from an"
-                + " untrustworthy source." + stat + "<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
+    private void setSafetyDialog(String statistic, String link, String name) {
+        safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + "This download link (" + name
+                + ") is from an untrustworthy source." + (statistic == null || link == null ? "" : " " + statistic + " of the <a href=\"" + link
+                + "\">comments</a> on the video indicate that it may be fake.")
+                + "<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
     }
 
     private void showFaqFrame() {
@@ -6121,14 +6119,14 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void initSafetyDialog() {
+    public void initSafetyDialog(String name) {
         proceedWithDownload = false;
-        setSafetyDialog(null, null);
+        setSafetyDialog(null, null, name);
     }
 
     @Override
-    public void safetyDialogMsg(String statistic, String link) {
-        setSafetyDialog(statistic, link);
+    public void safetyDialogMsg(String statistic, String link, String name) {
+        setSafetyDialog(statistic, link, name);
     }
 
     private void resultsToBackground() {
@@ -6158,14 +6156,13 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public boolean canProceedWithUnsafeDownload2() {
+    public boolean canProceedWithUnsafeDownload(String name) {
         if (!safetyCheckBoxMenuItem.isSelected()) {
             return true;
         }
 
         proceedWithDownload = false;
-        safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + "This download link is "
-                + "from an untrustworthy source.<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
+        setSafetyDialog(null, null, name);
         showSafetyDialog();
         return proceedWithDownload;
     }
@@ -6346,7 +6343,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void saveTorrent(String saveFileName, File torrentFile) {
+    public void saveTorrent(File torrentFile) {
         startPeerBlock();
 
         if (downloadWithDefaultAppCheckBoxMenuItem.isSelected()) {
@@ -6365,7 +6362,7 @@ public class GUI extends JFrame implements GuiListener {
         subtitleFileChooser.cancelSelection();
         torrentFileChooser.setFileFilter(Regex.torrentFileFilter);
         torrentFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        torrentFileChooser.setSelectedFile(new File(torrentDir + saveFileName));
+        torrentFileChooser.setSelectedFile(new File(torrentDir + torrentFile.getName()));
 
         if (save(torrentFileChooser)) {
             try {
@@ -6903,12 +6900,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public boolean confirmFeedOffer() throws Exception {
+    public boolean[] confirmFeedOffer() {
         JMenuItem feedOfferMenuItem = new JMenuItem();
         feedOfferMenuItem.setSelected(true);
         boolean subscribe = showOptionalConfirm("Show new " + HQ_FORMAT + "movies on startup?", feedOfferMenuItem) == JOptionPane.YES_OPTION;
-        Feed.neverOfferAgain(!feedOfferMenuItem.isSelected());
-        return subscribe;
+        return new boolean[]{subscribe, feedOfferMenuItem.isSelected()};
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

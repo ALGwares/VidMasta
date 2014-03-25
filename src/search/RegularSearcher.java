@@ -268,7 +268,7 @@ public class RegularSearcher extends AbstractSearcher {
 
     @Override
     protected boolean findImage(Video video) {
-        return video.saveImagePath() != null && !noImageTitles.contains(video.id);
+        return video.tooOldOrNonexistentImagePath() != null && !noImageTitles.contains(video.id);
     }
 
     @Override

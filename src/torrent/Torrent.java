@@ -1,6 +1,7 @@
 package torrent;
 
 import java.io.File;
+import main.Str;
 import util.Constant;
 
 public class Torrent implements Comparable<Torrent> {
@@ -21,8 +22,9 @@ public class Torrent implements Comparable<Torrent> {
         SIZE_IN_GIB = sizeInGiB;
     }
 
-    public String saveName() {
-        return NAME + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_" + SIZE_IN_GIB + "GB" : "") + EXTENSIONS + Constant.TORRENT;
+    public String saveName(boolean fileName) {
+        return (fileName ? Str.toFileName(NAME) : NAME) + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_" + SIZE_IN_GIB + "GB" : "") + "_"
+                + MAGNET_LINK.hashCode() + EXTENSIONS + Constant.TORRENT;
     }
 
     @Override

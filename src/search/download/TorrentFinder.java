@@ -258,7 +258,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 numSourcesNum = Integer.parseInt(numSources);
             }
 
-            Magnet magnet = new Magnet(Str.get(388) + Regex.match(videoStr, Str.get(389), Str.get(390)), Str.toFileName(titleName));
+            Magnet magnet = new Magnet(Str.get(388) + Regex.match(videoStr, Str.get(389), Str.get(390)));
             boolean isTorrentDownloaded = magnet.download(this);
             if (isCancelled()) {
                 return null;
@@ -283,7 +283,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 extensions = "";
             }
 
-            return new Torrent(torrentID, magnet.MAGNET_LINK, magnet.NAME, torrent, extensions, !Regex.match(videoStr, Str.get(74), Str.get(75)).isEmpty(),
+            return new Torrent(torrentID, magnet.MAGNET_LINK, titleName, torrent, extensions, !Regex.match(videoStr, Str.get(74), Str.get(75)).isEmpty(),
                     numSourcesNum, sizeInGiB);
         }
         return null;

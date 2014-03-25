@@ -275,6 +275,11 @@ public class IO {
         return dir.endsWith(Constant.FILE_SEPARATOR) ? dir : dir + Constant.FILE_SEPARATOR;
     }
 
+    public static boolean isFileTooOld(File file, long maxAge) {
+        long lastModified = file.lastModified();
+        return lastModified != 0L && (System.currentTimeMillis() - lastModified) > maxAge;
+    }
+
     private IO() {
     }
 }

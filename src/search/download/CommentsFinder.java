@@ -12,13 +12,14 @@ import util.Regex;
 public class CommentsFinder extends SwingWorker<Object, Object> {
 
     private GuiListener guiListener;
-    private String link;
+    private String link, name;
     public static final String NO_COMMENTS = "There are no comments." + Constant.STD_NEWLINE + Constant.STD_NEWLINE;
     volatile String comments;
 
-    CommentsFinder(GuiListener guiListener, String link) {
+    CommentsFinder(GuiListener guiListener, String link, String name) {
         this.guiListener = guiListener;
         this.link = link;
+        this.name = name;
     }
 
     @Override
@@ -46,8 +47,7 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
 
             if (!isCancelled() && numComments != 0) {
                 comments = commentsBuf.toString();
-                guiListener.safetyDialogMsg(numFakeComments + Str.get(155) + numComments + Str.get(156) + percentage
-                        + Str.get(157), link);
+                guiListener.safetyDialogMsg(numFakeComments + Str.get(155) + numComments + Str.get(156) + percentage + Str.get(157), link, name);
             }
         } catch (Exception e) {
             if (!isCancelled()) {

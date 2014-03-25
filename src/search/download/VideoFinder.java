@@ -251,13 +251,14 @@ public class VideoFinder extends AbstractSwingWorker {
                     if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                         saveTorrent(torrent);
                     } else if (torrent.ID.isEmpty()) {
-                        if (guiListener.canProceedWithUnsafeDownload2()) {
+                        if (guiListener.canProceedWithUnsafeDownload(torrent.saveName(false))) {
                             saveTorrent(torrent);
                         }
                     } else {
-                        guiListener.initSafetyDialog();
+                        String torrentSaveName = torrent.saveName(false);
+                        guiListener.initSafetyDialog(torrentSaveName);
 
-                        commentsFinder = new CommentsFinder(guiListener, Str.get(150) + torrent.ID);
+                        commentsFinder = new CommentsFinder(guiListener, Str.get(150) + torrent.ID, torrentSaveName);
                         commentsFinder.execute();
 
                         guiListener.showSafetyDialog();
@@ -417,29 +418,24 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void saveTorrent(Torrent torrent) throws Exception {
         if (torrent.FILE == null || !torrent.FILE.exists()) {
-            List<String> nameParts = Regex.split(torrent.saveName(), "\\+", 55);
-            StringBuilder name = new StringBuilder(nameParts.size() * 59);
-            for (String namePart : nameParts) {
-                name.append(namePart).append("<br>");
-            }
-            guiListener.error(new ConnectionException(Connection.error("downloading<br>" + name.toString(), "", "")));
+            guiListener.error(new ConnectionException(Connection.error("downloading<br>" + torrent.saveName(false), "", "")));
             linkProgressDone();
             Connection.browse(torrent.MAGNET_LINK, "BitTorrent client", "magnet");
             return;
         }
 
-        if (guiListener.canAutoDownload()) {
-            String saveFilePath = IO.parentDir(torrent.FILE) + torrent.saveName();
-            File saveFile = new File(saveFilePath);
-            if (!saveFile.exists()) {
-                IO.write(torrent.FILE, saveFile);
-            }
-            browse(saveFilePath);
-            return;
+        String torrentFilePath = IO.parentDir(torrent.FILE) + torrent.saveName(true);
+        File torrentFile = new File(torrentFilePath);
+        if (!torrentFile.exists()) {
+            IO.write(torrent.FILE, torrentFile);
         }
 
-        linkProgressDone();
-        guiListener.saveTorrent(torrent.saveName(), torrent.FILE);
+        if (guiListener.canAutoDownload()) {
+            browse(torrentFilePath);
+        } else {
+            linkProgressDone();
+            guiListener.saveTorrent(torrentFile);
+        }
     }
 
     private void findStream() throws Exception {
@@ -671,7 +667,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 return;
             }
 
-            Magnet magnet = new Magnet(results[i + 4].trim(), Str.toFileName(results[i + 2].trim()));
+            Magnet magnet = new Magnet(results[i + 4].trim());
             try {
                 boolean isTorrentDownloaded = magnet.download(this);
                 if (isCancelled()) {
@@ -688,7 +684,7 @@ public class VideoFinder extends AbstractSwingWorker {
                     extensions = "";
                 }
 
-                torrents.add(new Torrent("", magnet.MAGNET_LINK, magnet.NAME, torrent, extensions, Integer.parseInt(results[i + 3].trim()) == 1, 0, 0));
+                torrents.add(new Torrent("", magnet.MAGNET_LINK, results[i + 2].trim(), torrent, extensions, Integer.parseInt(results[i + 3].trim()) == 1, 0, 0));
             } catch (Exception e) {
                 if (!isCancelled()) {
                     guiListener.error(e);

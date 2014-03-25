@@ -50,7 +50,6 @@ public class Magnet extends Thread {
     private static boolean isAzureusConfigured;
     private static volatile AzureusCore core;
     public final String MAGNET_LINK;
-    public final String NAME;
     public final File TORRENT;
     private static final AtomicBoolean isPortPossiblyBlocked = new AtomicBoolean(true), magnetDownloadAttempted = new AtomicBoolean();
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
@@ -59,11 +58,10 @@ public class Magnet extends Thread {
     private static IpFilterInitializer ipFilterInitializer;
     private static Method serialiseToByteArray;
 
-    public Magnet(String magnetLink, String name) {
+    public Magnet(String magnetLink) {
         MAGNET_LINK = magnetLink;
-        NAME = name;
         IO.fileOp(Constant.TORRENTS_DIR, IO.MK_DIR);
-        TORRENT = new File(Constant.TORRENTS_DIR + name + Constant.TORRENT);
+        TORRENT = new File(Constant.TORRENTS_DIR + Str.hashCode(magnetLink) + Constant.TORRENT);
     }
 
     public boolean download(SwingWorker<?, ?> parent) throws Exception {

@@ -15,6 +15,7 @@ import main.Str;
 import search.util.VideoSearch;
 import util.Connection;
 import util.Constant;
+import util.IO;
 import util.Regex;
 
 public class Video {
@@ -38,10 +39,10 @@ public class Video {
     }
 
     public void saveImage() throws Exception {
-        String imagePath = saveImagePath();
-        if (imagePath != null) {
+        String tooOldOrNonexistentImagePath = tooOldOrNonexistentImagePath();
+        if (tooOldOrNonexistentImagePath != null) {
             try {
-                Connection.saveData(imageLink, imagePath, Connection.VIDEO_INFO);
+                Connection.saveData(imageLink, tooOldOrNonexistentImagePath, Connection.VIDEO_INFO);
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
@@ -50,14 +51,10 @@ public class Video {
         }
     }
 
-    public String saveImagePath() {
+    public String tooOldOrNonexistentImagePath() {
         String imagePath = Constant.CACHE_DIR + imagePath(id);
         File image = new File(imagePath);
-        if (image.exists()) {
-            long lastModified = image.lastModified();
-            return lastModified != 0L && (System.currentTimeMillis() - lastModified) > MAX_IMAGE_AGE ? imagePath : null;
-        }
-        return imagePath;
+        return image.exists() ? (IO.isFileTooOld(image, MAX_IMAGE_AGE) ? imagePath : null) : imagePath;
     }
 
     public Object[] toTableRow(GuiListener guiListener, boolean summaryIsLink, boolean isBold) {

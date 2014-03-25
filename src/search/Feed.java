@@ -17,23 +17,28 @@ public class Feed {
     private static final File OFFER_COUNT = new File(Constant.APP_DIR + "offer");
     private static SwingWorker<Object, Object> offerer;
 
-    public static synchronized void offer(final GuiListener guiListener) {
-        if (!CAN_OFFER || offerer != null) {
+    static void offer(final GuiListener guiListener) {
+        if (!CAN_OFFER) {
             return;
         }
-        (offerer = new SwingWorker<Object, Object>() {
-            @Override
-            protected Object doInBackground() {
-                try {
-                    offerHelper(guiListener);
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                }
-                return null;
+        synchronized (Feed.class) {
+            if (offerer != null) {
+                return;
             }
-        }).execute();
+            (offerer = new SwingWorker<Object, Object>() {
+                @Override
+                protected Object doInBackground() {
+                    try {
+                        offerHelper(guiListener);
+                    } catch (Exception e) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e);
+                        }
+                    }
+                    return null;
+                }
+            }).execute();
+        }
     }
 
     private static void offerHelper(GuiListener guiListener) throws Exception {
@@ -60,15 +65,19 @@ public class Feed {
         }
 
         String ipAddress = Regex.match(Connection.getSourceCode(Str.get(603), Connection.UPDATE, false, false, true, true), Str.get(604));
-        if (ipAddress.isEmpty() || neverOfferAgain(Magnet.isIpBlocked(ipAddress)) || !guiListener.confirmFeedOffer()) {
+        if (ipAddress.isEmpty() || neverOfferAgain(Magnet.isIpBlocked(ipAddress))) {
             return;
         }
 
-        guiListener.browserNotification(Str.get(605), Str.get(606), -1);
-        Connection.browse(Str.get(607));
+        boolean[] subscribe = guiListener.confirmFeedOffer();
+        neverOfferAgain(!subscribe[1]);
+        if (subscribe[0]) {
+            guiListener.browserNotification(Str.get(605), Str.get(606), -1);
+            Connection.browse(Str.get(607));
+        }
     }
 
-    public static boolean neverOfferAgain(boolean neverOfferAgain) {
+    static boolean neverOfferAgain(boolean neverOfferAgain) {
         if (neverOfferAgain) {
             try {
                 IO.write(OFFER_COUNT, "-1" + Constant.NEWLINE + Integer.MAX_VALUE);

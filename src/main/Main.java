@@ -190,7 +190,15 @@ public class Main implements WorkerListener {
     }
 
     static void removeTempFiles() {
-        IO.fileOp(Constant.TORRENTS_DIR, IO.RM_DIR);
+        File[] torrents = new File(Constant.TORRENTS_DIR).listFiles();
+        if (torrents != null) {
+            long maxAge = Long.parseLong(Str.get(608));
+            for (File torrent : torrents) {
+                if (IO.isFileTooOld(torrent, maxAge)) {
+                    IO.fileOp(torrent, IO.RM_FILE);
+                }
+            }
+        }
         IO.fileOp(Constant.TEMP_DIR, IO.RM_DIR);
     }
 
@@ -435,8 +443,8 @@ public class Main implements WorkerListener {
             String classNamePrefix = "de.javasoft.plaf.synthetica.Synthetica", rootPaneUIClass = classNamePrefix + "RootPaneUI", anonymousInnerClass1 = "$1";
             ModClass.mod(Constant.PROGRAM_DIR + "lib" + Constant.FILE_SEPARATOR + "libs" + Constant.JAR, new ModClass(rootPaneUIClass, new byte[]{0, 2, 4, -84, 0},
                     new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{77, 16, 16, 96, -75},
-                    new byte[]{77, 16, 0, 96, -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6},
-                    new byte[]{0, 29, -102, 0, 6}));
+                            new byte[]{77, 16, 0, 96, -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6},
+                            new byte[]{0, 29, -102, 0, 6}));
             UIManager.put("Synthetica.text.antialias", true);
             UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
             UIManager.put("Synthetica.translucency4DisabledIcons.enabled", true);

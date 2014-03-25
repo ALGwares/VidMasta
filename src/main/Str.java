@@ -158,10 +158,6 @@ public class Str {
         return hashCode;
     }
 
-    public static String hashCodeStr(final String str) {
-        return String.valueOf(hashCode(str));
-    }
-
     public static String htmlToPlainText(String htmlText) {
         final StringBuilder plainText = new StringBuilder(htmlText.length());
         try {

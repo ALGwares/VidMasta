@@ -31,15 +31,15 @@ public interface GuiListener {
 
     void msg(String msg, int msgType);
 
-    void initSafetyDialog();
+    void initSafetyDialog(String name);
 
-    void safetyDialogMsg(String statistic, String link);
+    void safetyDialogMsg(String statistic, String link, String name);
 
     void showSafetyDialog();
 
     boolean canProceedWithUnsafeDownload();
 
-    boolean canProceedWithUnsafeDownload2();
+    boolean canProceedWithUnsafeDownload(String name);
 
     void summary(String summary, String imagePath);
 
@@ -51,7 +51,7 @@ public interface GuiListener {
 
     void startPeerBlock();
 
-    void saveTorrent(String saveFileName, File torrentFile);
+    void saveTorrent(File torrentFile);
 
     void saveSubtitle(String saveFileName, File subtitleFile);
 
@@ -179,5 +179,5 @@ public interface GuiListener {
 
     int getPort();
 
-    boolean confirmFeedOffer() throws Exception;
+    boolean[] confirmFeedOffer();
 }

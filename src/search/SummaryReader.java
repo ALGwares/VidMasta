@@ -30,7 +30,7 @@ public class SummaryReader extends AbstractSwingWorker {
 
     GuiListener guiListener;
     private String titleID, title, year, summary;
-    String swfName;
+    long swfName;
     Map<Integer, String> movieParts = new ConcurrentHashMap<Integer, String>(8, .75f, 8);
     final AtomicBoolean failure = new AtomicBoolean();
 
@@ -59,7 +59,7 @@ public class SummaryReader extends AbstractSwingWorker {
 
     public void readSummary() throws Exception {
         IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
-        swfName = Str.hashCodeStr(titleID);
+        swfName = Str.hashCode(titleID);
         String swfSpeech = Constant.TEMP_DIR + swfName + Constant.SWF;
         String swfPage = Constant.TEMP_DIR + swfName + Constant.HTML;
         if ((new File(swfSpeech)).exists() && (new File(swfPage)).exists()) {
