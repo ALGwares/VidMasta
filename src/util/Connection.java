@@ -299,7 +299,7 @@ public class Connection {
             connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
         }
         connection.setRequestProperty("User-Agent", Str.get(301));
-        int timeout = guiListener.getTimeout();
+        int timeout = guiListener.getTimeout() * 1000;
         connection.setConnectTimeout(timeout);
         connection.setReadTimeout(timeout);
     }

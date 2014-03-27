@@ -109,6 +109,8 @@ public interface GuiListener {
 
     int getTimeout();
 
+    int getDownloadLinkTimeout();
+
     void setStatusBar(String msg);
 
     void clearStatusBar();

@@ -622,6 +622,8 @@ public class GUI extends JFrame implements GuiListener {
         timeoutLabel = new JLabel();
         timeoutComboBox = new JComboBox();
         timeoutButton = new JButton();
+        timeoutDownloadLinkLabel = new JLabel();
+        timeoutDownloadLinkComboBox = new JComboBox();
         tvDialog = new JDialog();
         tvSeasonComboBox = new JComboBox();
         tvEpisodeComboBox = new JComboBox();
@@ -1111,29 +1113,55 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
+        timeoutDownloadLinkLabel.setText("Download Link Timeout (Seconds):");
+        timeoutDownloadLinkLabel.setToolTipText("set the timeout that the application uses when downloading download links");
+
+        timeoutDownloadLinkComboBox.setModel(new DefaultComboBoxModel(new String[] { "0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95", "100", "105", "110", "115", "120", "125", "130", "135", "140", "145", "150", "155", "160", "165", "170", "175", "180" }));
+        timeoutDownloadLinkComboBox.setSelectedIndex(18);
+        timeoutDownloadLinkComboBox.setSelectedItem("90");
+
         GroupLayout timeoutDialogLayout = new GroupLayout(timeoutDialog.getContentPane());
         timeoutDialog.getContentPane().setLayout(timeoutDialogLayout);
         timeoutDialogLayout.setHorizontalGroup(
             timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timeoutDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(timeoutLabel)
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addComponent(timeoutComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(timeoutButton)
-                .addContainerGap())
+                .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(timeoutDialogLayout.createSequentialGroup()
+                        .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.TRAILING, false)
+                            .addComponent(timeoutDownloadLinkLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(timeoutLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING, false)
+                            .addComponent(timeoutComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(timeoutDownloadLinkComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(timeoutButton))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
+
+        timeoutDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {timeoutDownloadLinkLabel, timeoutLabel});
+
+        timeoutDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {timeoutComboBox, timeoutDownloadLinkComboBox});
+
         timeoutDialogLayout.setVerticalGroup(
             timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timeoutDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(timeoutLabel)
-                    .addComponent(timeoutComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(timeoutButton))
-                .addContainerGap())
+                    .addComponent(timeoutComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.BASELINE)
+                    .addComponent(timeoutDownloadLinkLabel)
+                    .addComponent(timeoutDownloadLinkComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(timeoutButton)
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        timeoutDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {timeoutDownloadLinkLabel, timeoutLabel});
+
+        timeoutDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {timeoutComboBox, timeoutDownloadLinkComboBox});
 
         splashScreen.progress();
 
@@ -5699,6 +5727,8 @@ public class GUI extends JFrame implements GuiListener {
                 torrentDir = getPath(settings, ++i);
                 subtitleDir = getPath(settings, ++i);
 
+                restoreComboBoxes(settings, i, timeoutDownloadLinkComboBox);
+
                 if (!updateSettings) {
                     return;
                 }
@@ -5739,6 +5769,8 @@ public class GUI extends JFrame implements GuiListener {
             saveButtons(settings, downloadWithDefaultAppCheckBoxMenuItem, feedCheckBoxMenuItem);
 
             savePaths(settings, proxyImportFile, proxyExportFile, torrentDir, subtitleDir);
+
+            saveComboBoxes(settings, timeoutDownloadLinkComboBox);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -6621,7 +6653,12 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public int getTimeout() {
-        return Integer.parseInt((String) timeoutComboBox.getSelectedItem()) * 1000;
+        return Integer.parseInt((String) timeoutComboBox.getSelectedItem());
+    }
+
+    @Override
+    public int getDownloadLinkTimeout() {
+        return Integer.parseInt((String) timeoutDownloadLinkComboBox.getSelectedItem());
     }
 
     @Override
@@ -7156,6 +7193,8 @@ public class GUI extends JFrame implements GuiListener {
     JButton timeoutButton;
     JComboBox timeoutComboBox;
     JDialog timeoutDialog;
+    JComboBox timeoutDownloadLinkComboBox;
+    JLabel timeoutDownloadLinkLabel;
     JLabel timeoutLabel;
     JMenuItem timeoutMenuItem;
     JLabel titleLabel;

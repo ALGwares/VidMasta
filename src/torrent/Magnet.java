@@ -69,16 +69,9 @@ public class Magnet extends Thread {
             return true;
         }
 
-        int timeout = guiListener.getTimeout(), waitTime = Integer.parseInt(Str.get(391)), numChecks, milliSeconds = 1000;
-        if (timeout < waitTime) {
-            numChecks = waitTime / milliSeconds;
-        } else {
-            numChecks = timeout / milliSeconds;
-        }
-
         start();
 
-        for (int i = 0; i < numChecks; i++) {
+        for (int i = guiListener.getDownloadLinkTimeout(); i > 0; i--) {
             try {
                 if (isDHTConnecting()) {
                     Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file...it may take many seconds"
@@ -87,17 +80,13 @@ public class Magnet extends Thread {
                     Connection.setStatusBar(Constant.TRANSFERRING + "torrent network to convert magnet link to torrent file...it may take a few seconds"
                             + ipBlockMsg);
                 }
-                join(milliSeconds);
+                join(1000);
                 if ((!isDoneDownloading.get() && torrentExists()) || isDoneSaving.get() || parent.isCancelled()) {
                     break;
                 }
             } finally {
                 Connection.unsetStatusBar();
             }
-        }
-
-        if (!isDoneDownloading.get()) {
-            interrupt();
         }
 
         return torrentExists();

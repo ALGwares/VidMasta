@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.03.26   | VidMasta 17.3
+
+CHANGE: Core | Improved download link performance by improved caching
+CHANGE: UI   | Added download link timeout selection to connection timeout dialog for finer control
+
+
+
+
 2014.03.24   | VidMasta 17.2
 
 CHANGE: Core | Cached download links longer for faster downloads

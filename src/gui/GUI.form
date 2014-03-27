@@ -309,26 +309,41 @@
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Component id="timeoutLabel" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Component id="timeoutComboBox" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
-                  <Component id="timeoutButton" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
+                          <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                              <Component id="timeoutDownloadLinkLabel" linkSize="172" max="32767" attributes="0"/>
+                              <Component id="timeoutLabel" linkSize="172" max="32767" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="timeoutComboBox" linkSize="174" max="32767" attributes="0"/>
+                              <Component id="timeoutDownloadLinkComboBox" linkSize="174" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <Component id="timeoutButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace pref="20" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="timeoutLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="timeoutComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="timeoutButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="timeoutLabel" linkSize="173" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="timeoutComboBox" linkSize="175" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="timeoutDownloadLinkLabel" linkSize="173" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="timeoutDownloadLinkComboBox" linkSize="175" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <Component id="timeoutButton" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -397,6 +412,63 @@
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="timeoutButtonActionPerformed"/>
           </Events>
+        </Component>
+        <Component class="javax.swing.JLabel" name="timeoutDownloadLinkLabel">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Download Link Timeout (Seconds):"/>
+            <Property name="toolTipText" type="java.lang.String" value="set the timeout that the application uses when downloading download links"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JComboBox" name="timeoutDownloadLinkComboBox">
+          <Properties>
+            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+              <StringArray count="37">
+                <StringItem index="0" value="0"/>
+                <StringItem index="1" value="5"/>
+                <StringItem index="2" value="10"/>
+                <StringItem index="3" value="15"/>
+                <StringItem index="4" value="20"/>
+                <StringItem index="5" value="25"/>
+                <StringItem index="6" value="30"/>
+                <StringItem index="7" value="35"/>
+                <StringItem index="8" value="40"/>
+                <StringItem index="9" value="45"/>
+                <StringItem index="10" value="50"/>
+                <StringItem index="11" value="55"/>
+                <StringItem index="12" value="60"/>
+                <StringItem index="13" value="65"/>
+                <StringItem index="14" value="70"/>
+                <StringItem index="15" value="75"/>
+                <StringItem index="16" value="80"/>
+                <StringItem index="17" value="85"/>
+                <StringItem index="18" value="90"/>
+                <StringItem index="19" value="95"/>
+                <StringItem index="20" value="100"/>
+                <StringItem index="21" value="105"/>
+                <StringItem index="22" value="110"/>
+                <StringItem index="23" value="115"/>
+                <StringItem index="24" value="120"/>
+                <StringItem index="25" value="125"/>
+                <StringItem index="26" value="130"/>
+                <StringItem index="27" value="135"/>
+                <StringItem index="28" value="140"/>
+                <StringItem index="29" value="145"/>
+                <StringItem index="30" value="150"/>
+                <StringItem index="31" value="155"/>
+                <StringItem index="32" value="160"/>
+                <StringItem index="33" value="165"/>
+                <StringItem index="34" value="170"/>
+                <StringItem index="35" value="175"/>
+                <StringItem index="36" value="180"/>
+              </StringArray>
+            </Property>
+            <Property name="selectedIndex" type="int" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="18" type="code"/>
+            </Property>
+            <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;90&quot;" type="code"/>
+            </Property>
+          </Properties>
         </Component>
       </SubComponents>
     </Container>
