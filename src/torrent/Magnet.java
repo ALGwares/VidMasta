@@ -51,7 +51,6 @@ public class Magnet extends Thread {
     private static volatile AzureusCore core;
     public final String MAGNET_LINK;
     public final File TORRENT;
-    private static final AtomicBoolean isPortPossiblyBlocked = new AtomicBoolean(true), magnetDownloadAttempted = new AtomicBoolean();
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
     private static volatile String ipBlockMsg = "";
     private static volatile SwingWorker<?, ?> azureusStarter;
@@ -104,9 +103,7 @@ public class Magnet extends Thread {
     }
 
     private void download() throws Exception {
-        magnetDownloadAttempted.set(true);
         TorrentImpl torrent = (TorrentImpl) TorrentManagerImpl.getSingleton().getURLDownloader(new URL(MAGNET_LINK)).download();
-        isPortPossiblyBlocked.set(false);
         isDoneDownloading.set(true);
 
         if (torrentExists()) {
@@ -140,10 +137,6 @@ public class Magnet extends Thread {
             Debug.println(TORRENT.getName() + " converted");
         }
         isDoneSaving.set(true);
-    }
-
-    public static boolean isPortPossiblyBlocked() {
-        return magnetDownloadAttempted.get() && isPortPossiblyBlocked.get();
     }
 
     private boolean torrentExists() {
@@ -378,18 +371,6 @@ public class Magnet extends Thread {
         }
 
         return false;
-    }
-
-    public static synchronized void enableIpFilter(boolean enable) {
-        if (core == null) {
-            return;
-        }
-        IpFilter ipFilter = IpFilterImpl.getInstance();
-        if (ipFilter.isEnabled() != enable) {
-            ipFilter.setInRangeAddressesAreAllowed(!enable);
-            ipFilter.setEnabled(enable);
-            setIpBlockMsg(enable ? ipFilter : null);
-        }
     }
 
     private static void setIpBlockMsg(IpFilter ipFilter) {

@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.04.03   | VidMasta 17.4
+
+CHANGE: Core | Removed inaccurate and no longer necessary (since version 17.0) blocked port and bad IP filtering checks that may be incorrectly triggered when a download link is not found
+CHANGE: Core | Updated list of untrusty IPs that are automatically filtered
+CHANGE: UI   | Improved formatting of download link name shown in message dialogs
+CHANGE: UI   | Made first country and language selections visible without the need to scroll
+
+
+
+
 2014.03.26   | VidMasta 17.3
 
 CHANGE: Core | Improved download link performance by improved caching

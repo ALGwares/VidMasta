@@ -3,6 +3,7 @@ package torrent;
 import java.io.File;
 import main.Str;
 import util.Constant;
+import util.Regex;
 
 public class Torrent implements Comparable<Torrent> {
 
@@ -23,8 +24,8 @@ public class Torrent implements Comparable<Torrent> {
     }
 
     public String saveName(boolean fileName) {
-        return (fileName ? Str.toFileName(NAME) : NAME) + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_" + SIZE_IN_GIB + "GB" : "") + "_"
-                + MAGNET_LINK.hashCode() + EXTENSIONS + Constant.TORRENT;
+        return (fileName ? Str.toFileName(NAME) : Regex.replaceAll(NAME, Str.get(609), Str.get(610))) + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_"
+                + SIZE_IN_GIB + "GB" : "") + "_" + MAGNET_LINK.hashCode() + EXTENSIONS + Constant.TORRENT;
     }
 
     @Override

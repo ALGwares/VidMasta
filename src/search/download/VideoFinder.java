@@ -50,7 +50,6 @@ public class VideoFinder extends AbstractSwingWorker {
     private boolean isTVShow, isTVShowAndMovie, isLink, findOldTitleStream, prefetch;
     private TorrentSearchState searchState;
     private CommentsFinder commentsFinder;
-    private static int failCount;
     private final AtomicBoolean isLinkProgressDone = new AtomicBoolean();
 
     public VideoFinder(GuiListener guiListener, int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year,
@@ -179,7 +178,6 @@ public class VideoFinder extends AbstractSwingWorker {
             guiListener.watchTrailerStopped();
         } else if (action == Constant.STREAM1_ACTION || (isStream2 = (action == Constant.STREAM2_ACTION))) {
             guiListener.enableWatch(false);
-
             try {
                 findStream();
             } catch (Exception e) {
@@ -187,7 +185,6 @@ public class VideoFinder extends AbstractSwingWorker {
                     guiListener.error(e);
                 }
             }
-
             watchStopped();
         } else {
             initDownloadState();
@@ -234,11 +231,6 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 if (torrent == null) {
                     msg("The download link" + NOT_FOUND, Constant.INFO_MSG);
-                    if (Magnet.isPortPossiblyBlocked() && ++failCount == 2) {
-                        Magnet.enableIpFilter(false);
-                        guiListener.msg(Constant.APP_TITLE + "'s internet connectivity may be limited. Check that the TCP/UDP port, under the download menu, is unfirewalled and forwarded.",
-                                Constant.ERROR_MSG);
-                    }
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);

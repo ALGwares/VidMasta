@@ -5860,6 +5860,7 @@ public class GUI extends JFrame implements GuiListener {
             }
 
             list.setSelectedIndices(selection);
+            list.ensureIndexIsVisible(list.getSelectedIndex());
         }
 
         private String saveSize(Window window) {
