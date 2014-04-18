@@ -231,6 +231,9 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 if (torrent == null) {
                     msg("The download link" + NOT_FOUND, Constant.INFO_MSG);
+                    if (!searchState.format.equals(Constant.HD720) && !searchState.format.equals(Constant.HD1080)) {
+                        Offer.offer(guiListener, 617, title);
+                    }
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
@@ -472,6 +475,7 @@ public class VideoFinder extends AbstractSwingWorker {
     private void findOldTitleStream() throws Exception {
         if (findOldTitleStream) {
             msg("The video" + NOT_FOUND, Constant.INFO_MSG);
+            Offer.offer(guiListener, 618, title);
             return;
         }
 
@@ -483,6 +487,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
         if (oldTitle == null) {
             msg("The video" + NOT_FOUND, Constant.INFO_MSG);
+            Offer.offer(guiListener, 618, title);
         } else {
             findStream();
         }

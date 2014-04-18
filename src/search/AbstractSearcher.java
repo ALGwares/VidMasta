@@ -92,7 +92,6 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         guiListener.searchStopped();
         workDone();
         guiListener.loading(false);
-        Feed.offer(guiListener);
         return null;
     }
 
@@ -210,10 +209,8 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         try {
             currSourceCode = Connection.getSourceCode(url, connectionType());
         } catch (ConnectionException e) {
-            if (!isCancelled()) {
-                if (connectionException(url, e)) {
-                    return;
-                }
+            if (!isCancelled() && connectionException(url, e)) {
+                return;
             }
             throw new ConnectionException();
         }

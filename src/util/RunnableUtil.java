@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.RunnableFuture;
 import javax.swing.SwingWorker;
 
 public class RunnableUtil {
@@ -39,7 +40,7 @@ public class RunnableUtil {
     public static abstract class AbstractWorker<T> {
 
         private static final ExecutorService executorService = Executors.newCachedThreadPool();
-        private final FutureTask<T> future;
+        private final RunnableFuture<T> future;
         protected volatile PropertyChangeListener doneListener;
 
         public AbstractWorker() {

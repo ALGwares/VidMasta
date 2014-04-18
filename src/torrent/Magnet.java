@@ -54,7 +54,7 @@ public class Magnet extends Thread {
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
     private static volatile String ipBlockMsg = "";
     private static volatile SwingWorker<?, ?> azureusStarter;
-    private static IpFilterInitializer ipFilterInitializer;
+    private static Thread ipFilterInitializer;
     private static Method serialiseToByteArray;
 
     public Magnet(String magnetLink) {

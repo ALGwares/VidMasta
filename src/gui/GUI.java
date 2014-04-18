@@ -6938,11 +6938,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public boolean[] confirmFeedOffer() {
-        JMenuItem feedOfferMenuItem = new JMenuItem();
-        feedOfferMenuItem.setSelected(true);
-        boolean subscribe = showOptionalConfirm("Show new " + HQ_FORMAT + "movies on startup?", feedOfferMenuItem) == JOptionPane.YES_OPTION;
-        return new boolean[]{subscribe, feedOfferMenuItem.isSelected()};
+    public boolean[] confirmOffer(int offerIndex, String title) {
+        JMenuItem offerMenuItem = new JMenuItem();
+        offerMenuItem.setSelected(true);
+        boolean isConfirmed = showOptionalConfirm(Str.get(offerIndex).replace(Str.get(616), title), offerMenuItem) == JOptionPane.YES_OPTION;
+        return new boolean[]{isConfirmed, offerMenuItem.isSelected()};
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

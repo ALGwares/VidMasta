@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.04.18   | VidMasta 17.5
+
+CHANGE: Core | Improved overall performance by caching more compiled regular expressions
+
+
+
+
 2014.04.03   | VidMasta 17.4
 
 CHANGE: Core | Removed inaccurate and no longer necessary (since version 17.0) blocked port and bad IP filtering checks that may be incorrectly triggered when a download link is not found

@@ -61,9 +61,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     @Override
     protected void initialSearch() {
-        boolean isDelayedFeed = (isFeed && !startAsap);
-        Feed.neverOfferAgain(isDelayedFeed);
-        if (SLEEP != 0 && !isDelayedFeed) {
+        if (SLEEP != 0 && (!isFeed || startAsap)) {
             return;
         }
         try {

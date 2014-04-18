@@ -181,5 +181,5 @@ public interface GuiListener {
 
     int getPort();
 
-    boolean[] confirmFeedOffer();
+    boolean[] confirmOffer(int offerIndex, String title);
 }

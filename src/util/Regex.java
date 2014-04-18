@@ -13,8 +13,7 @@ import main.Str;
 
 public class Regex {
 
-    private static final int INITIAL_CAPACITY = Integer.parseInt(Str.get(164));
-    private static final Map<String, Pattern> cache = new ConcurrentHashMap<String, Pattern>(INITIAL_CAPACITY * 24, .75f, INITIAL_CAPACITY);
+    private static final Map<String, Pattern> cache;
     public static final Map<String, String> weirdChars = new TreeMap<String, String>(), badStrs = new TreeMap<String, String>();
     public static final Map<String, String> languages = new TreeMap<String, String>(), countries = new TreeMap<String, String>();
     public static final Map<String, String> subtitleLanguages = new TreeMap<String, String>();
@@ -23,6 +22,8 @@ public class Regex {
     public static final FileFilter subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", Str.get(452).split(","));
 
     static {
+        int initialCapacity = Integer.parseInt(Str.get(164));
+        cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, .75f, initialCapacity);
         init(weirdChars, 552);
         badStrs.put("&(?i)tilde;", "~");
         badStrs.put("&(?i)nbsp;", " ");
@@ -42,8 +43,8 @@ public class Regex {
     }
 
     private static void init(Map<String, String> map, int strIndex, String splitStr1, String splitStr2) {
-        for (String currKeyVal : Str.get(strIndex).split(splitStr1)) {
-            String[] keyVal = currKeyVal.split(splitStr2);
+        for (String currKeyVal : split(Str.get(strIndex), splitStr1)) {
+            String[] keyVal = split(currKeyVal, splitStr2);
             map.put(keyVal[0], keyVal[1]);
         }
     }

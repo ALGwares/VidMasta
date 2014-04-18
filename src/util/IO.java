@@ -146,7 +146,7 @@ public class IO {
                 InputStream is = null;
                 OutputStream os = null;
                 try {
-                    write(is = new BufferedInputStream(zf.getInputStream(ze)), os = new BufferedOutputStream(new FileOutputStream(new File(outputDir + fileName))));
+                    write(is = new BufferedInputStream(zf.getInputStream(ze)), os = new BufferedOutputStream(new FileOutputStream(outputDir + fileName)));
                 } finally {
                     close(is, os);
                 }
