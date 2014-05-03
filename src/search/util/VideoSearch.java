@@ -1,9 +1,9 @@
 package search.util;
 
 import debug.Debug;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +19,16 @@ import util.Regex;
 public class VideoSearch {
 
     private static final Random rand = new Random();
-    private static final String[] searchEngines = {Str.get(0), Str.get(1), Str.get(2)};
-    private static final int MAX_NUM_SEARCH_ENGINES = Integer.parseInt(Str.get(94));
+    private static final int NUM_SEARCH_ENGINES;
+    private static final List<String> searchEngines;
+
+    static {
+        NUM_SEARCH_ENGINES = Integer.parseInt(Str.get(622));
+        searchEngines = new ArrayList<String>(NUM_SEARCH_ENGINES);
+        for (int i = 0; i < NUM_SEARCH_ENGINES; i++) {
+            searchEngines.add(Str.get(i));
+        }
+    }
 
     public static boolean isImdbVideoType(String sourceCode, boolean isTVShow) {
         return isImdbVideoType(sourceCode, isTVShow ? 586 : 587);
@@ -30,36 +38,37 @@ public class VideoSearch {
         return Regex.isMatch(Regex.match(sourceCode, Str.get(584), Str.get(585)), Str.get(typeRegexIndex));
     }
 
-    public static String searchEngineQuery(String query) throws Exception {
-        String searchEngine = searchEngines[rand.nextInt(MAX_NUM_SEARCH_ENGINES)], encodedQuery = URLEncoder.encode(query, Constant.UTF8);
-        try {
-            return Connection.getSourceCode(searchEngine + encodedQuery, Connection.SEARCH_ENGINE);
-        } catch (ConnectionException e) {
-            if (Debug.DEBUG) {
-                Debug.println("Retrying search query: " + e.URL);
+    public static String searchEngineQuery(String query, int regexIndex) throws Exception {
+        String encodedQuery = URLEncoder.encode(query, Constant.UTF8);
+        List<String> engines = new ArrayList<String>(searchEngines);
+
+        for (int i = NUM_SEARCH_ENGINES; i > 0; i--) {
+            String searchEngine = engines.get(rand.nextInt(i));
+            try {
+                String result = Regex.match(Connection.getSourceCode(searchEngine + encodedQuery, Connection.SEARCH_ENGINE), Str.get(regexIndex));
+                if (!result.isEmpty()) {
+                    result = URLDecoder.decode(result, Constant.UTF8);
+                    if (!result.isEmpty()) {
+                        return result;
+                    }
+                }
+            } catch (ConnectionException e) {
+                if (i == 1) {
+                    throw e;
+                }
+                if (Debug.DEBUG) {
+                    Debug.println("Retrying search query: " + e.URL);
+                }
             }
-
-            if (MAX_NUM_SEARCH_ENGINES != 1) {
-                List<String> engines = new ArrayList<String>(Arrays.asList(searchEngines));
-                engines.remove(searchEngine);
-                searchEngine = engines.get(rand.nextInt(MAX_NUM_SEARCH_ENGINES - 1));
-            }
-
-            return Connection.getSourceCode(searchEngine + encodedQuery, Connection.SEARCH_ENGINE);
-        }
-    }
-
-    public static String getTitleLink(String title, String year) throws Exception {
-        String source = searchEngineQuery(Str.clean(title) + (year.isEmpty() ? "" : ' ' + year) + Str.get(76));
-
-        Matcher imdbTitleMatcher = Regex.matcher(Str.get(95), source);
-        while (!imdbTitleMatcher.hitEnd()) {
-            if (imdbTitleMatcher.find()) {
-                return Str.get(96) + Regex.match(source.substring(imdbTitleMatcher.start()), Str.get(97));
-            }
+            engines.remove(searchEngine);
         }
 
         return null;
+    }
+
+    public static String getTitleLink(String title, String year) throws Exception {
+        String link = searchEngineQuery(Str.clean(title) + (year.isEmpty() ? "" : ' ' + year) + Str.get(76), 619);
+        return link == null ? link : Str.get(96) + link;
     }
 
     public static String[] getImdbTitleParts(String sourceCode) {

@@ -450,25 +450,27 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void indirectStreamSearch() throws Exception {
-        String link = indirectStreamSearchHelper();
+        String link = VideoSearch.searchEngineQuery((findOldTitleStream ? oldTitle : title) + (year.isEmpty() ? "" : ' ' + year) + ' ' + Str.get(isStream2 ? 279
+                : 371), isStream2 ? 620 : 621);
         if (isCancelled()) {
             return;
         }
 
-        if (link.isEmpty()) {
+        if (link == null) {
             findOldTitleStream();
-        } else {
-            link = Str.get(isStream2 ? 284 : 376) + link;
-            boolean isValidStream = isValidateStream(link);
-            if (isCancelled()) {
-                return;
-            }
+            return;
+        }
 
-            if (isValidStream) {
-                browseStream(link);
-            } else {
-                findOldTitleStream();
-            }
+        link = Str.get(isStream2 ? 284 : 376) + link;
+        boolean isValidStream = isValidateStream(link);
+        if (isCancelled()) {
+            return;
+        }
+
+        if (isValidStream) {
+            browseStream(link);
+        } else {
+            findOldTitleStream();
         }
     }
 
@@ -536,12 +538,6 @@ public class VideoFinder extends AbstractSwingWorker {
             Debug.println("Stream result: '" + newTitle + "' '" + newYear + "'");
         }
         return newTitle.equals(findOldTitleStream ? oldTitle : title) && newYear.equals(year);
-    }
-
-    private String indirectStreamSearchHelper() throws Exception {
-        String link = Regex.match(VideoSearch.searchEngineQuery((findOldTitleStream ? oldTitle : title) + (year.isEmpty() ? "" : ' ' + year) + ' '
-                + Str.get(isStream2 ? 279 : 371)), Str.get(isStream2 ? 281 : 372));
-        return link.isEmpty() ? link : link.substring(0, link.length() - 1);
     }
 
     private void directStreamSearch() throws Exception {

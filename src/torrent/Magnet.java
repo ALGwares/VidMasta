@@ -40,6 +40,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import util.Connection;
 import util.Constant;
 import util.IO;
+import util.Regex;
 import util.RunnableUtil;
 
 public class Magnet extends Thread {
@@ -416,7 +417,7 @@ public class Magnet extends Thread {
 
             String line;
             BufferedReader br = null;
-            Pattern ipPattern = Pattern.compile("\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+");
+            Pattern ipPattern = Regex.pattern("\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+\\.\\d{1,3}+");
             IpFilter ipFilter = IpFilterImpl.getInstance();
 
             try {

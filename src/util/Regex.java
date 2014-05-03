@@ -14,28 +14,27 @@ import main.Str;
 public class Regex {
 
     private static final Map<String, Pattern> cache;
-    public static final Map<String, String> weirdChars = new TreeMap<String, String>(), badStrs = new TreeMap<String, String>();
-    public static final Map<String, String> languages = new TreeMap<String, String>(), countries = new TreeMap<String, String>();
-    public static final Map<String, String> subtitleLanguages = new TreeMap<String, String>();
-    public static final FileFilter torrentFileFilter = new FileNameExtensionFilter("Torrents (*.torrent)", "torrent");
-    public static final FileFilter proxyListFileFilter = new FileNameExtensionFilter("Proxy List (*" + Constant.TXT + ")", "txt");
-    public static final FileFilter subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", Str.get(452).split(","));
+    public static final Map<String, String> weirdChars, badStrs, languages, countries, subtitleLanguages;
+    public static final FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
 
     static {
         int initialCapacity = Integer.parseInt(Str.get(164));
         cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, .75f, initialCapacity);
-        init(weirdChars, 552);
-        badStrs.put("&(?i)tilde;", "~");
+        init(weirdChars = new TreeMap<String, String>(), 552);
+        (badStrs = new TreeMap<String, String>()).put("&(?i)tilde;", "~");
         badStrs.put("&(?i)nbsp;", " ");
         badStrs.put(":", " ");
         badStrs.put(Str.get(224), Str.get(225));
         badStrs.put(Str.get(226), Str.get(227));
         init(badStrs, 228);
-        languages.put(Constant.ANY_LANGUAGE, Constant.ANY_LANGUAGE);
+        (languages = new TreeMap<String, String>()).put(Constant.ANY_LANGUAGE, Constant.ANY_LANGUAGE);
         init(languages, 234);
-        countries.put(Constant.ANY_COUNTRY, Constant.ANY_COUNTRY);
+        (countries = new TreeMap<String, String>()).put(Constant.ANY_COUNTRY, Constant.ANY_COUNTRY);
         init(countries, 231);
-        init(subtitleLanguages, 420, Constant.SEPARATOR2, Constant.SEPARATOR1);
+        init(subtitleLanguages = new TreeMap<String, String>(), 420, Constant.SEPARATOR2, Constant.SEPARATOR1);
+        torrentFileFilter = new FileNameExtensionFilter("Torrents (*.torrent)", "torrent");
+        proxyListFileFilter = new FileNameExtensionFilter("Proxy List (*" + Constant.TXT + ")", "txt");
+        subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", split(Str.get(452), ","));
     }
 
     private static void init(Map<String, String> map, int strIndex) {

@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.05.03   | VidMasta 17.6
+
+CHANGE: Core | Improved accuracy and performance of searches by using 1-2 alternative search engines when there is no result found or a connection problem
+
+
+
+
 2014.04.18   | VidMasta 17.5
 
 CHANGE: Core | Improved overall performance by caching more compiled regular expressions

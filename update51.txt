@@ -1,7 +1,7 @@
-131
+137
 http://www.bing.com/search?q=
-http://www.aolsearch.com/search?q=
-http://www.aolsearch.com/search?q=
+https://www.google.com/search?q=
+http://search.yahoo.com/search?q=
 \s++
 SPACE
 Next&nbsp;&raquo;
@@ -259,12 +259,12 @@ SPACE
 http://www.bitlet.org/download?torrent=
 http://torrents\.thepiratebay\.se/\p{Alnum}++/
 EMPTY
-http://tubeplus.me/search/tv-shows/
-http://tubeplus.me/search/movies/
+http://www.tubeplus.me/search/tv-shows/
+http://www.tubeplus.me/search/movies/
 (<\s*+div\s++class\s*+=\s*+"frelease[^"]*+"\s*+>(\d{4}+-\d{2}+-\d{2}+)??(\s++<\s*+span\s*+>[^<]++<\s*+/span\s*+>)??<\s*+/div\s*+>\s*+<a\s+?[^>]++>\s*+<\s*+b\s*+>[^<]++<\s*+/b\s*+>)
 (<\s*+div\s++class\s*+=\s*+"frelease[^"]*+"\s*+>(\d{4}+-\d{2}+-\d{2}+)(\s++<\s*+span\s*+>[^<]++<\s*+/span\s*+>)??<\s*+/div\s*+>\s*+<a\s+?[^>]++>\s*+<\s*+b\s*+>[^<]++<\s*+/b\s*+>)
 \d{4}+-\d{2}+-\d{2}+
-http://tubeplus.me
+http://www.tubeplus.me
 http://vidbar.tv/search?q=
 (<\s*+div\s++class\s*+=\s*+"title">\s*+<a\s++href\s*+=\s*+"/tv_shows/[^"]++"\s*+>)
 (<\s*+div\s++class\s*+=\s*+"title">\s*+<a\s++href\s*+=\s*+"/movies/[^"]++"\s*+>)
@@ -280,7 +280,7 @@ produced in <a\s++href\s*+=\s*+""\s*+>
 3
 site:tubeplus.me
 site:vidbar.tv
-tubeplus\.me/((movie)|(player))/[^"]++"
+www\.tubeplus\.me/((movie)|(player))/[^"]++"
 vidbar\.tv/tv_shows/[^"]++"
 vidbar\.tv/movies/[^"]++"
 http://
@@ -371,9 +371,9 @@ http://www.quicksilverscreen.ch/videos?mt=&q=
 href="
 "
 site:vodly.to
-vodly\.to/((watch)|(tv))-[^<"]++"
-<\s*+div\s++class\s*+=\s*+"stage_navigation movie_navigation"\s*+>\s*+<\s*+h1\s++class\s*+=\s*+"titles"\s*+>\s*+<\s*+span\s*+>\s*+<\s*+a\s++href\s*+=[^>]++>
-<\s*+/a\s*+>
+vodly\.to/((watch)|(tv))\-[^<"]++"
+<\s*+div\s++class\s*+=\s*+"stage_navigation movie_navigation"\s*+>\s*+<\s*+h1\s++class\s*+=\s*+"titles"\s*+>\s*+<\s*+span\s*+>\s*+<\s*+a\s++href\s*+=[^>]++>(\s*+<\s*+span[^>]*+>)?+
+(<\s*+/span\s*+>\s*+)?+<\s*+/a\s*+>
 EMPTY
 http://www.
 Released:\s*+<\s*+/strong\s*+>\s*+<\s*+/td\s*+>\s*+<\s*+td\s*+>
@@ -386,7 +386,7 @@ Released:\s*+<\s*+/strong\s*+>\s*+<\s*+/td\s*+>\s*+<\s*+td\s*+>
 <\s*+img\s++src\s*+=\s*+"
 "
 http://i\.media-imdb\.com/images/[^/]++/realm/[^\.]+?\.gif
-http://www.imdb.com/search/title:::1~~~http://www.aolsearch.com/search?q=%22%22:::2~~~http://www.bing.com/search?q=%22%22:::2~~~http://www.youtube.com:::3~~~http://vodly.to:::4~~~http://tubeplus.me:::4~~~https://docs.google.com:::5
+http://www.imdb.com/search/title:::1~~~https://www.google.com/search?q=%22%22:::2~~~http://www.bing.com/search?q=%22%22:::2~~~http://www.youtube.com:::3~~~http://vodly.to:::4~~~http://www.tubeplus.me:::4~~~https://docs.google.com:::5
 magnet:?
 <\s*+a[^>]+?href\s*+=\s*+"magnet:\?
 "
@@ -404,7 +404,7 @@ EMPTY
 search_keywords=
 EMPTY
 EMPTY
-<\s*+div\s++class\s*+=\s*+"index_item index_item_ie"\s*+>\s*+<\s*+a\s++href\s*+=\s*+"(https?+://vodly\.to)?+/((watch)|(tv))-[^"]++"\s++title\s*+=\s*+"Watch\s++[^"]++"\s*+>
+<\s*+div\s++class\s*+=\s*+"index_item index_item_ie"\s*+>\s*+<\s*+a\s++href\s*+=\s*+"(https?+://vodly\.to)?+/((watch)|(tv))\-[^"]++"\s++title\s*+=\s*+"Watch\s++[^"]++"\s*+>
 \s++title\s*+=\s*+"Watch\s++
 "
 <\s*+a\s++href\s*+=\s*+"(https?+://vodly\.to)?+
@@ -578,7 +578,7 @@ false
 EMPTY
 http://thepiratebay.se
 http://www.imdb.com
-http://www.bing.com
+https://www.google.com
 http://www.youtube.com
 http://vodly.to
 https://docs.google.com
@@ -618,4 +618,9 @@ EMPTY
 EMPTY
 EMPTY
 EMPTY
+www\.imdb\.com((/((title/[^/]++/)|(Title%3f[^"]++))(?="))|(%2f((title%2f[^%]++%2f)|(Title%3f[^/]++))(?=/)))
+www\.tubeplus\.me((/((movie)|(player))/[^"]++(?="))|(%2f((movie)|(player))%2f[^/]++(?=/)))
+vodly\.to((/((watch)|(tv))\-[^<"]++(?="))|(%2f((watch)|(tv))\-[^/]++(?=/)))
+3
+http://www.imdb.com/search/title:::1~~~https://www.google.com/search?q=%22%22:::2~~~http://www.bing.com/search?q=%22%22:::2~~~http://search.yahoo.com/search?q=%22%22:::2~~~http://www.youtube.com:::3~~~http://vodly.to:::4~~~http://www.tubeplus.me:::4~~~https://docs.google.com:::5
 eof
