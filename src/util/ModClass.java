@@ -123,10 +123,7 @@ public class ModClass {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        return obj instanceof ModClass ? binaryName.equals(((ModClass) obj).binaryName) : false;
+        return this == obj || (obj instanceof ModClass && binaryName.equals(((ModClass) obj).binaryName));
     }
 
     @Override

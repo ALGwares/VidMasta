@@ -4,9 +4,11 @@ import debug.Debug;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Map;
+import listener.DomainType;
 import listener.GuiListener;
-import main.Str;
+import listener.Video;
 import search.util.VideoSearch;
+import str.Str;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
@@ -84,8 +86,8 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected int connectionType() {
-        return Connection.DOWNLOAD_LINK_INFO;
+    protected DomainType domainType() {
+        return DomainType.DOWNLOAD_LINK_INFO;
     }
 
     @Override
@@ -136,9 +138,8 @@ public class PopularSearcher extends AbstractSearcher {
         if (Debug.DEBUG) {
             Debug.println('\'' + titleParts[0] + "' '" + titleParts[1] + "' '" + titleParts[2] + "' '" + titleParts[3] + "' '" + titleName + '\'');
         }
-        Video video = new Video(titleParts[0].toLowerCase(Locale.ENGLISH) + titleParts[1], titleParts[0], titleParts[1], null, null, Constant.NULL, null, null,
-                isTVShow, false);
-        if (!videoBuffer.contains(video)) {
+        Video video = new Video(titleParts[0].toLowerCase(Locale.ENGLISH) + titleParts[1], titleParts[0], titleParts[1], isTVShow, false);
+        if (allBufferVideos.add(video.ID)) {
             video.season = titleParts[2];
             video.episode = titleParts[3];
             videoBuffer.add(video);
@@ -154,7 +155,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     private boolean backupMode() {
         try {
-            currSourceCode = Connection.getSourceCode(Str.get(isTVShow ? 483 : 484), Connection.DOWNLOAD_LINK_INFO);
+            currSourceCode = Connection.getSourceCode(Str.get(isTVShow ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO);
             String[] results = Regex.split(currSourceCode, Constant.STD_NEWLINE);
             for (int i = 0; i < results.length; i += 5) {
                 if (!isFeed || isTitleValid(results[i + 2], results[i + 3], results[i + 1])) {
@@ -176,28 +177,26 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected String getSourceCode(Video video) throws Exception {
+    protected Video update(Video video) throws Exception {
         String titleLink = VideoSearch.getTitleLink(video.title, video.year);
         if (isCancelled() || titleLink == null) {
             return null;
         }
 
-        video.id = Regex.replaceAll(Regex.replaceFirst(titleLink, Str.get(447), Str.get(448)), Str.get(449), Str.get(450));
-        if (video.id.isEmpty()) {
+        String titleID = Regex.match(titleLink, Str.get(628));
+        if (titleID.isEmpty()) {
             return null;
         }
 
-        String sourceCode = Connection.getSourceCode(titleLink, Connection.VIDEO_INFO);
+        String sourceCode = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO);
         String[] titleParts = VideoSearch.getImdbTitleParts(sourceCode);
-        video.title = titleParts[0];
-        video.year = titleParts[1];
-        if (video.title.isEmpty() || video.year.isEmpty() || (isFeed && !isTitleYearValid(video.year))) {
+        if (titleParts[0].isEmpty() || titleParts[1].isEmpty() || (isFeed && !isTitleYearValid(titleParts[1]))) {
             return null;
         }
 
         if (!VideoSearch.isImdbVideoType(sourceCode, isTVShow)) {
             if (Debug.DEBUG) {
-                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + video.title + "' '" + video.year + '\'');
+                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + titleParts[0] + "' '" + titleParts[1] + '\'');
             }
             return null;
         }
@@ -206,11 +205,12 @@ public class PopularSearcher extends AbstractSearcher {
             return null;
         }
 
-        String rating = Regex.match(sourceCode, Str.get(127), Str.get(128));
-        video.rating = rating.isEmpty() ? "-" : rating;
-        video.isTVShowAndMovie = VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590);
-
-        return sourceCode;
+        Video vid = new Video(titleID, titleParts[0], titleParts[1], video.IS_TV_SHOW, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
+        vid.rating = VideoSearch.rating(Regex.match(sourceCode, Str.get(127), Str.get(128)));
+        vid.season = video.season;
+        vid.episode = video.episode;
+        vid.summary = sourceCode;
+        return vid;
     }
 
     @Override

@@ -16,15 +16,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.SwingWorker;
 import listener.GuiListener;
-import main.Str;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
-import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.ipfilter.impl.IpFilterImpl;
 import org.gudy.azureus2.core3.ipfilter.impl.IpRangeImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -37,6 +36,7 @@ import org.gudy.azureus2.plugins.PluginManagerDefaults;
 import org.gudy.azureus2.plugins.PluginState;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
+import str.Str;
 import util.Connection;
 import util.Constant;
 import util.IO;
@@ -45,7 +45,6 @@ import util.RunnableUtil;
 
 public class Magnet extends Thread {
 
-    private static GuiListener guiListener;
     private static final Object saveTorrentLock = new Object(), azureusConfigLock = new Object();
     private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
     private static boolean isAzureusConfigured;
@@ -64,12 +63,16 @@ public class Magnet extends Thread {
         TORRENT = new File(Constant.TORRENTS_DIR + Str.hashCode(magnetLink) + Constant.TORRENT);
     }
 
-    public boolean download(SwingWorker<?, ?> parent) throws Exception {
+    public boolean download(GuiListener guiListener, Future<?> parent, boolean runInBackground) throws Exception {
         if (torrentExists()) {
             return true;
         }
 
         start();
+
+        if (runInBackground) {
+            return torrentExists();
+        }
 
         for (int i = guiListener.getDownloadLinkTimeout(); i > 0; i--) {
             try {
@@ -162,14 +165,14 @@ public class Magnet extends Thread {
     }
 
     // Intentionally un-synchronized because caller is event dispatch thread
-    public static void startAzureus() {
+    public static void startAzureus(final GuiListener guiListener) {
         if (core != null) {
             return;
         }
         (azureusStarter = new SwingWorker<Object, Object>() {
             @Override
             protected Object doInBackground() {
-                initAzureus();
+                initAzureus(guiListener);
                 return null;
             }
         }).execute();
@@ -185,7 +188,7 @@ public class Magnet extends Thread {
 
             System.setProperty("azureus.security.manager.install", "0");
             System.setProperty("azureus.security.manager.permitexit", "1");
-            System.setProperty("MULTI_INSTANCE", Constant.TRUE);
+            System.setProperty("MULTI_INSTANCE", String.valueOf(true));
             String vuzeDir = Constant.APP_DIR + "vuze" + Constants.AZUREUS_VERSION.replace(".", "") + Constant.FILE_SEPARATOR + "vuze" + Constant.FILE_SEPARATOR;
             IO.fileOp(vuzeDir, IO.MK_DIR);
             System.setProperty("azureus.install.path", vuzeDir);
@@ -216,7 +219,7 @@ public class Magnet extends Thread {
         }
     }
 
-    private static synchronized void initAzureus() {
+    private static synchronized void initAzureus(GuiListener guiListener) {
         if (core != null) {
             return;
         }
@@ -244,8 +247,8 @@ public class Magnet extends Thread {
 
             Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file" + ipBlockMsg);
 
-            AZInstance instance = core.getInstanceManager().getMyInstance();
             if (Debug.DEBUG) {
+                AZInstance instance = core.getInstanceManager().getMyInstance();
                 Debug.println("TCP Port: " + instance.getTCPListenPort() + "\nUDP Port: " + instance.getUDPListenPort() + "\nUDP Non-Data Port: "
                         + instance.getUDPNonDataListenPort());
             }
@@ -323,10 +326,6 @@ public class Magnet extends Thread {
         }
     }
 
-    public static void setGuiListener(GuiListener listener) {
-        guiListener = listener;
-    }
-
     // Intentionally un-synchronized because caller is event dispatch thread
     public static void changePorts(int port) {
         if (core != null) {
@@ -378,17 +377,6 @@ public class Magnet extends Thread {
         long numBlockedIps;
         ipBlockMsg = (ipFilter != null && (numBlockedIps = ipFilter.getTotalAddressesInRange()) > 0 ? " (blocking "
                 + (new DecimalFormat("#,###")).format(numBlockedIps) + " untrusty IPs with " + Constant.IP_FILTER + ")" : "");
-    }
-
-    public static boolean isIpBlocked(String ip) throws InterruptedException {
-        ipFilterInitializerStartSignal.await();
-        ipFilterInitializer.join();
-        for (IpRange ipRange : IpFilterImpl.getInstance().getRanges()) {
-            if (ipRange.isInRange(ip)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static class IpFilterInitializer extends Thread {

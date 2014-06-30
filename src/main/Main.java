@@ -6,6 +6,7 @@ import gui.AbstractSwingWorker;
 import gui.GUI;
 import gui.SplashScreen;
 import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.OutputStream;
@@ -16,19 +17,23 @@ import java.nio.channels.FileLock;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.swing.JFrame;
+import java.util.concurrent.Future;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import listener.ContentType;
 import listener.GuiListener;
+import listener.Video;
+import listener.VideoStrExportListener;
 import listener.WorkerListener;
 import proxy.ProxyListDownloader;
 import search.PopularSearcher;
-import search.Prefetcher;
 import search.RegularSearcher;
 import search.SubtitleFinder;
 import search.SummaryReader;
 import search.download.CommentsFinder;
+import search.download.Prefetcher;
 import search.download.VideoFinder;
+import str.Str;
 import torrent.Magnet;
 import util.Connection;
 import util.Constant;
@@ -52,10 +57,11 @@ public class Main implements WorkerListener {
     private SubtitleFinder subtitleFinder;
     private Prefetcher prefetcher;
     private SummaryReader summaryReader;
-    private String summaryReaderTitleID, summaryReaderTitle, summaryReaderYear;
+    private Video summaryReaderVideo;
 
     static {
         suppressStdOutput();
+        Str.init(new StrUpdater());
         setLookAndFeel();
         singleInstance();
         Runtime.getRuntime().addShutdownHook(releaseSingleInstanceShutdownHook = new Thread() {
@@ -75,7 +81,7 @@ public class Main implements WorkerListener {
             initialize();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
-            IO.writeToErrorLog(e);
+            IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
             System.exit(-1);
         }
     }
@@ -90,9 +96,6 @@ public class Main implements WorkerListener {
         final Main main = new Main(splashScreen);
         final GUI gui = (GUI) main.gui;
         Connection.init(gui);
-        Str.setGuiListener(gui);
-        AppUpdater.setGuiListener(gui);
-        Magnet.setGuiListener(gui);
 
         for (int i = 0; i < Constant.MAX_SUBDIRECTORIES; i++) {
             IO.fileOp(Constant.CACHE_DIR + i, IO.MK_DIR);
@@ -129,8 +132,9 @@ public class Main implements WorkerListener {
             public void run() {
                 if (!splashScreen.isVisible()) {
                     System.exit(0);
-                } else if ((splashScreen.getExtendedState() & JFrame.ICONIFIED) == JFrame.ICONIFIED) {
-                    gui.setExtendedState(gui.getExtendedState() | JFrame.ICONIFIED);
+                }
+                if ((splashScreen.getExtendedState() & Frame.ICONIFIED) == Frame.ICONIFIED) {
+                    gui.setExtendedState(gui.getExtendedState() | Frame.ICONIFIED);
                 }
                 Rectangle splashScreenBounds = splashScreen.getBounds();
                 if (!splashScreenBounds.equals(initialSplashScreenBounds)) {
@@ -214,7 +218,7 @@ public class Main implements WorkerListener {
         return worker == null || worker.isWorkDone();
     }
 
-    private static void stop(AbstractSwingWorker worker) {
+    private static void stop(Future<?> worker) {
         if (worker != null) {
             worker.cancel(true);
         }
@@ -304,50 +308,40 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void summarySearchStarted(int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, int row) {
+    public void summarySearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
         if (!isSummarySearchDone()) {
             return;
         }
-        summaryReaderTitleID = titleID;
-        summaryReaderTitle = title;
-        summaryReaderYear = year;
-        startPrefetcher(summaryFinder = new VideoFinder(gui, action, titleID, title, summaryLink, imageLink, isLink, year, isTVShow, isTVShowAndMovie, season,
-                episode, row));
+        summaryReaderVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+        startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener));
         summaryFinder.execute();
     }
 
     @Override
-    public void trailerSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, int row) {
+    public void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
         if (!isTrailerSearchDone()) {
             return;
         }
-        startPrefetcher(trailerFinder = new VideoFinder(gui, action, titleID, title, summaryLink, null, isLink, year, isTVShow, isTVShowAndMovie, season, episode,
-                row));
+        startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener));
         trailerFinder.execute();
     }
 
     @Override
-    public void torrentSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, int row) {
+    public void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
         if (!isTorrentSearchDone()) {
             return;
         }
-        Magnet.startAzureus();
-        startPrefetcher(torrentFinder = new VideoFinder(gui, action, titleID, title, summaryLink, null, isLink, year, isTVShow, isTVShowAndMovie, season, episode,
-                row));
+        Magnet.startAzureus(gui);
+        startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener));
         torrentFinder.execute();
     }
 
     @Override
-    public void streamSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, int row) {
+    public void streamSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
         if (!isStreamSearchDone()) {
             return;
         }
-        startPrefetcher(streamFinder = new VideoFinder(gui, action, titleID, title, summaryLink, null, isLink, year, isTVShow, isTVShowAndMovie, season, episode,
-                row));
+        startPrefetcher(streamFinder = new VideoFinder(gui, contentType, row, video, strExportListener));
         streamFinder.execute();
     }
 
@@ -364,7 +358,8 @@ public class Main implements WorkerListener {
         if (!isWorkDone(summaryReader)) {
             return;
         }
-        (summaryReader = new SummaryReader(gui, summaryReaderTitleID, summaryReaderTitle, summaryReaderYear, summary)).execute();
+        summaryReaderVideo.summary = summary;
+        (summaryReader = new SummaryReader(gui, summaryReaderVideo)).execute();
     }
 
     @Override
@@ -373,12 +368,11 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void subtitleSearchStarted(String format, String languageID, String titleID, String title, String year, boolean isTVShow, boolean isTVShowAndMovie,
-            String season, String episode, boolean firstMatch) {
+    public void subtitleSearchStarted(String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener) {
         if (!isWorkDone(subtitleFinder)) {
             return;
         }
-        (subtitleFinder = new SubtitleFinder(gui, format, languageID, titleID, title, year, isTVShow, isTVShowAndMovie, season, episode, firstMatch)).execute();
+        (subtitleFinder = new SubtitleFinder(gui, format, languageID, video, firstMatch, strExportListener)).execute();
     }
 
     @Override
@@ -394,10 +388,15 @@ public class Main implements WorkerListener {
         (updater = new Updater(gui, silent)).execute();
     }
 
+    @Override
+    public void portChanged(int port) {
+        Magnet.changePorts(port);
+    }
+
     private void startPrefetcher(VideoFinder videoFinder) {
         if (prefetcher == null) {
             (prefetcher = new Prefetcher(videoFinder)).execute();
-        } else if (!prefetcher.isForRow(videoFinder.row) || (!prefetcher.isForAction(videoFinder.action) && !prefetcher.isWorkDone())) {
+        } else if (!prefetcher.isForRow(videoFinder.ROW) || (!prefetcher.isForContentType(videoFinder.CONTENT_TYPE) && !prefetcher.isWorkDone())) {
             prefetcher.cancel(true);
             (prefetcher = new Prefetcher(videoFinder)).execute();
         }

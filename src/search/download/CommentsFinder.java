@@ -3,8 +3,9 @@ package search.download;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import javax.swing.SwingWorker;
+import listener.DomainType;
 import listener.GuiListener;
-import main.Str;
+import str.Str;
 import util.Connection;
 import util.Constant;
 import util.Regex;
@@ -26,7 +27,7 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
     protected Object doInBackground() {
         guiListener.commentsFinderStarted();
         try {
-            String commentsStr = Connection.getSourceCode(link, Connection.DOWNLOAD_LINK_INFO, true, true);
+            String commentsStr = Connection.getSourceCode(link, DomainType.DOWNLOAD_LINK_INFO, true, true);
             StringBuilder commentsBuf = new StringBuilder(4096);
             Collection<String> commentsArr = Regex.matches(commentsStr, Str.get(151), Str.get(152));
             int numComments = commentsArr.size();

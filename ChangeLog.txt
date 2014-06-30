@@ -1,6 +1,19 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.06.29   | VidMasta 17.7
+
+CHANGE: CORE | Set default download link timeout to 0 for instantaneous opening of download links when auto-downloading is enabled
+CHANGE: CORE | Improved accuracy of TV show episode download link searches
+CHANGE: CORE | Improved error recovery and reporting when opening/saving download links
+CHANGE: UI   | Added ability to email and copy download links, stream links, and trailer links. Added ability to copy subtitle links
+CHANGE: UI   | Improved sorting of title, year, and rating table columns by conversion from formatted text to plain text, from text to whole number, and from text to rational number respectively prior to sorting
+CHANGE: UI   | Improved positioning and timing of windows
+CHANGE: UI   | Fixed bug preventing copying of discontiguous table rows
+
+
+
+
 2014.05.03   | VidMasta 17.6
 
 CHANGE: Core | Improved accuracy and performance of searches by using 1-2 alternative search engines when there is no result found or a connection problem

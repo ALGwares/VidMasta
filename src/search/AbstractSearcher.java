@@ -4,17 +4,20 @@ import debug.Debug;
 import gui.AbstractSwingWorker;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import javax.swing.SwingWorker;
+import listener.DomainType;
 import listener.GuiListener;
-import main.Str;
+import listener.Video;
+import search.util.VideoSearch;
+import str.Str;
 import util.Connection;
 import util.ConnectionException;
-import util.Constant;
 import util.Regex;
 import util.RunnableUtil;
 
@@ -23,26 +26,27 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected GuiListener guiListener;
     protected int numResultsPerSearch, currSearchPage;
     protected boolean isTVShow;
-    protected AtomicInteger numResults, numSearchResults;
+    private AtomicInteger numResults, numSearchResults;
     private boolean isNewSearch = true;
-    protected Set<String> allVideos;
+    protected Set<String> allVideos, allBufferVideos;
     protected List<Video> videoBuffer;
     protected String currSourceCode;
     private String prevSourceCode;
     private SwingWorker<?, ?> prefetcher;
     private static final int SLEEP = Integer.parseInt(Str.get(166));
 
-    public AbstractSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow) {
+    protected AbstractSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow) {
         this.guiListener = guiListener;
         this.numResultsPerSearch = numResultsPerSearch;
         this.isTVShow = isTVShow;
         numResults = new AtomicInteger();
         numSearchResults = new AtomicInteger();
         allVideos = new ConcurrentSkipListSet<String>();
+        allBufferVideos = new HashSet<String>(numResultsPerSearch);
         videoBuffer = new ArrayList<Video>(numResultsPerSearch);
     }
 
-    public AbstractSearcher(AbstractSearcher searcher) {
+    protected AbstractSearcher(AbstractSearcher searcher) {
         guiListener = searcher.guiListener;
         numResultsPerSearch = searcher.numResultsPerSearch;
         currSearchPage = searcher.currSearchPage;
@@ -51,6 +55,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         numSearchResults = searcher.numSearchResults;
         isNewSearch = searcher.isNewSearch;
         allVideos = searcher.allVideos;
+        allBufferVideos = searcher.allBufferVideos;
         videoBuffer = searcher.videoBuffer;
         currSourceCode = searcher.currSourceCode;
         prevSourceCode = searcher.prevSourceCode;
@@ -61,7 +66,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected Object doInBackground() {
         guiListener.searchStarted();
         if (isNewSearch && isNewSearch()) {
-            guiListener.newSearch(numResultsPerSearch);
+            guiListener.newSearch(numResultsPerSearch, isTVShow);
             numResults.set(0);
             numSearchResults.set(0);
 
@@ -136,7 +141,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
     protected abstract String getUrl(int page) throws Exception;
 
-    protected abstract int connectionType();
+    protected abstract DomainType domainType();
 
     protected abstract boolean connectionException(String url, ConnectionException e);
 
@@ -148,7 +153,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
     protected abstract boolean findImage(Video video);
 
-    protected abstract String getSourceCode(Video video) throws Exception;
+    protected abstract Video update(Video video) throws Exception;
 
     protected abstract boolean noImage(Video video);
 
@@ -207,7 +212,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         stopPrefetcher();
 
         try {
-            currSourceCode = Connection.getSourceCode(url, connectionType());
+            currSourceCode = Connection.getSourceCode(url, domainType());
         } catch (ConnectionException e) {
             if (!isCancelled() && connectionException(url, e)) {
                 return;
@@ -250,7 +255,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                     Debug.println("prefetching search page " + (nextPage + 1));
                 }
                 try {
-                    Connection.getSourceCode(getUrl(nextPage), connectionType(), false);
+                    Connection.getSourceCode(getUrl(nextPage), domainType(), false);
                 } catch (Exception e) {
                     if (Debug.DEBUG) {
                         Debug.print(e);
@@ -274,7 +279,12 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         guiListener.searchProgressIncrement();
     }
 
-    private class SearcherHelper extends SwingWorker<Object, Object[]> {
+    @Override
+    protected void process(List<Object[]> rows) {
+        guiListener.newResults(rows);
+    }
+
+    private class SearcherHelper extends SwingWorker<Object, Object> {
 
         private Video video;
         private boolean findImage;
@@ -296,45 +306,40 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             return null;
         }
 
-        @Override
-        protected void process(List<Object[]> rows) {
-            guiListener.newResults(rows);
-        }
-
         private void search() throws Exception {
             if (isCancelled()) {
                 return;
             }
 
             if (findImage) {
-                String sourceCode = getSourceCode(video);
-                if (sourceCode == null) {
+                video = update(video);
+                if (video == null) {
                     return;
                 }
 
-                video.originalTitle = Video.getDirtyOldTitle(sourceCode);
-                video.summaryLink = Video.getSummary(sourceCode, video.isTVShow) + (video.originalTitle == null ? "" : Constant.SEPARATOR2 + video.originalTitle);
+                String sourceCode = video.summary;
+                video.oldTitle = VideoSearch.getOldTitle(sourceCode);
+                video.summary = VideoSearch.getSummary(sourceCode, video.IS_TV_SHOW);
                 video.imageLink = Regex.match(sourceCode, Str.get(190), Str.get(191));
                 if (video.imageLink.isEmpty()) {
-                    video.imageLink = Constant.NULL;
                     if (noImage(video)) {
                         return;
                     }
                 } else {
-                    video.saveImage();
+                    VideoSearch.saveImage(video);
                 }
             }
 
-            if (isCancelled() || !allVideos.add(video.id)) {
+            if (isCancelled() || !allVideos.add(video.ID)) {
                 return;
             }
 
-            Object[] row = video.toTableRow(guiListener, !findImage, false);
+            Object[] row = VideoSearch.toTableRow(guiListener, video, false);
             if (isCancelled()) {
-                allVideos.remove(video.id);
+                allVideos.remove(video.ID);
                 return;
             }
-            publish(row);
+            AbstractSearcher.this.publish(row);
             synchronized (SearcherHelper.class) {
                 incrementProgress();
             }

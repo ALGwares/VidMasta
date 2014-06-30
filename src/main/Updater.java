@@ -11,12 +11,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
+import listener.DomainType;
 import listener.GuiListener;
+import str.Str;
 import util.Connection;
 import util.Constant;
-import util.ExceptionUtil;
 import util.IO;
-import util.UpdateException;
 
 class Updater extends AbstractSwingWorker {
 
@@ -32,8 +32,8 @@ class Updater extends AbstractSwingWorker {
     protected Object doInBackground() {
         guiListener.updateStarted();
         if (silent) {
-            Str.update(false);
-            (new AppUpdater()).update();
+            Str.update(false, guiListener);
+            (new AppUpdater()).update(guiListener);
             try {
                 updateBitTorrentClientCertificate();
             } catch (Exception e) {
@@ -42,38 +42,12 @@ class Updater extends AbstractSwingWorker {
                 }
             }
         } else {
-            (new AppUpdater()).update(true);
-            Str.update(true);
+            (new AppUpdater()).update(true, guiListener);
+            Str.update(true, guiListener);
         }
         guiListener.updateStopped();
         workDone();
         return null;
-    }
-
-    static void startUpError(final Exception e) {
-        if (e.getClass().equals(UpdateException.class)) {
-            return;
-        }
-
-        Thread errorNotifier = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Connection.setStatusBar(" Update error: " + ExceptionUtil.toString(e));
-                    try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e2) {
-                        if (Debug.DEBUG) {
-                            Debug.print(e2);
-                        }
-                    }
-                } finally {
-                    Connection.unsetStatusBar();
-                }
-            }
-        };
-        errorNotifier.setPriority(Thread.MIN_PRIORITY);
-        errorNotifier.start();
     }
 
     private static void updateBitTorrentClientCertificate() throws Exception {
@@ -86,7 +60,7 @@ class Updater extends AbstractSwingWorker {
             return;
         }
 
-        Connection.saveData(Str.get(598), bitTorrentClientCertificate, Connection.UPDATE, false);
+        Connection.saveData(Str.get(598), bitTorrentClientCertificate, DomainType.UPDATE, false);
 
         KeyStore trustedCertificatesKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
         File trustedCertificates = new File(IO.parentDir(Constant.APP_DIR) + Str.get(Constant.WINDOWS ? 593 : (Constant.MAC ? 594 : 595)).replace(Str.get(596),

@@ -17,8 +17,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
+import listener.DomainType;
 import listener.GuiListener;
-import main.Str;
+import listener.Video;
+import search.util.VideoSearch;
+import str.Str;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
@@ -29,17 +32,14 @@ import util.RunnableUtil;
 public class SummaryReader extends AbstractSwingWorker {
 
     GuiListener guiListener;
-    private String titleID, title, year, summary;
+    private Video video;
     long swfName;
-    Map<Integer, String> movieParts = new ConcurrentHashMap<Integer, String>(8, .75f, 8);
+    Map<Integer, String> movieParts = new ConcurrentHashMap<Integer, String>(8, 0.75f, 8);
     final AtomicBoolean failure = new AtomicBoolean();
 
-    public SummaryReader(GuiListener guiListener, String titleID, String title, String year, String summary) {
+    public SummaryReader(GuiListener guiListener, Video video) {
         this.guiListener = guiListener;
-        this.titleID = titleID;
-        this.title = title;
-        this.year = year;
-        this.summary = summary;
+        this.video = video;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class SummaryReader extends AbstractSwingWorker {
 
     public void readSummary() throws Exception {
         IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
-        swfName = Str.hashCode(titleID);
+        swfName = Str.hashCode(video.ID);
         String swfSpeech = Constant.TEMP_DIR + swfName + Constant.SWF;
         String swfPage = Constant.TEMP_DIR + swfName + Constant.HTML;
         if ((new File(swfSpeech)).exists() && (new File(swfPage)).exists()) {
@@ -68,23 +68,23 @@ public class SummaryReader extends AbstractSwingWorker {
         }
 
         String br1 = "<br>", br2 = br1 + "\\s*+" + br1;
-        String newSummary = Regex.match(summary, "Storyline:", br2);
+        String newSummary = Regex.match(video.summary, "Storyline:", br2);
         if (newSummary.isEmpty()) {
-            newSummary = Regex.match(summary, "Genre:").isEmpty() ? Regex.match(summary, "<font[^>]++>", br2) : Regex.match(summary, br2, br2);
+            newSummary = Regex.match(video.summary, "Genre:").isEmpty() ? Regex.match(video.summary, "<font[^>]++>", br2) : Regex.match(video.summary, br2, br2);
         } else {
             newSummary = Regex.match(newSummary, br1, "\\z");
         }
 
-        summary = Regex.replaceAll(Regex.replaceAll(newSummary, Str.get(468), Str.get(469)), Str.get(470), Str.get(471));
+        video.summary = Regex.replaceAll(Regex.replaceAll(newSummary, Str.get(468), Str.get(469)), Str.get(470), Str.get(471));
         for (Entry<String, String> entry : Regex.badStrs.entrySet()) {
             String hexCode = entry.getKey();
             if (hexCode.charAt(0) == '&') {
-                summary = Regex.replaceAll(summary, hexCode, entry.getValue());
+                video.summary = Regex.replaceAll(video.summary, hexCode, entry.getValue());
             }
         }
-        summary = Regex.replaceAll(Regex.replaceAll(Str.htmlToPlainText(summary), Str.get(472), Str.get(473)), Str.get(339), Str.get(340)).trim();
+        video.summary = Regex.replaceAll(Regex.replaceAll(Regex.htmlToPlainText(video.summary), Str.get(472), Str.get(473)), Str.get(339), Str.get(340)).trim();
 
-        List<String> summaryParts = Regex.split(summary, Str.get(477), Integer.parseInt(Str.get(478)));
+        List<String> summaryParts = Regex.split(video.summary, Str.get(477), Integer.parseInt(Str.get(478)));
         Collection<MoviePartFinder> moviePartFinders = new ArrayList<MoviePartFinder>(8);
         int numSummaryParts = summaryParts.size();
 
@@ -99,8 +99,8 @@ public class SummaryReader extends AbstractSwingWorker {
 
         convertMoviesToAudioClip().encodeToFile(new File(swfSpeech));
 
-        String page = Str.get(479).replace(Str.get(480), swfSpeech).replace(Str.get(481), Str.cleanWeirdChars(title) + " (" + year + ")"), imagePath;
-        page = page.replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + Video.imagePath(titleID))).exists() ? imagePath : Constant.PROGRAM_DIR
+        String page = Str.get(479).replace(Str.get(480), swfSpeech).replace(Str.get(481), Regex.cleanWeirdChars(video.title) + " (" + video.year + ")"), imagePath;
+        page = page.replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video))).exists() ? imagePath : Constant.PROGRAM_DIR
                 + "noPosterBig.jpg");
 
         IO.write(swfPage, page);
@@ -141,7 +141,7 @@ public class SummaryReader extends AbstractSwingWorker {
     }
 
     private void browse(String swfPage) throws Exception {
-        guiListener.browserNotification("summary", "read to you", Connection.VIDEO_INFO);
+        guiListener.browserNotification("summary", "read to you", DomainType.VIDEO_INFO);
         Connection.browseFile(swfPage);
     }
 
@@ -161,7 +161,7 @@ public class SummaryReader extends AbstractSwingWorker {
                 if (failure.get()) {
                     return null;
                 }
-                String source = Connection.getSourceCode(url, Connection.VIDEO_INFO);
+                String source = Connection.getSourceCode(url, DomainType.VIDEO_INFO);
 
                 if (!Regex.match(source, Str.get(485)).isEmpty()) {
                     Connection.removeFromCache(url);
@@ -177,7 +177,7 @@ public class SummaryReader extends AbstractSwingWorker {
                 if (failure.get()) {
                     return null;
                 }
-                Connection.saveData(url, movie, Connection.VIDEO_INFO);
+                Connection.saveData(url, movie, DomainType.VIDEO_INFO);
                 if (failure.get()) {
                     return null;
                 }

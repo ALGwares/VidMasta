@@ -1,15 +1,23 @@
 package util;
 
+import debug.Debug;
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import main.Str;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.parser.ParserDelegator;
+import str.Str;
 
 public class Regex {
 
@@ -19,7 +27,7 @@ public class Regex {
 
     static {
         int initialCapacity = Integer.parseInt(Str.get(164));
-        cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, .75f, initialCapacity);
+        cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, 0.75f, initialCapacity);
         init(weirdChars = new TreeMap<String, String>(), 552);
         (badStrs = new TreeMap<String, String>()).put("&(?i)tilde;", "~");
         badStrs.put("&(?i)nbsp;", " ");
@@ -83,6 +91,45 @@ public class Regex {
 
     public static String replaceAll(String input, String regex, String replacement) {
         return matcher(regex, input).replaceAll(replacement);
+    }
+
+    public static String htmlToPlainText(String htmlText) {
+        final StringBuilder plainText = new StringBuilder(htmlText.length());
+        try {
+            (new ParserDelegator()).parse(new InputStreamReader(new ByteArrayInputStream(htmlText.getBytes(Constant.UTF8)), Constant.UTF8),
+                    new HTMLEditorKit.ParserCallback() {
+                        @Override
+                        public void handleText(char[] data, int pos) {
+                            plainText.append(data);
+                        }
+                    }, true);
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+            return cleanWeirdChars(htmlText);
+        }
+        return cleanWeirdChars(plainText.toString());
+    }
+
+    public static String clean(String str) {
+        String result = str;
+        for (Entry<String, String> entry : badStrs.entrySet()) {
+            result = replaceAll(result, entry.getKey(), entry.getValue());
+        }
+        return replaceAll(replaceAll(htmlToPlainText(result), Str.get(136), Str.get(133)), Str.get(339), Str.get(340)).trim();
+    }
+
+    public static String cleanWeirdChars(String str) {
+        String result = replaceAll(Normalizer.normalize(str, Form.NFD), "\\p{InCombiningDiacriticalMarks}+", "");
+        for (Entry<String, String> entry : weirdChars.entrySet()) {
+            result = replaceAll(result, entry.getKey(), entry.getValue());
+        }
+        return result.trim();
+    }
+
+    public static String toFileName(String str) {
+        return replaceAll(clean(str).replace(' ', '+'), "[^\\p{Alnum}\\+]", "");
     }
 
     public static boolean isMatch(String input, String regex) {
@@ -169,7 +216,7 @@ public class Regex {
         return "";
     }
 
-    public static Matcher matcher(String regex, CharSequence input) {
+    public static Matcher matcher(String regex, String input) {
         return pattern(regex).matcher(input);
     }
 

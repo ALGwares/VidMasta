@@ -21,6 +21,7 @@ import java.net.Proxy;
 import java.net.Proxy.Type;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
@@ -34,15 +35,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import listener.DomainType;
 import listener.GuiListener;
-import main.Str;
-import main.Str.UpdateListener;
+import listener.StrUpdateListener.UpdateListener;
+import str.Str;
 import util.RunnableUtil.AbstractWorker;
 
 public class Connection {
 
     private static GuiListener guiListener;
-    public static final int DOWNLOAD_LINK_INFO = 0, VIDEO_INFO = 1, SEARCH_ENGINE = 2, TRAILER = 3, VIDEO_STREAMER = 4, UPDATE = 5, SUBTITLE = 6;
     private static final StatusBar statusBar = new StatusBar();
     private static final Collection<Long> cache = new ConcurrentSkipListSet<Long>();
     private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
@@ -87,18 +88,18 @@ public class Connection {
     }
 
     public static String getUpdateFile(String file, boolean showStatus) throws Exception {
-        return getSourceCode(file, UPDATE, showStatus, true, false, true).trim();
+        return getSourceCode(file, DomainType.UPDATE, showStatus, true, false, true).trim();
     }
 
-    public static String getSourceCode(String url, int connectionType) throws Exception {
-        return getSourceCode(url, connectionType, true, false);
+    public static String getSourceCode(String url, DomainType domainType) throws Exception {
+        return getSourceCode(url, domainType, true, false);
     }
 
-    public static String getSourceCode(String url, int connectionType, boolean showStatus) throws Exception {
-        return getSourceCode(url, connectionType, showStatus, false);
+    public static String getSourceCode(String url, DomainType domainType, boolean showStatus) throws Exception {
+        return getSourceCode(url, domainType, showStatus, false);
     }
 
-    public static String getSourceCode(String url, int connectionType, boolean showStatus, boolean emptyOK) throws Exception {
+    public static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK) throws Exception {
         if (url == null || url.isEmpty()) {
             if (Debug.DEBUG) {
                 Debug.println("Internal error: the URL is null or empty.");
@@ -107,7 +108,7 @@ public class Connection {
         }
 
         Long urlHashCode = Str.hashCode(url.endsWith("/") ? url.substring(0, url.length() - 1) : url);
-        String sourceCode, sourceCodePath = Constant.CACHE_DIR + urlHashCode.toString() + Constant.HTML;
+        String sourceCode, sourceCodePath = Constant.CACHE_DIR + urlHashCode + Constant.HTML;
         if (cache.contains(urlHashCode)) {
             if (Debug.DEBUG) {
                 Debug.println("fetching " + url);
@@ -119,16 +120,16 @@ public class Connection {
                     Debug.print(e);
                 }
                 IO.fileOp(sourceCodePath, IO.RM_FILE);
-                addToCache(sourceCode = getSourceCode(url, connectionType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
+                addToCache(sourceCode = getSourceCode(url, domainType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
             }
         } else {
-            addToCache(sourceCode = getSourceCode(url, connectionType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
+            addToCache(sourceCode = getSourceCode(url, domainType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
         }
 
         return sourceCode;
     }
 
-    public static String getSourceCode(final String url, final int connectionType, final boolean showStatus, final boolean emptyOK, final boolean compress,
+    public static String getSourceCode(final String url, final DomainType domainType, final boolean showStatus, final boolean emptyOK, final boolean compress,
             final boolean throwException) throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);
@@ -140,7 +141,7 @@ public class Connection {
                 BufferedReader br = null;
                 StringBuilder source = new StringBuilder(262144);
                 try {
-                    Proxy proxy = getProxy(connectionType);
+                    Proxy proxy = getProxy(domainType);
                     String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
                     if (isCancelled()) {
                         return "";
@@ -181,7 +182,7 @@ public class Connection {
                         String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(url);
                         if (downloadLinkInfoUrl != null) {
                             selectNextDownloadLinkInfoProxy();
-                            return getSourceCode(downloadLinkInfoUrl, connectionType, showStatus, emptyOK);
+                            return getSourceCode(downloadLinkInfoUrl, domainType, showStatus, emptyOK);
                         } else if (url.startsWith(Str.get(467))) {
                             downloadLinkInfoFail.set(true);
                         }
@@ -335,7 +336,7 @@ public class Connection {
 
     public static void removeFromCache(String url) {
         Long urlHashCode = Str.hashCode(url);
-        IO.fileOp(Constant.CACHE_DIR + urlHashCode.toString() + Constant.HTML, IO.RM_FILE);
+        IO.fileOp(Constant.CACHE_DIR + urlHashCode + Constant.HTML, IO.RM_FILE);
         cache.remove(urlHashCode);
     }
 
@@ -352,11 +353,11 @@ public class Connection {
         downloadLinkInfoFail.set(false);
     }
 
-    public static void saveData(String url, String outputPath, int connectionType) throws Exception {
-        saveData(url, outputPath, connectionType, true);
+    public static void saveData(String url, String outputPath, DomainType domainType) throws Exception {
+        saveData(url, outputPath, domainType, true);
     }
 
-    public static void saveData(final String url, final String outputPath, final int connectionType, final boolean showStatus) throws Exception {
+    public static void saveData(final String url, final String outputPath, final DomainType domainType, final boolean showStatus) throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);
         }
@@ -368,7 +369,7 @@ public class Connection {
                 OutputStream os = null;
                 boolean outputStarted = false;
                 try {
-                    Proxy proxy = getProxy(connectionType);
+                    Proxy proxy = getProxy(domainType);
                     String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
                     if (isCancelled()) {
                         return null;
@@ -387,7 +388,7 @@ public class Connection {
 
                     os = new BufferedOutputStream(new FileOutputStream(outputPath)) {
                         @Override
-                        public void write(byte[] bytes, int startOffset, int numBytes) throws IOException {
+                        public synchronized void write(byte[] bytes, int startOffset, int numBytes) throws IOException {
                             if (isCancelled()) {
                                 throw new CancellationException();
                             }
@@ -429,16 +430,16 @@ public class Connection {
         return Regex.replaceFirst(Regex.replaceFirst(host, Str.get(305), Str.get(306)), Str.get(307), Str.get(308)) + (showDots ? dots : Str.get(309));
     }
 
-    public static Proxy getProxy(int connectionType) throws Exception {
+    public static Proxy getProxy(DomainType domainType) {
         String selectedProxy = guiListener.getSelectedProxy();
         if (selectedProxy.equals(Constant.NO_PROXY)
-                || !((guiListener.canProxyDownloadLinkInfo() && connectionType == DOWNLOAD_LINK_INFO)
-                || (guiListener.canProxyVideoInfo() && connectionType == VIDEO_INFO)
-                || (guiListener.canProxySearchEngines() && connectionType == SEARCH_ENGINE)
-                || (guiListener.canProxyTrailers() && connectionType == TRAILER)
-                || (guiListener.canProxyVideoStreamers() && connectionType == VIDEO_STREAMER)
-                || (guiListener.canProxyUpdates() && connectionType == UPDATE)
-                || (guiListener.canProxySubtitles() && connectionType == SUBTITLE))) {
+                || !((guiListener.canProxyDownloadLinkInfo() && domainType == DomainType.DOWNLOAD_LINK_INFO)
+                || (guiListener.canProxyVideoInfo() && domainType == DomainType.VIDEO_INFO)
+                || (guiListener.canProxySearchEngines() && domainType == DomainType.SEARCH_ENGINE)
+                || (guiListener.canProxyTrailers() && domainType == DomainType.TRAILER)
+                || (guiListener.canProxyVideoStreamers() && domainType == DomainType.VIDEO_STREAMER)
+                || (guiListener.canProxyUpdates() && domainType == DomainType.UPDATE)
+                || (guiListener.canProxySubtitles() && domainType == DomainType.SUBTITLE))) {
             return Proxy.NO_PROXY;
         }
 
@@ -461,7 +462,7 @@ public class Connection {
             statusMsg = null;
         }
 
-        if (proxy != Proxy.NO_PROXY) {
+        if (!proxy.equals(Proxy.NO_PROXY)) {
             InputStream is = null;
             HttpURLConnection connection = null;
             try {
@@ -534,7 +535,7 @@ public class Connection {
             return null;
         }
 
-        return Regex.replaceAll(ip.toString() + port, Str.get(251), Str.get(252));
+        return Regex.replaceAll(ip + port, Str.get(251), Str.get(252));
     }
 
     public static boolean isPeerBlockRunning() {
@@ -619,7 +620,7 @@ public class Connection {
                 }
             } catch (Exception e) {
                 if (Debug.DEBUG) {
-                    Debug.println("status bar stopped: " + e.toString());
+                    Debug.println("status bar stopped: " + e);
                 }
             }
         }
@@ -636,10 +637,7 @@ public class Connection {
 
             @Override
             public boolean equals(Object obj) {
-                if (this == obj) {
-                    return true;
-                }
-                return obj instanceof Msg ? thread.equals(((Msg) obj).thread) : false;
+                return this == obj || (obj instanceof Msg && thread.equals(((Msg) obj).thread));
             }
 
             @Override
@@ -649,11 +647,23 @@ public class Connection {
         }
     }
 
-    public static void browse(String url) {
-        browse(url, "web browser", "HTTP");
+    public static void email(String subject, String body) throws IOException {
+        email("mailto:?subject=" + encodeMailtoArg(subject) + "&body=" + encodeMailtoArg(body));
     }
 
-    public static void browse(String url, String applicationType, String linkType) {
+    public static void email(String url) throws IOException {
+        browse(url, "an email client", "mailto");
+    }
+
+    private static String encodeMailtoArg(String arg) throws IOException {
+        return URLEncoder.encode(arg, Constant.UTF8).replace("+", "%20");
+    }
+
+    public static void browse(String url) throws IOException {
+        browse(url, "a web browser", "HTTP");
+    }
+
+    public static void browse(String url, String applicationType, String linkType) throws IOException {
         Desktop desktop;
         if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.BROWSE)) {
             try {
@@ -662,38 +672,51 @@ public class Connection {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                guiListener.msg("Associate/install an application (e.g. a " + applicationType + ") for " + linkType + " links and then retry.",
-                        Constant.ERROR_MSG);
+                throw new IOException("Associate/install an application (e.g. " + applicationType + ") for " + linkType + " links and then retry.");
             }
         } else {
-            guiListener.msg("Update Java on your computer at http://www.java.com in order to complete your action. Or manually enter the following URL into a"
-                    + " web browser:" + Constant.NEWLINE2 + url + Constant.NEWLINE, Constant.ERROR_MSG);
+            throw new IOException(
+                    "Update Java on your computer at http://www.java.com in order to complete your action. Or manually open the following link with "
+                    + applicationType + ':' + Constant.NEWLINE2 + url + Constant.NEWLINE);
         }
     }
 
-    public static void browseFile(String file) throws Exception {
+    public static void browseFile(String file) throws IOException {
         try {
-            String command;
-            if (Constant.WINDOWS) {
-                command = "rundll32 url.dll,FileProtocolHandler";
-            } else if (Constant.MAC) {
-                command = "open";
-            } else {
-                command = "xdg-open";
-            }
-            Runtime.getRuntime().exec(command + " " + file);
+            (new ProcessBuilder(Constant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", file} : (Constant.MAC ? new String[]{"open", file}
+                    : new String[]{"xdg-open", file}))).start();
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            Desktop desktop;
-            if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.OPEN)) {
-                desktop.open(new File(file));
-            } else {
-                guiListener.msg("Update Java on your computer at http://www.java.com in order to complete your action. Or manually enter the following file"
-                        + " location into a web browser:" + Constant.NEWLINE2 + "file://" + file + Constant.NEWLINE, Constant.ERROR_MSG);
-            }
+            throw new IOException("Manually enter the following file location into a web browser:" + Constant.NEWLINE2 + "file://" + file + Constant.NEWLINE);
         }
+    }
+
+    public static void updateError(final Exception e) {
+        if (e.getClass().equals(UpdateException.class)) {
+            return;
+        }
+
+        Thread errorNotifier = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    setStatusBar(" Update error: " + ExceptionUtil.toString(e));
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e2) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e2);
+                        }
+                    }
+                } finally {
+                    unsetStatusBar();
+                }
+            }
+        };
+        errorNotifier.setPriority(Thread.MIN_PRIORITY);
+        errorNotifier.start();
     }
 
     private Connection() {

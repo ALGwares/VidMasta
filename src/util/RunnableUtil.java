@@ -37,13 +37,13 @@ public class RunnableUtil {
         }
     }
 
-    public static abstract class AbstractWorker<T> {
+    public abstract static class AbstractWorker<T> {
 
         private static final ExecutorService executorService = Executors.newCachedThreadPool();
         private final RunnableFuture<T> future;
         protected volatile PropertyChangeListener doneListener;
 
-        public AbstractWorker() {
+        protected AbstractWorker() {
             future = new FutureTask<T>(new Callable<T>() {
                 @Override
                 public T call() throws Exception {

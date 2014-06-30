@@ -7,7 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.JOptionPane;
+import listener.DomainType;
 import listener.GuiListener;
+import str.Str;
 import util.Connection;
 import util.Constant;
 import util.ExceptionUtil;
@@ -17,7 +19,6 @@ import util.UpdateException;
 
 class AppUpdater {
 
-    private static GuiListener guiListener;
     private static final String APP_UPDATE = "appUpdate" + Constant.TXT, INSTALL = "install.xml";
     private String[] appUpdateStrs;
     static final String APP_UPDATE_FAIL = "updateFail" + Constant.APP_VERSION;
@@ -26,7 +27,7 @@ class AppUpdater {
         try {
             installHelper();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error: " + ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
+            JOptionPane.showMessageDialog(null, ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
         }
     }
 
@@ -64,8 +65,8 @@ class AppUpdater {
                 installCmd.append(cmdPart).append(Constant.NEWLINE);
             }
             installCmd.append(Constant.APP_DIR).append(INSTALL);
-            restart(new String[]{installCmd.toString(), Regex.match(installer.getName(), "\\d++\\.\\d++"), Constant.APP_DIR + APP_UPDATE + Constant.NEWLINE
-                + Constant.APP_DIR + INSTALL + Constant.NEWLINE + cmd[cmd.length - 1]});
+            restart(installCmd.toString(), Regex.match(installer.getName(), "\\d++\\.\\d++"), Constant.APP_DIR + APP_UPDATE + Constant.NEWLINE + Constant.APP_DIR
+                    + INSTALL + Constant.NEWLINE + cmd[cmd.length - 1]);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -76,7 +77,7 @@ class AppUpdater {
         }
     }
 
-    void update(boolean showConfirmation) {
+    void update(boolean showConfirmation, GuiListener guiListener) {
         try {
             if (appUpdateStrs == null) {
                 appUpdateStrs = Regex.split(Connection.getUpdateFile(Str.get(295), showConfirmation), Constant.NEWLINE);
@@ -101,7 +102,7 @@ class AppUpdater {
         }
     }
 
-    void update() {
+    void update(GuiListener guiListener) {
         try {
             if ((new File(Constant.APP_DIR + APP_UPDATE_FAIL)).exists()) {
                 throw new UpdateException("app update installation failed");
@@ -129,7 +130,7 @@ class AppUpdater {
             }
 
             String installer = Constant.APP_DIR + "auto-vidmasta-setup-" + newAppVersion + installerSuffix;
-            Connection.saveData(installerLink, installer, Connection.UPDATE, false);
+            Connection.saveData(installerLink, installer, DomainType.UPDATE, false);
 
             StringBuilder installerXml = new StringBuilder(512);
             for (int i = 7; i < appUpdateStrs.length; i++) {
@@ -142,29 +143,24 @@ class AppUpdater {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            Updater.startUpError(e);
+            Connection.updateError(e);
             if (guiListener.canUpdate()) {
-                update(false);
+                update(false, guiListener);
             }
         }
     }
 
-    private static void restart(final String[] args) {
+    private static void restart(final String... args) {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                List<String> command = new ArrayList<String>(16);
-                command.add(Constant.JAVA);
-                command.add(Constant.JAR_OPTION);
-                command.add(Constant.PROGRAM_DIR + "updater" + Constant.JAR);
-                command.add(Constant.JAVA + Constant.NEWLINE + Constant.JAR_OPTION + Constant.NEWLINE + Constant.PROGRAM_DIR + Constant.PROGRAM_JAR);
-                command.add(Constant.APP_TITLE);
-                command.add(String.valueOf(System.currentTimeMillis()));
-                command.add(Str.get(350));
-                command.add(Str.get(351));
-                Collections.addAll(command, args);
+                List<String> cmd = new ArrayList<String>(16);
+                Collections.addAll(cmd, Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + "updater" + Constant.JAR, Constant.JAVA + Constant.NEWLINE
+                        + Constant.JAR_OPTION + Constant.NEWLINE + Constant.PROGRAM_DIR + Constant.PROGRAM_JAR, Constant.APP_TITLE,
+                        String.valueOf(System.currentTimeMillis()), Str.get(350), Str.get(351));
+                Collections.addAll(cmd, args);
                 try {
-                    (new ProcessBuilder(command)).start();
+                    (new ProcessBuilder(cmd)).start();
                 } catch (Exception e) {
                     if (Debug.DEBUG) {
                         Debug.print(e);
@@ -174,9 +170,5 @@ class AppUpdater {
             }
         });
         System.exit(0);
-    }
-
-    static void setGuiListener(GuiListener listener) {
-        guiListener = listener;
     }
 }

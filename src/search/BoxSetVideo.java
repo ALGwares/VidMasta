@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import main.Str;
+import str.Str;
 import util.Constant;
 import util.Regex;
 
@@ -44,7 +44,7 @@ public class BoxSetVideo {
     }
 
     private static String escapeTitle(String title) throws Exception {
-        String newTitle = Regex.replaceAll(Str.htmlToPlainText(title), Str.get(311), Str.get(312));
+        String newTitle = Regex.replaceAll(Regex.htmlToPlainText(title), Str.get(311), Str.get(312));
         int len = newTitle.length();
         StringBuilder escapedTitleBuf = new StringBuilder(len);
         for (int i = 0; i < len; i++) {

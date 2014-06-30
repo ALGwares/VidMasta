@@ -1594,9 +1594,6 @@
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPopupMenu" name="tablePopupMenu">
-      <Events>
-        <EventHandler event="popupMenuWillBecomeVisible" listener="javax.swing.event.PopupMenuListener" parameters="javax.swing.event.PopupMenuEvent" handler="tablePopupMenuPopupMenuWillBecomeVisible"/>
-      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
       </AuxValues>
@@ -1608,6 +1605,7 @@
         <MenuItem class="javax.swing.JMenuItem" name="readSummaryMenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Read Summary"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="readSummaryMenuItemActionPerformed"/>
@@ -1616,6 +1614,7 @@
         <MenuItem class="javax.swing.JMenuItem" name="watchTrailerMenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Watch Trailer"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="watchTrailerMenuItemActionPerformed"/>
@@ -1644,6 +1643,7 @@
         <MenuItem class="javax.swing.JMenuItem" name="watchSource1MenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Watch (Source 1)"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="watchSource1MenuItemActionPerformed"/>
@@ -1652,6 +1652,7 @@
         <MenuItem class="javax.swing.JMenuItem" name="watchSource2MenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Watch (Source 2)"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="watchSource2MenuItemActionPerformed"/>
@@ -1659,19 +1660,188 @@
         </MenuItem>
         <Component class="javax.swing.JPopupMenu$Separator" name="tablePopupMenuSeparator1">
         </Component>
-        <MenuItem class="javax.swing.JMenuItem" name="tableCopyMenuItem">
+        <Menu class="javax.swing.JMenu" name="copyMenu">
           <Properties>
             <Property name="text" type="java.lang.String" value="Copy"/>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tableCopyMenuItemActionPerformed"/>
-          </Events>
-        </MenuItem>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="copySelectionMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Selection"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copySelectionMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyFullTitleAndYearMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Title &amp; Year"/>
+                <Property name="toolTipText" type="java.lang.String" value="includes title alias if found"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyFullTitleAndYearMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyPosterImageMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Image"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyPosterImageMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="copyMenuSeparator1">
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copySummaryLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Summary Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copySummaryLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyTrailerLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Trailer Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyTrailerLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyDownloadLink1MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Download Link 1"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="copyDownloadLink1MenuItemMousePressed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyDownloadLink1MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyDownloadLink2MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Download Link 2"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="copyDownloadLink2MenuItemMousePressed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyDownloadLink2MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyWatchLink1MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Watch Link 1"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyWatchLink1MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyWatchLink2MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Watch Link 2"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyWatchLink2MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copySubtitleLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Subtitle Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copySubtitleLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="emailMenu">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Email"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="emailSummaryLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Summary Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailSummaryLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailTrailerLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Trailer Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailTrailerLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailDownloadLink1MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Download Link 1"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="emailDownloadLink1MenuItemMousePressed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailDownloadLink1MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailDownloadLink2MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Download Link 2"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="emailDownloadLink2MenuItemMousePressed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailDownloadLink2MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailWatchLink1MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Watch Link 1"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailWatchLink1MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailWatchLink2MenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Watch Link 2"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailWatchLink2MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="emailMenuSeparator1">
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailEverythingMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Everything"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailEverythingMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
         <Component class="javax.swing.JPopupMenu$Separator" name="tablePopupMenuSeparator2">
         </Component>
         <MenuItem class="javax.swing.JMenuItem" name="findSubtitleMenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Find Subtitle"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="findSubtitleMenuItemActionPerformed"/>
@@ -2115,6 +2285,9 @@
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
             <Component class="javax.swing.JList" name="removeProxiesList">
+              <Events>
+                <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="removeProxiesListKeyPressed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -3267,7 +3440,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Container class="javax.swing.JDialog" name="profileMsgDialog">
+    <Container class="javax.swing.JDialog" name="timedMsgDialog">
       <Properties>
         <Property name="title" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
           <Connection code="Constant.APP_TITLE" type="code"/>
@@ -3284,7 +3457,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Component id="profileMsgLabel" pref="252" max="32767" attributes="0"/>
+                  <Component id="timedMsgLabel" pref="252" max="32767" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -3293,14 +3466,14 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Component id="profileMsgLabel" min="-2" pref="14" max="-2" attributes="0"/>
+                  <Component id="timedMsgLabel" min="-2" pref="14" max="-2" attributes="0"/>
                   <EmptySpace min="-2" max="-2" attributes="1"/>
               </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="profileMsgLabel">
+        <Component class="javax.swing.JLabel" name="timedMsgLabel">
           <Properties>
             <Property name="horizontalAlignment" type="int" value="0"/>
           </Properties>
@@ -3515,6 +3688,7 @@
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
+            <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="exitBackupModeMenuItemMouseReleased"/>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="exitBackupModeMenuItemActionPerformed"/>
           </Events>
         </MenuItem>
@@ -3860,6 +4034,14 @@
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="Show Web Browser Start Notification"/>
+              </Properties>
+            </MenuItem>
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator5">
+            </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="emailWithDefaultAppCheckBoxMenuItem">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Email with Default Application"/>
               </Properties>
             </MenuItem>
           </SubComponents>
@@ -4298,8 +4480,15 @@
           <Properties>
             <Property name="autoCreateRowSorter" type="boolean" value="true"/>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-              <Table columnCount="6" rowCount="0">
+              <Table columnCount="13" rowCount="0">
                 <Column editable="false" title="" type="java.lang.Object"/>
+                <Column editable="false" title="" type="java.lang.String"/>
+                <Column editable="false" title="" type="java.lang.String"/>
+                <Column editable="false" title="" type="java.lang.String"/>
+                <Column editable="false" title="" type="java.lang.String"/>
+                <Column editable="false" title="" type="java.lang.String"/>
+                <Column editable="false" title="" type="java.lang.String"/>
+                <Column editable="false" title="" type="java.lang.String"/>
                 <Column editable="false" title="" type="java.lang.String"/>
                 <Column editable="false" title="" type="java.lang.String"/>
                 <Column editable="false" title="" type="java.lang.String"/>
@@ -4339,6 +4528,27 @@
                 </Column>
                 <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
                   <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                    <Connection code="Constant.ID_COL" type="code"/>
+                  </Title>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
+                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                    <Connection code="Constant.CURR_TITLE_COL" type="code"/>
+                  </Title>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
+                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                    <Connection code="Constant.OLD_TITLE_COL" type="code"/>
+                  </Title>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
+                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                     <Connection code="Constant.SUMMARY_COL" type="code"/>
                   </Title>
                   <Editor/>
@@ -4346,7 +4556,35 @@
                 </Column>
                 <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
                   <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                    <Connection code="Constant.ID_COL" type="code"/>
+                    <Connection code="Constant.IMAGE_LINK_COL" type="code"/>
+                  </Title>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
+                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                    <Connection code="Constant.IS_TV_SHOW_COL" type="code"/>
+                  </Title>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
+                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                    <Connection code="Constant.IS_TV_SHOW_AND_MOVIE_COL" type="code"/>
+                  </Title>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
+                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                    <Connection code="Constant.SEASON_COL" type="code"/>
+                  </Title>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
+                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                    <Connection code="Constant.EPISODE_COL" type="code"/>
                   </Title>
                   <Editor/>
                   <Renderer/>
@@ -4627,6 +4865,7 @@
       </Properties>
       <Events>
         <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="downloadLink1ButtonMousePressed"/>
+        <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="downloadLink1ButtonMouseReleased"/>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadLink1ButtonActionPerformed"/>
       </Events>
       <AuxValues>

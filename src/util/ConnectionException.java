@@ -15,7 +15,7 @@ public class ConnectionException extends Exception {
 
     public ConnectionException(String msg, String url) {
         super(msg);
-        this.URL = url;
+        URL = url;
     }
 
     @Override

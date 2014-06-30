@@ -13,16 +13,12 @@ import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
@@ -31,17 +27,16 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -51,17 +46,18 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.DefaultRowSorter;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
@@ -127,15 +123,19 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.html.CSS.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLDocument;
+import listener.ContentType;
+import listener.DomainType;
 import listener.GuiListener;
+import listener.Video;
+import listener.VideoStrExportListener;
 import listener.WorkerListener;
-import main.Str;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-import torrent.Magnet;
+import str.Str;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
@@ -153,21 +153,23 @@ public class GUI extends JFrame implements GuiListener {
     DefaultListModel blacklistListModel, whitelistListModel;
     private DefaultListModel removeProxiesListModel;
     private HTMLDocument summaryEditorPaneDocument;
-    int idCol, imageCol, titleCol, yearCol, ratingCol, summaryCol;
+    int imageCol, titleCol, yearCol, ratingCol, idCol, currTitleCol, oldTitleCol, summaryCol, imageLinkCol, isTVShowCol, isTVShowAndMovieCol,
+            seasonCol, episodeCol;
     String randomPort;
     private static final String HQ_FORMAT = "high/TV+ quality ";
     private static final String CTRL_CLICK = KeyEvent.getKeyModifiersText(KeyEvent.CTRL_MASK).toLowerCase(Locale.ENGLISH) + "+click to ";
-    private String subtitleTitleID, subtitleTitle, subtitleYear, subtitleFormat;
-    private boolean subtitleIsTVShow, subtitleIsTVShowAndMovie;
-    private final Set<Integer> subtitleEpisodes = new HashSet<Integer>(4), downloadLinkEpisodes = new HashSet<Integer>(4);
+    private String subtitleFormat;
+    private Video subtitleVideo;
+    private VideoStrExportListener subtitleStrExportListener;
+    private final Set<Integer> trailerEpisodes = new HashSet<Integer>(4), downloadLinkEpisodes = new HashSet<Integer>(4),
+            subtitleEpisodes = new HashSet<Integer>(4);
     private Icon loadingIcon, notLoadingIcon, noWarningIcon, warningIcon;
     JList popupList;
     JTextComponent popupTextComponent;
     Component downloadLinkPopupComponent;
     SyncTable resultsSyncTable;
     private AbstractPopupListener textComponentPopupListener;
-    private final HTMLCopyListener htmlCopyListener = new HTMLCopyListener();
-    private final TableCopyListener tableCopyListener = new TableCopyListener();
+    private final ActionListener htmlCopyListener = new HTMLCopyListener(), tableCopyListener = new TableCopyListener();
     private final Object msgDialogLock = new Object(), optionDialogLock = new Object();
     private final Settings settings = new Settings();
     final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
@@ -177,24 +179,24 @@ public class GUI extends JFrame implements GuiListener {
     private final JCalendar endCalendar = new JCalendar(null, Locale.ENGLISH, true, true);
     private JTextFieldDateEditor startDateTextField, endDateTextField;
     boolean usePeerBlock;
-    private Thread profileMsgThread;
-    private final Lock findTitleReadLock, findTitleWriteLock;
-    private final ArrayList<String> findTitles = new ArrayList<String>(0);
+    private volatile Thread timedMsgThread;
+    final Object timedMsgLock = new Object();
+    private final List<String> findTitles = new CopyOnWriteArrayList<String>();
     private int findTitleRow = -2;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
     JMenuItem dummyMenuItem = new JMenuItem();
+    JComboBox dummyComboBox = new JComboBox();
 
     public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
         this.workerListener = workerListener;
         this.splashScreen = splashScreen;
-        ReentrantReadWriteLock findTitleReadWriteLock = new ReentrantReadWriteLock();
-        findTitleReadLock = findTitleReadWriteLock.readLock();
-        findTitleWriteLock = findTitleReadWriteLock.writeLock();
 
         splashScreen.progress();
 
         initComponents();
+        
+        dummyComboBox.setEditable(true);
 
         splashScreen.progress();
 
@@ -206,7 +208,7 @@ public class GUI extends JFrame implements GuiListener {
         JOptionPane tempOptionPane = new JOptionPane();
         Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
         Font font = tempOptionPane.getFont();
-        for (JComponent component : new JComponent[]{optionalMsgTextArea, optionalMsgCheckBox, optionalMsgPanel, profileMsgLabel}) {
+        for (JComponent component : new JComponent[]{optionalMsgTextArea, optionalMsgCheckBox, optionalMsgPanel, timedMsgLabel}) {
             component.setForeground(fgColor);
             component.setBackground(bgColor);
             component.setFont(font);
@@ -248,7 +250,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        addMouseListener(new AbstractPopupListener() {
+        UI.addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 int row, col;
@@ -263,7 +265,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, resultsTable);
 
-        addMouseListener(textComponentPopupListener = new AbstractPopupListener() {
+        UI.addMouseListener(textComponentPopupListener = new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 if (!evt.isPopupTrigger() || !(popupTextComponent = (JTextComponent) evt.getSource()).isEnabled()) {
@@ -280,7 +282,7 @@ public class GUI extends JFrame implements GuiListener {
                 portTextField, optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
                 authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField);
 
-        addMouseListener(new AbstractPopupListener() {
+        UI.addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 if (evt.isPopupTrigger()) {
@@ -290,7 +292,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, removeProxiesList, whitelistedList, blacklistedList);
 
-        addMouseListener(new AbstractPopupListener() {
+        UI.addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 if (evt.isPopupTrigger() && connectionIssueButton.isEnabled()) {
@@ -299,7 +301,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, connectionIssueButton);
 
-        addMouseListener(new AbstractPopupListener() {
+        UI.addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 if (evt.isPopupTrigger()) {
@@ -309,7 +311,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, downloadLink1Button, downloadLink2Button, hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox, hd1080CheckBox);
 
-        addMouseListener(new AbstractPopupListener() {
+        UI.addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 if (evt.isPopupTrigger()) {
@@ -327,11 +329,20 @@ public class GUI extends JFrame implements GuiListener {
         titleCol = colModel.getColumnIndex(Constant.TITLE_COL);
         yearCol = colModel.getColumnIndex(Constant.YEAR_COL);
         ratingCol = colModel.getColumnIndex(Constant.RATING_COL);
-        summaryCol = colModel.getColumnIndex(Constant.SUMMARY_COL);
         idCol = colModel.getColumnIndex(Constant.ID_COL);
-        //must remove rightmost column first
-        resultsTable.removeColumn(resultsTable.getColumn(Constant.ID_COL));
-        resultsTable.removeColumn(resultsTable.getColumn(Constant.SUMMARY_COL));
+        currTitleCol = colModel.getColumnIndex(Constant.CURR_TITLE_COL);
+        oldTitleCol = colModel.getColumnIndex(Constant.OLD_TITLE_COL);
+        summaryCol = colModel.getColumnIndex(Constant.SUMMARY_COL);
+        imageLinkCol = colModel.getColumnIndex(Constant.IMAGE_LINK_COL);
+        isTVShowCol = colModel.getColumnIndex(Constant.IS_TV_SHOW_COL);
+        isTVShowAndMovieCol = colModel.getColumnIndex(Constant.IS_TV_SHOW_AND_MOVIE_COL);
+        seasonCol = colModel.getColumnIndex(Constant.SEASON_COL);
+        episodeCol = colModel.getColumnIndex(Constant.EPISODE_COL);
+        // Must remove rightmost column first
+        for (String col : new String[]{Constant.EPISODE_COL, Constant.SEASON_COL, Constant.IS_TV_SHOW_AND_MOVIE_COL, Constant.IS_TV_SHOW_COL,
+            Constant.IMAGE_LINK_COL, Constant.SUMMARY_COL, Constant.OLD_TITLE_COL, Constant.CURR_TITLE_COL, Constant.ID_COL}) {
+            resultsTable.removeColumn(resultsTable.getColumn(col));
+        }
 
         splashScreen.progress();
 
@@ -363,10 +374,10 @@ public class GUI extends JFrame implements GuiListener {
         whitelistedList.setModel(whitelistListModel = new DefaultListModel());
         removeProxiesList.setModel(removeProxiesListModel = new DefaultListModel());
 
-        registerCutCopyPasteKeyboardActions(summaryEditorPane, htmlCopyListener);
-        registerCutCopyPasteKeyboardActions(resultsTable, tableCopyListener);
+        UI.registerCutCopyPasteKeyboardActions(summaryEditorPane, htmlCopyListener);
+        UI.registerCutCopyPasteKeyboardActions(resultsTable, tableCopyListener);
 
-        resultsTable.setRowSorter(new TableRowSorter<TableModel>(resultsTable.getModel()) {
+        DefaultRowSorter<TableModel, Integer> rowSorter = new TableRowSorter<TableModel>(resultsTable.getModel()) {
             @Override
             @SuppressWarnings("unchecked")
             public void setSortKeys(List<? extends SortKey> sortKeys) {
@@ -395,6 +406,26 @@ public class GUI extends JFrame implements GuiListener {
                     }
                 }
                 super.setSortKeys(newSortKeys);
+            }
+        };
+        resultsTable.setRowSorter(rowSorter);
+        rowSorter.setComparator(titleCol, new ColumnComparator<String>() {
+            @Override
+            protected String convert(String str) {
+                return Regex.htmlToPlainText(UI.innerHTML(str, Constant.TITLE_INDENT_LEN));
+            }
+        });
+        rowSorter.setComparator(yearCol, new ColumnComparator<Short>() {
+            @Override
+            protected Short convert(String str) {
+                return Short.valueOf(UI.innerHTML(str));
+            }
+        });
+        rowSorter.setComparator(ratingCol, new ColumnComparator<Float>() {
+            @Override
+            protected Float convert(String str) {
+                String tempStr = UI.innerHTML(str);
+                return tempStr.equals("-") ? 0.0f : Float.valueOf(tempStr);
             }
         });
 
@@ -476,21 +507,21 @@ public class GUI extends JFrame implements GuiListener {
         languageList.setListData(Regex.languages.keySet().toArray());
         countryList.setListData(Regex.countries.keySet().toArray());
 
-        initCountComboBoxes(414, 502, regularResultsPerSearchComboBox);
-        initCountComboBoxes(412, 413, popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox);
+        UI.initCountComboBoxes(414, 502, regularResultsPerSearchComboBox);
+        UI.initCountComboBoxes(412, 413, popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox);
 
         splashScreen.progress();
 
         String escapeKeyWindowClosingActionMapKey = "VK_ESCAPE:WINDOW_CLOSING", enterKeyWindowClosingActionMapKey = "VK_ENTER:WINDOW_CLOSING";
         KeyStroke escapeKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
         Image icon = Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png");
-        profileMsgDialog.setIconImage(icon);
+        timedMsgDialog.setIconImage(icon);
         for (final Window window : windows()) {
             window.setIconImage(icon);
             if (window == this) {
                 continue;
             }
-            AbstractAction windowClosingAction = new AbstractAction() {
+            Action windowClosingAction = new AbstractAction() {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -520,31 +551,6 @@ public class GUI extends JFrame implements GuiListener {
         splashScreen.progress();
     }
 
-    private static void registerCutCopyPasteKeyboardActions(JComponent component, ActionListener listener) {
-        component.registerKeyboardAction(listener, Constant.CUT, KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK, false), JComponent.WHEN_FOCUSED);
-        component.registerKeyboardAction(listener, Constant.COPY, KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false), JComponent.WHEN_FOCUSED);
-        component.registerKeyboardAction(listener, Constant.PASTE, KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false), JComponent.WHEN_FOCUSED);
-    }
-
-    private static void initCountComboBoxes(int incrementSizeIndex, int maxCountIndex, JComboBox... comboBoxes) {
-        int incrementSize = Integer.parseInt(Str.get(incrementSizeIndex)), maxCount = Integer.parseInt(Str.get(maxCountIndex));
-        for (int i = incrementSize; i <= maxCount; i += incrementSize) {
-            String count = String.valueOf(i);
-            for (JComboBox comboBox : comboBoxes) {
-                comboBox.addItem(count);
-            }
-        }
-        for (JComboBox comboBox : comboBoxes) {
-            comboBox.setSelectedIndex(0);
-        }
-    }
-
-    private static void addMouseListener(MouseListener mouseListener, JComponent... components) {
-        for (JComponent component : components) {
-            component.addMouseListener(mouseListener);
-        }
-    }
-
     public void setInitialFocus() {
         titleTextField.requestFocusInWindow();
     }
@@ -559,7 +565,7 @@ public class GUI extends JFrame implements GuiListener {
                     }
                 } catch (Exception e) {
                     if (Debug.DEBUG) {
-                        Debug.println("poster cacher stopped: " + e.toString());
+                        Debug.println("poster cacher stopped: " + e);
                     }
                 }
             }
@@ -592,7 +598,7 @@ public class GUI extends JFrame implements GuiListener {
         isTVShowSearch = false;
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) popularMoviesResultsPerSearchComboBox.getSelectedItem());
-        String[] languages = copy(languageList, Constant.ANY_LANGUAGE), countries = copy(countryList, Constant.ANY_COUNTRY);
+        String[] languages = UI.copy(languageList, Constant.ANY_LANGUAGE), countries = UI.copy(countryList, Constant.ANY_COUNTRY);
         workerListener.popularSearchStarted(numResultsPerSearch, isTVShowSearch, languages, countries, true, !isStartUp);
     }
 
@@ -677,7 +683,27 @@ public class GUI extends JFrame implements GuiListener {
         watchSource1MenuItem = new JMenuItem();
         watchSource2MenuItem = new JMenuItem();
         tablePopupMenuSeparator1 = new Separator();
-        tableCopyMenuItem = new JMenuItem();
+        copyMenu = new JMenu();
+        copySelectionMenuItem = new JMenuItem();
+        copyFullTitleAndYearMenuItem = new JMenuItem();
+        copyPosterImageMenuItem = new JMenuItem();
+        copyMenuSeparator1 = new Separator();
+        copySummaryLinkMenuItem = new JMenuItem();
+        copyTrailerLinkMenuItem = new JMenuItem();
+        copyDownloadLink1MenuItem = new JMenuItem();
+        copyDownloadLink2MenuItem = new JMenuItem();
+        copyWatchLink1MenuItem = new JMenuItem();
+        copyWatchLink2MenuItem = new JMenuItem();
+        copySubtitleLinkMenuItem = new JMenuItem();
+        emailMenu = new JMenu();
+        emailSummaryLinkMenuItem = new JMenuItem();
+        emailTrailerLinkMenuItem = new JMenuItem();
+        emailDownloadLink1MenuItem = new JMenuItem();
+        emailDownloadLink2MenuItem = new JMenuItem();
+        emailWatchLink1MenuItem = new JMenuItem();
+        emailWatchLink2MenuItem = new JMenuItem();
+        emailMenuSeparator1 = new Separator();
+        emailEverythingMenuItem = new JMenuItem();
         tablePopupMenuSeparator2 = new Separator();
         findSubtitleMenuItem = new JMenuItem();
         textComponentPopupMenu = new JPopupMenu();
@@ -768,8 +794,8 @@ public class GUI extends JFrame implements GuiListener {
         movieSubtitleDownloadMatch2Button = new JButton();
         movieSubtitleCancelButton = new JButton();
         movieSubtitleLoadingLabel = new JLabel();
-        profileMsgDialog = new JDialog();
-        profileMsgLabel = new JLabel();
+        timedMsgDialog = new JDialog();
+        timedMsgLabel = new JLabel();
         torrentFileChooser = new JFileChooser();
         subtitleFileChooser = new JFileChooser();
         authenticationPanel = new JPanel();
@@ -872,6 +898,8 @@ public class GUI extends JFrame implements GuiListener {
         feedCheckBoxMenuItem = new JCheckBoxMenuItem();
         searchMenuSeparator4 = new Separator();
         browserNotificationCheckBoxMenuItem = new JCheckBoxMenuItem();
+        searchMenuSeparator5 = new Separator();
+        emailWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
         downloadMenu = new JMenu();
         downloadSizeMenuItem = new JMenuItem();
         downloadMenuSeparator1 = new Separator();
@@ -1602,17 +1630,8 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        tablePopupMenu.addPopupMenuListener(new PopupMenuListener() {
-            public void popupMenuCanceled(PopupMenuEvent evt) {
-            }
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent evt) {
-            }
-            public void popupMenuWillBecomeVisible(PopupMenuEvent evt) {
-                tablePopupMenuPopupMenuWillBecomeVisible(evt);
-            }
-        });
-
         readSummaryMenuItem.setText("Read Summary");
+        readSummaryMenuItem.setEnabled(false);
         readSummaryMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 readSummaryMenuItemActionPerformed(evt);
@@ -1621,6 +1640,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(readSummaryMenuItem);
 
         watchTrailerMenuItem.setText("Watch Trailer");
+        watchTrailerMenuItem.setEnabled(false);
         watchTrailerMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 watchTrailerMenuItemActionPerformed(evt);
@@ -1657,6 +1677,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(downloadLink2MenuItem);
 
         watchSource1MenuItem.setText("Watch (Source 1)");
+        watchSource1MenuItem.setEnabled(false);
         watchSource1MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 watchSource1MenuItemActionPerformed(evt);
@@ -1665,6 +1686,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(watchSource1MenuItem);
 
         watchSource2MenuItem.setText("Watch (Source 2)");
+        watchSource2MenuItem.setEnabled(false);
         watchSource2MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 watchSource2MenuItemActionPerformed(evt);
@@ -1673,16 +1695,193 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(watchSource2MenuItem);
         tablePopupMenu.add(tablePopupMenuSeparator1);
 
-        tableCopyMenuItem.setText("Copy");
-        tableCopyMenuItem.addActionListener(new ActionListener() {
+        copyMenu.setText("Copy");
+
+        copySelectionMenuItem.setText("Selection");
+        copySelectionMenuItem.setEnabled(false);
+        copySelectionMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                tableCopyMenuItemActionPerformed(evt);
+                copySelectionMenuItemActionPerformed(evt);
             }
         });
-        tablePopupMenu.add(tableCopyMenuItem);
+        copyMenu.add(copySelectionMenuItem);
+
+        copyFullTitleAndYearMenuItem.setText("Title & Year");
+        copyFullTitleAndYearMenuItem.setToolTipText("includes title alias if found");
+        copyFullTitleAndYearMenuItem.setEnabled(false);
+        copyFullTitleAndYearMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyFullTitleAndYearMenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyFullTitleAndYearMenuItem);
+
+        copyPosterImageMenuItem.setText("Image");
+        copyPosterImageMenuItem.setEnabled(false);
+        copyPosterImageMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyPosterImageMenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyPosterImageMenuItem);
+        copyMenu.add(copyMenuSeparator1);
+
+        copySummaryLinkMenuItem.setText("Summary Link");
+        copySummaryLinkMenuItem.setEnabled(false);
+        copySummaryLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copySummaryLinkMenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copySummaryLinkMenuItem);
+
+        copyTrailerLinkMenuItem.setText("Trailer Link");
+        copyTrailerLinkMenuItem.setEnabled(false);
+        copyTrailerLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyTrailerLinkMenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyTrailerLinkMenuItem);
+
+        copyDownloadLink1MenuItem.setText("Download Link 1");
+        copyDownloadLink1MenuItem.setEnabled(false);
+        copyDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                copyDownloadLink1MenuItemMousePressed(evt);
+            }
+        });
+        copyDownloadLink1MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyDownloadLink1MenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyDownloadLink1MenuItem);
+
+        copyDownloadLink2MenuItem.setText("Download Link 2");
+        copyDownloadLink2MenuItem.setEnabled(false);
+        copyDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                copyDownloadLink2MenuItemMousePressed(evt);
+            }
+        });
+        copyDownloadLink2MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyDownloadLink2MenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyDownloadLink2MenuItem);
+
+        copyWatchLink1MenuItem.setText("Watch Link 1");
+        copyWatchLink1MenuItem.setEnabled(false);
+        copyWatchLink1MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyWatchLink1MenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyWatchLink1MenuItem);
+
+        copyWatchLink2MenuItem.setText("Watch Link 2");
+        copyWatchLink2MenuItem.setEnabled(false);
+        copyWatchLink2MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyWatchLink2MenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyWatchLink2MenuItem);
+
+        copySubtitleLinkMenuItem.setText("Subtitle Link");
+        copySubtitleLinkMenuItem.setEnabled(false);
+        copySubtitleLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copySubtitleLinkMenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copySubtitleLinkMenuItem);
+
+        tablePopupMenu.add(copyMenu);
+
+        emailMenu.setText("Email");
+
+        emailSummaryLinkMenuItem.setText("Summary Link");
+        emailSummaryLinkMenuItem.setEnabled(false);
+        emailSummaryLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailSummaryLinkMenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailSummaryLinkMenuItem);
+
+        emailTrailerLinkMenuItem.setText("Trailer Link");
+        emailTrailerLinkMenuItem.setEnabled(false);
+        emailTrailerLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailTrailerLinkMenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailTrailerLinkMenuItem);
+
+        emailDownloadLink1MenuItem.setText("Download Link 1");
+        emailDownloadLink1MenuItem.setEnabled(false);
+        emailDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                emailDownloadLink1MenuItemMousePressed(evt);
+            }
+        });
+        emailDownloadLink1MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailDownloadLink1MenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailDownloadLink1MenuItem);
+
+        emailDownloadLink2MenuItem.setText("Download Link 2");
+        emailDownloadLink2MenuItem.setEnabled(false);
+        emailDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                emailDownloadLink2MenuItemMousePressed(evt);
+            }
+        });
+        emailDownloadLink2MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailDownloadLink2MenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailDownloadLink2MenuItem);
+
+        emailWatchLink1MenuItem.setText("Watch Link 1");
+        emailWatchLink1MenuItem.setEnabled(false);
+        emailWatchLink1MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailWatchLink1MenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailWatchLink1MenuItem);
+
+        emailWatchLink2MenuItem.setText("Watch Link 2");
+        emailWatchLink2MenuItem.setEnabled(false);
+        emailWatchLink2MenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailWatchLink2MenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailWatchLink2MenuItem);
+        emailMenu.add(emailMenuSeparator1);
+
+        emailEverythingMenuItem.setText("Everything");
+        emailEverythingMenuItem.setEnabled(false);
+        emailEverythingMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailEverythingMenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailEverythingMenuItem);
+
+        tablePopupMenu.add(emailMenu);
         tablePopupMenu.add(tablePopupMenuSeparator2);
 
         findSubtitleMenuItem.setText("Find Subtitle");
+        findSubtitleMenuItem.setEnabled(false);
         findSubtitleMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 findSubtitleMenuItemActionPerformed(evt);
@@ -1980,6 +2179,11 @@ public class GUI extends JFrame implements GuiListener {
 
         removeProxiesLabel.setText("Select proxies to remove:");
 
+        removeProxiesList.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                removeProxiesListKeyPressed(evt);
+            }
+        });
         removeProxiesScrollPane.setViewportView(removeProxiesList);
 
         removeProxiesRemoveButton.setText("Remove");
@@ -2551,26 +2755,26 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        profileMsgDialog.setTitle(Constant.APP_TITLE);
-        profileMsgDialog.setAlwaysOnTop(true);
-        profileMsgDialog.setResizable(false);
+        timedMsgDialog.setTitle(Constant.APP_TITLE);
+        timedMsgDialog.setAlwaysOnTop(true);
+        timedMsgDialog.setResizable(false);
 
-        profileMsgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        timedMsgLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        GroupLayout profileMsgDialogLayout = new GroupLayout(profileMsgDialog.getContentPane());
-        profileMsgDialog.getContentPane().setLayout(profileMsgDialogLayout);
-        profileMsgDialogLayout.setHorizontalGroup(
-            profileMsgDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(profileMsgDialogLayout.createSequentialGroup()
+        GroupLayout timedMsgDialogLayout = new GroupLayout(timedMsgDialog.getContentPane());
+        timedMsgDialog.getContentPane().setLayout(timedMsgDialogLayout);
+        timedMsgDialogLayout.setHorizontalGroup(
+            timedMsgDialogLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(timedMsgDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(profileMsgLabel, GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
+                .addComponent(timedMsgLabel, GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
                 .addContainerGap())
         );
-        profileMsgDialogLayout.setVerticalGroup(
-            profileMsgDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(profileMsgDialogLayout.createSequentialGroup()
+        timedMsgDialogLayout.setVerticalGroup(
+            timedMsgDialogLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(timedMsgDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(profileMsgLabel, GroupLayout.PREFERRED_SIZE, 14, GroupLayout.PREFERRED_SIZE)
+                .addComponent(timedMsgLabel, GroupLayout.PREFERRED_SIZE, 14, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -2588,12 +2792,12 @@ public class GUI extends JFrame implements GuiListener {
 
         authenticationUsernameTextField.setText(null);
         authenticationUsernameTextField.addAncestorListener(new AncestorListener() {
-            public void ancestorMoved(AncestorEvent evt) {
-            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationUsernameTextFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
+            }
+            public void ancestorMoved(AncestorEvent evt) {
             }
         });
 
@@ -2602,12 +2806,12 @@ public class GUI extends JFrame implements GuiListener {
         authenticationPasswordField.setText(null);
         authenticationPasswordField.setEchoChar('\u2022');
         authenticationPasswordField.addAncestorListener(new AncestorListener() {
-            public void ancestorMoved(AncestorEvent evt) {
-            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationPasswordFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
+            }
+            public void ancestorMoved(AncestorEvent evt) {
             }
         });
 
@@ -2719,6 +2923,11 @@ public class GUI extends JFrame implements GuiListener {
 
         exitBackupModeMenuItem.setText("Exit Backup Mode");
         exitBackupModeMenuItem.setEnabled(false);
+        exitBackupModeMenuItem.addMouseListener(new MouseAdapter() {
+            public void mouseReleased(MouseEvent evt) {
+                exitBackupModeMenuItemMouseReleased(evt);
+            }
+        });
         exitBackupModeMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 exitBackupModeMenuItemActionPerformed(evt);
@@ -2767,14 +2976,14 @@ public class GUI extends JFrame implements GuiListener {
 
             },
             new String [] {
-                "", "", "", "", "", ""
+                "", "", "", "", "", "", "", "", "", "", "", "", ""
             }
         ) {
             Class[] types = new Class [] {
-                Object.class, String.class, String.class, String.class, String.class, String.class
+                Object.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -2822,11 +3031,39 @@ public class GUI extends JFrame implements GuiListener {
             resultsTable.getColumnModel().getColumn(4).setMinWidth(0);
             resultsTable.getColumnModel().getColumn(4).setPreferredWidth(0);
             resultsTable.getColumnModel().getColumn(4).setMaxWidth(0);
-            resultsTable.getColumnModel().getColumn(4).setHeaderValue(Constant.SUMMARY_COL);
+            resultsTable.getColumnModel().getColumn(4).setHeaderValue(Constant.ID_COL);
             resultsTable.getColumnModel().getColumn(5).setMinWidth(0);
             resultsTable.getColumnModel().getColumn(5).setPreferredWidth(0);
             resultsTable.getColumnModel().getColumn(5).setMaxWidth(0);
-            resultsTable.getColumnModel().getColumn(5).setHeaderValue(Constant.ID_COL);
+            resultsTable.getColumnModel().getColumn(5).setHeaderValue(Constant.CURR_TITLE_COL);
+            resultsTable.getColumnModel().getColumn(6).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(6).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(6).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(6).setHeaderValue(Constant.OLD_TITLE_COL);
+            resultsTable.getColumnModel().getColumn(7).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(7).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(7).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(7).setHeaderValue(Constant.SUMMARY_COL);
+            resultsTable.getColumnModel().getColumn(8).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(8).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(8).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(8).setHeaderValue(Constant.IMAGE_LINK_COL);
+            resultsTable.getColumnModel().getColumn(9).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(9).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(9).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(9).setHeaderValue(Constant.IS_TV_SHOW_COL);
+            resultsTable.getColumnModel().getColumn(10).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(10).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(10).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(10).setHeaderValue(Constant.IS_TV_SHOW_AND_MOVIE_COL);
+            resultsTable.getColumnModel().getColumn(11).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(11).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(11).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(11).setHeaderValue(Constant.SEASON_COL);
+            resultsTable.getColumnModel().getColumn(12).setMinWidth(0);
+            resultsTable.getColumnModel().getColumn(12).setPreferredWidth(0);
+            resultsTable.getColumnModel().getColumn(12).setMaxWidth(0);
+            resultsTable.getColumnModel().getColumn(12).setHeaderValue(Constant.EPISODE_COL);
         }
 
         progressBar.setStringPainted(true);
@@ -3004,6 +3241,9 @@ public class GUI extends JFrame implements GuiListener {
         downloadLink1Button.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 downloadLink1ButtonMousePressed(evt);
+            }
+            public void mouseReleased(MouseEvent evt) {
+                downloadLink1ButtonMouseReleased(evt);
             }
         });
         downloadLink1Button.addActionListener(new ActionListener() {
@@ -3337,6 +3577,11 @@ public class GUI extends JFrame implements GuiListener {
         browserNotificationCheckBoxMenuItem.setSelected(true);
         browserNotificationCheckBoxMenuItem.setText("Show Web Browser Start Notification");
         searchMenu.add(browserNotificationCheckBoxMenuItem);
+        searchMenu.add(searchMenuSeparator5);
+
+        emailWithDefaultAppCheckBoxMenuItem.setSelected(true);
+        emailWithDefaultAppCheckBoxMenuItem.setText("Email with Default Application");
+        searchMenu.add(emailWithDefaultAppCheckBoxMenuItem);
 
         menuBar.add(searchMenu);
 
@@ -3685,7 +3930,7 @@ public class GUI extends JFrame implements GuiListener {
             title = "";
         }
 
-        String[] genres = copy(genreList, Constant.ANY_GENRE), languages = copy(languageList, Constant.ANY_LANGUAGE), countries = copy(countryList,
+        String[] genres = UI.copy(genreList, Constant.ANY_GENRE), languages = UI.copy(languageList, Constant.ANY_LANGUAGE), countries = UI.copy(countryList,
                 Constant.ANY_COUNTRY);
         String minRating = (String) ratingComboBox.getSelectedItem();
 
@@ -3741,7 +3986,6 @@ public class GUI extends JFrame implements GuiListener {
         (new SwingWorker<Object, Object>() {
             @Override
             protected Object doInBackground() {
-                JRootPane rootPane = GUI.this.getRootPane();
                 Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR), defaultCursor = Cursor.getDefaultCursor();
                 rootPane.setCursor(waitCursor);
                 resultsTable.setCursor(waitCursor);
@@ -3794,25 +4038,8 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_copyMenuItemActionPerformed
 
-    private static boolean isClipboardEmpty() {
-        Transferable contents = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-        String result = "";
-        if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            try {
-                result = (String) contents.getTransferData(DataFlavor.stringFlavor);
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
-                }
-                return false;
-            }
-        }
-
-        return result.isEmpty();
-    }
-
     void pasteMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_pasteMenuItemActionPerformed
-        if (isClipboardEmpty()) {
+        if (UI.isClipboardEmpty()) {
             return;
         }
 
@@ -3833,11 +4060,11 @@ public class GUI extends JFrame implements GuiListener {
 
     void resetWindowMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_resetWindowMenuItemActionPerformed
         Dimension dimension = new Dimension(1000, 680);
-        if ((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH && !isMaxSize(dimension)) {
-            setExtendedState(JFrame.NORMAL);
+        if ((getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH && !UI.isMaxSize(dimension)) {
+            setExtendedState(Frame.NORMAL);
         }
         setSize(dimension);
-        centerOnScreen(this);
+        UI.centerOnScreen(this);
         maximize();
     }//GEN-LAST:event_resetWindowMenuItemActionPerformed
 
@@ -3877,21 +4104,26 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_resultsPerSearchMenuItemActionPerformed
 
     void genreListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_genreListValueChanged
-        updateAnyList(genreList, Constant.ANY_GENRE);
+        UI.updateAnyList(genreList, Constant.ANY_GENRE);
     }//GEN-LAST:event_genreListValueChanged
 
     void faqEditorPaneHyperlinkUpdate(HyperlinkEvent evt) {//GEN-FIRST:event_faqEditorPaneHyperlinkUpdate
-        faqFrame.setAlwaysOnTop(false);
-        hyperlinkHandler(evt);
-        faqFrame.setAlwaysOnTop(true);
+        try {
+            hyperlinkHandler(evt);
+        } catch (Exception e) {
+            faqFrame.setAlwaysOnTop(false);
+            showException(e);
+            faqFrame.setAlwaysOnTop(true);
+        }
     }//GEN-LAST:event_faqEditorPaneHyperlinkUpdate
 
-    private void hyperlinkHandler(HyperlinkEvent evt) {
+    private void hyperlinkHandler(HyperlinkEvent evt) throws IOException {
         if (evt.getEventType().equals(EventType.ACTIVATED)) {
-            try {
-                Connection.browse(evt.getURL().toString());
-            } catch (Exception e) {
-                showException(e);
+            String url = evt.getURL().toString();
+            if (url.startsWith("mailto:")) {
+                Connection.email(url);
+            } else {
+                Connection.browse(url);
             }
         }
     }
@@ -3910,19 +4142,8 @@ public class GUI extends JFrame implements GuiListener {
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) (isPopularTVShows ? popularTVShowsResultsPerSearchComboBox.getSelectedItem()
                 : popularMoviesResultsPerSearchComboBox.getSelectedItem()));
-        String[] languages = copy(languageList, Constant.ANY_LANGUAGE), countries = copy(countryList, Constant.ANY_COUNTRY);
+        String[] languages = UI.copy(languageList, Constant.ANY_LANGUAGE), countries = UI.copy(countryList, Constant.ANY_COUNTRY);
         workerListener.popularSearchStarted(numResultsPerSearch, isPopularTVShows, languages, countries, false, true);
-    }
-
-    private static String[] copy(Object[] array) {
-        return Arrays.copyOf(array, array.length, String[].class);
-    }
-
-    private static String[] copy(JList list, String anyStr) {
-        if (list.isSelectionEmpty()) {
-            list.setSelectedValue(anyStr, true);
-        }
-        return copy(list.getSelectedValues());
     }
 
     void downloadSizeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadSizeMenuItemActionPerformed
@@ -3960,10 +4181,10 @@ public class GUI extends JFrame implements GuiListener {
                 if (customExt.charAt(0) != '.') {
                     customExt = '.' + customExt;
                 }
-                int extIndex = indexOf(fromListModel, customExt);
+                int extIndex = UI.indexOf(fromListModel, customExt);
                 if (extIndex != -1) {
                     toListModel.addElement(fromListModel.remove(extIndex));
-                } else if (indexOf(toListModel, customExt) == -1) {
+                } else if (UI.indexOf(toListModel, customExt) == -1) {
                     toListModel.addElement(customExt);
                 }
             } else {
@@ -3978,31 +4199,7 @@ public class GUI extends JFrame implements GuiListener {
             toListModel.addElement(extension);
         }
 
-        sort(toListModel);
-    }
-
-    private static int indexOf(DefaultListModel listModel, String element) {
-        Object[] items = listModel.toArray();
-        for (int i = 0; i < items.length; i++) {
-            if (element.equalsIgnoreCase((String) items[i])) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private static void sort(DefaultListModel listModel) {
-        Object[] items = listModel.toArray();
-        Arrays.sort(items, new Comparator<Object>() {
-            @Override
-            public int compare(Object o1, Object o2) {
-                return ((String) o1).compareToIgnoreCase((String) o2);
-            }
-        });
-        listModel.removeAllElements();
-        for (Object item : items) {
-            listModel.addElement(item);
-        }
+        UI.sort(toListModel);
     }
 
     void minDownloadSizeComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_minDownloadSizeComboBoxActionPerformed
@@ -4049,12 +4246,22 @@ public class GUI extends JFrame implements GuiListener {
 
         //order matters because of Synthetica bug
         boolean enable = false;
+        findSubtitleMenuItem.setEnabled(enable);
+        emailEverythingMenuItem.setEnabled(enable);
+        copySubtitleLinkMenuItem.setEnabled(enable);
         enableWatch(enable);
         enableDownload(enable);
         watchTrailerButton.setEnabled(enable);
         watchTrailerMenuItem.setEnabled(enable);
+        emailTrailerLinkMenuItem.setEnabled(enable);
+        copyTrailerLinkMenuItem.setEnabled(enable);
         readSummaryButton.setEnabled(enable);
         readSummaryMenuItem.setEnabled(enable);
+        emailSummaryLinkMenuItem.setEnabled(enable);
+        copySummaryLinkMenuItem.setEnabled(enable);
+        copyPosterImageMenuItem.setEnabled(enable);
+        copyFullTitleAndYearMenuItem.setEnabled(enable);
+        copySelectionMenuItem.setEnabled(enable);
 
         if (evt.getFirstIndex() < 0 || resultsSyncTable.getSelectedRows().length != 1) {
             return;
@@ -4062,20 +4269,35 @@ public class GUI extends JFrame implements GuiListener {
 
         //order matters because of Synthetica bug
         enable = true;
-        if (workerListener.isStreamSearchDone()) {
+        boolean isStreamSearchDone = workerListener.isStreamSearchDone(), isTorrentSearchDone = workerListener.isTorrentSearchDone(),
+                isTrailerSearchDone = workerListener.isTrailerSearchDone(), isSummarySearchDone = workerListener.isSummarySearchDone();
+
+        findSubtitleMenuItem.setEnabled(enable);
+        if (isStreamSearchDone && isTorrentSearchDone && isTrailerSearchDone && isSummarySearchDone) {
+            emailEverythingMenuItem.setEnabled(enable);
+        }
+        copySubtitleLinkMenuItem.setEnabled(enable);
+        if (isStreamSearchDone) {
             enableWatch(enable);
         }
-        if (workerListener.isTorrentSearchDone()) {
+        if (isTorrentSearchDone) {
             enableDownload(enable);
         }
-        if (workerListener.isTrailerSearchDone()) {
+        if (isTrailerSearchDone) {
             watchTrailerButton.setEnabled(enable);
             watchTrailerMenuItem.setEnabled(enable);
+            emailTrailerLinkMenuItem.setEnabled(enable);
+            copyTrailerLinkMenuItem.setEnabled(enable);
         }
-        if (workerListener.isSummarySearchDone()) {
+        emailSummaryLinkMenuItem.setEnabled(enable);
+        copySummaryLinkMenuItem.setEnabled(enable);
+        copyPosterImageMenuItem.setEnabled(enable);
+        if (isSummarySearchDone) {
             readSummaryButton.setEnabled(enable);
             readSummaryMenuItem.setEnabled(enable);
+            copyFullTitleAndYearMenuItem.setEnabled(enable);
         }
+        copySelectionMenuItem.setEnabled(enable);
     }
 
     void updateMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_updateMenuItemActionPerformed
@@ -4105,37 +4327,45 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void readSummaryButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_readSummaryButtonActionPerformed
-        SelectedTableRow row = selectedRow();
-        workerListener.summarySearchStarted(Constant.SUMMARY_ACTION, row.ID, row.TITLE, row.SUMMARY_LINK, row.IMAGE_LINK, row.IS_LINK, row.YEAR, row.IS_TV_SHOW,
-                row.IS_TV_SHOW_AND_MOVIE, row.season, row.episode, row.VAL);
+        readSummaryActionPerformed(selectedRow(), null);
     }//GEN-LAST:event_readSummaryButtonActionPerformed
 
+    void readSummaryActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
+        workerListener.summarySearchStarted(row.VAL, row.video, strExportListener);
+    }
+
     void watchTrailerButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchTrailerButtonActionPerformed
-        SelectedTableRow row = selectedRow();
-        if (row.season != null) {
-            resultsSyncTable.setModelValueAt(row.TITLE + Constant.SEPARATOR1 + row.SUMMARY_LINK + Constant.SEPARATOR1 + row.IMAGE_LINK + Constant.SEPARATOR1
-                    + row.IS_LINK + Constant.SEPARATOR1 + row.IS_TV_SHOW + Constant.SEPARATOR1 + row.IS_TV_SHOW_AND_MOVIE, row.VAL, summaryCol);
-        }
-        workerListener.trailerSearchStarted(Constant.TRAILER_ACTION, row.ID, row.TITLE, row.SUMMARY_LINK, row.IS_LINK, row.YEAR, row.IS_TV_SHOW,
-                row.IS_TV_SHOW_AND_MOVIE, row.season, row.episode, row.VAL);
+        watchTrailerActionPerformed(selectedRow(), null);
     }//GEN-LAST:event_watchTrailerButtonActionPerformed
 
-    private void downloadLinkButtonAction(int torrentAction) {
-        SelectedTableRow row = selectedRow();
-        if (!downloadLinkEpisodes.add(row.VAL)) {
-            row.season = null;
-            row.episode = null;
+    private void watchTrailerActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
+        if (row.video.IS_TV_SHOW) {
+            downloadLinkEpisodes.add(row.VAL);
+            subtitleEpisodes.add(row.VAL);
+            if (!trailerEpisodes.add(row.VAL)) {
+                row.video.season = "";
+                row.video.episode = "";
+            }
         }
-        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? Constant.TORRENT3_ACTION : torrentAction, row.ID, row.TITLE, row.SUMMARY_LINK,
-                row.IS_LINK, row.YEAR, row.IS_TV_SHOW, row.IS_TV_SHOW_AND_MOVIE, row.season, row.episode, row.VAL);
+        workerListener.trailerSearchStarted(row.VAL, row.video, strExportListener);
+    }
+
+    private void downloadLinkActionPerformed(ContentType downloadContentType, SelectedTableRow row, VideoStrExportListener strExportListener) {
+        if (row.video.IS_TV_SHOW && !downloadLinkEpisodes.add(row.VAL)) {
+            row.video.season = "";
+            row.video.episode = "";
+        }
+        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? ContentType.DOWNLOAD3 : downloadContentType, row.VAL, row.video, strExportListener);
     }
 
     void downloadLink1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink1ButtonActionPerformed
-        downloadLinkButtonAction(Constant.TORRENT1_ACTION);
+        SelectedTableRow row = selectedRow();
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, null);
     }//GEN-LAST:event_downloadLink1ButtonActionPerformed
 
     void downloadLink2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink2ButtonActionPerformed
-        downloadLinkButtonAction(Constant.TORRENT2_ACTION);
+        SelectedTableRow row = selectedRow();
+        downloadLinkActionPerformed(ContentType.DOWNLOAD2, row, null);
     }//GEN-LAST:event_downloadLink2ButtonActionPerformed
 
     void languageCountryMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryMenuItemActionPerformed
@@ -4143,11 +4373,11 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_languageCountryMenuItemActionPerformed
 
     void languageListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_languageListValueChanged
-        updateAnyList(languageList, Constant.ANY_LANGUAGE);
+        UI.updateAnyList(languageList, Constant.ANY_LANGUAGE);
     }//GEN-LAST:event_languageListValueChanged
 
     void countryListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_countryListValueChanged
-        updateAnyList(countryList, Constant.ANY_COUNTRY);
+        UI.updateAnyList(countryList, Constant.ANY_COUNTRY);
     }//GEN-LAST:event_countryListValueChanged
 
     void langaugeCountryOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_langaugeCountryOkButtonActionPerformed
@@ -4181,11 +4411,11 @@ public class GUI extends JFrame implements GuiListener {
         downloadLink2ButtonActionPerformed(evt);
     }//GEN-LAST:event_downloadLink2MenuItemActionPerformed
 
-    void tableCopyMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tableCopyMenuItemActionPerformed
+    void copySelectionMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copySelectionMenuItemActionPerformed
         if (resultsSyncTable.getSelectedRowCount() != 0) {
             tableCopyListener.actionPerformed(new ActionEvent(resultsSyncTable, 0, Constant.COPY));
         }
-    }//GEN-LAST:event_tableCopyMenuItemActionPerformed
+    }//GEN-LAST:event_copySelectionMenuItemActionPerformed
 
     void textComponentCutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_textComponentCutMenuItemActionPerformed
         popupTextFieldTransfer(TransferHandler.MOVE);
@@ -4209,14 +4439,14 @@ public class GUI extends JFrame implements GuiListener {
 
     void textComponentPasteMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_textComponentPasteMenuItemActionPerformed
         TransferHandler th;
-        if (!isClipboardEmpty() && popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && (th
+        if (!UI.isClipboardEmpty() && popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && (th
                 = popupTextComponent.getTransferHandler()) != null) {
             th.importData(popupTextComponent, Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null));
         }
     }//GEN-LAST:event_textComponentPasteMenuItemActionPerformed
 
     void textComponentPasteSearchMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_textComponentPasteSearchMenuItemActionPerformed
-        if (isClipboardEmpty() || popupTextComponent == null || !popupTextComponent.getCaret().isSelectionVisible()) {
+        if (UI.isClipboardEmpty() || popupTextComponent == null || !popupTextComponent.getCaret().isSelectionVisible()) {
             return;
         }
 
@@ -4233,27 +4463,15 @@ public class GUI extends JFrame implements GuiListener {
 
     void textComponentDeleteMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_textComponentDeleteMenuItemActionPerformed
         if (popupTextComponent != null && popupTextComponent.getCaret().isSelectionVisible() && popupTextComponent.getSelectedText() != null) {
-            textComponentDelete(popupTextComponent);
+            UI.textComponentDelete(popupTextComponent);
         }
     }//GEN-LAST:event_textComponentDeleteMenuItemActionPerformed
 
-    private static void textComponentDelete(JTextComponent textField) {
-        int start = textField.getSelectionStart();
-        String text = textField.getText();
-        String s1 = text.substring(0, start);
-        String s2 = text.substring(textField.getSelectionEnd(), text.length());
-        text = s1 + s2;
-        textField.setText(text);
-        if (start < text.length()) {
-            textField.setCaretPosition(start);
-        }
-    }
-
     void deleteMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_deleteMenuItemActionPerformed
         if (titleTextField.getCaret().isSelectionVisible() && titleTextField.getSelectedText() != null) {
-            textComponentDelete(titleTextField);
+            UI.textComponentDelete(titleTextField);
         } else if (findTextField.getCaret().isSelectionVisible() && findTextField.getSelectedText() != null) {
-            textComponentDelete(findTextField);
+            UI.textComponentDelete(findTextField);
         }
     }//GEN-LAST:event_deleteMenuItemActionPerformed
 
@@ -4285,7 +4503,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        if (!isClipboardEmpty() && titleTextField.getCaret().isSelectionVisible()) {
+        if (!UI.isClipboardEmpty() && titleTextField.getCaret().isSelectionVisible()) {
             if (!pasteMenuItem.isEnabled()) {
                 pasteMenuItem.setEnabled(true);
             }
@@ -4318,24 +4536,6 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_textComponentSelectAllMenuItemActionPerformed
 
-    void tablePopupMenuPopupMenuWillBecomeVisible(PopupMenuEvent evt) {//GEN-FIRST:event_tablePopupMenuPopupMenuWillBecomeVisible
-        if (resultsSyncTable.getSelectedRowCount() == 0) {
-            if (tableCopyMenuItem.isEnabled()) {
-                tableCopyMenuItem.setEnabled(false);
-            }
-            if (findSubtitleMenuItem.isEnabled()) {
-                findSubtitleMenuItem.setEnabled(false);
-            }
-        } else {
-            if (!tableCopyMenuItem.isEnabled()) {
-                tableCopyMenuItem.setEnabled(true);
-            }
-            if (!findSubtitleMenuItem.isEnabled()) {
-                findSubtitleMenuItem.setEnabled(true);
-            }
-        }
-    }//GEN-LAST:event_tablePopupMenuPopupMenuWillBecomeVisible
-
     void textComponentPopupMenuPopupMenuWillBecomeVisible(PopupMenuEvent evt) {//GEN-FIRST:event_textComponentPopupMenuPopupMenuWillBecomeVisible
         boolean isEditable = popupTextComponent.isEditable(), isReadable = !(popupTextComponent instanceof JPasswordField);
         textComponentCutMenuItem.setVisible(isEditable && isReadable);
@@ -4367,7 +4567,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        if (!isClipboardEmpty() && popupTextComponent.getCaret().isSelectionVisible()) {
+        if (!UI.isClipboardEmpty() && popupTextComponent.getCaret().isSelectionVisible()) {
             if (!textComponentPasteMenuItem.isEnabled()) {
                 textComponentPasteMenuItem.setEnabled(true);
             }
@@ -4712,43 +4912,15 @@ public class GUI extends JFrame implements GuiListener {
                 profileName = profileComboBox.getItemAt(profile) + "'s";
             }
             maximize();
-            showTimedMsg(profileName + " settings restored.");
+            timedMsg(profileName + " settings restored");
         } else {
             showMsg("The profile needs to be set before use.", Constant.ERROR_MSG);
         }
     }
 
-    private void showTimedMsg(final String msg) {
-        if (profileMsgThread != null) {
-            profileMsgThread.interrupt();
-        }
-        (profileMsgThread = new Thread() {
-            @Override
-            public void run() {
-                profileMsgLabel.setText(msg);
-                profileMsgDialog.pack();
-                profileMsgDialog.setLocationRelativeTo(null);
-                profileMsgDialog.setVisible(true);
-                try {
-                    Thread.sleep(750);
-                    profileMsgDialog.setVisible(false);
-                } catch (InterruptedException e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    static boolean isMaxSize(Dimension size) {
-        Rectangle screenBounds = SplashScreen.getUsableScreenBounds();
-        return size.width >= screenBounds.width && size.height >= screenBounds.height;
-    }
-
     public void maximize() {
         RootPaneUI rootPaneUI = getRootPane().getUI();
-        if (isMaxSize(getSize()) && rootPaneUI instanceof SyntheticaRootPaneUI) {
+        if (UI.isMaxSize(getSize()) && rootPaneUI instanceof SyntheticaRootPaneUI) {
             ((SyntheticaRootPaneUI) rootPaneUI).setMaximizedBounds(this);
             setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
         }
@@ -4951,17 +5123,15 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_profileOKButtonActionPerformed
 
     void watchSource1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource1ButtonActionPerformed
-        watchSourceButtonAction(Constant.STREAM1_ACTION);
+        watchSourceActionPerformed(ContentType.STREAM1, selectedRow(), null);
     }//GEN-LAST:event_watchSource1ButtonActionPerformed
 
-    private void watchSourceButtonAction(int streamAction) {
-        SelectedTableRow row = selectedRow();
-        workerListener.streamSearchStarted(streamAction, row.ID, row.TITLE, row.SUMMARY_LINK, row.IS_LINK, row.YEAR, row.IS_TV_SHOW, row.IS_TV_SHOW_AND_MOVIE,
-                null, null, row.VAL);
+    private void watchSourceActionPerformed(ContentType streamContentType, SelectedTableRow row, VideoStrExportListener strExportListener) {
+        workerListener.streamSearchStarted(streamContentType, row.VAL, row.video, strExportListener);
     }
 
     void watchSource2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource2ButtonActionPerformed
-        watchSourceButtonAction(Constant.STREAM2_ACTION);
+        watchSourceActionPerformed(ContentType.STREAM2, selectedRow(), null);
     }//GEN-LAST:event_watchSource2ButtonActionPerformed
 
     void watchSource1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource1MenuItemActionPerformed
@@ -4985,12 +5155,12 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_connectionIssueButtonActionPerformed
 
     void findSubtitleMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findSubtitleMenuItemActionPerformed
-        SelectedTableRow row = selectedRow();
-        subtitleTitleID = row.ID;
-        subtitleTitle = Str.clean(row.TITLE);
-        subtitleYear = row.YEAR;
-        subtitleIsTVShow = row.IS_TV_SHOW;
-        subtitleIsTVShowAndMovie = row.IS_TV_SHOW_AND_MOVIE;
+        findSubtitleActionPerformed(selectedRow(), null);
+    }//GEN-LAST:event_findSubtitleMenuItemActionPerformed
+
+    void findSubtitleActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
+        subtitleVideo = new Video(row.video.ID, Regex.clean(row.video.title), row.video.year, row.video.IS_TV_SHOW, row.video.IS_TV_SHOW_AND_MOVIE);
+        subtitleStrExportListener = strExportListener;
         isTVShowSubtitle = isTVShowSearch;
 
         if (subtitleFormat != null) {
@@ -5001,9 +5171,9 @@ public class GUI extends JFrame implements GuiListener {
 
         if (isTVShowSubtitle) {
             if (subtitleEpisodes.add(row.VAL)) {
-                if (row.season != null) {
-                    tvSubtitleSeasonComboBox.setSelectedItem(row.season);
-                    tvSubtitleEpisodeComboBox.setSelectedItem(row.episode);
+                if (!row.video.season.isEmpty()) {
+                    tvSubtitleSeasonComboBox.setSelectedItem(row.video.season);
+                    tvSubtitleEpisodeComboBox.setSelectedItem(row.video.episode);
                     subtitleEpisodes.remove(-1);
                 } else if (subtitleEpisodes.contains(-1)) {
                     tvSubtitleSeasonComboBox.setSelectedItem(tvSeasonComboBox.getSelectedItem());
@@ -5021,8 +5191,7 @@ public class GUI extends JFrame implements GuiListener {
             movieSubtitleDownloadMatch1Button.requestFocusInWindow();
             movieSubtitleDialog.setVisible(true);
         }
-    }//GEN-LAST:event_findSubtitleMenuItemActionPerformed
-
+    }
     private void resultsTableMouseClicked(MouseEvent evt) {//GEN-FIRST:event_resultsTableMouseClicked
         if (evt.getClickCount() == 2 && resultsSyncTable.getSelectedRows().length == 1) {
             readSummaryButtonActionPerformed(null);
@@ -5068,7 +5237,7 @@ public class GUI extends JFrame implements GuiListener {
         }
         setRandomizePort();
         portDialog.setVisible(false);
-        Magnet.changePorts(getPort());
+        workerListener.portChanged(getPort());
     }//GEN-LAST:event_portOkButtonActionPerformed
 
     private void tvSubtitleCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleCancelButtonActionPerformed
@@ -5077,9 +5246,10 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_tvSubtitleCancelButtonActionPerformed
 
     private void startSubtitleSearch(JComboBox format, JComboBox language, JComboBox season, JComboBox episode, boolean firstMatch) {
-        workerListener.subtitleSearchStarted((String) format.getSelectedItem(), Regex.subtitleLanguages.get((String) language.getSelectedItem()), subtitleTitleID,
-                subtitleTitle, subtitleYear, subtitleIsTVShow, subtitleIsTVShowAndMovie, season == null ? null : (String) season.getSelectedItem(),
-                episode == null ? null : (String) episode.getSelectedItem(), firstMatch);
+        subtitleVideo.season = (season == null ? "" : (String) season.getSelectedItem());
+        subtitleVideo.episode = (episode == null ? "" : (String) episode.getSelectedItem());
+        workerListener.subtitleSearchStarted((String) format.getSelectedItem(), Regex.subtitleLanguages.get((String) language.getSelectedItem()), subtitleVideo,
+                firstMatch, subtitleStrExportListener);
     }
 
     private void tvSubtitleDownloadMatch1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleDownloadMatch1ButtonActionPerformed
@@ -5116,96 +5286,76 @@ public class GUI extends JFrame implements GuiListener {
             findTextField.setForeground(titleTextField.getForeground());
             findTextField.requestFocusInWindow();
             findTextField.setEnabled(true);
-            updateFindTitles();
         }
     }//GEN-LAST:event_findMenuItemActionPerformed
 
-    private void updateFindTitles() {
-        if (!findTextField.isEnabled()) {
-            return;
-        }
-
-        if (findTitleWriteLock.tryLock()) {
-            try {
-                int numRows = resultsSyncTable.getRowCount();
-                findTitles.clear();
-                findTitles.ensureCapacity(numRows * 4);
-                for (int row = 0; row < numRows; row++) {
-                    String title = Regex.split((String) resultsSyncTable.getModelValueAt(row, summaryCol), Constant.SEPARATOR1)[0];
-                    findTitles.add(title = Str.htmlToPlainText(title));
-                    findTitles.add(Regex.replaceFirst(title, "\\A(?i)The\\s++", ""));
-                    findTitles.add(title = Str.clean(title));
-                    findTitles.add(Regex.replaceFirst(title, "\\A(?i)The\\s++", ""));
-                }
-            } finally {
-                findTitleWriteLock.unlock();
-                findTextFieldKeyPressed(null);
-            }
-        }
+    private void updateFindTitles(String currTitle) {
+        String title = Regex.htmlToPlainText(currTitle);
+        findTitles.addAll(Arrays.asList(title, Regex.replaceFirst(title, Str.get(327), Str.get(328)), title = Regex.clean(title), Regex.replaceFirst(title,
+                Str.get(327), Str.get(328))));
     }
 
     private void findTextFieldKeyPressed(KeyEvent evt) {//GEN-FIRST:event_findTextFieldKeyPressed
-        if (findTitleReadLock.tryLock()) {
-            try {
-                int selectedRow = resultsSyncTable.getSelectedRow(), key = KeyEvent.VK_UNDEFINED;
-                if (evt != null && (key = evt.getKeyCode()) == KeyEvent.VK_ENTER && selectedRow == findTitleRow) {
-                    readSummaryButtonActionPerformed(null);
-                    return;
-                }
-
-                String text = findTextField.getText().toLowerCase(Locale.ENGLISH);
-                if (text.isEmpty()) {
-                    return;
-                }
-
-                boolean continueFind = (findTitleRow != -2 && selectedRow != -1 && (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_UP));
-                int numTitles = findTitles.size();
-                List<Integer> foundRows = new ArrayList<Integer>((numTitles / 16) + 1);
-                for (int i = 0; i < numTitles; i += 4) {
-                    for (int j = i, k = i + 4; j < k; j++) {
-                        if (!findTitles.get(j).toLowerCase(Locale.ENGLISH).startsWith(text)) {
-                            continue;
-                        }
-                        int foundRow = resultsSyncTable.convertRowIndexToView(i / 4);
-                        if (continueFind) {
-                            if (foundRow != findTitleRow) {
-                                foundRows.add(foundRow);
-                            }
-                        } else {
-                            setFindTitleRow(foundRow);
-                            return;
-                        }
-                    }
-                }
-
-                if (foundRows.isEmpty()) {
-                    return;
-                }
-
-                Collections.sort(foundRows);
-                int numFoundRows = foundRows.size();
-                if (key == KeyEvent.VK_DOWN) {
-                    for (int i = 0; i < numFoundRows; i++) {
-                        int foundRow = foundRows.get(i);
-                        if (foundRow > findTitleRow) {
-                            setFindTitleRow(foundRow);
-                            return;
-                        }
-                    }
-                    setFindTitleRow(foundRows.get(0));
-                } else {
-                    for (int i = numFoundRows - 1; i > -1; i--) {
-                        int foundRow = foundRows.get(i);
-                        if (foundRow < findTitleRow) {
-                            setFindTitleRow(foundRow);
-                            return;
-                        }
-                    }
-                    setFindTitleRow(foundRows.get(numFoundRows - 1));
-                }
-            } finally {
-                findTitleReadLock.unlock();
+        int selectedRow = resultsSyncTable.getSelectedRow(), key = KeyEvent.VK_UNDEFINED;
+        if (evt != null) {
+            if ((key = evt.getKeyCode()) == KeyEvent.VK_ENTER && selectedRow == findTitleRow) {
+                readSummaryButtonActionPerformed(null);
+                return;
+            } else if (key == KeyEvent.VK_ESCAPE) {
+                hideFindTextField();
+                return;
             }
+        }
+
+        String text = findTextField.getText().toLowerCase(Locale.ENGLISH);
+        if (text.isEmpty()) {
+            return;
+        }
+
+        boolean continueFind = (findTitleRow != -2 && selectedRow != -1 && (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_UP));
+        int numTitles = findTitles.size();
+        List<Integer> foundRows = new ArrayList<Integer>((numTitles / 16) + 1);
+        for (int i = 0; i < numTitles; i += 4) {
+            for (int j = i, k = i + 4; j < k; j++) {
+                if (!findTitles.get(j).toLowerCase(Locale.ENGLISH).startsWith(text)) {
+                    continue;
+                }
+                int foundRow = resultsSyncTable.convertRowIndexToView(i / 4);
+                if (continueFind) {
+                    if (foundRow != findTitleRow) {
+                        foundRows.add(foundRow);
+                    }
+                } else {
+                    setFindTitleRow(foundRow);
+                    return;
+                }
+            }
+        }
+
+        if (foundRows.isEmpty()) {
+            return;
+        }
+
+        Collections.sort(foundRows);
+        int numFoundRows = foundRows.size();
+        if (key == KeyEvent.VK_DOWN) {
+            for (int i = 0; i < numFoundRows; i++) {
+                int foundRow = foundRows.get(i);
+                if (foundRow > findTitleRow) {
+                    setFindTitleRow(foundRow);
+                    return;
+                }
+            }
+            setFindTitleRow(foundRows.get(0));
+        } else {
+            for (int i = numFoundRows - 1; i > -1; i--) {
+                int foundRow = foundRows.get(i);
+                if (foundRow < findTitleRow) {
+                    setFindTitleRow(foundRow);
+                    return;
+                }
+            }
+            setFindTitleRow(foundRows.get(numFoundRows - 1));
         }
     }//GEN-LAST:event_findTextFieldKeyPressed
 
@@ -5309,17 +5459,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_listSelectAllMenuItemActionPerformed
 
     private void listPopupMenuPopupMenuWillBecomeVisible(PopupMenuEvent evt) {//GEN-FIRST:event_listPopupMenuPopupMenuWillBecomeVisible
-        if (popupList.getSelectedIndex() != -1) {
-            if (!listCutMenuItem.isEnabled()) {
-                listCutMenuItem.setEnabled(true);
-            }
-            if (!listCopyMenuItem.isEnabled()) {
-                listCopyMenuItem.setEnabled(true);
-            }
-            if (!listDeleteMenuItem.isEnabled()) {
-                listDeleteMenuItem.setEnabled(true);
-            }
-        } else {
+        if (popupList.getSelectedIndex() == -1) {
             if (listCutMenuItem.isEnabled()) {
                 listCutMenuItem.setEnabled(false);
             }
@@ -5328,6 +5468,16 @@ public class GUI extends JFrame implements GuiListener {
             }
             if (listDeleteMenuItem.isEnabled()) {
                 listDeleteMenuItem.setEnabled(false);
+            }
+        } else {
+            if (!listCutMenuItem.isEnabled()) {
+                listCutMenuItem.setEnabled(true);
+            }
+            if (!listCopyMenuItem.isEnabled()) {
+                listCopyMenuItem.setEnabled(true);
+            }
+            if (!listDeleteMenuItem.isEnabled()) {
+                listDeleteMenuItem.setEnabled(true);
             }
         }
 
@@ -5340,30 +5490,20 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_listPopupMenuPopupMenuWillBecomeVisible
 
-    private static String groupButtonSelectionChanged(AbstractButton button, AbstractButton... otherButtons) {
-        if (button.isSelected()) {
-            for (AbstractButton otherButton : otherButtons) {
-                otherButton.setSelected(false);
-            }
-            return button.getText();
-        }
-        return Constant.ANY;
-    }
-
     private void hqVideoTypeCheckBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_hqVideoTypeCheckBoxActionPerformed
-        subtitleFormat = groupButtonSelectionChanged(hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox, hd1080CheckBox);
+        subtitleFormat = UI.groupButtonSelectionChanged(hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox, hd1080CheckBox);
     }//GEN-LAST:event_hqVideoTypeCheckBoxActionPerformed
 
     private void hd720CheckBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_hd720CheckBoxActionPerformed
-        subtitleFormat = groupButtonSelectionChanged(hd720CheckBox, hqVideoTypeCheckBox, dvdCheckBox, hd1080CheckBox);
+        subtitleFormat = UI.groupButtonSelectionChanged(hd720CheckBox, hqVideoTypeCheckBox, dvdCheckBox, hd1080CheckBox);
     }//GEN-LAST:event_hd720CheckBoxActionPerformed
 
     private void dvdCheckBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_dvdCheckBoxActionPerformed
-        subtitleFormat = groupButtonSelectionChanged(dvdCheckBox, hqVideoTypeCheckBox, hd720CheckBox, hd1080CheckBox);
+        subtitleFormat = UI.groupButtonSelectionChanged(dvdCheckBox, hqVideoTypeCheckBox, hd720CheckBox, hd1080CheckBox);
     }//GEN-LAST:event_dvdCheckBoxActionPerformed
 
     private void hd1080CheckBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_hd1080CheckBoxActionPerformed
-        subtitleFormat = groupButtonSelectionChanged(hd1080CheckBox, hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox);
+        subtitleFormat = UI.groupButtonSelectionChanged(hd1080CheckBox, hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox);
     }//GEN-LAST:event_hd1080CheckBoxActionPerformed
 
     private void tvSubtitleFormatComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleFormatComboBoxActionPerformed
@@ -5471,51 +5611,172 @@ public class GUI extends JFrame implements GuiListener {
         exitBackupMode(new MouseEvent(downloadLinkPopupComponent, 0, 0, ActionEvent.CTRL_MASK, 0, 0, 0, false));
     }//GEN-LAST:event_exitBackupModeMenuItemActionPerformed
 
-    private void exitBackupMode(MouseEvent evt) {
-        if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK && Connection.downloadLinkInfoFail()) {
-            Connection.downloadLinkInfoUnFail();
-            if (!isAltSearch) {
-                return;
-            }
+    private void copyFullTitleAndYearMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyFullTitleAndYearMenuItemActionPerformed
+        SelectedTableRow row = selectedRow();
+        readSummaryActionPerformed(row, row.strExportListener(false));
+    }//GEN-LAST:event_copyFullTitleAndYearMenuItemActionPerformed
 
-            isAltSearch = false;
-            boolean enable = true;
-            if (!downloadLink2Button.isEnabled() && workerListener.isTorrentSearchDone()) {
-                downloadLink2Button.setEnabled(enable);
-                downloadLink2MenuItem.setEnabled(enable);
-                if (downloadLink2Button == evt.getSource()) {
-                    exitBackupMode = true;
-                }
-            }
-            enableVideoFormats(enable);
-            exitBackupModeMenuItem.setEnabled(false);
-        }
+    private void trailerLinkExportActionPerformed(boolean exportToEmail) {
+        SelectedTableRow row = selectedRow();
+        watchTrailerActionPerformed(row, row.strExportListener(exportToEmail));
     }
 
-    private static void updateAnyList(JList list, String anyStr) {
-        int[] selection = list.getSelectedIndices();
-        if (selection.length < 2) {
+    private void copyTrailerLinkMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyTrailerLinkMenuItemActionPerformed
+        trailerLinkExportActionPerformed(false);
+    }//GEN-LAST:event_copyTrailerLinkMenuItemActionPerformed
+
+    private void emailTrailerLinkMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailTrailerLinkMenuItemActionPerformed
+        trailerLinkExportActionPerformed(true);
+    }//GEN-LAST:event_emailTrailerLinkMenuItemActionPerformed
+
+    private void summaryLinkExportActionPerformed(boolean exportToEmail) {
+        SelectedTableRow row = selectedRow();
+        exportSummaryLink(row, row.strExportListener(exportToEmail));
+    }
+    private void copySummaryLinkMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copySummaryLinkMenuItemActionPerformed
+        summaryLinkExportActionPerformed(false);
+    }//GEN-LAST:event_copySummaryLinkMenuItemActionPerformed
+
+    private void emailSummaryLinkMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailSummaryLinkMenuItemActionPerformed
+        summaryLinkExportActionPerformed(true);
+    }//GEN-LAST:event_emailSummaryLinkMenuItemActionPerformed
+
+    private void downloadLinkExportActionPerformed(ContentType downloadContentType, boolean exportToEmail) {
+        SelectedTableRow row = selectedRow();
+        downloadLinkActionPerformed(downloadContentType, row, row.strExportListener(exportToEmail));
+    }
+
+    private void copyDownloadLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyDownloadLink1MenuItemActionPerformed
+        downloadLinkExportActionPerformed(ContentType.DOWNLOAD1, false);
+    }//GEN-LAST:event_copyDownloadLink1MenuItemActionPerformed
+
+    private void emailDownloadLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailDownloadLink1MenuItemActionPerformed
+        downloadLinkExportActionPerformed(ContentType.DOWNLOAD1, true);
+    }//GEN-LAST:event_emailDownloadLink1MenuItemActionPerformed
+
+    private void copyDownloadLink2MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyDownloadLink2MenuItemActionPerformed
+        downloadLinkExportActionPerformed(ContentType.DOWNLOAD2, false);
+    }//GEN-LAST:event_copyDownloadLink2MenuItemActionPerformed
+
+    private void emailDownloadLink2MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailDownloadLink2MenuItemActionPerformed
+        downloadLinkExportActionPerformed(ContentType.DOWNLOAD2, true);
+    }//GEN-LAST:event_emailDownloadLink2MenuItemActionPerformed
+
+    private void watchSourceExportActionPerformed(ContentType streamContentType, boolean exportToEmail) {
+        SelectedTableRow row = selectedRow();
+        watchSourceActionPerformed(streamContentType, row, row.strExportListener(exportToEmail));
+    }
+
+    private void copyWatchLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyWatchLink1MenuItemActionPerformed
+        watchSourceExportActionPerformed(ContentType.STREAM1, false);
+    }//GEN-LAST:event_copyWatchLink1MenuItemActionPerformed
+
+    private void emailWatchLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailWatchLink1MenuItemActionPerformed
+        watchSourceExportActionPerformed(ContentType.STREAM1, true);
+    }//GEN-LAST:event_emailWatchLink1MenuItemActionPerformed
+
+    private void copyWatchLink2MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyWatchLink2MenuItemActionPerformed
+        watchSourceExportActionPerformed(ContentType.STREAM2, false);
+    }//GEN-LAST:event_copyWatchLink2MenuItemActionPerformed
+
+    private void emailWatchLink2MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailWatchLink2MenuItemActionPerformed
+        watchSourceExportActionPerformed(ContentType.STREAM2, true);
+    }//GEN-LAST:event_emailWatchLink2MenuItemActionPerformed
+
+    private void copySubtitleLinkMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copySubtitleLinkMenuItemActionPerformed
+        SelectedTableRow row = selectedRow();
+        findSubtitleActionPerformed(row, row.strExportListener(false));
+    }//GEN-LAST:event_copySubtitleLinkMenuItemActionPerformed
+
+    private void emailEverythingMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailEverythingMenuItemActionPerformed
+        SelectedTableRow row = selectedRow();
+        VideoStrExportListener strExportListener = row.strExportListener(true, true, 8);
+        readSummaryActionPerformed(row, strExportListener);
+        exportPosterImage(row, strExportListener);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, strExportListener);
+        watchSourceActionPerformed(ContentType.STREAM1, row, strExportListener);
+        watchTrailerActionPerformed(row, strExportListener);
+        exportSummaryLink(row, strExportListener);
+    }//GEN-LAST:event_emailEverythingMenuItemActionPerformed
+
+    private void copyPosterImageMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyPosterImageMenuItemActionPerformed
+        SelectedTableRow row = selectedRow();
+        exportPosterImage(row, row.strExportListener(false));
+    }//GEN-LAST:event_copyPosterImageMenuItemActionPerformed
+
+    private void copyDownloadLink1MenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_copyDownloadLink1MenuItemMousePressed
+        exitBackupMode(evt);
+    }//GEN-LAST:event_copyDownloadLink1MenuItemMousePressed
+
+    private void copyDownloadLink2MenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_copyDownloadLink2MenuItemMousePressed
+        exitBackupMode(evt);
+    }//GEN-LAST:event_copyDownloadLink2MenuItemMousePressed
+
+    private void emailDownloadLink1MenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_emailDownloadLink1MenuItemMousePressed
+        exitBackupMode(evt);
+    }//GEN-LAST:event_emailDownloadLink1MenuItemMousePressed
+
+    private void emailDownloadLink2MenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_emailDownloadLink2MenuItemMousePressed
+        exitBackupMode(evt);
+    }//GEN-LAST:event_emailDownloadLink2MenuItemMousePressed
+
+    private void downloadLink1ButtonMouseReleased(MouseEvent evt) {//GEN-FIRST:event_downloadLink1ButtonMouseReleased
+        if (exitBackupMode) {
+            exitBackupMode = false;
+            downloadLink1ButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_downloadLink1ButtonMouseReleased
+
+    private void exitBackupModeMenuItemMouseReleased(MouseEvent evt) {//GEN-FIRST:event_exitBackupModeMenuItemMouseReleased
+        if (exitBackupMode) {
+            exitBackupMode = false;
+            if (downloadLinkPopupComponent == downloadLink1Button) {
+                downloadLink1ButtonActionPerformed(null);
+            } else if (downloadLinkPopupComponent == downloadLink2Button) {
+                downloadLink2ButtonActionPerformed(null);
+            }
+        }
+    }//GEN-LAST:event_exitBackupModeMenuItemMouseReleased
+
+    private void removeProxiesListKeyPressed(KeyEvent evt) {//GEN-FIRST:event_removeProxiesListKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
+            removeProxiesRemoveButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_removeProxiesListKeyPressed
+
+    private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
+        strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
+    }
+
+    private void exportPosterImage(SelectedTableRow row, VideoStrExportListener strExportListener) {
+        strExportListener.export(ContentType.IMAGE, row.video.imagePath.startsWith(Constant.NO_IMAGE) ? Constant.PROGRAM_DIR + "noPosterBig.jpg"
+                : row.video.imagePath, false, this);
+    }
+
+    private void exitBackupMode(MouseEvent evt) {
+        if ((ActionEvent.CTRL_MASK & evt.getModifiers()) != ActionEvent.CTRL_MASK || !Connection.downloadLinkInfoFail()) {
             return;
         }
 
-        ListModel listModel = list.getModel();
-        for (int i = 0; i < selection.length; i++) {
-            String currStr = (String) listModel.getElementAt(selection[i]);
-            if (currStr.equals(anyStr)) {
-                int[] newSelection = new int[selection.length - 1];
+        Connection.downloadLinkInfoUnFail();
+        if (!isAltSearch) {
+            return;
+        }
 
-                int k = 0, j = 0;
-                for (; j < i; j++, k++) {
-                    newSelection[k] = selection[j];
-                }
-                for (++j; j < selection.length; j++, k++) {
-                    newSelection[k] = selection[j];
-                }
-
-                list.setSelectedIndices(newSelection);
-                return;
+        isAltSearch = false;
+        boolean enable = true;
+        if (!downloadLink2Button.isEnabled() && workerListener.isTorrentSearchDone()) {
+            downloadLink2Button.setEnabled(enable);
+            downloadLink2MenuItem.setEnabled(enable);
+            emailDownloadLink2MenuItem.setEnabled(enable);
+            copyDownloadLink2MenuItem.setEnabled(enable);
+            Object evtSource = evt.getSource();
+            if (downloadLink1Button == evtSource || downloadLink2Button == evtSource) {
+                exitBackupMode = true;
             }
         }
+        enableVideoFormats(enable);
+        exitBackupModeMenuItem.setEnabled(false);
     }
 
     private void updateDownloadSizeComboBoxes() {
@@ -5564,9 +5825,9 @@ public class GUI extends JFrame implements GuiListener {
         resultsToBackground();
         int result;
         if (confirm) {
-            result = JOptionPane.showConfirmDialog(null, msg, title, type);
+            result = JOptionPane.showConfirmDialog(this, msg, title, type);
         } else {
-            JOptionPane.showMessageDialog(null, msg, title, type);
+            JOptionPane.showMessageDialog(this, msg, title, type);
             result = -1;
         }
         resultsToForeground();
@@ -5582,7 +5843,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         showMsg(ExceptionUtil.toString(e), Constant.ERROR_MSG);
-        IO.writeToErrorLog(e);
+        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
     }
 
     private void showOptionalMsg(String msg, JMenuItem menuItem) {
@@ -5605,7 +5866,7 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
         String msg = e.getMessage();
-        if (msg.isEmpty()) {
+        if (msg == null || msg.isEmpty()) {
             return;
         }
         synchronized (msgDialogLock) {
@@ -5666,12 +5927,8 @@ public class GUI extends JFrame implements GuiListener {
         aboutDialog.setVisible(true);
     }
 
-    static void centerOnScreen(Window window) {
-        window.setLocation(SplashScreen.screenCenter(window.getSize()));
-    }
-
     private Window[] windows() {
-        return new Window[]{GUI.this, safetyDialog, msgDialog, summaryDialog, faqFrame, aboutDialog, timeoutDialog, tvDialog, resultsPerSearchDialog,
+        return new Window[]{this, safetyDialog, msgDialog, summaryDialog, faqFrame, aboutDialog, timeoutDialog, tvDialog, resultsPerSearchDialog,
             downloadSizeDialog, extensionsDialog, languageCountryDialog, dummyDialog /* Backward compatibility */, proxyDialog, addProxiesDialog,
             removeProxiesDialog, profileDialog, profileNameChangeDialog, commentsDialog, portDialog, tvSubtitleDialog, movieSubtitleDialog};
     }
@@ -5727,7 +5984,10 @@ public class GUI extends JFrame implements GuiListener {
                 torrentDir = getPath(settings, ++i);
                 subtitleDir = getPath(settings, ++i);
 
-                restoreComboBoxes(settings, i, timeoutDownloadLinkComboBox);
+                i += restoreComboBoxes(settings, i, dummyComboBox); // Backward compatibility
+                i += restoreComboBoxes(settings, i, timeoutDownloadLinkComboBox);
+
+                restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
 
                 if (!updateSettings) {
                     return;
@@ -5770,7 +6030,10 @@ public class GUI extends JFrame implements GuiListener {
 
             savePaths(settings, proxyImportFile, proxyExportFile, torrentDir, subtitleDir);
 
+            saveComboBoxes(settings, dummyComboBox); // Backward compatibility
             saveComboBoxes(settings, timeoutDownloadLinkComboBox);
+
+            saveButtons(settings, emailWithDefaultAppCheckBoxMenuItem);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -5871,8 +6134,8 @@ public class GUI extends JFrame implements GuiListener {
         private void restoreSize(Window window, String size) {
             String[] dimensions = Regex.split(size, "x");
             Dimension dimension = new Dimension(Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1]));
-            if (window instanceof JFrame && (((JFrame) window).getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH && !isMaxSize(dimension)) {
-                ((Frame) window).setExtendedState(JFrame.NORMAL);
+            if (window instanceof Frame && (((Frame) window).getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH && !UI.isMaxSize(dimension)) {
+                ((Frame) window).setExtendedState(Frame.NORMAL);
             }
             window.setSize(dimension);
         }
@@ -5884,7 +6147,7 @@ public class GUI extends JFrame implements GuiListener {
 
         private void restorePosition(Window window, String location) {
             if (location.equals("center")) {
-                centerOnScreen(window);
+                UI.centerOnScreen(window);
             } else if (location.equals(Constant.NULL)) {
                 window.setLocationRelativeTo(GUI.this);
             } else {
@@ -5944,8 +6207,7 @@ public class GUI extends JFrame implements GuiListener {
             String text;
             if ((evt.getActionCommand().equals(Constant.COPY) || evt.getActionCommand().equals(Constant.CUT)) && (text = summaryEditorPane.getSelectedText())
                     != null) {
-                StringSelection selectionStr = new StringSelection(text.replace(Constant.ZERO_WIDTH_SPACE, "").replace("  ", Constant.NEWLINE2).trim());
-                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selectionStr, selectionStr);
+                UI.exportToClipboard(text.replace(Constant.ZERO_WIDTH_SPACE, "").replace("  ", Constant.NEWLINE2).trim());
             }
         }
     }
@@ -5957,79 +6219,61 @@ public class GUI extends JFrame implements GuiListener {
 
         @Override
         public void actionPerformed(ActionEvent evt) {
-            if (!evt.getActionCommand().equals(Constant.COPY) && !evt.getActionCommand().equals(Constant.CUT)) {
-                return;
-            }
-
-            int numRows, numCols;
             int[] selectedRows, selectedCols;
-            if ((numRows = resultsSyncTable.getSelectedRowCount()) == 0 || (numCols = resultsSyncTable.getSelectedColumnCount()) == 0
+            if ((!evt.getActionCommand().equals(Constant.COPY) && !evt.getActionCommand().equals(Constant.CUT))
                     || (selectedRows = resultsSyncTable.getSelectedRows()).length == 0 || (selectedCols = resultsSyncTable.getSelectedColumns()).length == 0) {
-                return;
-            }
-            if (!((numRows - 1 == selectedRows[selectedRows.length - 1] - selectedRows[0] && numRows == selectedRows.length)
-                    && (numCols - 1 == selectedCols[selectedCols.length - 1] - selectedCols[0] && numCols == selectedCols.length))) {
-                showMsg("Invalid copy selection.", Constant.ERROR_MSG);
                 return;
             }
 
             StringBuilder str = new StringBuilder(2048);
-            for (int i = 0; i < numRows; i++) {
+            for (int i = 0; i < selectedRows.length; i++) {
                 StringBuilder str2 = new StringBuilder(64);
-                for (int j = 0; j < numCols; j++) {
-                    String val = (String) resultsSyncTable.getViewValueAt(selectedRows[i], selectedCols[j]);
-                    if (val.contains(Constant.SEPARATOR1) || val.startsWith(Constant.APP_DIR) || val.startsWith(Constant.PROGRAM_DIR)
-                            || val.startsWith(Constant.NO_IMAGE)) {
+                for (int j = 0; j < selectedCols.length; j++) {
+                    int col = resultsSyncTable.convertColumnIndexToModel(selectedCols[j]);
+                    if (col == imageCol) {
                         continue;
                     }
-                    if (val.startsWith("<html>")) {
-                        int index = val.indexOf(" (AKA: ");
-                        if (index == -1) {
-                            index = val.indexOf(" (Latest Episode: ");
-                        }
-                        int beginOffset = 6, endOffSet = 7;
-                        if (val.startsWith("<html><b>")) {
-                            beginOffset = 9;
-                            endOffSet = 11;
-                        }
-                        val = val.substring(beginOffset, index == -1 ? val.length() - endOffSet : index);
-                        if (!Regex.isMatch(val, "(\\d{4}+)|(\\d\\.\\d)|(10)|(10\\.0)|\\-")) {
-                            val = Str.htmlToPlainText(Regex.replaceFirst(val, "(&nbsp;){3}+", ""));
-                        }
-                    }
-                    str2.append(val).append('\t');
+                    str2.append(col == titleCol ? Regex.htmlToPlainText((String) resultsSyncTable.getModelValueAt(resultsSyncTable.convertRowIndexToModel(
+                            selectedRows[i]), currTitleCol)) : UI.innerHTML((String) resultsSyncTable.getViewValueAt(selectedRows[i],
+                                            selectedCols[j]))).append('\t');
                 }
                 str.append(str2.toString().trim()).append(Constant.NEWLINE);
             }
 
-            StringSelection selectionStr = new StringSelection(str.toString().trim());
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selectionStr, selectionStr);
+            UI.exportToClipboard(str.toString().trim());
         }
     }
 
     private class SelectedTableRow {
 
         final int VIEW_VAL, VAL;
-        final String ID, YEAR, TITLE, SUMMARY_LINK, IMAGE_LINK;
-        final boolean IS_LINK, IS_TV_SHOW, IS_TV_SHOW_AND_MOVIE;
-        String season, episode;
+        final Video video;
 
         SelectedTableRow() {
             VIEW_VAL = resultsSyncTable.getSelectedRow();
             VAL = resultsSyncTable.convertRowIndexToModel(VIEW_VAL);
-            ID = (String) resultsSyncTable.getModelValueAt(VAL, idCol);
-            YEAR = Regex.replaceAll((String) resultsSyncTable.getModelValueAt(VAL, yearCol), "(</?+html>)|(</?+b>)", "");
-            String[] content = Regex.split((String) resultsSyncTable.getModelValueAt(VAL, summaryCol), Constant.SEPARATOR1);
-            TITLE = content[0];
-            SUMMARY_LINK = content[1];
-            IMAGE_LINK = content[2];
-            IS_LINK = content[3].equals(Constant.TRUE);
-            IS_TV_SHOW = content[4].equals(Constant.TRUE);
-            IS_TV_SHOW_AND_MOVIE = content[5].equals(Constant.TRUE);
-            if (content.length == 8) {
-                season = content[6];
-                episode = content[7];
+            video = new Video((String) resultsSyncTable.getModelValueAt(VAL, idCol), (String) resultsSyncTable.getModelValueAt(VAL, currTitleCol),
+                    UI.innerHTML((String) resultsSyncTable.getModelValueAt(VAL, yearCol)), resultsSyncTable.getModelValueAt(VAL, isTVShowCol).equals("1"),
+                    resultsSyncTable.getModelValueAt(VAL, isTVShowAndMovieCol).equals("1"));
+            video.oldTitle = (String) resultsSyncTable.getModelValueAt(VAL, oldTitleCol);
+            video.imagePath = (String) resultsSyncTable.getModelValueAt(VAL, imageCol);
+            video.summary = (String) resultsSyncTable.getModelValueAt(VAL, summaryCol);
+            video.imageLink = (String) resultsSyncTable.getModelValueAt(VAL, imageLinkCol);
+            video.season = (String) resultsSyncTable.getModelValueAt(VAL, seasonCol);
+            video.episode = (String) resultsSyncTable.getModelValueAt(VAL, episodeCol);
+        }
+
+        VideoStrExportListener strExportListener(boolean exportToEmail) {
+            VideoStrExportListener strExportListener = strExportListener(exportToEmail, false, exportToEmail ? 3 : 1);
+            if (exportToEmail) {
+                readSummaryActionPerformed(this, strExportListener);
+                exportPosterImage(this, strExportListener);
             }
+            return strExportListener;
+        }
+
+        VideoStrExportListener strExportListener(boolean exportToEmail, boolean exportSecondaryContent, int numStrsToExport) {
+            return new VideoStrExporter(video.title, video.year, video.IS_TV_SHOW, exportToEmail, exportSecondaryContent, numStrsToExport);
         }
     }
 
@@ -6054,6 +6298,7 @@ public class GUI extends JFrame implements GuiListener {
     public void readSummaryStarted() {
         readSummaryButton.setEnabled(false);
         readSummaryMenuItem.setEnabled(false);
+        copyFullTitleAndYearMenuItem.setEnabled(false);
     }
 
     @Override
@@ -6061,6 +6306,7 @@ public class GUI extends JFrame implements GuiListener {
         if (resultsSyncTable.getSelectedRows().length == 1) {
             readSummaryButton.setEnabled(true);
             readSummaryMenuItem.setEnabled(true);
+            copyFullTitleAndYearMenuItem.setEnabled(true);
         }
     }
 
@@ -6068,6 +6314,8 @@ public class GUI extends JFrame implements GuiListener {
     public void watchTrailerStarted() {
         watchTrailerButton.setEnabled(false);
         watchTrailerMenuItem.setEnabled(false);
+        emailTrailerLinkMenuItem.setEnabled(false);
+        copyTrailerLinkMenuItem.setEnabled(false);
     }
 
     @Override
@@ -6075,6 +6323,8 @@ public class GUI extends JFrame implements GuiListener {
         if (resultsSyncTable.getSelectedRows().length == 1) {
             watchTrailerButton.setEnabled(true);
             watchTrailerMenuItem.setEnabled(true);
+            emailTrailerLinkMenuItem.setEnabled(true);
+            copyTrailerLinkMenuItem.setEnabled(true);
         }
     }
 
@@ -6084,12 +6334,18 @@ public class GUI extends JFrame implements GuiListener {
         if (isAltSearch) {
             downloadLink2Button.setEnabled(false);
             downloadLink2MenuItem.setEnabled(false);
+            emailDownloadLink2MenuItem.setEnabled(false);
+            copyDownloadLink2MenuItem.setEnabled(false);
         } else {
             downloadLink2Button.setEnabled(enable);
             downloadLink2MenuItem.setEnabled(enable);
+            emailDownloadLink2MenuItem.setEnabled(enable);
+            copyDownloadLink2MenuItem.setEnabled(enable);
         }
         downloadLink1Button.setEnabled(enable);
         downloadLink1MenuItem.setEnabled(enable);
+        emailDownloadLink1MenuItem.setEnabled(enable);
+        copyDownloadLink1MenuItem.setEnabled(enable);
     }
 
     @Override
@@ -6097,17 +6353,17 @@ public class GUI extends JFrame implements GuiListener {
         //order matters because of Synthetica bug
         watchSource2Button.setEnabled(enable);
         watchSource2MenuItem.setEnabled(enable);
+        emailWatchLink2MenuItem.setEnabled(enable);
+        copyWatchLink2MenuItem.setEnabled(enable);
         watchSource1Button.setEnabled(enable);
         watchSource1MenuItem.setEnabled(enable);
+        emailWatchLink1MenuItem.setEnabled(enable);
+        copyWatchLink1MenuItem.setEnabled(enable);
     }
 
     @Override
     public void enableLinkProgress(boolean enable) {
-        if (enable) {
-            linkProgressBar.setIndeterminate(enable);
-            linkProgressBar.setStringPainted(enable);
-            closeBoxButton.setEnabled(enable);
-        } else if (workerListener.isLinkProgressDone()) {
+        if (enable || workerListener.isLinkProgressDone()) {
             linkProgressBar.setIndeterminate(enable);
             linkProgressBar.setStringPainted(enable);
             closeBoxButton.setEnabled(enable);
@@ -6149,6 +6405,32 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void msg(String msg, int msgType) {
         showMsg(msg, msgType);
+    }
+
+    @Override
+    public void timedMsg(final String msg) {
+        if (timedMsgThread != null) {
+            timedMsgThread.interrupt();
+        }
+        (timedMsgThread = new Thread() {
+            @Override
+            public void run() {
+                synchronized (timedMsgLock) {
+                    timedMsgLabel.setText(msg);
+                    timedMsgDialog.pack();
+                    timedMsgDialog.setLocationRelativeTo(GUI.this);
+                    timedMsgDialog.setVisible(true);
+                    try {
+                        Thread.sleep(1000);
+                        timedMsgDialog.setVisible(false);
+                    } catch (InterruptedException e) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e);
+                        }
+                    }
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -6202,19 +6484,15 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void summary(String summary, String imagePath) {
-        String s = "<html><head><title></title></head><body><table><tr>";
+        String summaryPage = "<html><head><title></title></head><body><table><tr>";
         if (imagePath != null) {
             String imageSize = "";
             String posterFilePath = Constant.TEMP_DIR + (new File(imagePath)).getName();
             File posterFile = new File(posterFilePath);
             if (!posterFile.exists()) {
                 try {
-                    Icon posterIcon = new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(Integer.parseInt(Str.get(495)),
-                            Integer.parseInt(Str.get(496)), Image.SCALE_SMOOTH));
-                    BufferedImage posterImage = new BufferedImage(posterIcon.getIconWidth(), posterIcon.getIconHeight(), BufferedImage.TYPE_INT_RGB);
-                    Graphics graphics = posterImage.createGraphics();
-                    posterIcon.paintIcon(null, graphics, 0, 0);
-                    graphics.dispose();
+                    RenderedImage posterImage = UI.image(new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(Integer.parseInt(Str.get(495)),
+                            Integer.parseInt(Str.get(496)), Image.SCALE_SMOOTH)));
                     IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
                     ImageIO.write(posterImage, "png", posterFile);
                 } catch (Exception e) {
@@ -6226,10 +6504,11 @@ public class GUI extends JFrame implements GuiListener {
                     imageSize = " width=\"" + Str.get(495) + "\" height=\"" + Str.get(496) + "\"";
                 }
             }
-            s += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, Str.get(237), Str.get(238)) + '"' + imageSize
+            summaryPage += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, Str.get(237), Str.get(238)) + '"' + imageSize
                     + "></td>";
         }
-        summaryEditorPane.setText(s + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + summary.replace("</body>", "</td></tr></table></body>"));
+        summaryEditorPane.setText(summaryPage + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + summary.replace("</body>",
+                "</td></tr></table></body>"));
         summaryEditorPane.setSelectionStart(0);
         summaryEditorPane.setSelectionEnd(0);
         summaryDialog.setVisible(true);
@@ -6250,12 +6529,12 @@ public class GUI extends JFrame implements GuiListener {
             }
 
             // Handle Java 7 lack of word-wrap bug by replacing exactly text.length() placeholder characters with text
-            SimpleAttributeSet simpleAttributeSet = new SimpleAttributeSet();
+            MutableAttributeSet simpleAttributeSet = new SimpleAttributeSet();
             AttributeSet attributes = element.getAttributes();
             Enumeration<?> attributeNames = attributes.getAttributeNames();
             while (attributeNames.hasMoreElements()) {
                 Object attributeName = attributeNames.nextElement();
-                if (attributeName != Tag.B && attributeName != Attribute.FONT_WEIGHT) {
+                if (!attributeName.equals(Tag.B) && !attributeName.equals(Attribute.FONT_WEIGHT)) {
                     simpleAttributeSet.addAttribute(attributeName, attributes.getAttribute(attributeName));
                 }
             }
@@ -6268,44 +6547,44 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void browserNotification(String item, String action, int type) {
+    public void browserNotification(String item, String action, DomainType domainType) {
         if (!browserNotificationCheckBoxMenuItem.isSelected()) {
             return;
         }
 
         String proxy = Constant.NO_PROXY;
-        switch (type) {
-            case Connection.DOWNLOAD_LINK_INFO:
+        switch (domainType) {
+            case DOWNLOAD_LINK_INFO:
                 if (proxyDownloadLinkInfoCheckBox.isSelected()) {
                     proxy = getSelectedProxy();
                 }
                 break;
-            case Connection.VIDEO_INFO:
+            case VIDEO_INFO:
                 if (proxyVideoInfoCheckBox.isSelected()) {
                     proxy = getSelectedProxy();
                 }
                 break;
-            case Connection.SEARCH_ENGINE:
+            case SEARCH_ENGINE:
                 if (proxySearchEnginesCheckBox.isSelected()) {
                     proxy = getSelectedProxy();
                 }
                 break;
-            case Connection.TRAILER:
+            case TRAILER:
                 if (proxyTrailersCheckBox.isSelected()) {
                     proxy = getSelectedProxy();
                 }
                 break;
-            case Connection.VIDEO_STREAMER:
+            case VIDEO_STREAMER:
                 if (proxyVideoStreamersCheckBox.isSelected()) {
                     proxy = getSelectedProxy();
                 }
                 break;
-            case Connection.UPDATE:
+            case UPDATE:
                 if (proxyUpdatesCheckBox.isSelected()) {
                     proxy = getSelectedProxy();
                 }
                 break;
-            case Connection.SUBTITLE:
+            case SUBTITLE:
                 if (proxySubtitlesCheckBox.isSelected()) {
                     proxy = getSelectedProxy();
                 }
@@ -6335,12 +6614,14 @@ public class GUI extends JFrame implements GuiListener {
         boolean canShowPeerBlock = peerBlockNotificationCheckBoxMenuItem.isSelected();
         if (!Constant.CAN_PEER_BLOCK || (!usePeerBlock && !canShowPeerBlock) || (new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Running")).exists()) {
             return;
-        } else if ((new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).exists() || Connection.isPeerBlockRunning()) {
+        }
+        if ((new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).exists() || Connection.isPeerBlockRunning()) {
             usePeerBlock = false;
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
             IO.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
-        } else if (canShowPeerBlock && (showOptionalConfirm("Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
+        }
+        if (canShowPeerBlock && (showOptionalConfirm("Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
                 peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION)) {
             usePeerBlock = false;
             return;
@@ -6351,15 +6632,11 @@ public class GUI extends JFrame implements GuiListener {
             if (!(new File(Constant.APP_DIR + Constant.PEER_BLOCK)).exists()) {
                 IO.unzip(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.ZIP, Constant.APP_DIR);
             }
-            List<String> command = new ArrayList<String>(8);
-            command.add(Constant.JAVA);
-            command.add(Constant.JAR_OPTION);
-            command.add(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR);
-            command.add(Constant.APP_DIR + Constant.PEER_BLOCK + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE);
-            command.add(Constant.APP_TITLE);
-            command.add(Constant.APP_DIR + Constant.PEER_BLOCK + "Running");
-            command.add(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit");
-            (new ProcessBuilder(command)).start();
+            List<String> cmd = new ArrayList<String>(8);
+            Collections.addAll(cmd, Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR,
+                    Constant.APP_DIR + Constant.PEER_BLOCK + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE, Constant.APP_TITLE,
+                    Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit");
+            (new ProcessBuilder(cmd)).start();
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -6376,18 +6653,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void saveTorrent(File torrentFile) {
-        startPeerBlock();
-
-        if (downloadWithDefaultAppCheckBoxMenuItem.isSelected()) {
-            try {
-                Connection.browseFile(torrentFile.getPath());
-            } catch (Exception e) {
-                showException(e);
-            }
-            return;
-        }
-
+    public void saveTorrent(File torrentFile) throws Exception {
         if (proxyFileChooser.isShowing()) {
             return;
         }
@@ -6398,19 +6664,14 @@ public class GUI extends JFrame implements GuiListener {
         torrentFileChooser.setSelectedFile(new File(torrentDir + torrentFile.getName()));
 
         if (save(torrentFileChooser)) {
-            try {
-                File torrent = torrentFileChooser.getSelectedFile();
-                torrentDir = IO.parentDir(torrent);
-                IO.write(torrentFile, torrent);
-            } catch (Exception e) {
-                showException(e);
-            }
+            File torrent = torrentFileChooser.getSelectedFile();
+            torrentDir = IO.parentDir(torrent);
+            IO.write(torrentFile, torrent);
         }
     }
 
     @Override
-    public void saveSubtitle(String saveFileName, File subtitleFile) {
-        subtitleSearchStopped();
+    public void saveSubtitle(String saveFileName, File subtitleFile) throws Exception {
         if (proxyFileChooser.isShowing() || torrentFileChooser.isShowing()) {
             return;
         }
@@ -6420,41 +6681,59 @@ public class GUI extends JFrame implements GuiListener {
         subtitleFileChooser.setSelectedFile(new File(subtitleDir + saveFileName));
 
         if (save(subtitleFileChooser)) {
-            try {
-                File subtitle = subtitleFileChooser.getSelectedFile();
-                subtitleDir = IO.parentDir(subtitle);
-                IO.write(subtitleFile, subtitle);
-            } catch (Exception e) {
-                showException(e);
-            }
+            File subtitle = subtitleFileChooser.getSelectedFile();
+            subtitleDir = IO.parentDir(subtitle);
+            IO.write(subtitleFile, subtitle);
         }
     }
 
     @Override
     public boolean tvChoices(String season, String episode) {
-        if (season != null && episode != null) {
-            tvSeasonComboBox.setSelectedItem(season);
-            tvEpisodeComboBox.setSelectedItem(episode);
-        }
-
+        tvSeasonComboBox.setSelectedItem(season);
+        tvEpisodeComboBox.setSelectedItem(episode);
         cancelTVSelection = true;
         tvDialog.setVisible(true);
         return cancelTVSelection;
     }
 
     @Override
-    public String getDisplayTitle(int row, String titleID) {
+    public String getTitle(int row, String titleID) {
         return (String) resultsSyncTable.getModelValueAt(row, titleCol, idCol, titleID);
     }
 
     @Override
-    public void setDisplayTitle(Object val, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(val, row, titleCol, idCol, titleID);
+    public void setTitle(String title, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(title, row, titleCol, idCol, titleID);
     }
 
     @Override
-    public void setDisplaySummary(Object val, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(val, row, summaryCol, idCol, titleID);
+    public void setSummary(String summary, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(summary, row, summaryCol, idCol, titleID);
+    }
+
+    @Override
+    public String getSeason(int row, String titleID) {
+        return (String) resultsSyncTable.getModelValueAt(row, seasonCol, idCol, titleID);
+    }
+
+    @Override
+    public void setSeason(String season, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(season, row, seasonCol, idCol, titleID);
+    }
+
+    @Override
+    public void setEpisode(String episode, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(episode, row, episodeCol, idCol, titleID);
+    }
+
+    @Override
+    public void setImageLink(String imageLink, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(imageLink, row, imageLinkCol, idCol, titleID);
+    }
+
+    @Override
+    public void setImagePath(String imagePath, int row, String titleID) {
+        resultsSyncTable.setModelValueAt(imagePath, row, imageCol, idCol, titleID);
     }
 
     @Override
@@ -6485,7 +6764,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void newSearch(int maxProgress) {
+    public void newSearch(int maxProgress, boolean isTVShow) {
         enableVideoFormats(true);
         exitBackupModeMenuItem.setEnabled(false);
         resultsSyncTable.setRowCount(0);
@@ -6496,8 +6775,12 @@ public class GUI extends JFrame implements GuiListener {
         progressBar.setValue(0);
 
         Connection.clearCache();
-        downloadLinkEpisodes.clear();
-        subtitleEpisodes.clear();
+        if (isTVShow) {
+            trailerEpisodes.clear();
+            downloadLinkEpisodes.clear();
+            subtitleEpisodes.clear();
+        }
+        findTitles.clear();
     }
 
     @Override
@@ -6541,7 +6824,6 @@ public class GUI extends JFrame implements GuiListener {
     public void searchStopped() {
         stopSearch();
         stopButton.setEnabled(false);
-        updateFindTitles();
         if (titleTextField.isEnabled() && resultsSyncTable.getRowCount() == 0) {
             titleTextField.requestFocusInWindow();
         }
@@ -6561,7 +6843,7 @@ public class GUI extends JFrame implements GuiListener {
     public void newResult(Object[] result) {
         resultsSyncTable.addRow(result);
         posterImagePaths.add((String) result[imageCol]);
-        updateFindTitles();
+        updateFindTitles((String) result[currTitleCol]);
     }
 
     @Override
@@ -6569,8 +6851,8 @@ public class GUI extends JFrame implements GuiListener {
         for (Object[] result : results) {
             resultsSyncTable.addRow(result);
             posterImagePaths.add((String) result[imageCol]);
+            updateFindTitles((String) result[currTitleCol]);
         }
-        updateFindTitles();
     }
 
     @Override
@@ -6743,12 +7025,12 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public String[] getWhitelistedFileExts() {
-        return copy(whitelistListModel.toArray());
+        return UI.copy(whitelistListModel.toArray());
     }
 
     @Override
     public String[] getBlacklistedFileExts() {
-        return copy(blacklistListModel.toArray());
+        return UI.copy(blacklistListModel.toArray());
     }
 
     @Override
@@ -6759,6 +7041,16 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public boolean canAutoDownload() {
         return autoDownloadingCheckBoxMenuItem.isSelected();
+    }
+
+    @Override
+    public boolean canDownloadWithDefaultApp() {
+        return downloadWithDefaultAppCheckBoxMenuItem.isSelected();
+    }
+
+    @Override
+    public boolean canEmailWithDefaultApp() {
+        return emailWithDefaultAppCheckBoxMenuItem.isSelected();
     }
 
     @Override
@@ -6784,14 +7076,22 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public Object[] makeRow(String titleID, String imagePath, String title, String year, String rating, String summary) {
-        String[] row = new String[6];
+    public Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
+            String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode) {
+        String[] row = new String[13];
         row[idCol] = titleID;
         row[imageCol] = imagePath;
         row[titleCol] = title;
+        row[currTitleCol] = currTitle;
+        row[oldTitleCol] = oldTitle;
         row[yearCol] = year;
         row[ratingCol] = rating;
         row[summaryCol] = summary;
+        row[imageLinkCol] = imageLink;
+        row[isTVShowCol] = (isTVShow ? "1" : "");
+        row[isTVShowAndMovieCol] = (isTVShowAndMovie ? "1" : "");
+        row[seasonCol] = season;
+        row[episodeCol] = episode;
         return row;
     }
 
@@ -6818,7 +7118,15 @@ public class GUI extends JFrame implements GuiListener {
             editorPane.addHyperlinkListener(new HyperlinkListener() {
                 @Override
                 public void hyperlinkUpdate(HyperlinkEvent evt) {
-                    hyperlinkHandler(evt);
+                    try {
+                        hyperlinkHandler(evt);
+                    } catch (Exception e) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e);
+                        }
+                        JOptionPane.showMessageDialog(GUI.this, getTextArea(ExceptionUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
+                        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+                    }
                 }
             });
             editorPane.addMouseListener(textComponentPopupListener);
@@ -6880,38 +7188,32 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void subtitleMsg(String msg, int msgType) {
-        subtitleSearchStopped();
-        showMsg(msg, msgType);
-    }
-
-    @Override
     public void restrictedWebsite() {
         proxyDialog.setVisible(true);
     }
 
     @Override
-    public void setCanProxy(int type) {
-        switch (type) {
-            case Connection.DOWNLOAD_LINK_INFO:
+    public void setCanProxy(DomainType domainType) {
+        switch (domainType) {
+            case DOWNLOAD_LINK_INFO:
                 proxyDownloadLinkInfoCheckBox.setSelected(true);
                 break;
-            case Connection.VIDEO_INFO:
+            case VIDEO_INFO:
                 proxyVideoInfoCheckBox.setSelected(true);
                 break;
-            case Connection.SEARCH_ENGINE:
+            case SEARCH_ENGINE:
                 proxySearchEnginesCheckBox.setSelected(true);
                 break;
-            case Connection.TRAILER:
+            case TRAILER:
                 proxyTrailersCheckBox.setSelected(true);
                 break;
-            case Connection.VIDEO_STREAMER:
+            case VIDEO_STREAMER:
                 proxyVideoStreamersCheckBox.setSelected(true);
                 break;
-            case Connection.UPDATE:
+            case UPDATE:
                 proxyUpdatesCheckBox.setSelected(true);
                 break;
-            case Connection.SUBTITLE:
+            case SUBTITLE:
                 proxySubtitlesCheckBox.setSelected(true);
                 break;
             default:
@@ -6936,15 +7238,6 @@ public class GUI extends JFrame implements GuiListener {
         }
         return Integer.parseInt(port);
     }
-
-    @Override
-    public boolean[] confirmOffer(int offerIndex, String title) {
-        JMenuItem offerMenuItem = new JMenuItem();
-        offerMenuItem.setSelected(true);
-        boolean isConfirmed = showOptionalConfirm(Str.get(offerIndex).replace(Str.get(616), title), offerMenuItem) == JOptionPane.YES_OPTION;
-        return new boolean[]{isConfirmed, offerMenuItem.isSelected()};
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     JDialog aboutDialog;
     JEditorPane aboutEditorPane;
@@ -6976,7 +7269,19 @@ public class GUI extends JFrame implements GuiListener {
     JTextPane commentsTextPane;
     JButton connectionIssueButton;
     JPopupMenu connectionIssueButtonPopupMenu;
+    JMenuItem copyDownloadLink1MenuItem;
+    JMenuItem copyDownloadLink2MenuItem;
+    JMenuItem copyFullTitleAndYearMenuItem;
+    JMenu copyMenu;
     JMenuItem copyMenuItem;
+    Separator copyMenuSeparator1;
+    JMenuItem copyPosterImageMenuItem;
+    JMenuItem copySelectionMenuItem;
+    JMenuItem copySubtitleLinkMenuItem;
+    JMenuItem copySummaryLinkMenuItem;
+    JMenuItem copyTrailerLinkMenuItem;
+    JMenuItem copyWatchLink1MenuItem;
+    JMenuItem copyWatchLink2MenuItem;
     JLabel countryLabel;
     JList countryList;
     JScrollPane countryScrollPane;
@@ -7008,6 +7313,16 @@ public class GUI extends JFrame implements GuiListener {
     Separator editMenuSeparator1;
     Separator editMenuSeparator2;
     JMenuItem editProfilesMenuItem;
+    JMenuItem emailDownloadLink1MenuItem;
+    JMenuItem emailDownloadLink2MenuItem;
+    JMenuItem emailEverythingMenuItem;
+    JMenu emailMenu;
+    Separator emailMenuSeparator1;
+    JMenuItem emailSummaryLinkMenuItem;
+    JMenuItem emailTrailerLinkMenuItem;
+    JMenuItem emailWatchLink1MenuItem;
+    JMenuItem emailWatchLink2MenuItem;
+    JCheckBoxMenuItem emailWithDefaultAppCheckBoxMenuItem;
     JDateChooser endDateChooser;
     JLabel episodeLabel;
     JMenuItem exitBackupModeMenuItem;
@@ -7103,8 +7418,6 @@ public class GUI extends JFrame implements GuiListener {
     JButton profileClearButton;
     JComboBox profileComboBox;
     JDialog profileDialog;
-    JDialog profileMsgDialog;
-    JLabel profileMsgLabel;
     JButton profileNameChangeCancelButton;
     JDialog profileNameChangeDialog;
     JLabel profileNameChangeLabel;
@@ -7167,6 +7480,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator searchMenuSeparator2;
     Separator searchMenuSeparator3;
     Separator searchMenuSeparator4;
+    Separator searchMenuSeparator5;
     JLabel seasonLabel;
     JMenuItem selectAllMenuItem;
     JDateChooser startDateChooser;
@@ -7179,7 +7493,6 @@ public class GUI extends JFrame implements GuiListener {
     JLabel summaryLoadingLabel;
     JScrollPane summaryScrollPane;
     JButton summaryTextToSpeechButton;
-    JMenuItem tableCopyMenuItem;
     JPopupMenu tablePopupMenu;
     Separator tablePopupMenuSeparator1;
     Separator tablePopupMenuSeparator2;
@@ -7191,6 +7504,8 @@ public class GUI extends JFrame implements GuiListener {
     JPopupMenu textComponentPopupMenu;
     Separator textComponentPopupMenuSeparator1;
     JMenuItem textComponentSelectAllMenuItem;
+    JDialog timedMsgDialog;
+    JLabel timedMsgLabel;
     JButton timeoutButton;
     JComboBox timeoutComboBox;
     JDialog timeoutDialog;

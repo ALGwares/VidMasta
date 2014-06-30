@@ -29,22 +29,17 @@ public interface WorkerListener {
 
     String getSafetyComments();
 
-    void summarySearchStarted(int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, int row);
+    void summarySearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
-    void trailerSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, int row);
+    void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
-    void torrentSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, int row);
+    void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
 
-    void streamSearchStarted(int action, String titleID, String title, String summaryLink, boolean isLink, String year, boolean isTVShow, boolean isTVShowAndMovie,
-            String season, String episode, int row);
+    void streamSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
 
     void proxyListDownloadStarted();
 
-    void subtitleSearchStarted(String format, String languageID, String titleID, String title, String year, boolean isTVShow, boolean isTVShowAndMovie,
-            String season, String episode, boolean firstMatch);
+    void subtitleSearchStarted(String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener);
 
     void subtitleSearchStopped();
 
@@ -53,4 +48,6 @@ public interface WorkerListener {
     void summaryReadStopped();
 
     void updateStarted(boolean isStartUp);
+
+    void portChanged(int port);
 }

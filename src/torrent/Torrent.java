@@ -1,7 +1,8 @@
 package torrent;
 
 import java.io.File;
-import main.Str;
+import java.net.URLEncoder;
+import str.Str;
 import util.Constant;
 import util.Regex;
 
@@ -24,35 +25,47 @@ public class Torrent implements Comparable<Torrent> {
     }
 
     public String saveName(boolean fileName) {
-        return (fileName ? Str.toFileName(NAME) : Regex.replaceAll(NAME, Str.get(609), Str.get(610))) + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_"
+        return (fileName ? Regex.toFileName(NAME) : Regex.replaceAll(NAME, Str.get(609), Str.get(610))) + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_"
                 + SIZE_IN_GIB + "GB" : "") + "_" + MAGNET_LINK.hashCode() + EXTENSIONS + Constant.TORRENT;
+    }
+
+    public String magnetLinkURL() throws Exception {
+        return Str.get(624) + URLEncoder.encode(MAGNET_LINK, Constant.UTF8);
     }
 
     @Override
     public String toString() {
-        return "{'" + ID + "', '" + NAME + "', " + FILE + ", " + (IS_SAFE ? "safe" : "unsafe") + ", sources=" + NUM_SOURCES + ", size=" + SIZE_IN_GIB + "GiB, '"
-                + EXTENSIONS + "', '" + MAGNET_LINK + "'}";
+        return "{'" + NAME + "' " + IS_SAFE + " " + NUM_SOURCES + " " + SIZE_IN_GIB + "GB '" + EXTENSIONS + "'\n'" + MAGNET_LINK + "'\n'" + FILE + "' '" + ID
+                + "'}\n";
     }
 
     @Override
     public int compareTo(Torrent torrent) {
         if (IS_SAFE && !torrent.IS_SAFE) {
             return -1;
-        } else if (!IS_SAFE && torrent.IS_SAFE) {
+        }
+        if (!IS_SAFE && torrent.IS_SAFE) {
             return 1;
-        } else if (NUM_SOURCES > torrent.NUM_SOURCES) {
+        }
+        if (NUM_SOURCES > torrent.NUM_SOURCES) {
             return -1;
-        } else if (NUM_SOURCES < torrent.NUM_SOURCES) {
+        }
+        if (NUM_SOURCES < torrent.NUM_SOURCES) {
             return 1;
-        } else if (SIZE_IN_GIB < torrent.SIZE_IN_GIB) {
+        }
+        if (SIZE_IN_GIB < torrent.SIZE_IN_GIB) {
             return -1;
-        } else if (SIZE_IN_GIB > torrent.SIZE_IN_GIB) {
+        }
+        if (SIZE_IN_GIB > torrent.SIZE_IN_GIB) {
             return 1;
-        } else if (FILE != null && torrent.FILE == null) {
+        }
+        if (FILE != null && torrent.FILE == null) {
             return -1;
-        } else if (FILE == null && torrent.FILE != null) {
+        }
+        if (FILE == null && torrent.FILE != null) {
             return 1;
-        } else if (FILE == null && torrent.FILE == null) {
+        }
+        if (FILE == null) {
             return MAGNET_LINK.compareTo(torrent.MAGNET_LINK);
         }
         return FILE.compareTo(torrent.FILE);
@@ -60,12 +73,10 @@ public class Torrent implements Comparable<Torrent> {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
         Torrent torrent;
-        return obj instanceof Torrent ? IS_SAFE == (torrent = (Torrent) obj).IS_SAFE && NUM_SOURCES == torrent.NUM_SOURCES && SIZE_IN_GIB == torrent.SIZE_IN_GIB
-                && ((FILE == null && torrent.FILE == null) || (FILE != null && FILE.equals(torrent.FILE))) && MAGNET_LINK.equals(torrent.MAGNET_LINK) : false;
+        return this == obj || (obj instanceof Torrent && IS_SAFE == (torrent = (Torrent) obj).IS_SAFE && NUM_SOURCES == torrent.NUM_SOURCES
+                && SIZE_IN_GIB == torrent.SIZE_IN_GIB && ((FILE == null && torrent.FILE == null) || (FILE != null && FILE.equals(torrent.FILE)))
+                && MAGNET_LINK.equals(torrent.MAGNET_LINK));
     }
 
     @Override

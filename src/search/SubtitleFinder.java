@@ -12,9 +12,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import listener.ContentType;
+import listener.DomainType;
 import listener.GuiListener;
-import main.Str;
-import search.download.TorrentFinder;
+import listener.Video;
+import listener.VideoStrExportListener;
+import search.util.VideoSearch;
+import str.Str;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
@@ -24,24 +28,23 @@ import util.Regex;
 public class SubtitleFinder extends AbstractSwingWorker {
 
     private final GuiListener guiListener;
-    private final String format, languageID, titleID, title, year, season, episode;
-    private boolean isTVShow, isTVShowAndMovie;
+    private final String format, languageID;
+    private final Video video;
+    private boolean isTVShow, isTVShowAndMovie, stopped;
     private final boolean firstMatch;
+    private VideoStrExportListener strExportListener;
+    private String subtitleLink;
     private static final Map<Long, String> cache = new HashMap<Long, String>(8);
 
-    public SubtitleFinder(GuiListener guiListener, String format, String languageID, String titleID, String title, String year, boolean isTVShow,
-            boolean isTVShowAndMovie, String season, String episode, boolean firstMatch) {
+    public SubtitleFinder(GuiListener guiListener, String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener) {
         this.guiListener = guiListener;
         this.format = format;
         this.languageID = languageID;
-        this.titleID = titleID;
-        this.title = title;
-        this.year = year;
-        this.isTVShow = isTVShow;
-        this.isTVShowAndMovie = isTVShowAndMovie;
-        this.season = season;
-        this.episode = episode;
+        this.video = video;
+        this.isTVShow = video.IS_TV_SHOW;
+        this.isTVShowAndMovie = video.IS_TV_SHOW_AND_MOVIE;
         this.firstMatch = firstMatch;
+        this.strExportListener = strExportListener;
     }
 
     @Override
@@ -49,20 +52,31 @@ public class SubtitleFinder extends AbstractSwingWorker {
         guiListener.subtitleSearchStarted();
         try {
             findSubtitle();
+            searchStopped();
         } catch (Exception e) {
+            searchStopped();
             if (!isCancelled()) {
-                guiListener.subtitleSearchStopped();
                 guiListener.error(e);
             }
         }
-        guiListener.subtitleSearchStopped();
         workDone();
+        if (strExportListener != null) {
+            strExportListener.export(ContentType.SUBTITLE, subtitleLink, isCancelled(), guiListener);
+        }
         return null;
     }
 
+    private void searchStopped() {
+        if (!stopped) {
+            guiListener.subtitleSearchStopped();
+            stopped = true;
+        }
+    }
+
     private void findSubtitle() throws Exception {
-        String searchTitle = URLEncoder.encode(title, Constant.UTF8), searchYear = String.valueOf(Integer.parseInt(year) - Integer.parseInt(Str.get(342)));
-        String source = getSourceCode(isTVShow ? Str.get(439) + languageID + Str.get(440) + season + Str.get(441) + episode + Str.get(442) + searchYear
+        String searchTitle = URLEncoder.encode(video.title, Constant.UTF8), searchYear = String.valueOf(Integer.parseInt(video.year)
+                - Integer.parseInt(Str.get(342)));
+        String source = getSourceCode(isTVShow ? Str.get(439) + languageID + Str.get(440) + video.season + Str.get(441) + video.episode + Str.get(442) + searchYear
                 + Str.get(443) + searchTitle : Str.get(444) + languageID + Str.get(445) + searchYear + Str.get(446) + searchTitle);
         String titleLink = Regex.match(source, Str.get(506), Str.get(507));
         List<String> results;
@@ -101,7 +115,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
     private String getSourceCode(String urlStr) throws Exception {
         String url = urlStr, source;
         try {
-            source = Connection.getSourceCode(url, Connection.SUBTITLE);
+            source = Connection.getSourceCode(url, DomainType.SUBTITLE);
         } catch (ConnectionException e) {
             // Handle server's unencoded redirect URL bug
             if (e.URL == null || e.URL.equals(url)) {
@@ -112,13 +126,14 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 throw e;
             }
             source = Connection.getSourceCode(url = e.URL.replace(Str.get(512) + titleName, Str.get(512) + URLEncoder.encode(titleName, Constant.UTF8)),
-                    Connection.SUBTITLE);
+                    DomainType.SUBTITLE);
         }
 
         if (!Regex.match(source, Str.get(453)).isEmpty()) {
             Connection.removeFromCache(url);
             if (!isCancelled()) {
-                guiListener.subtitleMsg(Connection.error(url), Constant.ERROR_MSG);
+                searchStopped();
+                guiListener.msg(Connection.error(url), Constant.ERROR_MSG);
             }
             throw new ConnectionException();
         }
@@ -133,9 +148,9 @@ public class SubtitleFinder extends AbstractSwingWorker {
         String titleLink = Regex.match(result, Str.get(427));
         String resultID = Regex.replaceAll(Regex.replaceFirst(titleLink, Str.get(428), Str.get(429)), Str.get(423), Str.get(424));
         if (Debug.DEBUG) {
-            Debug.println("subtitle search result: resultID='" + resultID + "' titleID='" + titleID + "'");
+            Debug.println("subtitle search result: resultID='" + resultID + "' titleID='" + video.ID + "'");
         }
-        return titleID.equals(resultID);
+        return video.ID.equals(resultID);
     }
 
     private void notFound() throws Exception {
@@ -148,7 +163,8 @@ public class SubtitleFinder extends AbstractSwingWorker {
             findSubtitle();
             return;
         }
-        guiListener.subtitleMsg("The subtitle could not be found.", Constant.INFO_MSG);
+        searchStopped();
+        guiListener.msg("The subtitle could not be found.", Constant.INFO_MSG);
     }
 
     private void saveSubtitle(List<String> results, boolean isExactResult) throws Exception {
@@ -160,7 +176,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
         List<Subtitle> subtitles = new ArrayList<Subtitle>(results.size());
         if (isExactResult) {
             String[] resultParts = Regex.split(results.get(0), Constant.SEPARATOR1);
-            if (resultMatches(resultParts[0]) && TorrentFinder.isRightFormat(resultParts[2], format)) {
+            if (resultMatches(resultParts[0]) && VideoSearch.isRightFormat(resultParts[2], format)) {
                 subtitles.add(new Subtitle(resultParts[1], -1));
             }
         } else {
@@ -179,7 +195,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                             + downloadCount + "'");
                 }
 
-                if (!TorrentFinder.isRightFormat(titleName, format)) {
+                if (!VideoSearch.isRightFormat(titleName, format)) {
                     if (Debug.DEBUG) {
                         Debug.println("invalid format: not " + format);
                     }
@@ -197,7 +213,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
 
         Collections.sort(subtitles);
 
-        long subtitleName = Str.hashCode(titleID);
+        long subtitleName = Str.hashCode(video.ID);
         String subtitleDir = Constant.APP_DIR + subtitleName + Constant.FILE_SEPARATOR;
         String subtitleZip = subtitleDir + subtitleName + Constant.ZIP;
         int numSubtitles = subtitles.size(), maxNumSubtitles = Integer.parseInt(Str.get(458));
@@ -214,21 +230,26 @@ public class SubtitleFinder extends AbstractSwingWorker {
 
             Long tempSubtitleFileName = Str.hashCode(subtitle.subtitleID);
             String tempSubtitleFileNameAlias = cache.get(tempSubtitleFileName);
-            File tempSubtitleFile = new File(Constant.TEMP_DIR + tempSubtitleFileName.toString() + Constant.TXT);
+            File tempSubtitleFile = new File(Constant.TEMP_DIR + tempSubtitleFileName + Constant.TXT);
+            String url = Str.get(437) + subtitle.subtitleID;
             if (tempSubtitleFileNameAlias != null) {
                 if (!tempFirstMatch) {
                     tempFirstMatch = true;
                     continue;
                 }
-                guiListener.saveSubtitle(tempSubtitleFileNameAlias, tempSubtitleFile);
+                if (strExportListener == null) {
+                    searchStopped();
+                    guiListener.saveSubtitle(tempSubtitleFileNameAlias, tempSubtitleFile);
+                } else {
+                    subtitleLink = url;
+                }
                 return;
             }
 
             IO.fileOp(subtitleDir, IO.MK_DIR);
-            String url = Str.get(437) + subtitle.subtitleID;
             try {
                 try {
-                    Connection.saveData(url, subtitleZip, Connection.SUBTITLE);
+                    Connection.saveData(url, subtitleZip, DomainType.SUBTITLE);
                 } catch (Exception e) {
                     if (Debug.DEBUG) {
                         Debug.print(e);
@@ -256,7 +277,12 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 if (subtitleFile != null) {
                     String subtitleFileName = subtitleFile.getName();
                     if (tempFirstMatch) {
-                        guiListener.saveSubtitle(subtitleFileName, subtitleFile);
+                        if (strExportListener == null) {
+                            searchStopped();
+                            guiListener.saveSubtitle(subtitleFileName, subtitleFile);
+                        } else {
+                            subtitleLink = url;
+                        }
                     }
                     IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
                     if (subtitleFile.renameTo(tempSubtitleFile)) {
@@ -284,13 +310,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
         Arrays.sort(files, new Comparator<File>() {
             @Override
             public int compare(File file1, File file2) {
-                if (file1.isFile()) {
-                    return -1;
-                } else if (file2.isFile()) {
-                    return 1;
-                } else {
-                    return 0;
-                }
+                return file1.isFile() ? -1 : (file2.isFile() ? 1 : 0);
             }
         });
 
@@ -320,20 +340,12 @@ public class SubtitleFinder extends AbstractSwingWorker {
 
         @Override
         public int compareTo(Subtitle result) {
-            if (downloadCount > result.downloadCount) {
-                return -1;
-            } else if (downloadCount < result.downloadCount) {
-                return 1;
-            }
-            return 0;
+            return downloadCount > result.downloadCount ? -1 : (downloadCount < result.downloadCount ? 1 : 0);
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            return obj instanceof Subtitle ? downloadCount == ((Subtitle) obj).downloadCount : false;
+            return this == obj || (obj instanceof Subtitle && downloadCount == ((Subtitle) obj).downloadCount);
         }
 
         @Override

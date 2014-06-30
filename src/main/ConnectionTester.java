@@ -7,7 +7,9 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import javax.swing.SwingWorker;
+import listener.DomainType;
 import listener.GuiListener;
+import str.Str;
 import util.Connection;
 import util.Constant;
 import util.IO;
@@ -24,7 +26,7 @@ public class ConnectionTester extends SwingWorker<Object, Object> {
     @Override
     protected Object doInBackground() {
         Str.waitForUpdate();
-        Collection<String> restrictedConnectionTypes = new HashSet<String>(8);
+        Collection<String> restrictedDomainTypes = new HashSet<String>(8);
         boolean isConnected = false;
 
         for (String website : Regex.split(Str.get(623), Constant.SEPARATOR2)) {
@@ -51,7 +53,7 @@ public class ConnectionTester extends SwingWorker<Object, Object> {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                restrictedConnectionTypes.add(websiteParts[1]);
+                restrictedDomainTypes.add(websiteParts[1]);
             } finally {
                 IO.close(connection, is);
             }
@@ -59,12 +61,12 @@ public class ConnectionTester extends SwingWorker<Object, Object> {
 
         IO.fileOp(Constant.APP_DIR + Constant.CONNECTIVITY, IO.MK_FILE);
 
-        if (isConnected && !restrictedConnectionTypes.isEmpty()) {
-            for (String connectionType : restrictedConnectionTypes) {
-                guiListener.setCanProxy(Integer.parseInt(connectionType));
+        if (isConnected && !restrictedDomainTypes.isEmpty()) {
+            for (String domainType : restrictedDomainTypes) {
+                guiListener.setCanProxy(DomainType.values()[Integer.parseInt(domainType)]);
             }
-            if (guiListener.isConfirmed("Your access to some needed websites (shown by the checked boxes when you click Yes) may be limited."
-                    + Constant.NEWLINE2 + "Do you want to use a proxy to gain access?")) {
+            if (guiListener.isConfirmed("Your access to some needed websites (shown by the checked boxes when you click Yes) may be limited." + Constant.NEWLINE2
+                    + "Do you want to use a proxy to gain access?")) {
                 guiListener.restrictedWebsite();
             }
         }

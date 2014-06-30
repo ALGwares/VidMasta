@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import listener.GuiListener;
-import main.Str;
+import str.Str;
 import util.Connection;
 import util.Constant;
 import util.IO;
@@ -76,7 +76,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
         }
     }
 
-    private boolean hasLatestProxies() {
+    private static boolean hasLatestProxies() {
         try {
             Collection<String> proxies = new ArrayList<String>(Arrays.asList(Regex.split(IO.read(Constant.APP_DIR + "bk_" + Constant.PROXIES),
                     Constant.NEWLINE)));

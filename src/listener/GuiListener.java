@@ -31,6 +31,8 @@ public interface GuiListener {
 
     void msg(String msg, int msgType);
 
+    void timedMsg(String msg);
+
     void initSafetyDialog(String name);
 
     void safetyDialogMsg(String statistic, String link, String name);
@@ -47,21 +49,31 @@ public interface GuiListener {
 
     void insertAfterSummaryElement(Element element, String text);
 
-    void browserNotification(String item, String action, int type);
+    void browserNotification(String item, String action, DomainType domainType);
 
     void startPeerBlock();
 
-    void saveTorrent(File torrentFile);
+    void saveTorrent(File torrentFile) throws Exception;
 
-    void saveSubtitle(String saveFileName, File subtitleFile);
+    void saveSubtitle(String saveFileName, File subtitleFile) throws Exception;
 
     boolean tvChoices(String season, String episode);
 
-    String getDisplayTitle(int row, String titleID);
+    String getTitle(int row, String titleID);
 
-    void setDisplayTitle(Object val, int row, String titleID);
+    void setTitle(String title, int row, String titleID);
 
-    void setDisplaySummary(Object val, int row, String titleID);
+    void setSummary(String summary, int row, String titleID);
+
+    String getSeason(int row, String titleID);
+
+    void setSeason(String season, int row, String titleID);
+
+    void setEpisode(String episode, int row, String titleID);
+
+    void setImageLink(String imageLink, int row, String titleID);
+
+    void setImagePath(String imagePath, int row, String titleID);
 
     String getSeason();
 
@@ -69,7 +81,7 @@ public interface GuiListener {
 
     void searchStarted();
 
-    void newSearch(int maxProgress);
+    void newSearch(int maxProgress, boolean isTVShow);
 
     boolean oldSearch(int maxProgress);
 
@@ -147,6 +159,10 @@ public interface GuiListener {
 
     boolean canAutoDownload();
 
+    boolean canDownloadWithDefaultApp();
+
+    boolean canEmailWithDefaultApp();
+
     boolean canIgnoreDownloadSize();
 
     void commentsFinderStarted();
@@ -155,7 +171,8 @@ public interface GuiListener {
 
     void commentsFinderError(Exception e);
 
-    Object[] makeRow(String titleID, String imagePath, String title, String year, String rating, String summary);
+    Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
+            String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode);
 
     void updateStarted();
 
@@ -173,13 +190,9 @@ public interface GuiListener {
 
     void summaryReadStopped();
 
-    void subtitleMsg(String msg, int msgType);
-
     void restrictedWebsite();
 
-    void setCanProxy(int type);
+    void setCanProxy(DomainType domainType);
 
     int getPort();
-
-    boolean[] confirmOffer(int offerIndex, String title);
 }

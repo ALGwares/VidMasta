@@ -5,11 +5,7 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -58,29 +54,7 @@ public class SplashScreen extends JFrame {
         Dimension windowSize = new Dimension(1000, 680);
         setSize(windowSize);
         setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
-        setLocation(screenCenter(windowSize));
-    }
-
-    static Point screenCenter(Dimension windowSize) {
-        Rectangle screenBounds = getUsableScreenBounds();
-        if (windowSize.height > screenBounds.height) {
-            windowSize.height = screenBounds.height;
-        }
-        if (windowSize.width > screenBounds.width) {
-            windowSize.width = screenBounds.width;
-        }
-        return new Point((screenBounds.width - windowSize.width) / 2, (screenBounds.height - windowSize.height) / 2);
-    }
-
-    static Rectangle getUsableScreenBounds() {
-        GraphicsConfiguration graphicsConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-        Rectangle bounds = graphicsConfig.getBounds();
-        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsConfig);
-        bounds.y += insets.top;
-        bounds.x += insets.left;
-        bounds.height -= (insets.top + insets.bottom);
-        bounds.width -= (insets.left + insets.right);
-        return bounds;
+        setLocation(UI.screenCenter(windowSize));
     }
 
     void progress() {

@@ -20,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.nio.channels.FileLock;
 import java.util.Calendar;
 import java.util.Enumeration;
+import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -35,11 +36,11 @@ public class IO {
     public static String read(File file) throws Exception {
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(file), Constant.UTF8));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(file), IOConstant.UTF8));
             StringBuilder result = new StringBuilder(4096);
             String line;
             while ((line = br.readLine()) != null) {
-                result.append(line).append(Constant.NEWLINE);
+                result.append(line).append(IOConstant.NEWLINE);
             }
             return result.toString().trim();
         } finally {
@@ -63,7 +64,7 @@ public class IO {
     }
 
     public static void write(String fileName, String contents) throws Exception {
-        write(new File(fileName), contents, false);
+        write(fileName, contents, false);
     }
 
     public static void write(File file, String contents) throws Exception {
@@ -77,7 +78,7 @@ public class IO {
     public static void write(File file, String contents, boolean append) throws Exception {
         Writer writer = null;
         try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, append), Constant.UTF8));
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, append), IOConstant.UTF8));
             writer.write(contents);
             writer.flush();
         } finally {
@@ -115,15 +116,14 @@ public class IO {
         os.flush();
     }
 
-    public static void writeToErrorLog(Exception e) {
+    public static void write(String fileName, Throwable t) {
         try {
             Writer writer = new StringWriter();
-            e.printStackTrace(new PrintWriter(writer));
-            write(Constant.APP_DIR + "errorLog" + Constant.TXT, Calendar.getInstance().getTime().toString() + Constant.NEWLINE + writer.toString()
-                    + Constant.NEWLINE, true);
-        } catch (Exception e2) {
+            t.printStackTrace(new PrintWriter(writer));
+            write(fileName, Calendar.getInstance().getTime() + IOConstant.NEWLINE + writer + IOConstant.NEWLINE, true);
+        } catch (Exception e) {
             if (Debug.DEBUG) {
-                Debug.print(e2);
+                Debug.print(e);
             }
         }
     }
@@ -133,6 +133,7 @@ public class IO {
         try {
             zf = new ZipFile(zipFile);
             Enumeration<? extends ZipEntry> zipEntries = zf.entries();
+            Pattern fileSeparator = Pattern.compile("/");
             while (zipEntries.hasMoreElements()) {
                 ZipEntry ze = zipEntries.nextElement();
                 if (ze.getSize() <= 0) {
@@ -140,7 +141,7 @@ public class IO {
                 }
 
                 String fileName = ze.getName();
-                String[] fileNameParts = Regex.split(fileName, "/");
+                String[] fileNameParts = fileSeparator.split(fileName);
                 mkFile(fileNameParts, 0, fileNameParts.length - 1, outputDir.substring(0, outputDir.length() - 1));
 
                 InputStream is = null;
@@ -156,8 +157,8 @@ public class IO {
         }
     }
 
-    private static void mkFile(String[] fileNameParts, int currIndex, int lastIndex, String currPath) throws Exception {
-        String path = currPath + Constant.FILE_SEPARATOR + fileNameParts[currIndex];
+    private static void mkFile(String[] fileNameParts, int currIndex, int lastIndex, String currPath) {
+        String path = currPath + IOConstant.FILE_SEPARATOR + fileNameParts[currIndex];
         File file = new File(path);
         if (currIndex < lastIndex) {
             fileOp(file, MK_DIR);
@@ -272,7 +273,7 @@ public class IO {
         if (dir == null || dir.isEmpty()) {
             return "";
         }
-        return dir.endsWith(Constant.FILE_SEPARATOR) ? dir : dir + Constant.FILE_SEPARATOR;
+        return dir.endsWith(IOConstant.FILE_SEPARATOR) ? dir : dir + IOConstant.FILE_SEPARATOR;
     }
 
     public static boolean isFileTooOld(File file, long maxAge) {

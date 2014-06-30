@@ -23,33 +23,27 @@ public class SyncTable {
         }
     }
 
-    public void setModelValueAt(Object aValue, int row, int column) {
-        synchronized (lock) {
-            tableModel.setValueAt(aValue, row, column);
-        }
-    }
-
     public Object getModelValueAt(int row, int column) {
         synchronized (lock) {
             return tableModel.getValueAt(row, column);
         }
     }
 
-    private boolean rowExists(int row, int idColumn, String rowId) {
-        return row < tableModel.getRowCount() && rowId.equals(tableModel.getValueAt(row, idColumn));
+    private boolean rowExists(int row, int idColumn, String rowID) {
+        return row < tableModel.getRowCount() && rowID.equals(tableModel.getValueAt(row, idColumn));
     }
 
-    public void setModelValueAt(Object aValue, int row, int column, int idColumn, String rowId) {
+    public void setModelValueAt(Object aValue, int row, int column, int idColumn, String rowID) {
         synchronized (lock) {
-            if (rowExists(row, idColumn, rowId)) {
+            if (rowExists(row, idColumn, rowID)) {
                 tableModel.setValueAt(aValue, row, column);
             }
         }
     }
 
-    public Object getModelValueAt(int row, int column, int idColumn, String rowId) {
+    public Object getModelValueAt(int row, int column, int idColumn, String rowID) {
         synchronized (lock) {
-            return rowExists(row, idColumn, rowId) ? tableModel.getValueAt(row, column) : null;
+            return rowExists(row, idColumn, rowID) ? tableModel.getValueAt(row, column) : null;
         }
     }
 
@@ -95,6 +89,12 @@ public class SyncTable {
         }
     }
 
+    public int convertColumnIndexToModel(int viewColumnIndex) {
+        synchronized (lock) {
+            return table.convertColumnIndexToModel(viewColumnIndex);
+        }
+    }
+
     public int rowAtPoint(Point point) {
         synchronized (lock) {
             return table.rowAtPoint(point);
@@ -128,12 +128,6 @@ public class SyncTable {
     public ListSelectionModel getSelectionModel() {
         synchronized (lock) {
             return table.getSelectionModel();
-        }
-    }
-
-    public int getSelectedColumnCount() {
-        synchronized (lock) {
-            return table.getSelectedColumnCount();
         }
     }
 

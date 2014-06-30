@@ -3,6 +3,7 @@ package search.download;
 import debug.Debug;
 import gui.AbstractSwingWorker;
 import java.io.File;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -10,18 +11,20 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
 import javax.swing.text.Element;
+import listener.ContentType;
+import listener.DomainType;
 import listener.GuiListener;
-import main.Str;
+import listener.Video;
+import listener.VideoStrExportListener;
 import search.BoxSetVideo;
-import search.Video;
 import search.util.VideoSearch;
+import str.Str;
 import torrent.FileTypeChecker;
 import torrent.Magnet;
 import torrent.Torrent;
@@ -35,54 +38,45 @@ import util.RunnableUtil;
 
 public class VideoFinder extends AbstractSwingWorker {
 
-    GuiListener guiListener;
+    final GuiListener guiListener;
+    public final ContentType CONTENT_TYPE;
+    public final int ROW;
+    private final VideoStrExportListener strExportListener;
+    final Video video;
+    public final boolean PREFETCH;
+    public final String TITLE;
+    volatile String streamLink;
+    final AtomicBoolean isStream2 = new AtomicBoolean(), findOldTitleStream = new AtomicBoolean(), isLinkProgressDone = new AtomicBoolean();
+    private String oldTitle, export;
+    private static volatile SwingWorker<?, ?> nextEpisodeFinder;
+    private Collection<Torrent> torrents;
+    private Collection<TorrentFinder> torrentFinders;
+    private TorrentSearchState searchState;
+    private static volatile CommentsFinder commentsFinder;
+    private static final Object tvChoicesLock = new Object();
     private static final String BROWSE_ACTION = "started";
     private static final String NOT_FOUND = " could not be found.";
-    String titleID;
-    private String dirtyOldTitle, oldTitle, dirtyTitle, title, year, season, episode, summaryLink, imageLink, orderBy;
-    volatile String streamLink;
-    public final int row, action;
-    private static SwingWorker<?, ?> nextEpisodeFinder;
-    static final Map<String, Boolean> savedTorrents = new HashMap<String, Boolean>(16);
-    private List<Torrent> torrents;
-    private Collection<TorrentFinder> torrentFinders;
-    boolean isStream2;
-    private boolean isTVShow, isTVShowAndMovie, isLink, findOldTitleStream, prefetch;
-    private TorrentSearchState searchState;
-    private CommentsFinder commentsFinder;
-    private final AtomicBoolean isLinkProgressDone = new AtomicBoolean();
 
-    public VideoFinder(GuiListener guiListener, int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year,
-            boolean isTVShow, boolean isTVShowAndMovie, String season, String episode, int row) {
-        this(guiListener, action, titleID, title, summaryLink, imageLink, isLink, year, isTVShow, isTVShowAndMovie, season, episode, row, false);
+    public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
+        this(guiListener, contentType, row, video, strExportListener, false);
     }
 
-    public VideoFinder(int action, VideoFinder finder) {
-        this(finder.guiListener, action, finder.titleID, finder.title, finder.summaryLink, finder.imageLink, finder.isLink, finder.year, finder.isTVShow,
-                finder.isTVShowAndMovie, finder.season, finder.episode, finder.row, true);
+    public VideoFinder(ContentType contentType, boolean prefetch, VideoFinder finder) {
+        this(finder.guiListener, contentType, finder.ROW, finder.video, prefetch ? null : finder.strExportListener, prefetch);
     }
 
-    private VideoFinder(GuiListener guiListener, int action, String titleID, String title, String summaryLink, String imageLink, boolean isLink, String year,
-            boolean isTVShow, boolean isTVShowAndMovie, String season, String episode, int row, boolean prefetch) {
+    private VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean prefetch) {
         this.guiListener = guiListener;
-        this.action = action;
-        this.titleID = titleID;
-        dirtyTitle = title;
-        this.title = Str.clean(title);
-        this.summaryLink = summaryLink;
-        this.imageLink = imageLink;
-        this.isLink = isLink;
-        this.year = year;
-        this.isTVShow = isTVShow;
-        this.isTVShowAndMovie = isTVShowAndMovie;
-        this.season = season;
-        this.episode = episode;
-        this.row = row;
-        this.prefetch = prefetch;
-        if (action == Constant.TORRENT1_ACTION || action == Constant.TORRENT2_ACTION) {
-            torrents = new ArrayList<Torrent>(12);
+        CONTENT_TYPE = contentType;
+        ROW = row;
+        this.video = video;
+        TITLE = Regex.clean(video.title);
+        this.strExportListener = strExportListener;
+        PREFETCH = prefetch;
+        if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD2) {
+            torrents = new CopyOnWriteArrayList<Torrent>();
             torrentFinders = new ArrayList<TorrentFinder>(12);
-        } else if (action == Constant.TORRENT3_ACTION) {
+        } else if (contentType == ContentType.DOWNLOAD3) {
             torrents = new ArrayList<Torrent>(1);
         }
     }
@@ -91,8 +85,29 @@ public class VideoFinder extends AbstractSwingWorker {
     protected Object doInBackground() {
         guiListener.loading(true);
         search();
+        boolean isCancelled = false;
+        VideoFinder videoFinder = null;
+        if (strExportListener != null) {
+            isCancelled = isCancelled();
+            if (strExportListener.exportSecondaryContent()) {
+                if (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3) {
+                    videoFinder = new VideoFinder(ContentType.DOWNLOAD2, false, this);
+                    if (!Connection.downloadLinkInfoFail()) {
+                        videoFinder.search();
+                    }
+                } else if (CONTENT_TYPE == ContentType.STREAM1) {
+                    (videoFinder = new VideoFinder(ContentType.STREAM2, false, this)).search();
+                }
+            }
+        }
         workDone();
         guiListener.loading(false);
+        if (strExportListener != null) {
+            strExportListener.export(CONTENT_TYPE, export, isCancelled, guiListener);
+            if (videoFinder != null) {
+                strExportListener.export(videoFinder.CONTENT_TYPE, videoFinder.export, isCancelled(), guiListener);
+            }
+        }
         return null;
     }
 
@@ -101,23 +116,20 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     public void prefetch() throws Exception {
-        if (action == Constant.SUMMARY_ACTION) {
-        } else if (action == Constant.TRAILER_ACTION) {
+        if (CONTENT_TYPE == ContentType.SUMMARY) {
+        } else if (CONTENT_TYPE == ContentType.TRAILER) {
             findTrailer();
-        } else if (action == Constant.STREAM1_ACTION || (isStream2 = (action == Constant.STREAM2_ACTION))) {
+        } else if (CONTENT_TYPE == ContentType.STREAM1 || CONTENT_TYPE == ContentType.STREAM2) {
+            isStream2.set(CONTENT_TYPE == ContentType.STREAM2);
             directStreamSearch();
         } else {
-            initDownloadState();
+            searchState = new TorrentSearchState(guiListener);
 
-            if (isTVShow) {
-                if (season == null) {
-                    if (guiListener.getSeason().equals(Constant.ANY)) {
-                        season = Constant.ANY;
-                    } else {
-                        return;
-                    }
+            if (video.IS_TV_SHOW) {
+                if (video.season.isEmpty() || video.episode.isEmpty()) {
+                    return;
                 }
-                findTVDownloadLink();
+                findTVDownloadLink(false);
             } else {
                 findMovieDownloadLink();
             }
@@ -128,14 +140,20 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private void initDownloadState() {
-        searchState = new TorrentSearchState(guiListener);
-        orderBy = Str.get(action == Constant.TORRENT1_ACTION ? 161 : 162);
-    }
-
     private void linkProgressDone() {
         isLinkProgressDone.set(true);
         guiListener.enableLinkProgress(false);
+    }
+
+    private void startPeerBlock() {
+        linkProgressDone();
+        try {
+            guiListener.startPeerBlock();
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
     }
 
     private void watchStopped() {
@@ -148,19 +166,23 @@ public class VideoFinder extends AbstractSwingWorker {
         linkProgressDone();
     }
 
-    private void msg(String msg, int msgType) {
+    private void msg(String msg) {
         linkProgressDone();
-        guiListener.msg(msg, msgType);
+        guiListener.msg("The " + msg + NOT_FOUND, Constant.INFO_MSG);
     }
 
-    private void browseStream(String url) throws Exception {
+    private void browseStream(String url) throws IOException {
+        if (strExportListener != null) {
+            export = url;
+            return;
+        }
         linkProgressDone();
-        guiListener.browserNotification("video", BROWSE_ACTION, Connection.VIDEO_STREAMER);
+        guiListener.browserNotification("video", BROWSE_ACTION, DomainType.VIDEO_STREAMER);
         Connection.browse(url);
     }
 
     private void search() {
-        if (action == Constant.SUMMARY_ACTION) {
+        if (CONTENT_TYPE == ContentType.SUMMARY) {
             guiListener.readSummaryStarted();
             try {
                 findSummary();
@@ -168,7 +190,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 guiListener.error(e);
             }
             guiListener.readSummaryStopped();
-        } else if (action == Constant.TRAILER_ACTION) {
+        } else if (CONTENT_TYPE == ContentType.TRAILER) {
             guiListener.watchTrailerStarted();
             try {
                 findTrailer();
@@ -176,7 +198,8 @@ public class VideoFinder extends AbstractSwingWorker {
                 guiListener.error(e);
             }
             guiListener.watchTrailerStopped();
-        } else if (action == Constant.STREAM1_ACTION || (isStream2 = (action == Constant.STREAM2_ACTION))) {
+        } else if (CONTENT_TYPE == ContentType.STREAM1 || CONTENT_TYPE == ContentType.STREAM2) {
+            isStream2.set(CONTENT_TYPE == ContentType.STREAM2);
             guiListener.enableWatch(false);
             try {
                 findStream();
@@ -187,14 +210,14 @@ public class VideoFinder extends AbstractSwingWorker {
             }
             watchStopped();
         } else {
-            initDownloadState();
+            searchState = new TorrentSearchState(guiListener);
             guiListener.enableDownload(false);
 
             try {
-                if (action == Constant.TORRENT3_ACTION) {
+                if (CONTENT_TYPE == ContentType.DOWNLOAD3) {
                     findAltDownloadLink();
-                } else if (isTVShow) {
-                    if (!findTVDownloadLink()) {
+                } else if (video.IS_TV_SHOW) {
+                    if (!findTVDownloadLink(true)) {
                         downloadStopped();
                         return;
                     }
@@ -207,11 +230,30 @@ public class VideoFinder extends AbstractSwingWorker {
                     return;
                 }
 
-                if (action != Constant.TORRENT3_ACTION && Connection.downloadLinkInfoFail()) {
-                    if (torrents.isEmpty()) {
-                        findAltDownloadLink();
-                    } else {
-                        Connection.downloadLinkInfoUnFail();
+                if (CONTENT_TYPE != ContentType.DOWNLOAD3) {
+                    if (video.IS_TV_SHOW && torrents.isEmpty() && !video.episode.isEmpty() && !Constant.ANY.equals(video.episode)
+                            && String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season) && !Connection.downloadLinkInfoFail()) { // Assumes TV show with
+                        // season 1 just released and download listed with 'episode #' in name; worst case is false positive of newer season and with desired
+                        // episode
+                        torrentFinders.clear();
+                        String prevSeason = video.season;
+                        try {
+                            video.season = Constant.ANY;
+                            if (!findTVDownloadLink(false) || isCancelled()) {
+                                downloadStopped();
+                                return;
+                            }
+                        } finally {
+                            video.season = prevSeason;
+                        }
+                    }
+
+                    if (Connection.downloadLinkInfoFail()) {
+                        if (torrents.isEmpty()) {
+                            findAltDownloadLink();
+                        } else {
+                            Connection.downloadLinkInfoUnFail();
+                        }
                     }
                 }
 
@@ -222,26 +264,19 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 Torrent torrent = null;
                 if (!torrents.isEmpty()) {
-                    Collections.sort(torrents);
-                    torrent = torrents.get(0);
+                    torrent = Collections.min(torrents);
                     if (Debug.DEBUG) {
                         Debug.println(torrents);
                     }
                 }
 
                 if (torrent == null) {
-                    msg("The download link" + NOT_FOUND, Constant.INFO_MSG);
-                    if (!searchState.format.equals(Constant.HD720) && !searchState.format.equals(Constant.HD1080)) {
-                        Offer.offer(guiListener, 617, title);
-                    }
+                    msg("download link");
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
                     }
-
-                    if (!torrent.ID.isEmpty() && !savedTorrents.containsKey(torrent.ID)) {
-                        savedTorrents.put(torrent.ID, orderBy.equals(Str.get(161)));
-                    }
+                    TorrentFinder.saveTorrent(torrent.ID, CONTENT_TYPE == ContentType.DOWNLOAD1);
 
                     if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                         saveTorrent(torrent);
@@ -252,6 +287,10 @@ public class VideoFinder extends AbstractSwingWorker {
                     } else {
                         String torrentSaveName = torrent.saveName(false);
                         guiListener.initSafetyDialog(torrentSaveName);
+
+                        if (commentsFinder != null) {
+                            commentsFinder.cancel(true);
+                        }
 
                         commentsFinder = new CommentsFinder(guiListener, Str.get(150) + torrent.ID, torrentSaveName);
                         commentsFinder.execute();
@@ -276,26 +315,31 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void findSummary() throws Exception {
+        if (strExportListener != null) {
+            updateOldTitleAndSummary();
+            export = Regex.htmlToPlainText(video.title) + (video.oldTitle.isEmpty() ? "" : " (" + Regex.htmlToPlainText(video.oldTitle) + ')') + ' ' + video.year;
+            return;
+        }
+
         if (nextEpisodeFinder != null) {
             nextEpisodeFinder.cancel(true);
         }
 
-        if (isLink) {
-            updateSummary();
+        if (video.summary.isEmpty()) {
+            updateOldTitleAndSummaryHelper();
             if (isCancelled()) {
                 return;
             }
-        } else {
-            summaryLink = Regex.split(summaryLink, Constant.SEPARATOR2)[0];
         }
 
-        String imagePath = Constant.CACHE_DIR + Video.imagePath(titleID);
+        String imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video);
         if (!(new File(imagePath)).exists()) {
-            if (imageLink.equals(Constant.NULL)) {
+            if (video.imageLink.isEmpty()) {
                 imagePath = null;
             } else {
                 try {
-                    Connection.saveData(imageLink, imagePath, Connection.VIDEO_INFO);
+                    Connection.saveData(video.imageLink, imagePath, DomainType.VIDEO_INFO);
+                    guiListener.setImagePath(video.imagePath = imagePath, ROW, video.ID);
                 } catch (Exception e) {
                     imagePath = null;
                     guiListener.msg("Error: cannot display video's poster image." + Constant.NEWLINE + ExceptionUtil.toString(e), Constant.ERROR_MSG);
@@ -303,14 +347,14 @@ public class VideoFinder extends AbstractSwingWorker {
             }
         }
 
-        guiListener.summary(summaryLink, imagePath);
-        if (isTVShow) {
+        guiListener.summary(video.summary, imagePath);
+        if (video.IS_TV_SHOW && video.summary.contains(Constant.TV_EPISODE_HTML_AND_PLACEHOLDER)) {
             findNextEpisode();
         }
     }
 
     private void findNextEpisode() {
-        final Element nextEpisodeElement = guiListener.getSummaryElement("nextEpisode");
+        final Element nextEpisodeElement = guiListener.getSummaryElement(Constant.TV_EPISODE_HTML_ID);
         final Calendar currDate = Calendar.getInstance();
         currDate.set(Calendar.HOUR_OF_DAY, 0);
         currDate.set(Calendar.MINUTE, 0);
@@ -318,7 +362,7 @@ public class VideoFinder extends AbstractSwingWorker {
         currDate.set(Calendar.MILLISECOND, 0);
 
         (nextEpisodeFinder = new SwingWorker<Object, Object>() {
-            private String nextEpisodeText = "unknown";
+            private String nextEpisodeText = "unknown", nextSeasonNum, nextEpisodeNum;
 
             @Override
             protected Object doInBackground() {
@@ -331,21 +375,28 @@ public class VideoFinder extends AbstractSwingWorker {
                 } finally {
                     if (!isCancelled()) {
                         guiListener.insertAfterSummaryElement(nextEpisodeElement, nextEpisodeText);
+                        String season = guiListener.getSeason(ROW, video.ID);
+                        if (season != null && season.isEmpty() && nextSeasonNum != null && nextEpisodeNum != null) {
+                            guiListener.setSeason(nextSeasonNum, ROW, video.ID);
+                            guiListener.setEpisode(nextEpisodeNum, ROW, video.ID);
+                        }
+                        guiListener.setSummary(video.summary.replace(Constant.TV_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_EPISODE_HTML + nextEpisodeText), ROW,
+                                video.ID);
                     }
                 }
                 return null;
             }
 
             private void nextEpisode() throws Exception {
-                String url = Str.get(519) + titleID;
-                String source = Connection.getSourceCode(url, Connection.VIDEO_INFO, false);
+                String url = VideoSearch.url(video);
+                String source = Connection.getSourceCode(url, DomainType.VIDEO_INFO, false);
                 String latestSeason;
                 if (!Regex.isMatch(latestSeason = Regex.match(source, Str.get(550), Str.get(551)), Str.get(522)) && !Regex.isMatch(latestSeason
                         = Regex.match(source, Str.get(520), Str.get(521)), Str.get(522))) {
                     return;
                 }
 
-                source = Connection.getSourceCode(url + Str.get(523) + latestSeason, Connection.VIDEO_INFO, false);
+                source = Connection.getSourceCode(url + Str.get(523) + latestSeason, DomainType.VIDEO_INFO, false);
                 List<String> nextEpisodes = Regex.matches(source, Str.get(524) + latestSeason + Str.get(525), Str.get(526));
                 SimpleDateFormat dateFormat = new SimpleDateFormat(Str.get(538), Locale.ENGLISH);
                 String nextEpisode = null, airdate = "";
@@ -369,15 +420,15 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 if (nextEpisode != null) {
                     if (Regex.isMatch(airdate, Str.get(534))) {
-                        airdate = Video.dateToString(dateFormat, Regex.replaceAll(airdate, Str.get(535), Str.get(536)), Boolean.parseBoolean(Str.get(558)));
+                        airdate = VideoSearch.dateToString(dateFormat, Regex.replaceAll(airdate, Str.get(535), Str.get(536)), Boolean.parseBoolean(Str.get(558)));
                     } else if (Regex.isMatch(airdate, Str.get(546))) {
-                        airdate = Video.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdate, Str.get(535), Str.get(536)),
-                                Boolean.parseBoolean(Str.get(559)));
+                        airdate = VideoSearch.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdate, Str.get(535),
+                                Str.get(536)), Boolean.parseBoolean(Str.get(559)));
                     } else if (airdate.isEmpty() || Regex.isMatch(airdate, Str.get(537))) {
                         airdate = "unknown";
                     }
-                    nextEpisodeText = "S" + String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(latestSeason)) + "E"
-                            + String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(nextEpisode)) + " (airdate " + airdate + ")";
+                    nextEpisodeText = "S" + (nextSeasonNum = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(latestSeason))) + "E"
+                            + (nextEpisodeNum = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(nextEpisode))) + " (airdate " + airdate + ")";
                 }
             }
         }).execute();
@@ -388,7 +439,7 @@ public class VideoFinder extends AbstractSwingWorker {
         String url = Regex.replaceFirst(autoDownloader, Str.get(463), Str.get(464));
 
         try {
-            Connection.getSourceCode(url, Connection.DOWNLOAD_LINK_INFO);
+            Connection.getSourceCode(url, DomainType.DOWNLOAD_LINK_INFO);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -405,17 +456,52 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
-        linkProgressDone();
-        guiListener.startPeerBlock();
-        guiListener.browserNotification("download", BROWSE_ACTION, Connection.DOWNLOAD_LINK_INFO);
-        Connection.browse(autoDownloader + URLEncoder.encode(torrentFileName, Constant.UTF8));
+        browseDownloadURL(autoDownloader + URLEncoder.encode(torrentFileName, Constant.UTF8));
+    }
+
+    private void browseDownloadURL(String url) throws IOException {
+        startPeerBlock();
+        guiListener.browserNotification("download", BROWSE_ACTION, DomainType.DOWNLOAD_LINK_INFO);
+        Connection.browse(url);
+    }
+
+    private void browseMagnetLink(Torrent torrent) throws IOException {
+        Connection.browse(torrent.MAGNET_LINK, "a BitTorrent client", "magnet");
+    }
+
+    private void torrentDownloadError(Torrent torrent) {
+        guiListener.error(new ConnectionException(Connection.error("downloading " + torrent.saveName(false), "", "")));
     }
 
     private void saveTorrent(Torrent torrent) throws Exception {
+        if (strExportListener != null) {
+            export = torrent.magnetLinkURL();
+            return;
+        }
         if (torrent.FILE == null || !torrent.FILE.exists()) {
-            guiListener.error(new ConnectionException(Connection.error("downloading<br>" + torrent.saveName(false), "", "")));
-            linkProgressDone();
-            Connection.browse(torrent.MAGNET_LINK, "BitTorrent client", "magnet");
+            if (guiListener.canAutoDownload()) {
+                if (searchState.blacklistedFileExts.length != 0) {
+                    torrentDownloadError(torrent);
+                }
+                browseDownloadURL(torrent.magnetLinkURL());
+            } else if (guiListener.canDownloadWithDefaultApp()) {
+                if (searchState.blacklistedFileExts.length != 0) {
+                    torrentDownloadError(torrent);
+                }
+                startPeerBlock();
+                try {
+                    browseMagnetLink(torrent);
+                } catch (Exception e) {
+                    if (searchState.blacklistedFileExts.length == 0) {
+                        torrentDownloadError(torrent);
+                    }
+                    throw e;
+                }
+            } else {
+                torrentDownloadError(torrent);
+                startPeerBlock();
+                browseMagnetLink(torrent);
+            }
             return;
         }
 
@@ -427,8 +513,25 @@ public class VideoFinder extends AbstractSwingWorker {
 
         if (guiListener.canAutoDownload()) {
             browse(torrentFilePath);
+        } else if (guiListener.canDownloadWithDefaultApp()) {
+            startPeerBlock();
+            try {
+                Connection.browseFile(torrentFile.getPath());
+            } catch (Exception e) {
+                try {
+                    browseMagnetLink(torrent);
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                } catch (Exception e2) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e2);
+                    }
+                    throw e;
+                }
+            }
         } else {
-            linkProgressDone();
+            startPeerBlock();
             guiListener.saveTorrent(torrentFile);
         }
     }
@@ -445,13 +548,13 @@ public class VideoFinder extends AbstractSwingWorker {
         if (streamLink == null) {
             indirectStreamSearch();
         } else {
-            browseStream(Str.get(isStream2 ? 265 : 410) + streamLink);
+            browseStream(Str.get(isStream2.get() ? 265 : 410) + streamLink);
         }
     }
 
     private void indirectStreamSearch() throws Exception {
-        String link = VideoSearch.searchEngineQuery((findOldTitleStream ? oldTitle : title) + (year.isEmpty() ? "" : ' ' + year) + ' ' + Str.get(isStream2 ? 279
-                : 371), isStream2 ? 620 : 621);
+        String link = VideoSearch.searchEngineQuery((findOldTitleStream.get() ? oldTitle : TITLE) + (video.year.isEmpty() ? "" : ' ' + video.year) + ' '
+                + Str.get(isStream2.get() ? 279 : 371), isStream2.get() ? 620 : 621);
         if (isCancelled()) {
             return;
         }
@@ -461,7 +564,7 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
-        link = Str.get(isStream2 ? 284 : 376) + link;
+        link = Str.get(isStream2.get() ? 284 : 376) + link;
         boolean isValidStream = isValidateStream(link);
         if (isCancelled()) {
             return;
@@ -475,34 +578,32 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void findOldTitleStream() throws Exception {
-        if (findOldTitleStream) {
-            msg("The video" + NOT_FOUND, Constant.INFO_MSG);
-            Offer.offer(guiListener, 618, title);
+        if (findOldTitleStream.get()) {
+            msg("video");
             return;
         }
 
-        findOldTitleStream = true;
-        getOldTitle();
+        findOldTitleStream.set(true);
+        updateOldTitleAndSummary();
         if (isCancelled()) {
             return;
         }
 
         if (oldTitle == null) {
-            msg("The video" + NOT_FOUND, Constant.INFO_MSG);
-            Offer.offer(guiListener, 618, title);
+            msg("video");
         } else {
             findStream();
         }
     }
 
     boolean isValidateStream(String link) throws Exception {
-        String source = Connection.getSourceCode(link, Connection.VIDEO_STREAMER);
-        if (isStream2) {
+        String source = Connection.getSourceCode(link, DomainType.VIDEO_STREAMER);
+        if (isStream2.get()) {
             return isValidateStreamHelper(Regex.match(source, Str.get(285)));
         } else {
             String newYear = Regex.match(Regex.match(source, Str.get(377), Str.get(378)),
                     Str.get(368));
-            if (!isTVShow && newYear.isEmpty()) {
+            if (!video.IS_TV_SHOW && newYear.isEmpty()) {
                 return false;
             }
             String newTitle = Regex.match(source, Str.get(373), Str.get(374));
@@ -518,18 +619,19 @@ public class VideoFinder extends AbstractSwingWorker {
         if (isCancelled() || titleLink == null || titleLink.isEmpty()) {
             return false;
         }
-        String source = Connection.getSourceCode(titleLink, Connection.VIDEO_INFO);
+        String source = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO);
+        updateOldTitleAndSummary();
         String[] titleParts = VideoSearch.getImdbTitleParts(source);
         String newTitle = titleParts[0];
-        if (findOldTitleStream && (newTitle = Regex.match(source, Str.get(174), Str.get(175))).isEmpty()) {
+        if (findOldTitleStream.get() && (newTitle = Regex.match(source, Str.get(174), Str.get(175))).isEmpty()) {
             return false;
         }
-        newTitle = Str.clean(newTitle);
+        newTitle = Regex.clean(newTitle);
         String newYear = titleParts[1];
 
-        if (!VideoSearch.isImdbVideoType(source, isTVShow)) {
+        if (!VideoSearch.isImdbVideoType(source, video.IS_TV_SHOW)) {
             if (Debug.DEBUG) {
-                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + newTitle + "' '" + newYear + '\'');
+                Debug.println("Wrong video type (NOT a " + (video.IS_TV_SHOW ? "TV show" : "movie") + "): '" + newTitle + "' '" + newYear + '\'');
             }
             return false;
         }
@@ -537,22 +639,22 @@ public class VideoFinder extends AbstractSwingWorker {
         if (Debug.DEBUG) {
             Debug.println("Stream result: '" + newTitle + "' '" + newYear + "'");
         }
-        return newTitle.equals(findOldTitleStream ? oldTitle : title) && newYear.equals(year);
+        return newTitle.equals(findOldTitleStream.get() ? oldTitle : TITLE) && newYear.equals(video.year);
     }
 
     private void directStreamSearch() throws Exception {
         List<String> results;
-        if (isStream2) {
-            String source = Connection.getSourceCode(Str.get(isTVShow ? 260 : 261) + URLEncoder.encode(findOldTitleStream ? oldTitle : title, Constant.UTF8),
-                    Connection.VIDEO_STREAMER, !prefetch);
-            if (prefetch) {
+        if (isStream2.get()) {
+            String source = Connection.getSourceCode(Str.get(video.IS_TV_SHOW ? 260 : 261) + URLEncoder.encode(findOldTitleStream.get() ? oldTitle : TITLE,
+                    Constant.UTF8), DomainType.VIDEO_STREAMER, !PREFETCH);
+            if (PREFETCH) {
                 return;
             }
-            results = Regex.matches(source, Str.get(isTVShow ? 262 : 263));
+            results = Regex.matches(source, Str.get(video.IS_TV_SHOW ? 262 : 263));
         } else {
             String source, key;
             if (Boolean.parseBoolean(Str.get(572))) {
-                source = Connection.getSourceCode(Str.get(396), Connection.VIDEO_STREAMER, !prefetch);
+                source = Connection.getSourceCode(Str.get(396), DomainType.VIDEO_STREAMER, !PREFETCH);
                 key = Regex.match(source, Str.get(573), Str.get(574));
                 if (!key.isEmpty()) {
                     key = Str.get(575) + key;
@@ -561,9 +663,9 @@ public class VideoFinder extends AbstractSwingWorker {
                 key = "";
             }
 
-            source = Connection.getSourceCode(Str.get(399) + Str.get(isTVShow ? 400 : 401) + Str.get(402) + URLEncoder.encode(findOldTitleStream ? oldTitle
-                    : title, Constant.UTF8) + Str.get(576) + key, Connection.VIDEO_STREAMER, !prefetch);
-            if (prefetch) {
+            source = Connection.getSourceCode(Str.get(399) + Str.get(video.IS_TV_SHOW ? 400 : 401) + Str.get(402) + URLEncoder.encode(findOldTitleStream.get()
+                    ? oldTitle : TITLE, Constant.UTF8) + Str.get(576) + key, DomainType.VIDEO_STREAMER, !PREFETCH);
+            if (PREFETCH) {
                 return;
             }
             results = Regex.matches(source, Str.get(405));
@@ -591,25 +693,39 @@ public class VideoFinder extends AbstractSwingWorker {
         RunnableUtil.execute(streamFinders);
     }
 
+    private boolean tvChoices() {
+        synchronized (tvChoicesLock) {
+            if (strExportListener == null || strExportListener.showTVChoices()) {
+                boolean cancel = guiListener.tvChoices(video.season, video.episode);
+                if (strExportListener != null) {
+                    strExportListener.setEpisode(guiListener.getSeason(), guiListener.getEpisode());
+                }
+                return cancel;
+            }
+            return false;
+        }
+    }
+
     private void findTrailer() throws Exception {
-        if (!prefetch && isTVShow && guiListener.tvChoices(season, episode)) {
+        if (!PREFETCH && video.IS_TV_SHOW && tvChoices()) {
             return;
         }
 
         String seasonStr;
-        if (isTVShow) {
-            if (!prefetch) {
-                season = guiListener.getSeason();
-            } else if (season == null) {
-                season = Constant.ANY;
+        if (video.IS_TV_SHOW) {
+            if (!PREFETCH) {
+                video.season = guiListener.getSeason();
+                video.episode = guiListener.getEpisode();
+            } else if (video.season.isEmpty()) {
+                return;
             }
-            seasonStr = (season.equals(Constant.ANY) ? "" : " \"season " + Integer.valueOf(season).toString() + '\"');
+            seasonStr = (video.season.equals(Constant.ANY) ? "" : " \"season " + Integer.valueOf(video.season) + '\"');
         } else {
             seasonStr = "";
         }
         String link = getTrailerLink(seasonStr);
 
-        if (prefetch) {
+        if (PREFETCH) {
             return;
         }
 
@@ -619,16 +735,20 @@ public class VideoFinder extends AbstractSwingWorker {
             if (Debug.DEBUG) {
                 Debug.println("Trailer: '" + link + '\'');
             }
-            guiListener.browserNotification("trailer", BROWSE_ACTION, Connection.TRAILER);
+            if (strExportListener != null) {
+                export = link;
+                return;
+            }
+            guiListener.browserNotification("trailer", BROWSE_ACTION, DomainType.TRAILER);
             Connection.browse(link);
         }
     }
 
     private String getTrailerLink(String seasonStr) throws Exception {
         String urlForm = Str.get(86);
-        String urlFormOptions = URLEncoder.encode(title + seasonStr + (isTVShow ? "" : (' ' + year)) + Str.get(87), Constant.UTF8);
-        String source = Connection.getSourceCode(urlForm + urlFormOptions, Connection.TRAILER, !prefetch);
-        if (prefetch) {
+        String urlFormOptions = URLEncoder.encode(TITLE + seasonStr + (video.IS_TV_SHOW ? "" : (' ' + video.year)) + Str.get(87), Constant.UTF8);
+        String source = Connection.getSourceCode(urlForm + urlFormOptions, DomainType.TRAILER, !PREFETCH);
+        if (PREFETCH) {
             return null;
         }
 
@@ -648,9 +768,9 @@ public class VideoFinder extends AbstractSwingWorker {
     private void findAltDownloadLink() throws Exception {
         guiListener.altVideoDownloadStarted();
 
-        String[] results = Regex.split(Connection.getSourceCode(Str.get(isTVShow ? 483 : 484), Connection.DOWNLOAD_LINK_INFO), Constant.STD_NEWLINE);
+        String[] results = Regex.split(Connection.getSourceCode(Str.get(video.IS_TV_SHOW ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO), Constant.STD_NEWLINE);
         for (int i = 0; i < results.length; i += 5) {
-            if (!results[i].trim().equals(dirtyTitle) || !results[i + 1].trim().equals(year)) {
+            if (!results[i].trim().equals(video.title) || !results[i + 1].trim().equals(video.year)) {
                 continue;
             }
 
@@ -662,7 +782,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
             Magnet magnet = new Magnet(results[i + 4].trim());
             try {
-                boolean isTorrentDownloaded = magnet.download(this);
+                boolean isTorrentDownloaded = magnet.download(guiListener, this, strExportListener != null);
                 if (isCancelled()) {
                     return;
                 }
@@ -687,9 +807,9 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private boolean findTVDownloadLink() throws Exception {
-        if (!prefetch) {
-            if (guiListener.tvChoices(season, episode)) {
+    private boolean findTVDownloadLink(boolean canShowTVChoices) throws Exception {
+        if (canShowTVChoices) {
+            if (tvChoices()) {
                 return false;
             }
 
@@ -699,48 +819,47 @@ public class VideoFinder extends AbstractSwingWorker {
                 return false;
             }
 
-            season = guiListener.getSeason();
-            episode = guiListener.getEpisode();
+            video.season = guiListener.getSeason();
+            video.episode = guiListener.getEpisode();
         }
 
-        getOldTitle();
+        updateOldTitleAndSummary();
         if (isCancelled()) {
             return false;
         }
 
         Collection<String> seasonAndEpisodes = new ArrayList<String>(3);
-        if (season.equals(Constant.ANY)) {
+        if (video.season.equals(Constant.ANY) && video.episode.equals(Constant.ANY)) {
             seasonAndEpisodes.add("");
+        } else if (!video.season.equals(Constant.ANY) && video.episode.equals(Constant.ANY)) {
+            seasonAndEpisodes.add(" season " + Integer.valueOf(video.season));
+        } else if (video.season.equals(Constant.ANY) && !video.episode.equals(Constant.ANY)) {
+            seasonAndEpisodes.add(" episode " + Integer.valueOf(video.episode));
         } else {
-            String seasonNum = Integer.valueOf(season).toString();
-            if (episode.equals(Constant.ANY)) {
-                seasonAndEpisodes.add(" season " + seasonNum);
-            } else {
-                seasonAndEpisodes.add(" s" + season + 'e' + episode);
-                seasonAndEpisodes.add(" " + seasonNum + 'x' + episode);
-                boolean isSeasonZeroPadded = !seasonNum.equals(season);
+            String seasonNum = Integer.valueOf(video.season).toString();
+            Collections.addAll(seasonAndEpisodes, " s" + video.season + 'e' + video.episode, ' ' + seasonNum + 'x' + video.episode);
+            boolean isSeasonZeroPadded = !seasonNum.equals(video.season);
+            if (isSeasonZeroPadded) {
+                seasonAndEpisodes.add(' ' + video.season + 'x' + video.episode);
+            }
+            String episodeNum = Integer.valueOf(video.episode).toString();
+            if (!episodeNum.equals(video.episode)) {
+                seasonAndEpisodes.add(' ' + seasonNum + 'x' + episodeNum);
                 if (isSeasonZeroPadded) {
-                    seasonAndEpisodes.add(" " + season + 'x' + episode);
-                }
-                String episodeNum = Integer.valueOf(episode).toString();
-                if (!episodeNum.equals(episode)) {
-                    seasonAndEpisodes.add(" " + seasonNum + 'x' + episodeNum);
-                    if (isSeasonZeroPadded) {
-                        seasonAndEpisodes.add(" " + season + 'x' + episodeNum);
-                    }
+                    seasonAndEpisodes.add(' ' + video.season + 'x' + episodeNum);
                 }
             }
         }
         addTVLinks(seasonAndEpisodes);
 
-        if (!prefetch) {
+        if (!PREFETCH) {
             RunnableUtil.execute(torrentFinders);
         }
         return true;
     }
 
     private void findMovieDownloadLink() throws Exception {
-        if (!prefetch) {
+        if (!PREFETCH) {
             guiListener.enableLinkProgress(true);
             Magnet.waitForAzureusToStart();
             if (isCancelled()) {
@@ -748,29 +867,29 @@ public class VideoFinder extends AbstractSwingWorker {
             }
         }
 
-        getOldTitle();
+        updateOldTitleAndSummary();
         if (isCancelled()) {
             return;
         }
 
-        addMovieLinks(dirtyTitle, false);
-        if (dirtyOldTitle != null) {
-            addMovieLinks(dirtyOldTitle, true);
+        addMovieLinks(video.title, false);
+        if (!video.oldTitle.isEmpty()) {
+            addMovieLinks(video.oldTitle, true);
         }
 
-        if ((Calendar.getInstance().get(Calendar.YEAR) - Integer.parseInt(year)) > Integer.parseInt(Str.get(337))) {
+        if ((Calendar.getInstance().get(Calendar.YEAR) - Integer.parseInt(video.year)) > Integer.parseInt(Str.get(337))) {
             outer:
             for (List<BoxSetVideo> boxSet : BoxSetVideo.movieBoxSets) {
                 int numTitles = boxSet.size();
                 for (int i = 1; i < numTitles; i++) {
-                    BoxSetVideo video = boxSet.get(i);
-                    if (video.isSameTitle(dirtyTitle, year)) {
+                    BoxSetVideo boxSetVideo = boxSet.get(i);
+                    if (boxSetVideo.isSameTitle(video.title, video.year)) {
                         if (Debug.DEBUG) {
                             Debug.println("title belongs to movie box set");
                         }
                         addBoxSetLinks(boxSet, false);
                         break outer;
-                    } else if (dirtyOldTitle != null && video.isSameTitle(dirtyOldTitle, year)) {
+                    } else if (!video.oldTitle.isEmpty() && boxSetVideo.isSameTitle(video.oldTitle, video.year)) {
                         if (Debug.DEBUG) {
                             Debug.println("ORIGINAL title belongs to movie box set");
                         }
@@ -781,26 +900,26 @@ public class VideoFinder extends AbstractSwingWorker {
             }
         }
 
-        if (!prefetch) {
+        if (!PREFETCH) {
             RunnableUtil.execute(torrentFinders);
         }
     }
 
     private void addTVLinks(Iterable<String> seasonAndEpisodes) {
         for (String seasonAndEpisode : seasonAndEpisodes) {
-            addFinder(dirtyTitle, seasonAndEpisode, true, false, false);
-            addFinder(dirtyTitle, seasonAndEpisode, false, false, false);
+            addFinder(video.title, seasonAndEpisode, true, false, false);
+            addFinder(video.title, seasonAndEpisode, false, false, false);
         }
-        if (dirtyOldTitle != null) {
+        if (!video.oldTitle.isEmpty()) {
             for (String seasonAndEpisode : seasonAndEpisodes) {
-                addFinder(dirtyOldTitle, seasonAndEpisode, true, true, false);
-                addFinder(dirtyOldTitle, seasonAndEpisode, false, true, false);
+                addFinder(video.oldTitle, seasonAndEpisode, true, true, false);
+                addFinder(video.oldTitle, seasonAndEpisode, false, true, false);
             }
         }
     }
 
     private void addMovieLinks(String dirtyMovieTitle, boolean isOldTitle) {
-        String dirtyMovieTitlePrefix = Video.getMovieTitlePrefix(dirtyMovieTitle);
+        String dirtyMovieTitlePrefix = VideoSearch.getMovieTitlePrefix(dirtyMovieTitle);
         if (dirtyMovieTitlePrefix != null) {
             addFinder(dirtyMovieTitlePrefix, "", false, isOldTitle, true);
             addFinder(dirtyMovieTitlePrefix, "", true, isOldTitle, true);
@@ -826,64 +945,54 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void addFinder(String dirtyTitle, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, List<BoxSetVideo> boxSet) {
-        torrentFinders.add(new TorrentFinder(guiListener, torrents, new Video("", dirtyTitle, year, null, null, Constant.NULL, season, episode, isTVShow,
-                isTVShowAndMovie), seasonAndEpisode, orderBy, ignoreYear, isOldTitle, isTitlePrefix, new TorrentSearchState(searchState), boxSet));
+        Video vid = new Video("", dirtyTitle, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+        vid.season = video.season;
+        vid.episode = video.episode;
+        torrentFinders.add(new TorrentFinder(guiListener, torrents, vid, seasonAndEpisode, CONTENT_TYPE == ContentType.DOWNLOAD1, strExportListener != null,
+                ignoreYear, isOldTitle, isTitlePrefix, new TorrentSearchState(searchState), boxSet));
     }
 
-    private void updateSummary() throws Exception {
-        String sourceCode = Connection.getSourceCode(summaryLink, Connection.VIDEO_INFO, !prefetch);
-        dirtyOldTitle = Video.getDirtyOldTitle(sourceCode);
-        if (dirtyOldTitle != null) {
-            oldTitle = Str.clean(dirtyOldTitle);
+    private void updateOldTitleAndSummaryHelper() throws Exception {
+        String sourceCode = Connection.getSourceCode(VideoSearch.url(video), DomainType.VIDEO_INFO, !PREFETCH);
+        video.oldTitle = VideoSearch.getOldTitle(sourceCode);
+        if (!video.oldTitle.isEmpty()) {
+            oldTitle = Regex.clean(video.oldTitle);
 
-            if (prefetch) {
+            if (PREFETCH) {
                 return;
             }
 
-            String displayTitle = guiListener.getDisplayTitle(row, titleID);
+            String displayTitle = guiListener.getTitle(ROW, video.ID);
             if (displayTitle != null) {
-                int beginOffset = 6, endOffSet = 7;
+                int beginIndex = 6, endOffSet = 7;
                 String startHtml = "<html>", endHtml = "</html>";
-                if (displayTitle.startsWith("<html><b>")) {
-                    beginOffset = 9;
-                    endOffSet = 11;
+                if (displayTitle.startsWith("<b>", beginIndex)) {
+                    beginIndex += 3;
+                    endOffSet += 4;
                     startHtml += "<b>";
                     endHtml = "</b>" + endHtml;
                 }
-                displayTitle = displayTitle.substring(beginOffset, displayTitle.length() - endOffSet);
-                String extraTitleInfo = Regex.match(displayTitle, " \\(Latest Episode: S\\d{2}+E\\d{2}+\\)");
-                displayTitle = Regex.replaceFirst(displayTitle, " \\(Latest Episode: S\\d{2}+E\\d{2}+\\)", "") + " (AKA: " + dirtyOldTitle + ')'
-                        + (extraTitleInfo.isEmpty() ? "" : ' ' + extraTitleInfo);
-                guiListener.setDisplayTitle(startHtml + displayTitle + endHtml, row, titleID);
+                displayTitle = displayTitle.substring(beginIndex, displayTitle.length() - endOffSet);
+                String extraTitleInfo = Regex.match(displayTitle, Constant.TV_EPISODE_REGEX);
+                displayTitle = Regex.replaceFirst(displayTitle, Constant.TV_EPISODE_REGEX, "") + Constant.aka(video.oldTitle) + (extraTitleInfo.isEmpty() ? ""
+                        : ' ' + extraTitleInfo);
+                guiListener.setTitle(startHtml + displayTitle + endHtml, ROW, video.ID);
             }
         }
 
-        if (prefetch) {
+        if (PREFETCH) {
             return;
         }
 
-        summaryLink = Video.getSummary(sourceCode, isTVShow) + (dirtyOldTitle == null ? "" : Constant.SEPARATOR2 + dirtyOldTitle);
-
-        imageLink = Regex.match(sourceCode, Str.get(188), Str.get(189));
-        if (imageLink.isEmpty()) {
-            imageLink = Constant.NULL;
-        }
-        guiListener.setDisplaySummary(dirtyTitle + Constant.SEPARATOR1 + summaryLink + Constant.SEPARATOR1 + imageLink + Constant.SEPARATOR1 + Constant.FALSE
-                + Constant.SEPARATOR1 + isTVShow + Constant.SEPARATOR1 + isTVShowAndMovie, row, titleID);
+        guiListener.setSummary(video.summary = VideoSearch.getSummary(sourceCode, video.IS_TV_SHOW), ROW, video.ID);
+        guiListener.setImageLink(video.imageLink = Regex.match(sourceCode, Str.get(188), Str.get(189)), ROW, video.ID);
     }
 
-    private void getOldTitle() throws Exception {
-        if (isLink) {
-            updateSummary();
-        } else {
-            String[] summaryParts = Regex.split(summaryLink, Constant.SEPARATOR2);
-            if (summaryParts.length == 2) {
-                dirtyOldTitle = summaryParts[1];
-                oldTitle = Str.clean(dirtyOldTitle);
-                if (Debug.DEBUG) {
-                    Debug.println("Original Title: " + dirtyOldTitle);
-                }
-            }
+    private void updateOldTitleAndSummary() throws Exception {
+        if (video.summary.isEmpty()) {
+            updateOldTitleAndSummaryHelper();
+        } else if (oldTitle == null && !video.oldTitle.isEmpty()) {
+            oldTitle = Regex.clean(video.oldTitle);
         }
     }
 
@@ -927,7 +1036,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         private String search() throws Exception {
-            if (isStream2) {
+            if (isStream2.get()) {
                 String newTitle = Regex.match(result, Str.get(276), Str.get(277));
                 String newYear = Regex.match(result, Str.get(264));
                 if (!newYear.isEmpty()) {
