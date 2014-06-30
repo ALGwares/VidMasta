@@ -3,7 +3,7 @@ VIDMASTA CHANGELOG
 
 2014.06.29   | VidMasta 17.7
 
-CHANGE: CORE | Set default download link timeout to 0 for instantaneous opening of download links when auto-downloading is enabled
+CHANGE: CORE | Set default download link timeout to 0 for instantaneous opening of download links
 CHANGE: CORE | Improved accuracy of TV show episode download link searches
 CHANGE: CORE | Improved error recovery and reporting when opening/saving download links
 CHANGE: UI   | Added ability to email and copy download links, stream links, and trailer links. Added ability to copy subtitle links
