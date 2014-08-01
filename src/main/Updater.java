@@ -17,6 +17,7 @@ import str.Str;
 import util.Connection;
 import util.Constant;
 import util.IO;
+import util.Regex;
 
 class Updater extends AbstractSwingWorker {
 
@@ -35,7 +36,14 @@ class Updater extends AbstractSwingWorker {
             Str.update(false, guiListener);
             (new AppUpdater()).update(guiListener);
             try {
-                updateBitTorrentClientCertificate();
+                setJavaSecurityLevelToNormal();
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
+            try {
+                updateJavaTrustedCertificatesKeystore();
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
@@ -50,11 +58,44 @@ class Updater extends AbstractSwingWorker {
         return null;
     }
 
-    private static void updateBitTorrentClientCertificate() throws Exception {
+    private static void setJavaSecurityLevelToNormal() throws Exception {
+        if (Str.get(632).isEmpty()) {
+            return;
+        }
+
+        String propertiesPath = Str.get(Constant.WINDOWS ? 629 : (Constant.MAC ? 630 : 631)).replace(Str.get(596), Constant.FILE_SEPARATOR);
+        String[] appDirs = Constant.appDirs();
+
+        for (int i = 0; i < appDirs.length; i++) {
+            File javaVersionFile = new File(Constant.APP_DIR + "java" + (i + 1) + "Version" + Constant.TXT);
+            String javaVersion = System.getProperty("java.version", "");
+            if (!javaVersionFile.exists() || !javaVersion.equals(IO.read(javaVersionFile))) {
+                IO.write(javaVersionFile, javaVersion);
+            } else {
+                continue;
+            }
+
+            File propertiesFile = new File(appDirs[i] + propertiesPath);
+            String newProperty = Str.get(632);
+            if (propertiesFile.exists()) {
+                String properties = IO.read(propertiesFile);
+                String property = Regex.match(properties, Str.get(633));
+                if (!property.equals(newProperty)) {
+                    IO.write(propertiesFile, property.isEmpty() ? properties + Constant.NEWLINE + newProperty + Constant.NEWLINE : Regex.replaceFirst(properties,
+                            Str.get(633), newProperty));
+                }
+            } else {
+                IO.fileOp(propertiesFile.getParentFile(), IO.MK_DIR);
+                IO.write(propertiesFile, Str.get(635) + Constant.NEWLINE + newProperty + Constant.NEWLINE);
+            }
+        }
+    }
+
+    private static void updateJavaTrustedCertificatesKeystore() throws Exception {
         if (Str.get(598).isEmpty()) {
             return;
         }
-        String bitTorrentClientCertificate = Constant.APP_DIR + Str.get(597) + ".cer";
+        String bitTorrentClientCertificate = Constant.APP_DIR + Str.get(634) + ".cer";
         File bitTorrentClientCertificateFile = new File(bitTorrentClientCertificate);
         if (bitTorrentClientCertificateFile.exists()) {
             return;
@@ -63,38 +104,41 @@ class Updater extends AbstractSwingWorker {
         Connection.saveData(Str.get(598), bitTorrentClientCertificate, DomainType.UPDATE, false);
 
         KeyStore trustedCertificatesKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        File trustedCertificates = new File(IO.parentDir(Constant.APP_DIR) + Str.get(Constant.WINDOWS ? 593 : (Constant.MAC ? 594 : 595)).replace(Str.get(596),
-                Constant.FILE_SEPARATOR));
-        char[] keystorePassword = new char[0];
+        String certificatesPath = Str.get(Constant.WINDOWS ? 593 : (Constant.MAC ? 594 : 595)).replace(Str.get(596), Constant.FILE_SEPARATOR);
 
-        if (trustedCertificates.exists()) {
-            InputStream is = null;
-            try {
-                trustedCertificatesKeystore.load(is = new BufferedInputStream(new FileInputStream(trustedCertificates)), keystorePassword);
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
+        for (String appDir : Constant.appDirs()) {
+            File trustedCertificates = new File(appDir + certificatesPath);
+            char[] keystorePassword = new char[0];
+
+            if (trustedCertificates.exists()) {
+                InputStream is = null;
+                try {
+                    trustedCertificatesKeystore.load(is = new BufferedInputStream(new FileInputStream(trustedCertificates)), keystorePassword);
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                    IO.close(is);
+                    IO.fileOp(trustedCertificates, IO.RM_FILE);
+                    trustedCertificatesKeystore.load(null, keystorePassword);
+                } finally {
+                    IO.close(is);
                 }
-                IO.close(is);
-                IO.fileOp(trustedCertificates, IO.RM_FILE);
+            } else {
+                IO.fileOp(trustedCertificates.getParentFile(), IO.MK_DIR);
                 trustedCertificatesKeystore.load(null, keystorePassword);
-            } finally {
-                IO.close(is);
             }
-        } else {
-            IO.fileOp(trustedCertificates.getParentFile(), IO.MK_DIR);
-            trustedCertificatesKeystore.load(null, keystorePassword);
-        }
 
-        trustedCertificatesKeystore.deleteEntry(Str.get(597));
-        trustedCertificatesKeystore.setCertificateEntry(Str.get(597), CertificateFactory.getInstance("X.509").generateCertificate(new BufferedInputStream(
-                new FileInputStream(bitTorrentClientCertificateFile))));
+            trustedCertificatesKeystore.deleteEntry(Str.get(597));
+            trustedCertificatesKeystore.setCertificateEntry(Str.get(597), CertificateFactory.getInstance("X.509").generateCertificate(new BufferedInputStream(
+                    new FileInputStream(bitTorrentClientCertificateFile))));
 
-        OutputStream os = null;
-        try {
-            trustedCertificatesKeystore.store(os = new BufferedOutputStream(new FileOutputStream(trustedCertificates)), keystorePassword);
-        } finally {
-            IO.close(os);
+            OutputStream os = null;
+            try {
+                trustedCertificatesKeystore.store(os = new BufferedOutputStream(new FileOutputStream(trustedCertificates)), keystorePassword);
+            } finally {
+                IO.close(os);
+            }
         }
     }
 }

@@ -265,7 +265,7 @@ public class VideoSearch {
 
         summary.append(br2);
         if (isTVShow) {
-            summary.append(Constant.TV_EPISODE_HTML_AND_PLACEHOLDER);
+            summary.append(Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER).append(br1).append(Constant.TV_PREV_EPISODE_HTML_AND_PLACEHOLDER);
         } else {
             String releaseDate = Regex.replaceAll(Regex.match(sourceCode, Str.get(539), Str.get(540)), Str.get(541), Str.get(542));
             if (Regex.isMatch(releaseDate, Str.get(543))) {
@@ -282,8 +282,7 @@ public class VideoSearch {
             summary.append(storyline);
         }
 
-        summary.append(br2).append("</font></body></html>");
-        return summary.toString();
+        return summary.append(br2).append("</font></body></html>").toString();
     }
 
     private static void getNames(String names, String type, Collection<StringBuilder> nameLists) {

@@ -270,7 +270,7 @@ public class Connection {
         return downloadLinkInfoFail.get();
     }
 
-    public static void downloadLinkInfoUnFail() {
+    public static void unfailDownloadLinkInfo() {
         downloadLinkInfoFail.set(false);
     }
 

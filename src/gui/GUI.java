@@ -195,7 +195,7 @@ public class GUI extends JFrame implements GuiListener {
         splashScreen.progress();
 
         initComponents();
-        
+
         dummyComboBox.setEditable(true);
 
         splashScreen.progress();
@@ -1648,7 +1648,9 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(watchTrailerMenuItem);
 
+        String downloadLinkMenuToolTip = CTRL_CLICK + "exit backup mode";
         downloadLink1MenuItem.setText("Download (Link 1)");
+        downloadLink1MenuItem.setToolTipText(downloadLinkMenuToolTip);
         downloadLink1MenuItem.setEnabled(false);
         downloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1663,6 +1665,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(downloadLink1MenuItem);
 
         downloadLink2MenuItem.setText("Download (Link 2)");
+        downloadLink2MenuItem.setToolTipText(downloadLinkMenuToolTip);
         downloadLink2MenuItem.setEnabled(false);
         downloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1745,6 +1748,7 @@ public class GUI extends JFrame implements GuiListener {
         copyMenu.add(copyTrailerLinkMenuItem);
 
         copyDownloadLink1MenuItem.setText("Download Link 1");
+        copyDownloadLink1MenuItem.setToolTipText(downloadLinkMenuToolTip);
         copyDownloadLink1MenuItem.setEnabled(false);
         copyDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1759,6 +1763,7 @@ public class GUI extends JFrame implements GuiListener {
         copyMenu.add(copyDownloadLink1MenuItem);
 
         copyDownloadLink2MenuItem.setText("Download Link 2");
+        copyDownloadLink2MenuItem.setToolTipText(downloadLinkMenuToolTip);
         copyDownloadLink2MenuItem.setEnabled(false);
         copyDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1822,6 +1827,7 @@ public class GUI extends JFrame implements GuiListener {
         emailMenu.add(emailTrailerLinkMenuItem);
 
         emailDownloadLink1MenuItem.setText("Download Link 1");
+        emailDownloadLink1MenuItem.setToolTipText(downloadLinkMenuToolTip);
         emailDownloadLink1MenuItem.setEnabled(false);
         emailDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1836,6 +1842,7 @@ public class GUI extends JFrame implements GuiListener {
         emailMenu.add(emailDownloadLink1MenuItem);
 
         emailDownloadLink2MenuItem.setText("Download Link 2");
+        emailDownloadLink2MenuItem.setToolTipText(downloadLinkMenuToolTip);
         emailDownloadLink2MenuItem.setEnabled(false);
         emailDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -2287,7 +2294,6 @@ public class GUI extends JFrame implements GuiListener {
         profileDialog.setModal(true);
 
         profileSetButton.setText("Set");
-        profileSetButton.setEnabled(false);
         profileSetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profileSetButtonActionPerformed(evt);
@@ -2792,12 +2798,12 @@ public class GUI extends JFrame implements GuiListener {
 
         authenticationUsernameTextField.setText(null);
         authenticationUsernameTextField.addAncestorListener(new AncestorListener() {
+            public void ancestorMoved(AncestorEvent evt) {
+            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationUsernameTextFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
-            }
-            public void ancestorMoved(AncestorEvent evt) {
             }
         });
 
@@ -2806,12 +2812,12 @@ public class GUI extends JFrame implements GuiListener {
         authenticationPasswordField.setText(null);
         authenticationPasswordField.setEchoChar('\u2022');
         authenticationPasswordField.addAncestorListener(new AncestorListener() {
+            public void ancestorMoved(AncestorEvent evt) {
+            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationPasswordFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
-            }
-            public void ancestorMoved(AncestorEvent evt) {
             }
         });
 
@@ -4933,18 +4939,15 @@ public class GUI extends JFrame implements GuiListener {
     private void updateProfileGUIitems(int profile) {
         if (profile == 0) {
             profileRenameButton.setEnabled(false);
-            profileSetButton.setEnabled(false);
             profileClearButton.setEnabled(false);
             profileUseButton.setEnabled(true);
         } else if (new File(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT).exists()) {
             profileRenameButton.setEnabled(true);
-            profileSetButton.setEnabled(false);
             profileClearButton.setEnabled(true);
             profileUseButton.setEnabled(true);
             enableProfileMenuItem(profile, true);
         } else {
             profileRenameButton.setEnabled(true);
-            profileSetButton.setEnabled(true);
             profileClearButton.setEnabled(false);
             profileUseButton.setEnabled(false);
             enableProfileMenuItem(profile, false);
@@ -5758,7 +5761,7 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        Connection.downloadLinkInfoUnFail();
+        Connection.unfailDownloadLinkInfo();
         if (!isAltSearch) {
             return;
         }

@@ -11,7 +11,7 @@ public class Prefetcher extends AbstractSwingWorker {
     private ContentType[] fetchOrder;
 
     public Prefetcher(VideoFinder videoFinder) {
-        this.videoFinder = new VideoFinder(videoFinder.CONTENT_TYPE, true, videoFinder);
+        this.videoFinder = new VideoFinder(videoFinder.CONTENT_TYPE, videoFinder);
         if (videoFinder.CONTENT_TYPE == ContentType.SUMMARY) {
             fetchOrder = new ContentType[]{ContentType.TRAILER, ContentType.DOWNLOAD1, ContentType.STREAM1, ContentType.DOWNLOAD2, ContentType.STREAM2};
         } else if (videoFinder.CONTENT_TYPE == ContentType.TRAILER) {
@@ -54,7 +54,7 @@ public class Prefetcher extends AbstractSwingWorker {
                 if (Debug.DEBUG) {
                     Debug.println("prefetching " + contentType.name() + " links");
                 }
-                (new VideoFinder(contentType, true, videoFinder)).prefetch();
+                (new VideoFinder(contentType, videoFinder)).prefetch();
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);

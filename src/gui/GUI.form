@@ -1623,16 +1623,25 @@
         <MenuItem class="javax.swing.JMenuItem" name="downloadLink1MenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Download (Link 1)"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="downloadLinkMenuToolTip" type="code"/>
+            </Property>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="downloadLink1MenuItemMousePressed"/>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadLink1MenuItemActionPerformed"/>
           </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_InitCodePre" type="java.lang.String" value="String downloadLinkMenuToolTip = CTRL_CLICK + &quot;exit backup mode&quot;;"/>
+          </AuxValues>
         </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="downloadLink2MenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Download (Link 2)"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="downloadLinkMenuToolTip" type="code"/>
+            </Property>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
@@ -1716,6 +1725,9 @@
             <MenuItem class="javax.swing.JMenuItem" name="copyDownloadLink1MenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Download Link 1"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="downloadLinkMenuToolTip" type="code"/>
+                </Property>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
@@ -1726,6 +1738,9 @@
             <MenuItem class="javax.swing.JMenuItem" name="copyDownloadLink2MenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Download Link 2"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="downloadLinkMenuToolTip" type="code"/>
+                </Property>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
@@ -1788,6 +1803,9 @@
             <MenuItem class="javax.swing.JMenuItem" name="emailDownloadLink1MenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Download Link 1"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="downloadLinkMenuToolTip" type="code"/>
+                </Property>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
@@ -1798,6 +1816,9 @@
             <MenuItem class="javax.swing.JMenuItem" name="emailDownloadLink2MenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Download Link 2"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="downloadLinkMenuToolTip" type="code"/>
+                </Property>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
@@ -2434,7 +2455,6 @@
         <Component class="javax.swing.JButton" name="profileSetButton">
           <Properties>
             <Property name="text" type="java.lang.String" value="Set"/>
-            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="profileSetButtonActionPerformed"/>

@@ -2,7 +2,6 @@ package util;
 
 import java.beans.PropertyChangeListener;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,7 +12,7 @@ import javax.swing.SwingWorker;
 
 public class RunnableUtil {
 
-    public static void execute(Iterable<? extends SwingWorker<?, ?>> childWorkers) throws Exception {
+    public static void runAndWaitFor(Iterable<? extends SwingWorker<?, ?>> childWorkers) throws Exception {
         try {
             for (SwingWorker<?, ?> childWorker : childWorkers) {
                 childWorker.execute();
@@ -62,13 +61,10 @@ public class RunnableUtil {
         protected abstract T call() throws Exception;
 
         public T runAndWaitFor() throws Exception {
-            executorService.execute(future);
             try {
+                executorService.execute(future);
                 return waitFor(future);
-            } catch (InterruptedException e) {
-                future.cancel(true);
-                throw e;
-            } catch (CancellationException e) {
+            } catch (Exception e) {
                 future.cancel(true);
                 throw e;
             }

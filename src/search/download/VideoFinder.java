@@ -6,17 +6,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
-import javax.swing.text.Element;
 import listener.ContentType;
 import listener.DomainType;
 import listener.GuiListener;
@@ -47,8 +45,9 @@ public class VideoFinder extends AbstractSwingWorker {
     public final String TITLE;
     volatile String streamLink;
     final AtomicBoolean isStream2 = new AtomicBoolean(), findOldTitleStream = new AtomicBoolean(), isLinkProgressDone = new AtomicBoolean();
+    private boolean isDownload1;
     private String oldTitle, export;
-    private static volatile SwingWorker<?, ?> nextEpisodeFinder;
+    private static volatile SwingWorker<?, ?> episodeFinder;
     private Collection<Torrent> torrents;
     private Collection<TorrentFinder> torrentFinders;
     private TorrentSearchState searchState;
@@ -61,8 +60,8 @@ public class VideoFinder extends AbstractSwingWorker {
         this(guiListener, contentType, row, video, strExportListener, false);
     }
 
-    public VideoFinder(ContentType contentType, boolean prefetch, VideoFinder finder) {
-        this(finder.guiListener, contentType, finder.ROW, finder.video, prefetch ? null : finder.strExportListener, prefetch);
+    public VideoFinder(ContentType contentType, VideoFinder finder) {
+        this(finder.guiListener, contentType, finder.ROW, finder.video, null, true);
     }
 
     private VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean prefetch) {
@@ -84,28 +83,39 @@ public class VideoFinder extends AbstractSwingWorker {
     @Override
     protected Object doInBackground() {
         guiListener.loading(true);
-        search();
+        search(CONTENT_TYPE);
         boolean isCancelled = false;
-        VideoFinder videoFinder = null;
+        ContentType export2ContentType = null;
+        String export1 = export;
         if (strExportListener != null) {
             isCancelled = isCancelled();
             if (strExportListener.exportSecondaryContent()) {
                 if (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3) {
-                    videoFinder = new VideoFinder(ContentType.DOWNLOAD2, false, this);
-                    if (!Connection.downloadLinkInfoFail()) {
-                        videoFinder.search();
+                    export = null;
+                    export2ContentType = ContentType.DOWNLOAD2;
+                    Connection.unfailDownloadLinkInfo();
+                    isLinkProgressDone.set(false);
+                    torrents.clear();
+                    if (torrentFinders != null) {
+                        torrentFinders.clear();
                     }
+                    search(export2ContentType);
                 } else if (CONTENT_TYPE == ContentType.STREAM1) {
-                    (videoFinder = new VideoFinder(ContentType.STREAM2, false, this)).search();
+                    export = null;
+                    export2ContentType = ContentType.STREAM2;
+                    isLinkProgressDone.set(false);
+                    findOldTitleStream.set(false);
+                    streamLink = null;
+                    search(export2ContentType);
                 }
             }
         }
         workDone();
         guiListener.loading(false);
         if (strExportListener != null) {
-            strExportListener.export(CONTENT_TYPE, export, isCancelled, guiListener);
-            if (videoFinder != null) {
-                strExportListener.export(videoFinder.CONTENT_TYPE, videoFinder.export, isCancelled(), guiListener);
+            strExportListener.export(CONTENT_TYPE, export1, isCancelled, guiListener);
+            if (export2ContentType != null) {
+                strExportListener.export(export2ContentType, export, isCancelled(), guiListener);
             }
         }
         return null;
@@ -124,6 +134,7 @@ public class VideoFinder extends AbstractSwingWorker {
             directStreamSearch();
         } else {
             searchState = new TorrentSearchState(guiListener);
+            isDownload1 = (CONTENT_TYPE == ContentType.DOWNLOAD1);
 
             if (video.IS_TV_SHOW) {
                 if (video.season.isEmpty() || video.episode.isEmpty()) {
@@ -181,8 +192,8 @@ public class VideoFinder extends AbstractSwingWorker {
         Connection.browse(url);
     }
 
-    private void search() {
-        if (CONTENT_TYPE == ContentType.SUMMARY) {
+    private void search(ContentType contentType) {
+        if (contentType == ContentType.SUMMARY) {
             guiListener.readSummaryStarted();
             try {
                 findSummary();
@@ -190,7 +201,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 guiListener.error(e);
             }
             guiListener.readSummaryStopped();
-        } else if (CONTENT_TYPE == ContentType.TRAILER) {
+        } else if (contentType == ContentType.TRAILER) {
             guiListener.watchTrailerStarted();
             try {
                 findTrailer();
@@ -198,8 +209,8 @@ public class VideoFinder extends AbstractSwingWorker {
                 guiListener.error(e);
             }
             guiListener.watchTrailerStopped();
-        } else if (CONTENT_TYPE == ContentType.STREAM1 || CONTENT_TYPE == ContentType.STREAM2) {
-            isStream2.set(CONTENT_TYPE == ContentType.STREAM2);
+        } else if (contentType == ContentType.STREAM1 || contentType == ContentType.STREAM2) {
+            isStream2.set(contentType == ContentType.STREAM2);
             guiListener.enableWatch(false);
             try {
                 findStream();
@@ -210,11 +221,12 @@ public class VideoFinder extends AbstractSwingWorker {
             }
             watchStopped();
         } else {
+            isDownload1 = (contentType == ContentType.DOWNLOAD1);
             searchState = new TorrentSearchState(guiListener);
             guiListener.enableDownload(false);
 
             try {
-                if (CONTENT_TYPE == ContentType.DOWNLOAD3) {
+                if (contentType == ContentType.DOWNLOAD3) {
                     findAltDownloadLink();
                 } else if (video.IS_TV_SHOW) {
                     if (!findTVDownloadLink(true)) {
@@ -230,7 +242,7 @@ public class VideoFinder extends AbstractSwingWorker {
                     return;
                 }
 
-                if (CONTENT_TYPE != ContentType.DOWNLOAD3) {
+                if (contentType != ContentType.DOWNLOAD3) {
                     if (video.IS_TV_SHOW && torrents.isEmpty() && !video.episode.isEmpty() && !Constant.ANY.equals(video.episode)
                             && String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season) && !Connection.downloadLinkInfoFail()) { // Assumes TV show with
                         // season 1 just released and download listed with 'episode #' in name; worst case is false positive of newer season and with desired
@@ -252,7 +264,7 @@ public class VideoFinder extends AbstractSwingWorker {
                         if (torrents.isEmpty()) {
                             findAltDownloadLink();
                         } else {
-                            Connection.downloadLinkInfoUnFail();
+                            Connection.unfailDownloadLinkInfo();
                         }
                     }
                 }
@@ -276,7 +288,7 @@ public class VideoFinder extends AbstractSwingWorker {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
                     }
-                    TorrentFinder.saveTorrent(torrent.ID, CONTENT_TYPE == ContentType.DOWNLOAD1);
+                    TorrentFinder.saveTorrent(torrent.ID, contentType == ContentType.DOWNLOAD1);
 
                     if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                         saveTorrent(torrent);
@@ -321,8 +333,8 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
-        if (nextEpisodeFinder != null) {
-            nextEpisodeFinder.cancel(true);
+        if (episodeFinder != null) {
+            episodeFinder.cancel(true);
         }
 
         if (video.summary.isEmpty()) {
@@ -348,90 +360,9 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         guiListener.summary(video.summary, imagePath);
-        if (video.IS_TV_SHOW && video.summary.contains(Constant.TV_EPISODE_HTML_AND_PLACEHOLDER)) {
-            findNextEpisode();
+        if (video.IS_TV_SHOW && video.summary.contains(Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER)) {
+            (episodeFinder = new EpisodeFinder(guiListener, ROW, video)).execute();
         }
-    }
-
-    private void findNextEpisode() {
-        final Element nextEpisodeElement = guiListener.getSummaryElement(Constant.TV_EPISODE_HTML_ID);
-        final Calendar currDate = Calendar.getInstance();
-        currDate.set(Calendar.HOUR_OF_DAY, 0);
-        currDate.set(Calendar.MINUTE, 0);
-        currDate.set(Calendar.SECOND, 0);
-        currDate.set(Calendar.MILLISECOND, 0);
-
-        (nextEpisodeFinder = new SwingWorker<Object, Object>() {
-            private String nextEpisodeText = "unknown", nextSeasonNum, nextEpisodeNum;
-
-            @Override
-            protected Object doInBackground() {
-                try {
-                    nextEpisode();
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                } finally {
-                    if (!isCancelled()) {
-                        guiListener.insertAfterSummaryElement(nextEpisodeElement, nextEpisodeText);
-                        String season = guiListener.getSeason(ROW, video.ID);
-                        if (season != null && season.isEmpty() && nextSeasonNum != null && nextEpisodeNum != null) {
-                            guiListener.setSeason(nextSeasonNum, ROW, video.ID);
-                            guiListener.setEpisode(nextEpisodeNum, ROW, video.ID);
-                        }
-                        guiListener.setSummary(video.summary.replace(Constant.TV_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_EPISODE_HTML + nextEpisodeText), ROW,
-                                video.ID);
-                    }
-                }
-                return null;
-            }
-
-            private void nextEpisode() throws Exception {
-                String url = VideoSearch.url(video);
-                String source = Connection.getSourceCode(url, DomainType.VIDEO_INFO, false);
-                String latestSeason;
-                if (!Regex.isMatch(latestSeason = Regex.match(source, Str.get(550), Str.get(551)), Str.get(522)) && !Regex.isMatch(latestSeason
-                        = Regex.match(source, Str.get(520), Str.get(521)), Str.get(522))) {
-                    return;
-                }
-
-                source = Connection.getSourceCode(url + Str.get(523) + latestSeason, DomainType.VIDEO_INFO, false);
-                List<String> nextEpisodes = Regex.matches(source, Str.get(524) + latestSeason + Str.get(525), Str.get(526));
-                SimpleDateFormat dateFormat = new SimpleDateFormat(Str.get(538), Locale.ENGLISH);
-                String nextEpisode = null, airdate = "";
-                for (int i = nextEpisodes.size() - 1; i > -1; i--) {
-                    String currEpisode = nextEpisodes.get(i);
-                    if (Regex.isMatch(currEpisode, Str.get(527))) {
-                        String date = Regex.replaceAll(Regex.match(source, Str.get(528) + latestSeason + Str.get(529) + currEpisode + Str.get(530), Str.get(531)),
-                                Str.get(532), Str.get(533));
-                        if (Regex.isMatch(date, Str.get(534)) && dateFormat.parse(Regex.replaceAll(date, Str.get(535), Str.get(536))).compareTo(currDate.getTime())
-                                <= 0) {
-                            if (nextEpisode == null) {
-                                airdate = date;
-                                nextEpisode = currEpisode;
-                            }
-                            break;
-                        }
-                        airdate = date;
-                        nextEpisode = currEpisode;
-                    }
-                }
-
-                if (nextEpisode != null) {
-                    if (Regex.isMatch(airdate, Str.get(534))) {
-                        airdate = VideoSearch.dateToString(dateFormat, Regex.replaceAll(airdate, Str.get(535), Str.get(536)), Boolean.parseBoolean(Str.get(558)));
-                    } else if (Regex.isMatch(airdate, Str.get(546))) {
-                        airdate = VideoSearch.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdate, Str.get(535),
-                                Str.get(536)), Boolean.parseBoolean(Str.get(559)));
-                    } else if (airdate.isEmpty() || Regex.isMatch(airdate, Str.get(537))) {
-                        airdate = "unknown";
-                    }
-                    nextEpisodeText = "S" + (nextSeasonNum = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(latestSeason))) + "E"
-                            + (nextEpisodeNum = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(nextEpisode))) + " (airdate " + airdate + ")";
-                }
-            }
-        }).execute();
     }
 
     private void browse(String torrentFileName) throws Exception {
@@ -680,8 +611,7 @@ public class VideoFinder extends AbstractSwingWorker {
                     return;
                 }
 
-                streamFinder.execute();
-                RunnableUtil.waitFor(streamFinder);
+                RunnableUtil.runAndWaitFor(Arrays.asList(streamFinder));
                 if (streamLink != null) {
                     return;
                 }
@@ -690,7 +620,7 @@ public class VideoFinder extends AbstractSwingWorker {
             }
         }
 
-        RunnableUtil.execute(streamFinders);
+        RunnableUtil.runAndWaitFor(streamFinders);
     }
 
     private boolean tvChoices() {
@@ -853,7 +783,7 @@ public class VideoFinder extends AbstractSwingWorker {
         addTVLinks(seasonAndEpisodes);
 
         if (!PREFETCH) {
-            RunnableUtil.execute(torrentFinders);
+            RunnableUtil.runAndWaitFor(torrentFinders);
         }
         return true;
     }
@@ -901,7 +831,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         if (!PREFETCH) {
-            RunnableUtil.execute(torrentFinders);
+            RunnableUtil.runAndWaitFor(torrentFinders);
         }
     }
 
@@ -948,8 +878,8 @@ public class VideoFinder extends AbstractSwingWorker {
         Video vid = new Video("", dirtyTitle, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
         vid.season = video.season;
         vid.episode = video.episode;
-        torrentFinders.add(new TorrentFinder(guiListener, torrents, vid, seasonAndEpisode, CONTENT_TYPE == ContentType.DOWNLOAD1, strExportListener != null,
-                ignoreYear, isOldTitle, isTitlePrefix, new TorrentSearchState(searchState), boxSet));
+        torrentFinders.add(new TorrentFinder(guiListener, torrents, vid, seasonAndEpisode, isDownload1, strExportListener != null, ignoreYear, isOldTitle,
+                isTitlePrefix, new TorrentSearchState(searchState), boxSet));
     }
 
     private void updateOldTitleAndSummaryHelper() throws Exception {

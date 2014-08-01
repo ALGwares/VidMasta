@@ -195,7 +195,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             searchHelpers.add(new SearcherHelper(video, findImage(video)));
         }
 
-        RunnableUtil.execute(searchHelpers);
+        RunnableUtil.runAndWaitFor(searchHelpers);
         if (isCancelled()) {
             return;
         }

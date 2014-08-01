@@ -2,7 +2,11 @@ package util;
 
 import debug.Debug;
 import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 
@@ -10,7 +14,7 @@ public class Constant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 17.7;
+    public static final double APP_VERSION = 17.8;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -28,7 +32,8 @@ public class Constant {
     public static final String TV_EPISODE_FORMAT = "%02d";
     public static final String ZERO_WIDTH_SPACE;
     public static final int TV_EPISODE_PLACEHOLDER_LEN = 100;
-    public static final String TV_EPISODE_PLACEHOLDER, TV_EPISODE_HTML_ID, TV_EPISODE_HTML, TV_EPISODE_HTML_AND_PLACEHOLDER, TV_EPISODE_REGEX;
+    public static final String TV_EPISODE_PLACEHOLDER, TV_NEXT_EPISODE_HTML_ID, TV_NEXT_EPISODE_HTML, TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER;
+    public static final String TV_PREV_EPISODE_HTML_ID, TV_PREV_EPISODE_HTML, TV_PREV_EPISODE_HTML_AND_PLACEHOLDER, TV_EPISODE_REGEX;
     public static final String TITLE_INDENT = "&nbsp;&nbsp;&nbsp;";
     public static final int TITLE_INDENT_LEN = TITLE_INDENT.length();
     public static final String HTML_FONT = "<font face=\"Verdana, Geneva, sans-serif\" size=\"4\">";
@@ -36,7 +41,7 @@ public class Constant {
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
     public static final String PROFILES = "profiles" + TXT;
-    public static final int UPDATE_FILE_VERSION = 52;
+    public static final int UPDATE_FILE_VERSION = 55;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 64;
@@ -90,9 +95,12 @@ public class Constant {
             placeholder.append(placeholderChar);
         }
         TV_EPISODE_PLACEHOLDER = placeholder.toString();
-        TV_EPISODE_HTML_ID = "nextEpisode";
-        TV_EPISODE_HTML = "<b id=\"" + TV_EPISODE_HTML_ID + "\">Next Episode: </b>";
-        TV_EPISODE_HTML_AND_PLACEHOLDER = TV_EPISODE_HTML + TV_EPISODE_PLACEHOLDER;
+        TV_NEXT_EPISODE_HTML_ID = "nextEpisode";
+        TV_NEXT_EPISODE_HTML = "<b id=\"" + TV_NEXT_EPISODE_HTML_ID + "\">Next Episode: </b>";
+        TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER = TV_NEXT_EPISODE_HTML + TV_EPISODE_PLACEHOLDER;
+        TV_PREV_EPISODE_HTML_ID = "prevEpisode";
+        TV_PREV_EPISODE_HTML = "<b id=\"" + TV_PREV_EPISODE_HTML_ID + "\">Prev Episode: </b>";
+        TV_PREV_EPISODE_HTML_AND_PLACEHOLDER = TV_PREV_EPISODE_HTML + TV_EPISODE_PLACEHOLDER;
         TV_EPISODE_REGEX = latestEpisode("", "");
     }
 
@@ -130,15 +138,14 @@ public class Constant {
     private static String initAppDir() {
         String tempAppDir;
         try {
-            String userHome = (new File(System.getProperty("user.home", WORKING_DIR))).getCanonicalPath() + FILE_SEPARATOR;
             if (WINDOWS) {
                 tempAppDir = System.getenv("APPDATA");
                 if (tempAppDir == null || tempAppDir.isEmpty()) {
-                    tempAppDir = userHome + "Application Data";
+                    tempAppDir = userHomeDir() + "Application Data";
                 }
                 tempAppDir += FILE_SEPARATOR + APP_TITLE + FILE_SEPARATOR;
             } else {
-                tempAppDir = userHome + (MAC ? "Library" + FILE_SEPARATOR + "Application Support" + FILE_SEPARATOR + APP_TITLE : "."
+                tempAppDir = userHomeDir() + (MAC ? "Library" + FILE_SEPARATOR + "Application Support" + FILE_SEPARATOR + APP_TITLE : "."
                         + APP_TITLE.toLowerCase(Locale.ENGLISH)) + FILE_SEPARATOR;
             }
 
@@ -161,6 +168,28 @@ public class Constant {
             tempAppDir = PROGRAM_DIR;
         }
         return tempAppDir;
+    }
+
+    public static String userHomeDir() throws IOException {
+        return (new File(System.getProperty("user.home", WORKING_DIR))).getCanonicalPath() + FILE_SEPARATOR;
+    }
+
+    public static String[] appDirs() throws IOException {
+        Set<String> appDirs = new TreeSet<String>();
+        if (WINDOWS) {
+            String appDataDir = System.getenv("APPDATA");
+            if (appDataDir != null && !appDataDir.isEmpty()) {
+                appDirs.add(appDataDir + FILE_SEPARATOR);
+            }
+            String localAppDataDir = System.getenv("LOCALAPPDATA");
+            if (localAppDataDir != null && !localAppDataDir.isEmpty()) {
+                Collections.addAll(appDirs, localAppDataDir + FILE_SEPARATOR, localAppDataDir + "Low" + FILE_SEPARATOR);
+            }
+        } else {
+            String appDir = userHomeDir();
+            appDirs.add(MAC ? appDir + "Library" + FILE_SEPARATOR + "Application Support" + FILE_SEPARATOR : appDir);
+        }
+        return appDirs.toArray(new String[appDirs.size()]);
     }
 
     private static void copyFileToAppDir(String appDir, String fileName) throws Exception {

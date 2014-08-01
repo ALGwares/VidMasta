@@ -92,7 +92,7 @@ public class SummaryReader extends AbstractSwingWorker {
             moviePartFinders.add(new MoviePartFinder(i, Str.get(474) + URLEncoder.encode(summaryParts.get(i), Constant.UTF8)));
         }
 
-        RunnableUtil.execute(moviePartFinders);
+        RunnableUtil.runAndWaitFor(moviePartFinders);
         if (isCancelled() || failure.get()) {
             return;
         }

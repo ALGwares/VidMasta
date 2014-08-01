@@ -84,7 +84,7 @@ public class VideoStrExporter implements VideoStrExportListener {
             if (EXPORT_TO_EMAIL) {
                 String typeName = type.toString();
                 if (!typeName.isEmpty()) {
-                    strBuf.append(type).append(": ");
+                    strBuf.append(typeName).append(": ");
                 }
                 strBuf.append(currStr).append("\n\n");
             } else {
