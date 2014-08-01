@@ -3,8 +3,8 @@ VIDMASTA CHANGELOG
 
 2014.07.31   | VidMasta 17.8
 
-CHANGE: UI   | Show previous episode in addition to next/current episode that is already shown for TV shows
-CHANGE: UI   | Fixed bug in which next episode for TV shows is sometimes too far in the future
+CHANGE: UI   | Show previous episode in summary in addition to next/current episode that is already shown for TV shows
+CHANGE: UI   | Fixed bug in which next episode in summary for TV shows is sometimes too far in the future
 CHANGE: UI   | Fixed minor bug in which cancellation message is sometimes shown when emailing all links is cancelled
 CHANGE: UI   | Added ability to reset a profile before clearing it
 CHANGE: UI   | Added some tooltip messages
