@@ -275,8 +275,22 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void torrentAndStreamSearchStopped() {
+    public void summarySearchStopped() {
+        stop(summaryFinder);
+    }
+
+    @Override
+    public void trailerSearchStopped() {
+        stop(trailerFinder);
+    }
+
+    @Override
+    public void torrentSearchStopped() {
         stop(torrentFinder);
+    }
+
+    @Override
+    public void streamSearchStopped() {
         stop(streamFinder);
     }
 

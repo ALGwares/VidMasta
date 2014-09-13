@@ -132,11 +132,14 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
                         + Str.get(530), Str.get(531)), Str.get(532), Str.get(533)));
                 episodes.add(currEpisode);
                 if (episodes.size() == 3) {
-                    Episode prevEpisode = episodes.get(1);
-                    if (episodes.get(0).airdate.equals(prevEpisode.airdate) && prevEpisode.airdate.equals(currEpisode.airdate)) {
+                    Episode prevPrevEpisode = episodes.get(0), prevEpisode = episodes.get(1);
+                    if (prevPrevEpisode.airdate.equals(prevEpisode.airdate) && prevEpisode.airdate.equals(currEpisode.airdate)) {
                         episodes.remove(2);
                         prevNextEpisodes.clear();
                         prevNextEpisodes.addAll(episodes);
+                        if (prevPrevEpisode.aired || prevEpisode.aired) {
+                            break outer;
+                        }
                         continue outer;
                     }
                     episodes.remove(0);
@@ -146,6 +149,8 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
                     prevNextEpisodes.clear();
                     prevNextEpisodes.addAll(episodes);
                     continue outer;
+                } else {
+                    currEpisode.aired = true;
                 }
             }
             episodes.addAll(prevNextEpisodes);
@@ -167,6 +172,7 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
     private static class Episode {
 
         String season, episode, airdate;
+        boolean aired;
 
         Episode(String season, String episode, String airdate) {
             this.season = season;

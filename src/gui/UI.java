@@ -19,6 +19,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
+import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.text.JTextComponent;
@@ -63,6 +65,17 @@ public class UI {
         for (JComponent component : components) {
             component.addMouseListener(mouseListener);
         }
+    }
+
+    public static void addPopupMenu(final JPopupMenu popupMenu, JComponent... components) {
+        addMouseListener(new AbstractPopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                if (evt.isPopupTrigger()) {
+                    show(popupMenu, evt);
+                }
+            }
+        }, components);
     }
 
     public static boolean isClipboardEmpty() {

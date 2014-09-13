@@ -9,7 +9,13 @@ public interface WorkerListener {
 
     void searchStopped(boolean isRegularSearcher);
 
-    void torrentAndStreamSearchStopped();
+    void summarySearchStopped();
+
+    void trailerSearchStopped();
+
+    void torrentSearchStopped();
+
+    void streamSearchStopped();
 
     void loadMoreSearchResults(boolean isRegularSearcher);
 

@@ -1,4 +1,4 @@
-144
+148
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -32,21 +32,21 @@ http://www.imdb.com
 <\s*+div\s++class\s*+=\s*+"user_rating"\s*+>
 <\s*+/div\s*+>
 (?<=((<span\sclass="rating-rating"><span\sclass="value">)|(<div\sclass="rating(?=(\-ineligible">)))))((\d\.\d)|(\-))(?=((</span>)|(ineligible">)))
-http://tpb.elfnet.org/search/
+http://piratebayguru.com/search/
 /0/99/200
 <\s*+abbr\s++title\s*+=\s*+"
 "\s*+>\s*+<\s*+a\s++href\s*+=\s*+"
 EMPTY
 "[ >]
-http://tpb.elfnet.org
+http://piratebayguru.com
 /
-http://tpb.elfnet.org
-/
-/
+http://piratebayguru.com
 /
 /
 /
-http://tpb.elfnet.org
+/
+/
+http://piratebayguru.com
 <\s*+tr\s*+>
 EMPTY
 <\s*+/tr\s*+>
@@ -85,12 +85,12 @@ SPACE
 (?i)(?<!\s((CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM\s{0,10}?2\s{0,10}?(DVD(R|(RW))??)??)|(TS)|(HDTS)|(TS\s{0,10}?2\s{0,10}?(DVD(R|(RW))??)??)|(TELESYNC)|(TELESYNC\s{0,10}?2\s{0,10}?(DVD(R|(RW))??)??))(?=\s)(?s).{0,300}?)\s(1080[pi])(\z|\s)(?!(?s).{0,300}?(?<=\s)((CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM\s{0,10}?2\s{0,10}?(DVD(R|(RW))??)??)|(TS)|(HDTS)|(TS\s{0,10}?2\s{0,10}?(DVD(R|(RW))??)??)|(TELESYNC)|(TELESYNC\s{0,10}?2\s{0,10}?(DVD(R|(RW))??)??))(\z|\s))
 EMPTY
 EMPTY
-http://www.youtube.com/results?search_query=
+https://www.youtube.com/results?search_query=
 SPACEtrailer
 <[^>]++>\s*+No( video)?+ results for\s*+(<[^>]++>)?+
 \s*+<[^>]++>
 <\s*+a\s++href\s*+=\s*+"/watch\?v=[^"]++"
-http://www.youtube.com/watch?v=
+https://www.youtube.com/watch?v=
 v=
 "
 2
@@ -116,7 +116,7 @@ EMPTY
 201
 /
 /9
-http://tpb.elfnet.org/browse/
+http://piratebayguru.com/browse/
 205
 201
 /
@@ -149,7 +149,7 @@ There was an error processing this request
 ((Hm\. Problem! Please retry\.)|(Upgrading software, please check back in)|(Could not connect to caching server)|(The Pirate Bay is down for maintenance)|(Database maintenance, please check back in))
 http://torrents.thepiratebay.se/
 /
-http://tpb.elfnet.org/ajax_details_comments.php?id=
+http://piratebayguru.com/ajax_details_comments.php?id=
 <\s*+div\s++class\s*+=\s*+"comment"\s*+>
 <\s*+/div\s*+>
 ((\A|\s+?|\p{Punct}+?)((?i)(f++a++k++e++))(\z|\s+?|\p{Punct}+?))
@@ -187,9 +187,9 @@ EMPTY
 \s++href\s*+=\s*+"/country/
 [\?"]
 http://www\.imdb\.com/((title/[^/]++/)|(Title%3f[^"]++))
-(<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")
+((?<!class\s{0,2}+=\s{0,2}+"widget_image">\s{0,20}+)<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")
 "
-(<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")
+((?<!class\s{0,2}+=\s{0,2}+"widget_image">\s{0,20}+)<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")
 "
 <\s*+div\s++class\s*+=\s*+"txt-block"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Directors*+:\s*+<\s*+/h4\s*+>
 <\s*+/div\s*+>
@@ -386,7 +386,7 @@ Released:\s*+<\s*+/strong\s*+>\s*+<\s*+/td\s*+>\s*+<\s*+td\s*+>
 <\s*+img\s++src\s*+=\s*+"
 "
 http://i\.media-imdb\.com/images/[^/]++/realm/[^\.]+?\.gif
-http://www.imdb.com/search/title:::1~~~https://www.google.com/search?q=%22%22:::2~~~http://www.bing.com/search?q=%22%22:::2~~~http://www.youtube.com:::3~~~http://vodly.to:::4~~~http://www.tubeplus.me:::4~~~https://docs.google.com:::5
+http://www.imdb.com/search/title:::1~~~https://www.google.com/search?q=%22%22:::2~~~http://www.bing.com/search?q=%22%22:::2~~~https://www.youtube.com:::3~~~http://vodly.to:::4~~~http://www.tubeplus.me:::4~~~https://docs.google.com:::5
 magnet:?
 <\s*+a[^>]+?href\s*+=\s*+"magnet:\?
 "
@@ -462,10 +462,10 @@ http://www.opensubtitles.org
 <\s*+a\s++href\s*+=\s*+"/torrent/[^/]++/[^"]++"
 /torrent/
 /
-/download\?torrent=file%3A%2F%2F%2F
+/((bittorrentclient)|(download))\?torrent=file%3A%2F%2F%2F
 EMPTY
 https://docs.google.com/uc?id=0B3i91lMM4fZId2tQQ0h4ZWxORDQ&export=download&hl=en_US
-http://tpb.elfnet.org
+http://piratebayguru.com
 http://thepiratebay.se
 <\s*+em\s++class\s*+=\s*+"nobr"\s*+>\s*+Written\s++by[^<]++<\s*+/em\s*+>
 EMPTY
@@ -490,7 +490,7 @@ Sorry, our TTS Voice service is
 /search/
 /
 true
-http://tpb.elfnet.org/search/
+http://piratebayguru.com/search/
 /
 /search/[^/]++/[^/]++
 \z
@@ -504,7 +504,7 @@ true
 300
 100
 (?i)(Search\s++results)
-http://tpb.elfnet.org
+http://piratebayguru.com
 <\s*+a[^>]+?title\s*+=\s*+"About movie @ http://www.imdb.com"[^>]+?href\s*+=\s*+"
 "
 <\s*+a[^>]+?title\s*+=\s*+"Download"[^>]+?href\s*+=\s*+"/en/subtitleserve/sub/
@@ -515,9 +515,9 @@ http://tpb.elfnet.org
 ,
 title\s*+=\s*+"Release name"[^>]+?>
 <
-http://tpb.elfnet.org:::http://tpb.kleisauke.nl:::http://tpb.jeannedhack.org
+http://piratebayguru.com:::http://baymirror.com:::http://pirateshit.com
 33,39,41,47,117,150,466,491,505,518
-http://tpb.elfnet.org
+http://piratebayguru.com
 http://www.imdb.com/title/tt
 href\s*+=\s*+"[^"]*?episodes\?season=
 (&[^"]*+)?+"
@@ -579,7 +579,7 @@ EMPTY
 http://thepiratebay.se
 http://www.imdb.com
 https://www.google.com
-http://www.youtube.com
+https://www.youtube.com
 http://vodly.to
 https://docs.google.com
 http://www.opensubtitles.org
@@ -622,7 +622,7 @@ www\.imdb\.com((/((title/[^/]++/)|(Title%3f[^"]++))(?="))|(%2f((title%2f[^%]++%2
 www\.tubeplus\.me((/((movie)|(player))/[^"]++(?="))|(%2f((movie)|(player))%2f[^/]++(?=/)))
 vodly\.to((/((watch)|(tv))\-[^<"]++(?="))|(%2f((watch)|(tv))\-[^/]++(?=/)))
 3
-http://www.imdb.com/search/title:::1~~~https://www.google.com/search?q=%22%22:::2~~~http://www.bing.com/search?q=%22%22:::2~~~http://search.yahoo.com/search?q=%22%22:::2~~~http://www.youtube.com:::3~~~http://vodly.to:::4~~~http://www.tubeplus.me:::4~~~https://docs.google.com:::5
+http://www.imdb.com/search/title:::1~~~https://www.google.com/search?q=%22%22:::2~~~http://www.bing.com/search?q=%22%22:::2~~~http://search.yahoo.com/search?q=%22%22:::2~~~https://www.youtube.com:::3~~~http://vodly.to:::4~~~http://www.tubeplus.me:::4~~~https://docs.google.com:::5
 https://sites.google.com/site/algwares/bittorrentclient?torrent=
 NEWLINEAuto-generated by VidMasta: https://sites.google.com/site/algwares/vidmastaNEWLINENEWLINE
 (?i)(\s+?)(Episode\s*+(

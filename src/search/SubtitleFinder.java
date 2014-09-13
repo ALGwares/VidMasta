@@ -41,8 +41,8 @@ public class SubtitleFinder extends AbstractSwingWorker {
         this.format = format;
         this.languageID = languageID;
         this.video = video;
-        this.isTVShow = video.IS_TV_SHOW;
-        this.isTVShowAndMovie = video.IS_TV_SHOW_AND_MOVIE;
+        isTVShow = video.IS_TV_SHOW;
+        isTVShowAndMovie = video.IS_TV_SHOW_AND_MOVIE;
         this.firstMatch = firstMatch;
         this.strExportListener = strExportListener;
     }

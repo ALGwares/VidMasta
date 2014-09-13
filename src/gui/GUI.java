@@ -301,6 +301,9 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, connectionIssueButton);
 
+        UI.addPopupMenu(readSummaryButtonPopupMenu, readSummaryButton);
+        UI.addPopupMenu(watchTrailerButtonPopupMenu, watchTrailerButton);
+
         UI.addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
@@ -309,16 +312,21 @@ public class GUI extends JFrame implements GuiListener {
                     show(downloadLinkButtonPopupMenu, evt);
                 }
             }
-        }, downloadLink1Button, downloadLink2Button, hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox, hd1080CheckBox);
+        }, downloadLink1Button, downloadLink2Button);
+
+        UI.addPopupMenu(watchSourceButtonPopupMenu, watchSource1Button, watchSource2Button);
 
         UI.addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 if (evt.isPopupTrigger()) {
-                    show(popularMoviesButtonPopupMenu, evt);
+                    downloadLinkPopupComponent = (Component) evt.getSource();
+                    show(exitBackupModePopupMenu, evt);
                 }
             }
-        }, popularMoviesButton);
+        }, hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox, hd1080CheckBox);
+
+        UI.addPopupMenu(popularMoviesButtonPopupMenu, popularMoviesButton);
 
         splashScreen.progress();
 
@@ -425,7 +433,7 @@ public class GUI extends JFrame implements GuiListener {
             @Override
             protected Float convert(String str) {
                 String tempStr = UI.innerHTML(str);
-                return tempStr.equals("-") ? 0.0f : Float.valueOf(tempStr);
+                return tempStr.equals("-") ? 0.0f : Float.parseFloat(tempStr);
             }
         });
 
@@ -814,8 +822,17 @@ public class GUI extends JFrame implements GuiListener {
         hideMenuItem = new JMenuItem();
         popularMoviesButtonPopupMenu = new JPopupMenu();
         viewNewHighQualityMoviesMenuItem = new JMenuItem();
-        downloadLinkButtonPopupMenu = new JPopupMenu();
+        exitBackupModePopupMenu = new JPopupMenu();
         exitBackupModeMenuItem = new JMenuItem();
+        readSummaryButtonPopupMenu = new JPopupMenu();
+        readSummaryCancelMenuItem = new JMenuItem();
+        watchTrailerButtonPopupMenu = new JPopupMenu();
+        watchTrailerCancelMenuItem = new JMenuItem();
+        downloadLinkButtonPopupMenu = new JPopupMenu();
+        downloadLinkCancelMenuItem = new JMenuItem();
+        downloadLinkExitBackupModeMenuItem = new JMenuItem();
+        watchSourceButtonPopupMenu = new JPopupMenu();
+        watchSourceCancelMenuItem = new JMenuItem();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -2939,9 +2956,59 @@ public class GUI extends JFrame implements GuiListener {
                 exitBackupModeMenuItemActionPerformed(evt);
             }
         });
-        downloadLinkButtonPopupMenu.add(exitBackupModeMenuItem);
+        exitBackupModePopupMenu.add(exitBackupModeMenuItem);
 
         splashScreen.progress();
+
+        readSummaryCancelMenuItem.setText("Stop");
+        readSummaryCancelMenuItem.setEnabled(false);
+        readSummaryCancelMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                readSummaryCancelMenuItemActionPerformed(evt);
+            }
+        });
+        readSummaryButtonPopupMenu.add(readSummaryCancelMenuItem);
+
+        watchTrailerCancelMenuItem.setText("Stop");
+        watchTrailerCancelMenuItem.setEnabled(false);
+        watchTrailerCancelMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                watchTrailerCancelMenuItemActionPerformed(evt);
+            }
+        });
+        watchTrailerButtonPopupMenu.add(watchTrailerCancelMenuItem);
+
+        downloadLinkCancelMenuItem.setText("Stop");
+        downloadLinkCancelMenuItem.setEnabled(false);
+        downloadLinkCancelMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                downloadLinkCancelMenuItemActionPerformed(evt);
+            }
+        });
+        downloadLinkButtonPopupMenu.add(downloadLinkCancelMenuItem);
+
+        downloadLinkExitBackupModeMenuItem.setText("Exit Backup Mode");
+        downloadLinkExitBackupModeMenuItem.setEnabled(false);
+        downloadLinkExitBackupModeMenuItem.addMouseListener(new MouseAdapter() {
+            public void mouseReleased(MouseEvent evt) {
+                downloadLinkExitBackupModeMenuItemMouseReleased(evt);
+            }
+        });
+        downloadLinkExitBackupModeMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                downloadLinkExitBackupModeMenuItemActionPerformed(evt);
+            }
+        });
+        downloadLinkButtonPopupMenu.add(downloadLinkExitBackupModeMenuItem);
+
+        watchSourceCancelMenuItem.setText("Stop");
+        watchSourceCancelMenuItem.setEnabled(false);
+        watchSourceCancelMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                watchSourceCancelMenuItemActionPerformed(evt);
+            }
+        });
+        watchSourceButtonPopupMenu.add(watchSourceCancelMenuItem);
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle(Constant.APP_TITLE);
@@ -3211,7 +3278,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         closeBoxButton.setText(null);
-        closeBoxButton.setToolTipText("cancel search");
+        closeBoxButton.setToolTipText("stop search");
         closeBoxButton.setEnabled(false);
         closeBoxButton.setMargin(new Insets(0, 0, 0, 0));
         closeBoxButton.addActionListener(new ActionListener() {
@@ -4242,7 +4309,10 @@ public class GUI extends JFrame implements GuiListener {
         linkProgressBar.setIndeterminate(enable);
         linkProgressBar.setStringPainted(enable);
         closeBoxButton.setEnabled(enable);
-        workerListener.torrentAndStreamSearchStopped();
+        downloadLinkCancelMenuItem.setEnabled(enable);
+        watchSourceCancelMenuItem.setEnabled(enable);
+        workerListener.torrentSearchStopped();
+        workerListener.streamSearchStopped();
     }//GEN-LAST:event_closeBoxButtonActionPerformed
 
     void resultsTableValueChanged(ListSelectionEvent evt) {
@@ -4325,11 +4395,15 @@ public class GUI extends JFrame implements GuiListener {
         hideFindTextField();
         SelectedTableRow row = new SelectedTableRow();
         JViewport viewport = (JViewport) resultsTable.getParent();
-        Point viewPosition = viewport.getViewPosition();
-        Rectangle cellRect = resultsSyncTable.getCellRect(row.VIEW_VAL, 0, true);
-        cellRect.setLocation(cellRect.x - viewPosition.x, cellRect.y - viewPosition.y);
-        viewport.scrollRectToVisible(cellRect);
+        viewport.scrollRectToVisible(rectangle(viewport, row.VIEW_VAL));
         return row;
+    }
+
+    private Rectangle rectangle(JViewport viewport, int row) {
+        Point viewPosition = viewport.getViewPosition();
+        Rectangle cellRect = resultsSyncTable.getCellRect(row, 0, true);
+        cellRect.setLocation(cellRect.x - viewPosition.x, cellRect.y - viewPosition.y);
+        return cellRect;
     }
 
     void readSummaryButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_readSummaryButtonActionPerformed
@@ -5747,6 +5821,34 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_removeProxiesListKeyPressed
 
+    private void readSummaryCancelMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_readSummaryCancelMenuItemActionPerformed
+        readSummaryCancelMenuItem.setEnabled(false);
+        workerListener.summarySearchStopped();
+    }//GEN-LAST:event_readSummaryCancelMenuItemActionPerformed
+
+    private void watchTrailerCancelMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchTrailerCancelMenuItemActionPerformed
+        watchTrailerCancelMenuItem.setEnabled(false);
+        workerListener.trailerSearchStopped();
+    }//GEN-LAST:event_watchTrailerCancelMenuItemActionPerformed
+
+    private void downloadLinkCancelMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLinkCancelMenuItemActionPerformed
+        downloadLinkCancelMenuItem.setEnabled(false);
+        workerListener.torrentSearchStopped();
+    }//GEN-LAST:event_downloadLinkCancelMenuItemActionPerformed
+
+    private void watchSourceCancelMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSourceCancelMenuItemActionPerformed
+        watchSourceCancelMenuItem.setEnabled(false);
+        workerListener.streamSearchStopped();
+    }//GEN-LAST:event_watchSourceCancelMenuItemActionPerformed
+
+    private void downloadLinkExitBackupModeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLinkExitBackupModeMenuItemActionPerformed
+        exitBackupModeMenuItemActionPerformed(evt);
+    }//GEN-LAST:event_downloadLinkExitBackupModeMenuItemActionPerformed
+
+    private void downloadLinkExitBackupModeMenuItemMouseReleased(MouseEvent evt) {//GEN-FIRST:event_downloadLinkExitBackupModeMenuItemMouseReleased
+        exitBackupModeMenuItemMouseReleased(evt);
+    }//GEN-LAST:event_downloadLinkExitBackupModeMenuItemMouseReleased
+
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
     }
@@ -5780,6 +5882,7 @@ public class GUI extends JFrame implements GuiListener {
         }
         enableVideoFormats(enable);
         exitBackupModeMenuItem.setEnabled(false);
+        downloadLinkExitBackupModeMenuItem.setEnabled(false);
     }
 
     private void updateDownloadSizeComboBoxes() {
@@ -6181,25 +6284,6 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private abstract class AbstractPopupListener extends MouseAdapter {
-
-        @Override
-        public void mousePressed(MouseEvent evt) {
-            showPopup(evt);
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent evt) {
-            showPopup(evt);
-        }
-
-        protected void show(JPopupMenu popupMenu, MouseEvent evt) {
-            popupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
-        }
-
-        abstract protected void showPopup(MouseEvent evt);
-    }
-
     private class HTMLCopyListener implements ActionListener {
 
         HTMLCopyListener() {
@@ -6365,6 +6449,26 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public void enableSummarySearchStop(boolean enable) {
+        readSummaryCancelMenuItem.setEnabled(enable);
+    }
+
+    @Override
+    public void enableTrailerSearchStop(boolean enable) {
+        watchTrailerCancelMenuItem.setEnabled(enable);
+    }
+
+    @Override
+    public void enableTorrentSearchStop(boolean enable) {
+        downloadLinkCancelMenuItem.setEnabled(enable);
+    }
+
+    @Override
+    public void enableStreamSearchStop(boolean enable) {
+        watchSourceCancelMenuItem.setEnabled(enable);
+    }
+
+    @Override
     public void enableLinkProgress(boolean enable) {
         if (enable || workerListener.isLinkProgressDone()) {
             linkProgressBar.setIndeterminate(enable);
@@ -6401,6 +6505,7 @@ public class GUI extends JFrame implements GuiListener {
                     Connection.downloadLinkInfoFailUrl())));
             enableVideoFormats(false);
             exitBackupModeMenuItem.setEnabled(true);
+            downloadLinkExitBackupModeMenuItem.setEnabled(true);
             isAltSearch = true;
         }
     }
@@ -6770,6 +6875,7 @@ public class GUI extends JFrame implements GuiListener {
     public void newSearch(int maxProgress, boolean isTVShow) {
         enableVideoFormats(true);
         exitBackupModeMenuItem.setEnabled(false);
+        downloadLinkExitBackupModeMenuItem.setEnabled(false);
         resultsSyncTable.setRowCount(0);
         isAltSearch = false;
         resultsLabel.setText("Results: 0");
@@ -6802,10 +6908,7 @@ public class GUI extends JFrame implements GuiListener {
             for (int i = 0; i < 25; i++) {
                 if (resultsSyncTable.getRowCount() > 0 && resultsSyncTable.getSelectedRow() == -1) {
                     JViewport viewport = (JViewport) resultsTable.getParent();
-                    Point viewPosition = viewport.getViewPosition();
-                    Rectangle cellRect = resultsSyncTable.getCellRect(0, 0, true);
-                    cellRect.setLocation(cellRect.x - viewPosition.x, cellRect.y - viewPosition.y);
-                    if ((new Rectangle(viewport.getExtentSize())).intersects(cellRect)) {
+                    if ((new Rectangle(viewport.getExtentSize())).intersects(rectangle(viewport, 0))) {
                         resultsSyncTable.setRowSelectionInterval(0, 0);
                     }
                     break;
@@ -7298,6 +7401,8 @@ public class GUI extends JFrame implements GuiListener {
     JButton downloadLink2Button;
     JMenuItem downloadLink2MenuItem;
     JPopupMenu downloadLinkButtonPopupMenu;
+    JMenuItem downloadLinkCancelMenuItem;
+    JMenuItem downloadLinkExitBackupModeMenuItem;
     JMenu downloadMenu;
     Separator downloadMenuSeparator1;
     Separator downloadMenuSeparator2;
@@ -7329,6 +7434,7 @@ public class GUI extends JFrame implements GuiListener {
     JDateChooser endDateChooser;
     JLabel episodeLabel;
     JMenuItem exitBackupModeMenuItem;
+    JPopupMenu exitBackupModePopupMenu;
     JMenuItem exitMenuItem;
     JButton extensionsButton;
     JDialog extensionsDialog;
@@ -7454,6 +7560,8 @@ public class GUI extends JFrame implements GuiListener {
     JComboBox ratingComboBox;
     JLabel ratingLabel;
     JButton readSummaryButton;
+    JPopupMenu readSummaryButtonPopupMenu;
+    JMenuItem readSummaryCancelMenuItem;
     JMenuItem readSummaryMenuItem;
     JComboBox regularResultsPerSearchComboBox;
     JLabel regularResultsPerSearchLabel;
@@ -7551,7 +7659,11 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem watchSource1MenuItem;
     JButton watchSource2Button;
     JMenuItem watchSource2MenuItem;
+    JPopupMenu watchSourceButtonPopupMenu;
+    JMenuItem watchSourceCancelMenuItem;
     JButton watchTrailerButton;
+    JPopupMenu watchTrailerButtonPopupMenu;
+    JMenuItem watchTrailerCancelMenuItem;
     JMenuItem watchTrailerMenuItem;
     JLabel whitelistLabel;
     JList whitelistedList;

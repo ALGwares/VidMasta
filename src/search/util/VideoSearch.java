@@ -405,7 +405,7 @@ public class VideoSearch {
 
         String image = imagePath(video);
         String imagePath = Constant.CACHE_DIR + image;
-        image = (new File(imagePath)).exists() ? imagePath : Constant.NO_IMAGE + image;
+        image = ((new File(imagePath)).exists() ? imagePath : Constant.NO_IMAGE + image);
 
         return guiListener.makeRow(video.ID, image, startHtml + Constant.TITLE_INDENT + title + endHtml, video.title, video.oldTitle, year, rating, video.summary,
                 video.imageLink, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE, video.season, video.episode);

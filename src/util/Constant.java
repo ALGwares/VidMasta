@@ -14,7 +14,7 @@ public class Constant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 17.8;
+    public static final double APP_VERSION = 17.9;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -55,7 +55,7 @@ public class Constant {
     public static final String ANY_COUNTRY = "ANY COUNTRY";
     public static final String HQ = "HQ", DVD = "DVD", HD720 = "720 HD", HD1080 = "1080 HD";
     public static final String NULL = "null";
-    public static final String NO_IMAGE = "zzzzz_" + NULL;
+    public static final String NO_IMAGE = "" + Character.MAX_VALUE + Character.MAX_VALUE + Character.MAX_VALUE;
     public static final String ZIP = ".zip";
     public static final String PROXY_VERSION = "proxyVersion" + TXT;
     public static final String PROXIES = "proxies" + TXT;

@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.09.12   | VidMasta 17.9
+
+CHANGE: CORE | Improved prediction of previous episode and next/current episode in summary for TV shows when airdates are unknown
+CHANGE: CORE | Removed unnecessary auto-downloader website connectivity check
+CHANGE: UI   | Added stop search popup menu item to summary, trailer, download, and watch buttons
+
+
+
+
 2014.07.31   | VidMasta 17.8
 
 CHANGE: UI   | Show previous episode in summary in addition to next/current episode that is already shown for TV shows
