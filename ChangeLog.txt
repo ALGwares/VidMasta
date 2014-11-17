@@ -1,7 +1,7 @@
 VIDMASTA CHANGELOG
 ------------------
 
-2014.11.??   | VidMasta 18.0
+2014.11.16   | VidMasta 18.0
 
 CHANGE: UI   | Added play button to immediately play/stream movies and TV shows in default system media player
 CHANGE: UI   | Sort title table column case-insensitively instead of case-sensitively
