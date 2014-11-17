@@ -29,7 +29,7 @@ public class ConnectionTester extends SwingWorker<Object, Object> {
         Collection<String> restrictedDomainTypes = new HashSet<String>(8);
         boolean isConnected = false;
 
-        for (String website : Regex.split(Str.get(623), Constant.SEPARATOR2)) {
+        for (String website : Regex.split(623, Constant.SEPARATOR2)) {
             String[] websiteParts = Regex.split(website, Constant.SEPARATOR1);
             String site = websiteParts[0];
 
@@ -50,6 +50,7 @@ public class ConnectionTester extends SwingWorker<Object, Object> {
 
                 Connection.checkConnectionResponse(connection, site);
             } catch (Exception e) {
+                IO.consumeErrorStream(connection);
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }

@@ -5,7 +5,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import javax.swing.JOptionPane;
 import listener.DomainType;
 import listener.GuiListener;
@@ -65,8 +64,8 @@ class AppUpdater {
                 installCmd.append(cmdPart).append(Constant.NEWLINE);
             }
             installCmd.append(Constant.APP_DIR).append(INSTALL);
-            restart(installCmd.toString(), Regex.match(installer.getName(), "\\d++\\.\\d++"), Constant.APP_DIR + APP_UPDATE + Constant.NEWLINE + Constant.APP_DIR
-                    + INSTALL + Constant.NEWLINE + cmd[cmd.length - 1]);
+            restart(installCmd.toString(), Regex.firstMatch(installer.getName(), "\\d++\\.\\d++"), Constant.APP_DIR + APP_UPDATE + Constant.NEWLINE
+                    + Constant.APP_DIR + INSTALL + Constant.NEWLINE + cmd[cmd.length - 1]);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -86,9 +85,9 @@ class AppUpdater {
                 throw new UpdateException("invalid app update version file");
             }
             if (Constant.APP_VERSION < Double.parseDouble(appUpdateStrs[0])) {
-                String link = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win") ? appUpdateStrs[1] : appUpdateStrs[2];
-                guiListener.updateMsg("<html><head><title></title></head><body><font face=\"tahoma\" size=\"4\">A <a href=\"" + link + "\">newer version</a> ("
-                        + appUpdateStrs[0] + ") of the application is available.</font></body></html>");
+                guiListener.updateMsg("<html><head><title></title></head><body><font face=\"tahoma\" size=\"4\">A <a href=\"" + (Constant.WINDOWS
+                        ? appUpdateStrs[1] : appUpdateStrs[2]) + "\">newer version</a> (" + appUpdateStrs[0]
+                        + ") of the application is available.</font></body></html>");
             } else if (showConfirmation) {
                 guiListener.msg("The application is already up to date.", Constant.INFO_MSG);
             }
@@ -119,7 +118,7 @@ class AppUpdater {
             }
 
             String installerLink, installerChecksum, installerSuffix;
-            if (System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win")) {
+            if (Constant.WINDOWS) {
                 installerLink = appUpdateStrs[3];
                 installerChecksum = appUpdateStrs[4];
                 installerSuffix = Constant.EXE;

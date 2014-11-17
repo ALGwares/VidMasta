@@ -116,6 +116,27 @@ public class IO {
         os.flush();
     }
 
+    public static void consumeErrorStream(HttpURLConnection connection) {
+        if (connection == null) {
+            return;
+        }
+
+        InputStream is = null;
+        try {
+            if ((is = connection.getErrorStream()) != null) {
+                byte[] bytes = new byte[2048];
+                while (is.read(bytes) != -1) {
+                }
+            }
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        } finally {
+            close(is);
+        }
+    }
+
     public static void write(String fileName, Throwable t) {
         try {
             Writer writer = new StringWriter();

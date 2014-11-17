@@ -11,7 +11,6 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -39,9 +38,9 @@ public class SplashScreen extends JFrame {
     public SplashScreen() {
         initComponents();
 
-        closeBoxButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "closeBox.png"));
-        loadingLabel.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "loading.gif"));
-        connectionIssueButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "noWarning.png"));
+        UI.setIcon(closeBoxButton, "closeBox");
+        loadingLabel.setIcon(UI.icon("loading.gif"));
+        UI.setIcon(connectionIssueButton, "noWarning");
 
         Color bgColor = getBackground();
         genreList.setListData(new String[]{Constant.ANY_GENRE});
@@ -51,7 +50,7 @@ public class SplashScreen extends JFrame {
         findTextField.setBackground(bgColor);
         findTextField.setForeground(bgColor);
 
-        Dimension windowSize = new Dimension(1000, 680);
+        Dimension windowSize = new Dimension(1022, 680);
         setSize(windowSize);
         setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
         setLocation(UI.screenCenter(windowSize));
@@ -84,7 +83,7 @@ public class SplashScreen extends JFrame {
         loadMoreResultsButton = new JButton();
         typeLabel = new JLabel();
         typeComboBox = new JComboBox();
-        toLabel = new JLabel();
+        releasedToLabel = new JLabel();
         linkProgressBar = new JProgressBar();
         hqVideoTypeCheckBox = new JCheckBox();
         dvdCheckBox = new JCheckBox();
@@ -96,15 +95,16 @@ public class SplashScreen extends JFrame {
         loadingLabel = new JLabel();
         readSummaryButton = new JButton();
         watchTrailerButton = new JButton();
+        playButton = new JButton();
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
         watchSource1Button = new JButton();
         watchSource2Button = new JButton();
         statusBarTextField = new JTextField();
         connectionIssueButton = new JButton();
-        findTextField = new JTextField();
         startDateTextField = new JTextField();
         endDateTextField = new JTextField();
+        findTextField = new JTextField();
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
         editMenu = new JMenu();
@@ -145,14 +145,14 @@ public class SplashScreen extends JFrame {
 
             },
             new String [] {
-                "", "", "", "", "", ""
+                "", "", "", ""
             }
         ) {
             Class[] types = new Class [] {
-                Object.class, String.class, String.class, String.class, String.class, String.class
+                Object.class, String.class, String.class, String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
+                false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -188,14 +188,6 @@ public class SplashScreen extends JFrame {
             resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
             resultsTable.getColumnModel().getColumn(3).setMaxWidth(65);
             resultsTable.getColumnModel().getColumn(3).setHeaderValue(Constant.RATING_COL);
-            resultsTable.getColumnModel().getColumn(4).setMinWidth(0);
-            resultsTable.getColumnModel().getColumn(4).setPreferredWidth(0);
-            resultsTable.getColumnModel().getColumn(4).setMaxWidth(0);
-            resultsTable.getColumnModel().getColumn(4).setHeaderValue(Constant.SUMMARY_COL);
-            resultsTable.getColumnModel().getColumn(5).setMinWidth(0);
-            resultsTable.getColumnModel().getColumn(5).setPreferredWidth(0);
-            resultsTable.getColumnModel().getColumn(5).setMaxWidth(0);
-            resultsTable.getColumnModel().getColumn(5).setHeaderValue(Constant.ID_COL);
         }
 
         progressBar.setEnabled(false);
@@ -222,6 +214,8 @@ public class SplashScreen extends JFrame {
         anyTitleCheckBox.setFocusPainted(false);
         anyTitleCheckBox.setMargin(new Insets(2, 0, 2, 2));
 
+        genreScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
         genreList.setEnabled(false);
         genreScrollPane.setViewportView(genreList);
 
@@ -235,8 +229,8 @@ public class SplashScreen extends JFrame {
         typeComboBox.setModel(new DefaultComboBoxModel(new String[]{"Movie", Constant.TV_SHOW}));
         typeComboBox.setEnabled(false);
 
-        toLabel.setText("to");
-        toLabel.setEnabled(false);
+        releasedToLabel.setText("to");
+        releasedToLabel.setEnabled(false);
 
         linkProgressBar.setEnabled(false);
         linkProgressBar.setRequestFocusEnabled(false);
@@ -274,6 +268,9 @@ public class SplashScreen extends JFrame {
         watchTrailerButton.setText("Watch Trailer");
         watchTrailerButton.setEnabled(false);
 
+        playButton.setText("Play");
+        playButton.setEnabled(false);
+
         downloadLink1Button.setText("Download (Link 1)");
         downloadLink1Button.setEnabled(false);
 
@@ -296,12 +293,12 @@ public class SplashScreen extends JFrame {
         connectionIssueButton.setEnabled(false);
         connectionIssueButton.setMargin(new Insets(0, 0, 0, 0));
 
-        findTextField.setBorder(null);
-        findTextField.setEnabled(false);
-
         startDateTextField.setEnabled(false);
 
         endDateTextField.setEnabled(false);
+
+        findTextField.setBorder(null);
+        findTextField.setEnabled(false);
 
         fileMenu.setText("File");
         fileMenu.setEnabled(false);
@@ -341,8 +338,8 @@ public class SplashScreen extends JFrame {
                     .addGroup(Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(progressBarLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-                        .addPreferredGap(ComponentPlacement.RELATED, 145, Short.MAX_VALUE)
+                        .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.RELATED, 146, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addComponent(dvdCheckBox)
                             .addComponent(hqVideoTypeCheckBox))
@@ -371,27 +368,27 @@ public class SplashScreen extends JFrame {
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(titleLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 848, Short.MAX_VALUE))
+                                .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 827, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(typeLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(typeComboBox, GroupLayout.PREFERRED_SIZE, 77, GroupLayout.PREFERRED_SIZE)
-                                .addGap(20, 20, 20)
+                                .addGap(18, 20, Short.MAX_VALUE)
                                 .addComponent(ratingLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(ratingComboBox, GroupLayout.PREFERRED_SIZE, 59, GroupLayout.PREFERRED_SIZE)
-                                .addGap(19, 19, 19)
+                                .addGap(18, 21, Short.MAX_VALUE)
                                 .addComponent(releasedLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(startDateTextField)
+                                .addComponent(startDateTextField, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
                                 .addGap(7, 7, 7)
-                                .addComponent(toLabel)
-                                .addGap(7, 7, 7)
-                                .addComponent(endDateTextField)))
+                                .addComponent(releasedToLabel)
+                                .addGap(6, 6, 6)
+                                .addComponent(endDateTextField, GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)))
                         .addGap(18, 18, 18)
                         .addComponent(genreLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 241, Short.MAX_VALUE)
+                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING, false)
                             .addComponent(searchButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -401,6 +398,8 @@ public class SplashScreen extends JFrame {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(watchTrailerButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(playButton)
+                        .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(downloadLink1Button)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(downloadLink2Button)
@@ -409,7 +408,7 @@ public class SplashScreen extends JFrame {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(watchSource2Button)
                         .addGap(18, 18, 18)
-                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE)
+                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(connectionIssueButton)))
                 .addContainerGap())
@@ -423,7 +422,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {ratingComboBox, typeComboBox});
 
@@ -452,9 +451,9 @@ public class SplashScreen extends JFrame {
                                 .addComponent(ratingLabel)
                                 .addComponent(ratingComboBox)
                                 .addComponent(releasedLabel)
-                                .addComponent(toLabel)
-                                .addComponent(endDateTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(startDateTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(releasedToLabel))
+                            .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(searchButton, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -471,7 +470,8 @@ public class SplashScreen extends JFrame {
                     .addComponent(watchSource1Button)
                     .addComponent(watchSource2Button)
                     .addComponent(connectionIssueButton)
-                    .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(playButton))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(Alignment.CENTER)
                     .addComponent(resultsLabel)
@@ -492,7 +492,7 @@ public class SplashScreen extends JFrame {
                 .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {anyTitleCheckBox, ratingComboBox, titleTextField, typeComboBox});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {anyTitleCheckBox, endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {genreLabel, ratingLabel, releasedLabel});
 
@@ -504,11 +504,9 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {endDateTextField, startDateTextField});
-
-        setSize(new Dimension(1337, 773));
+        setSize(new Dimension(1022, 680));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -534,6 +532,7 @@ public class SplashScreen extends JFrame {
     JButton loadMoreResultsButton;
     JLabel loadingLabel;
     JMenuBar menuBar;
+    JButton playButton;
     JButton popularMoviesButton;
     JButton popularTVShowsButton;
     JProgressBar progressBar;
@@ -542,6 +541,7 @@ public class SplashScreen extends JFrame {
     JLabel ratingLabel;
     JButton readSummaryButton;
     JLabel releasedLabel;
+    JLabel releasedToLabel;
     JLabel resultsLabel;
     JScrollPane resultsScrollPane;
     JTable resultsTable;
@@ -552,7 +552,6 @@ public class SplashScreen extends JFrame {
     JButton stopButton;
     JLabel titleLabel;
     JTextField titleTextField;
-    JLabel toLabel;
     JComboBox typeComboBox;
     JLabel typeLabel;
     JMenu viewMenu;

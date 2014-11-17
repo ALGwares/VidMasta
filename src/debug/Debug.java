@@ -1,26 +1,18 @@
 package debug;
 
-import java.util.Collection;
-
 public class Debug {
 
     public static final boolean DEBUG = true;
 
-    public static void print(String str) {
+    public static void print(Object obj) {
         if (DEBUG) {
-            System.out.print(str);
+            System.out.print(obj);
         }
     }
 
-    public static void println(String str) {
+    public static void println(Object obj) {
         if (DEBUG) {
-            System.out.println(str);
-        }
-    }
-
-    public static void println(Collection<?> collection) {
-        if (DEBUG) {
-            System.out.println(collection);
+            System.out.println(obj);
         }
     }
 

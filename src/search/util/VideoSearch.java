@@ -45,7 +45,7 @@ public class VideoSearch {
     }
 
     public static boolean isImdbVideoType(String sourceCode, int typeRegexIndex) {
-        return Regex.isMatch(Regex.match(sourceCode, Str.get(584), Str.get(585)), Str.get(typeRegexIndex));
+        return Regex.isMatch(Regex.match(sourceCode, 584), typeRegexIndex);
     }
 
     public static String searchEngineQuery(String query, int regexIndex) throws Exception {
@@ -55,7 +55,7 @@ public class VideoSearch {
         for (int i = NUM_SEARCH_ENGINES; i > 0; i--) {
             String searchEngine = engines.get(rand.nextInt(i));
             try {
-                String result = Regex.match(Connection.getSourceCode(searchEngine + encodedQuery, DomainType.SEARCH_ENGINE), Str.get(regexIndex));
+                String result = Regex.firstMatch(Connection.getSourceCode(searchEngine + encodedQuery, DomainType.SEARCH_ENGINE), regexIndex);
                 if (!result.isEmpty()) {
                     result = URLDecoder.decode(result, Constant.UTF8);
                     if (!result.isEmpty()) {
@@ -86,8 +86,8 @@ public class VideoSearch {
     }
 
     public static String[] getImdbTitleParts(String sourceCode, int startRegexIndex) {
-        String title = Regex.match(sourceCode, Str.get(startRegexIndex), Str.get(startRegexIndex + 1));
-        Pattern yearPattern = Regex.pattern(Str.get(100));
+        String title = Regex.match(sourceCode, startRegexIndex);
+        Pattern yearPattern = Regex.pattern(100);
         String[] result = new String[2];
         result[1] = "";
         int titleEndIndex = -1;
@@ -104,22 +104,22 @@ public class VideoSearch {
         }
 
         if (titleEndIndex == -1) {
-            title = Regex.replaceAll(title, Str.get(101), Str.get(102));
+            title = Regex.replaceAll(title, 101);
             titleEndIndex = title.length();
         }
 
         result[0] = title.substring(0, titleEndIndex).trim();
-        result[1] = Regex.match(result[1], Str.get(135));
+        result[1] = Regex.firstMatch(result[1], 135);
 
         return result;
     }
 
     public static String[] getTitleParts(String title, boolean isTVShow) {
-        String titleName = Regex.replaceAll(title, Str.get(103), Str.get(104)), year = "", season = "", episode = "";
+        String titleName = Regex.replaceAll(title, 103), year = "", season = "", episode = "";
         Collection<Integer> indexes = new ArrayList<Integer>(5);
         indexes.add(titleName.length());
 
-        Matcher typeMatcher = Regex.matcher(Str.get(105), titleName);
+        Matcher typeMatcher = Regex.matcher(105, titleName);
         while (!typeMatcher.hitEnd()) {
             if (typeMatcher.find()) {
                 if (Debug.DEBUG) {
@@ -130,7 +130,7 @@ public class VideoSearch {
             }
         }
 
-        Matcher yearMatcher = Regex.matcher(Str.get(106), titleName);
+        Matcher yearMatcher = Regex.matcher(106, titleName);
         while (!yearMatcher.hitEnd()) {
             if (yearMatcher.find()) {
                 indexes.add(yearMatcher.start());
@@ -140,18 +140,18 @@ public class VideoSearch {
         }
 
         if (isTVShow) {
-            Matcher tvBoxSetAndEpisodeMatcher = Regex.matcher(Str.get(107), titleName);
+            Matcher tvBoxSetAndEpisodeMatcher = Regex.matcher(107, titleName);
             while (!tvBoxSetAndEpisodeMatcher.hitEnd()) {
                 if (!tvBoxSetAndEpisodeMatcher.find()) {
                     continue;
                 }
 
+                String tvBoxSetAndEpisode = tvBoxSetAndEpisodeMatcher.group();
                 if (Debug.DEBUG) {
-                    Debug.print("TV BoxSet/S&E/E: '" + tvBoxSetAndEpisodeMatcher.group() + "' ");
+                    Debug.print("TV BoxSet/S&E/E: '" + tvBoxSetAndEpisode + "' ");
                 }
-                if (Regex.isMatch(tvBoxSetAndEpisodeMatcher.group(), Str.get(108))) {
-                    String[] seasonAndEpisode = Regex.split(Regex.replaceFirst(tvBoxSetAndEpisodeMatcher.group().trim(), Str.get(109), Str.get(110)),
-                            Str.get(111));
+                if (Regex.isMatch(tvBoxSetAndEpisode, 108)) {
+                    String[] seasonAndEpisode = Regex.split(Regex.replaceFirst(tvBoxSetAndEpisode.trim(), 109), 111);
                     int seasonNum = Integer.parseInt(seasonAndEpisode[0]);
                     if (seasonNum >= 1 && seasonNum <= 100) {
                         season = String.format(Constant.TV_EPISODE_FORMAT, seasonNum);
@@ -165,7 +165,7 @@ public class VideoSearch {
                 break;
             }
         } else {
-            Matcher movieBoxSetMatcher = Regex.matcher(Str.get(239), titleName);
+            Matcher movieBoxSetMatcher = Regex.matcher(239, titleName);
             while (!movieBoxSetMatcher.hitEnd()) {
                 if (movieBoxSetMatcher.find()) {
                     if (Debug.DEBUG) {
@@ -185,7 +185,7 @@ public class VideoSearch {
             return true;
         }
 
-        String title = Regex.replaceAll(titleName, Str.get(77), Str.get(78));
+        String title = Regex.replaceAll(titleName, 77);
         if (format.equals(Constant.HQ)) {
             return hasType(title, 569);
         }
@@ -199,7 +199,7 @@ public class VideoSearch {
     }
 
     private static boolean hasType(String title, int typeRegexIndex) {
-        return !Regex.match(title, Str.get(typeRegexIndex)).isEmpty();
+        return !Regex.firstMatch(title, typeRegexIndex).isEmpty();
     }
 
     public static String rating(String rating) {
@@ -207,8 +207,8 @@ public class VideoSearch {
     }
 
     public static String getSummary(String sourceCode, boolean isTVShow) {
-        String infoBar = Regex.match(sourceCode, Str.get(137), Str.get(138));
-        List<String> genresArr = Regex.matches(infoBar, Str.get(139), Str.get(140));
+        String infoBar = Regex.match(sourceCode, 137);
+        List<String> genresArr = Regex.matches(infoBar, 139);
 
         StringBuilder genresStr = new StringBuilder(128);
         int numGenres = genresArr.size();
@@ -225,12 +225,12 @@ public class VideoSearch {
             summary.append("<b>Genre: </b>").append(genresStr).append(br2);
         }
 
-        String summary1 = Regex.match(sourceCode, Str.get(129), Str.get(130));
-        summary1 = Regex.replaceAll(summary1, Str.get(203), Str.get(204)).trim();
-        summary1 = Regex.replaceAll(Regex.replaceAll(summary1, Str.get(241), Str.get(242)), Str.get(243), Str.get(244));
-        String summary2 = Regex.match(sourceCode, Str.get(131), Str.get(132));
-        summary2 = Regex.replaceAll(summary2, Str.get(205), Str.get(206)).trim();
-        summary2 = Regex.replaceAll(Regex.replaceAll(summary2, Str.get(245), Str.get(246)), Str.get(247), Str.get(248));
+        String summary1 = Regex.match(sourceCode, 129);
+        summary1 = Regex.replaceAll(summary1, 203).trim();
+        summary1 = Regex.replaceAll(Regex.replaceAll(summary1, 241), 243);
+        String summary2 = Regex.match(sourceCode, 131);
+        summary2 = Regex.replaceAll(summary2, 205).trim();
+        summary2 = Regex.replaceAll(Regex.replaceAll(summary2, 245), 247);
         String storyline = null;
         boolean isEmpty1 = summary1.isEmpty(), isEmpty2 = summary2.isEmpty();
 
@@ -248,10 +248,10 @@ public class VideoSearch {
         }
 
         List<StringBuilder> nameLists = new ArrayList<StringBuilder>(4);
-        getNames(Regex.match(sourceCode, Str.get(560), Str.get(561)), "Creator", nameLists);
-        getNames(Regex.match(sourceCode, Str.get(192), Str.get(193)), "Director", nameLists);
-        getNames(Regex.match(sourceCode, Str.get(194), Str.get(195)), "Writer", nameLists);
-        getNames(Regex.match(sourceCode, Str.get(196), Str.get(197)), "Star", nameLists);
+        getNames(Regex.match(sourceCode, 560), "Creator", nameLists);
+        getNames(Regex.match(sourceCode, 192), "Director", nameLists);
+        getNames(Regex.match(sourceCode, 194), "Writer", nameLists);
+        getNames(Regex.match(sourceCode, 196), "Star", nameLists);
         int lastIndex = nameLists.size() - 1;
         for (int i = 0; i <= lastIndex; i++) {
             if (i == 0) {
@@ -267,12 +267,12 @@ public class VideoSearch {
         if (isTVShow) {
             summary.append(Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER).append(br1).append(Constant.TV_PREV_EPISODE_HTML_AND_PLACEHOLDER);
         } else {
-            String releaseDate = Regex.replaceAll(Regex.match(sourceCode, Str.get(539), Str.get(540)), Str.get(541), Str.get(542));
-            if (Regex.isMatch(releaseDate, Str.get(543))) {
+            String releaseDate = Regex.replaceAll(Regex.match(sourceCode, 539), 541);
+            if (Regex.isMatch(releaseDate, 543)) {
                 releaseDate = dateToString(new SimpleDateFormat(Str.get(544), Locale.ENGLISH), releaseDate, Boolean.parseBoolean(Str.get(556)));
-            } else if (Regex.isMatch(releaseDate, Str.get(548))) {
+            } else if (Regex.isMatch(releaseDate, 548)) {
                 releaseDate = dateToString(new SimpleDateFormat(Str.get(549), Locale.ENGLISH), releaseDate, Boolean.parseBoolean(Str.get(557)));
-            } else if (releaseDate.isEmpty() || Regex.isMatch(releaseDate, Str.get(545))) {
+            } else if (releaseDate.isEmpty() || Regex.isMatch(releaseDate, 545)) {
                 releaseDate = getImdbTitleParts(sourceCode)[1];
             }
             summary.append("<b>Release Date: </b>").append(releaseDate.isEmpty() ? "unknown" : releaseDate);
@@ -287,11 +287,11 @@ public class VideoSearch {
 
     private static void getNames(String names, String type, Collection<StringBuilder> nameLists) {
         StringBuilder nameList = new StringBuilder("<b>" + type);
-        List<String> namesArr = Regex.matches(names, Str.get(198), Str.get(199));
+        List<String> namesArr = Regex.matches(names, 198);
 
         ListIterator<String> namesIt = namesArr.listIterator();
         while (namesIt.hasNext()) {
-            if (Regex.isMatch(namesIt.next(), Str.get(200))) {
+            if (Regex.isMatch(namesIt.next(), 200)) {
                 namesIt.remove();
             }
         }
@@ -340,7 +340,7 @@ public class VideoSearch {
     public static String getMovieTitlePrefix(String dirtyMovieTitle) {
         int index = -1;
 
-        Matcher numMatcher = Regex.matcher(Str.get(214), dirtyMovieTitle);
+        Matcher numMatcher = Regex.matcher(214, dirtyMovieTitle);
         while (!numMatcher.hitEnd()) {
             if (numMatcher.find()) {
                 index = numMatcher.end();
@@ -366,7 +366,7 @@ public class VideoSearch {
     }
 
     public static String getOldTitle(String sourceCode) {
-        return Regex.match(sourceCode, Str.get(172), Str.get(173));
+        return Regex.match(sourceCode, 172);
     }
 
     public static void saveImage(Video video) throws Exception {

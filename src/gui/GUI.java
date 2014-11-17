@@ -21,6 +21,8 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
@@ -37,6 +39,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -98,7 +101,6 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListModel;
 import javax.swing.RootPaneContainer;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.TransferHandler;
@@ -119,7 +121,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
@@ -130,7 +131,9 @@ import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLDocument;
 import listener.ContentType;
 import listener.DomainType;
+import listener.FormattedNum;
 import listener.GuiListener;
+import listener.PlaylistItem;
 import listener.Video;
 import listener.VideoStrExportListener;
 import listener.WorkerListener;
@@ -149,12 +152,13 @@ public class GUI extends JFrame implements GuiListener {
     private WorkerListener workerListener;
     private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode;
     boolean viewedPortBefore;
-    String proxyImportFile, proxyExportFile, torrentDir, subtitleDir;
+    String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
     DefaultListModel blacklistListModel, whitelistListModel;
     private DefaultListModel removeProxiesListModel;
     private HTMLDocument summaryEditorPaneDocument;
     int imageCol, titleCol, yearCol, ratingCol, idCol, currTitleCol, oldTitleCol, summaryCol, imageLinkCol, isTVShowCol, isTVShowAndMovieCol,
             seasonCol, episodeCol;
+    int playlistNameCol, playlistSizeCol, playlistProgressCol, playlistItemCol;
     String randomPort;
     private static final String HQ_FORMAT = "high/TV+ quality ";
     private static final String CTRL_CLICK = KeyEvent.getKeyModifiersText(KeyEvent.CTRL_MASK).toLowerCase(Locale.ENGLISH) + "+click to ";
@@ -163,13 +167,14 @@ public class GUI extends JFrame implements GuiListener {
     private VideoStrExportListener subtitleStrExportListener;
     private final Set<Integer> trailerEpisodes = new HashSet<Integer>(4), downloadLinkEpisodes = new HashSet<Integer>(4),
             subtitleEpisodes = new HashSet<Integer>(4);
-    private Icon loadingIcon, notLoadingIcon, noWarningIcon, warningIcon;
+    private Icon loadingIcon, notLoadingIcon, noWarningIcon, warningIcon, playIcon, stopIcon;
     JList popupList;
     JTextComponent popupTextComponent;
     Component downloadLinkPopupComponent;
-    SyncTable resultsSyncTable;
+    SyncTable resultsSyncTable, playlistSyncTable;
     private AbstractPopupListener textComponentPopupListener;
-    private final ActionListener htmlCopyListener = new HTMLCopyListener(), tableCopyListener = new TableCopyListener();
+    private final ActionListener htmlCopyListener = new HTMLCopyListener(), tableCopyListener = new TableCopyListener(),
+            playlistTableCopyListener = new PlaylistTableCopyListener();
     private final Object msgDialogLock = new Object(), optionDialogLock = new Object();
     private final Settings settings = new Settings();
     final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
@@ -185,7 +190,7 @@ public class GUI extends JFrame implements GuiListener {
     private int findTitleRow = -2;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
-    JMenuItem dummyMenuItem = new JMenuItem();
+    JMenuItem dummyMenuItem = new JMenuItem(), peerBlockMenuItem;
     JComboBox dummyComboBox = new JComboBox();
 
     public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
@@ -219,6 +224,10 @@ public class GUI extends JFrame implements GuiListener {
         int increment = 30;
         resultsScrollBar.setUnitIncrement(increment);
         resultsScrollBar.setBlockIncrement(increment);
+        playlistSyncTable = new SyncTable(playlistTable);
+        JScrollBar playlistScrollBar = playlistScrollPane.getVerticalScrollBar();
+        playlistScrollBar.setUnitIncrement(increment);
+        playlistScrollBar.setBlockIncrement(increment);
 
         for (JCalendar calendar : new JCalendar[]{startCalendar, endCalendar}) {
             calendar.setTodayButtonVisible(true);
@@ -250,20 +259,8 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        UI.addMouseListener(new AbstractPopupListener() {
-            @Override
-            protected void showPopup(MouseEvent evt) {
-                int row, col;
-                if (!evt.isPopupTrigger() || (row = resultsSyncTable.rowAtPoint(evt.getPoint())) == -1 || (col = resultsSyncTable.columnAtPoint(evt.getPoint()))
-                        == -1) {
-                    return;
-                }
-
-                resultsSyncTable.clearSelection();
-                resultsSyncTable.changeSelection(row, col, false, false);
-                show(tablePopupMenu, evt);
-            }
-        }, resultsTable);
+        UI.addPopupMenu(tablePopupMenu, resultsSyncTable, true);
+        UI.addPopupMenu(playlistTablePopupMenu, playlistSyncTable, false);
 
         UI.addMouseListener(textComponentPopupListener = new AbstractPopupListener() {
             @Override
@@ -280,7 +277,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, titleTextField, findTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField,
                 portTextField, optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
-                authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField);
+                authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField, activationTextField);
 
         UI.addMouseListener(new AbstractPopupListener() {
             @Override
@@ -312,7 +309,7 @@ public class GUI extends JFrame implements GuiListener {
                     show(downloadLinkButtonPopupMenu, evt);
                 }
             }
-        }, downloadLink1Button, downloadLink2Button);
+        }, playButton, downloadLink1Button, downloadLink2Button);
 
         UI.addPopupMenu(watchSourceButtonPopupMenu, watchSource1Button, watchSource2Button);
 
@@ -352,6 +349,13 @@ public class GUI extends JFrame implements GuiListener {
             resultsTable.removeColumn(resultsTable.getColumn(col));
         }
 
+        TableColumnModel playlistColModel = playlistTable.getColumnModel();
+        playlistNameCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_NAME_COL);
+        playlistSizeCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_SIZE_COL);
+        playlistProgressCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_PROGRESS_COL);
+        playlistItemCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_ITEM_COL);
+        playlistTable.removeColumn(playlistTable.getColumn(Constant.PLAYLIST_ITEM_COL));
+
         splashScreen.progress();
 
         colModel.getColumn(imageCol).setCellRenderer(new DefaultTableCellRenderer() {
@@ -369,10 +373,34 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
+        playlistColModel.getColumn(playlistProgressCol).setCellRenderer(new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
+            JProgressBar progressBar;
+
+            {
+                (progressBar = new JProgressBar()).setStringPainted(true);
+            }
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                FormattedNum val = (FormattedNum) value;
+                progressBar.setValue((int) (val.val().doubleValue() * 100));
+                progressBar.setString(val.toString());
+                return progressBar;
+            }
+        });
+
         resultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent evt) {
                 resultsTableValueChanged(evt);
+            }
+        });
+
+        playlistTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent evt) {
+                playlistTableValueChanged(evt);
             }
         });
 
@@ -384,56 +412,46 @@ public class GUI extends JFrame implements GuiListener {
 
         UI.registerCutCopyPasteKeyboardActions(summaryEditorPane, htmlCopyListener);
         UI.registerCutCopyPasteKeyboardActions(resultsTable, tableCopyListener);
+        UI.registerCutCopyPasteKeyboardActions(playlistTable, playlistTableCopyListener);
 
-        DefaultRowSorter<TableModel, Integer> rowSorter = new TableRowSorter<TableModel>(resultsTable.getModel()) {
-            @Override
-            @SuppressWarnings("unchecked")
-            public void setSortKeys(List<? extends SortKey> sortKeys) {
-                List<SortKey> newSortKeys = (List<SortKey>) sortKeys;
-                SortKey primarySortKey;
-                if (sortKeys != null && !sortKeys.isEmpty() && (primarySortKey = sortKeys.get(0)) != null) {
-                    int sortCol = primarySortKey.getColumn();
-                    SortOrder sortOrder = null;
-
-                    for (SortKey sortKey : getSortKeys()) {
-                        if (sortKey.getColumn() == sortCol) {
-                            sortOrder = sortKey.getSortOrder();
-                            break;
-                        }
-                    }
-
-                    if (sortCol == yearCol || sortCol == ratingCol) {
-                        if (sortOrder == null) {
-                            (newSortKeys = new ArrayList<SortKey>(sortKeys)).set(0, new SortKey(sortCol, SortOrder.DESCENDING));
-                        }
-                        sortOrder = primarySortKey.getSortOrder();
-                    }
-
-                    if (sortOrder == SortOrder.DESCENDING) {
-                        newSortKeys = null;
-                    }
-                }
-                super.setSortKeys(newSortKeys);
-            }
-        };
-        resultsTable.setRowSorter(rowSorter);
+        DefaultRowSorter<TableModel, Integer> rowSorter = UI.setRowSorter(resultsSyncTable, yearCol, ratingCol);
         rowSorter.setComparator(titleCol, new ColumnComparator<String>() {
             @Override
-            protected String convert(String str) {
-                return Regex.htmlToPlainText(UI.innerHTML(str, Constant.TITLE_INDENT_LEN));
+            protected String convert(String title) {
+                return Regex.htmlToPlainText(UI.innerHTML(title, Constant.TITLE_INDENT_LEN)).toLowerCase(Locale.ENGLISH);
             }
         });
         rowSorter.setComparator(yearCol, new ColumnComparator<Short>() {
             @Override
-            protected Short convert(String str) {
-                return Short.valueOf(UI.innerHTML(str));
+            protected Short convert(String year) {
+                return Short.valueOf(UI.innerHTML(year));
             }
         });
         rowSorter.setComparator(ratingCol, new ColumnComparator<Float>() {
             @Override
-            protected Float convert(String str) {
-                String tempStr = UI.innerHTML(str);
-                return tempStr.equals("-") ? 0.0f : Float.parseFloat(tempStr);
+            protected Float convert(String rating) {
+                String tempRating = UI.innerHTML(rating);
+                return tempRating.equals("-") ? 0.0f : Float.parseFloat(tempRating);
+            }
+        });
+
+        DefaultRowSorter<TableModel, Integer> playlistRowSorter = UI.setRowSorter(playlistSyncTable, playlistSizeCol, playlistProgressCol);
+        playlistRowSorter.setComparator(playlistNameCol, new Comparator<String>() {
+            @Override
+            public int compare(String name1, String name2) {
+                return name1.compareToIgnoreCase(name2);
+            }
+        });
+        playlistRowSorter.setComparator(playlistSizeCol, new Comparator<FormattedNum>() {
+            @Override
+            public int compare(FormattedNum size1, FormattedNum size2) {
+                return Long.valueOf(size1.val().longValue()).compareTo(size2.val().longValue());
+            }
+        });
+        playlistRowSorter.setComparator(playlistProgressCol, new Comparator<FormattedNum>() {
+            @Override
+            public int compare(FormattedNum progress1, FormattedNum progress2) {
+                return Double.valueOf(progress1.val().doubleValue()).compareTo(progress2.val().doubleValue());
             }
         });
 
@@ -442,29 +460,35 @@ public class GUI extends JFrame implements GuiListener {
         autoDownloadersButtonGroup.add(defaultRadioButtonMenuItem);
         autoDownloadersButtonGroup.add(customRadioButtonMenuItem);
 
-        loadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "loading.gif");
-        notLoadingIcon = new ImageIcon(Constant.PROGRAM_DIR + "notLoading.gif");
+        loadingIcon = UI.icon("loading.gif");
+        notLoadingIcon = UI.icon("notLoading.gif");
         for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel,
-            summaryLoadingLabel}) {
+            summaryLoadingLabel, activationLoadingLabel}) {
             label.setIcon(notLoadingIcon);
         }
-        noWarningIcon = new ImageIcon(Constant.PROGRAM_DIR + "noWarning.png");
-        warningIcon = new ImageIcon(Constant.PROGRAM_DIR + "warning.png");
+        noWarningIcon = UI.icon("noWarning.png");
+        warningIcon = UI.icon("warning.png");
         connectionIssueButton.setIcon(noWarningIcon);
-        trashCanButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "trashCan.png"));
-        closeBoxButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "closeBox.png"));
-        summaryTextToSpeechButton.setIcon(new ImageIcon(Constant.PROGRAM_DIR + "speaker.png"));
+        UI.setIcon(trashCanButton, "trashCan");
+        UI.setIcon(closeBoxButton, "closeBox");
+        UI.setIcon(summaryTextToSpeechButton, "speaker");
+        playIcon = UI.icon("play.png");
+        stopIcon = UI.icon("stop.png");
+        play(null);
+        UI.setIcon(playlistMoveUpButton, "up");
+        UI.setIcon(playlistMoveDownButton, "down");
+        UI.setIcon(playlistRemoveButton, "remove");
 
         splashScreen.progress();
 
         List<String> genreArr = new ArrayList<String>(32);
         genreArr.add(Constant.ANY_GENRE);
-        Collections.addAll(genreArr, Regex.split(Str.get(359), Constant.SEPARATOR1));
+        Collections.addAll(genreArr, Regex.split(359, Constant.SEPARATOR1));
         genreList.setListData(genreArr.toArray());
         genreList.setSelectedValue(Constant.ANY_GENRE, true);
 
         ratingComboBox.addItem(Constant.ANY);
-        for (String rating : Regex.split(Str.get(360), Constant.SEPARATOR1)) {
+        for (String rating : Regex.split(360, Constant.SEPARATOR1)) {
             ratingComboBox.addItem(rating);
         }
         ratingComboBox.setSelectedItem(Constant.ANY);
@@ -502,7 +526,6 @@ public class GUI extends JFrame implements GuiListener {
         AutoCompleteDecorator.decorate(titleTextField, Arrays.asList(Regex.split(IO.read(Constant.PROGRAM_DIR + "autoCompleteTitles" + Constant.TXT),
                 Constant.NEWLINE)), false);
 
-        //don't change order of things below this line
         splashScreen.progress();
 
         updatedTVComboBoxes();
@@ -523,8 +546,12 @@ public class GUI extends JFrame implements GuiListener {
         String escapeKeyWindowClosingActionMapKey = "VK_ESCAPE:WINDOW_CLOSING", enterKeyWindowClosingActionMapKey = "VK_ENTER:WINDOW_CLOSING";
         KeyStroke escapeKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
         Image icon = Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png");
+
         timedMsgDialog.setIconImage(icon);
-        for (final Window window : windows()) {
+        Collection<Window> windows = new ArrayList<Window>(Arrays.asList(windows()));
+        Collections.addAll(windows, (Window) playlistFrame, activationDialog);
+
+        for (final Window window : windows) {
             window.setIconImage(icon);
             if (window == this) {
                 continue;
@@ -548,13 +575,16 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS); //this must always come last unless overriding settings
-        if (!Constant.CAN_PEER_BLOCK) {
+        if (Constant.CAN_PEER_BLOCK) {
+            peerBlockMenuItem = peerBlockNotificationCheckBoxMenuItem;
+        } else {
+            peerBlockMenuItem = new JMenuItem();
             peerBlockNotificationCheckBoxMenuItem.setEnabled(false);
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
-            peerBlockNotificationCheckBoxMenuItem.setToolTipText("only available for Windows 2000, XP, Vista, and 7");
+            peerBlockNotificationCheckBoxMenuItem.setToolTipText("only available for Windows XP or higher");
             usePeerBlock = false;
         }
+        settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS);
 
         splashScreen.progress();
     }
@@ -686,6 +716,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu = new JPopupMenu();
         readSummaryMenuItem = new JMenuItem();
         watchTrailerMenuItem = new JMenuItem();
+        playMenuItem = new JMenuItem();
         downloadLink1MenuItem = new JMenuItem();
         downloadLink2MenuItem = new JMenuItem();
         watchSource1MenuItem = new JMenuItem();
@@ -723,6 +754,7 @@ public class GUI extends JFrame implements GuiListener {
         textComponentPopupMenuSeparator1 = new Separator();
         textComponentSelectAllMenuItem = new JMenuItem();
         proxyFileChooser = new JFileChooser();
+        playlistFileChooser = new JFileChooser();
         proxyDialog = new JDialog();
         proxyAddButton = new JButton();
         proxyRemoveButton = new JButton();
@@ -833,6 +865,31 @@ public class GUI extends JFrame implements GuiListener {
         downloadLinkExitBackupModeMenuItem = new JMenuItem();
         watchSourceButtonPopupMenu = new JPopupMenu();
         watchSourceCancelMenuItem = new JMenuItem();
+        playlistFrame = new JFrame();
+        playlistScrollPane = new JScrollPane();
+        playlistTable = new JTable();
+        playlistPlayButton = new JButton();
+        playlistMoveUpButton = new JButton();
+        playlistMoveDownButton = new JButton();
+        playlistRemoveButton = new JButton();
+        playlistTablePopupMenu = new JPopupMenu();
+        playlistPlayMenuItem = new JMenuItem();
+        playlistOpenMenuItem = new JMenuItem();
+        playlistAutoOpenCheckBoxMenuItem = new JCheckBoxMenuItem();
+        playlistMoveUpMenuItem = new JMenuItem();
+        playlistMoveDownMenuItem = new JMenuItem();
+        playlistTablePopupMenuSeparator1 = new Separator();
+        playlistCopyMenuItem = new JMenuItem();
+        playlistTablePopupMenuSeparator2 = new Separator();
+        playlistRemoveMenuItem = new JMenuItem();
+        activationDialog = new JDialog();
+        activationUpgradeButton = new JButton();
+        activationUpgradeLabel = new JLabel();
+        activationUpgradeComboBox = new JComboBox();
+        activationCodeLabel = new JLabel();
+        activationTextField = new JTextField();
+        activationButton = new JButton();
+        activationLoadingLabel = new JLabel();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -864,6 +921,7 @@ public class GUI extends JFrame implements GuiListener {
         loadingLabel = new JLabel();
         readSummaryButton = new JButton();
         watchTrailerButton = new JButton();
+        playButton = new JButton();
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
         watchSource1Button = new JButton();
@@ -891,8 +949,10 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenuSeparator1 = new Separator();
         editProfilesMenuItem = new JMenuItem();
         fileMenuSeparator2 = new Separator();
-        printMenuItem = new JMenuItem();
+        playlistSaveFolderMenuItem = new JMenuItem();
         fileMenuSeparator3 = new Separator();
+        printMenuItem = new JMenuItem();
+        fileMenuSeparator4 = new Separator();
         exitMenuItem = new JMenuItem();
         editMenu = new JMenu();
         cutMenuItem = new JMenuItem();
@@ -905,6 +965,7 @@ public class GUI extends JFrame implements GuiListener {
         findMenuItem = new JMenuItem();
         viewMenu = new JMenu();
         resetWindowMenuItem = new JMenuItem();
+        playlistMenuItem = new JMenuItem();
         searchMenu = new JMenu();
         resultsPerSearchMenuItem = new JMenuItem();
         searchMenuSeparator1 = new Separator();
@@ -935,6 +996,7 @@ public class GUI extends JFrame implements GuiListener {
         helpMenu = new JMenu();
         faqMenuItem = new JMenuItem();
         helpMenuSeparator1 = new Separator();
+        activationMenuItem = new JMenuItem();
         updateMenuItem = new JMenuItem();
         updateCheckBoxMenuItem = new JCheckBoxMenuItem();
         helpMenuSeparator2 = new Separator();
@@ -1665,9 +1727,24 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(watchTrailerMenuItem);
 
-        String downloadLinkMenuToolTip = CTRL_CLICK + "exit backup mode";
+        String exitBackupModeToolTip = CTRL_CLICK + "exit backup mode";
+        playMenuItem.setText("Play");
+        playMenuItem.setToolTipText(exitBackupModeToolTip);
+        playMenuItem.setEnabled(false);
+        playMenuItem.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                playMenuItemMousePressed(evt);
+            }
+        });
+        playMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playMenuItemActionPerformed(evt);
+            }
+        });
+        tablePopupMenu.add(playMenuItem);
+
         downloadLink1MenuItem.setText("Download (Link 1)");
-        downloadLink1MenuItem.setToolTipText(downloadLinkMenuToolTip);
+        downloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
         downloadLink1MenuItem.setEnabled(false);
         downloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1682,7 +1759,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(downloadLink1MenuItem);
 
         downloadLink2MenuItem.setText("Download (Link 2)");
-        downloadLink2MenuItem.setToolTipText(downloadLinkMenuToolTip);
+        downloadLink2MenuItem.setToolTipText(exitBackupModeToolTip);
         downloadLink2MenuItem.setEnabled(false);
         downloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1765,7 +1842,7 @@ public class GUI extends JFrame implements GuiListener {
         copyMenu.add(copyTrailerLinkMenuItem);
 
         copyDownloadLink1MenuItem.setText("Download Link 1");
-        copyDownloadLink1MenuItem.setToolTipText(downloadLinkMenuToolTip);
+        copyDownloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
         copyDownloadLink1MenuItem.setEnabled(false);
         copyDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1780,7 +1857,7 @@ public class GUI extends JFrame implements GuiListener {
         copyMenu.add(copyDownloadLink1MenuItem);
 
         copyDownloadLink2MenuItem.setText("Download Link 2");
-        copyDownloadLink2MenuItem.setToolTipText(downloadLinkMenuToolTip);
+        copyDownloadLink2MenuItem.setToolTipText(exitBackupModeToolTip);
         copyDownloadLink2MenuItem.setEnabled(false);
         copyDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1844,7 +1921,7 @@ public class GUI extends JFrame implements GuiListener {
         emailMenu.add(emailTrailerLinkMenuItem);
 
         emailDownloadLink1MenuItem.setText("Download Link 1");
-        emailDownloadLink1MenuItem.setToolTipText(downloadLinkMenuToolTip);
+        emailDownloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
         emailDownloadLink1MenuItem.setEnabled(false);
         emailDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1859,7 +1936,7 @@ public class GUI extends JFrame implements GuiListener {
         emailMenu.add(emailDownloadLink1MenuItem);
 
         emailDownloadLink2MenuItem.setText("Download Link 2");
-        emailDownloadLink2MenuItem.setToolTipText(downloadLinkMenuToolTip);
+        emailDownloadLink2MenuItem.setToolTipText(exitBackupModeToolTip);
         emailDownloadLink2MenuItem.setEnabled(false);
         emailDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1979,6 +2056,10 @@ public class GUI extends JFrame implements GuiListener {
 
         proxyFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         proxyFileChooser.setCurrentDirectory(null);
+
+        playlistFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        playlistFileChooser.setCurrentDirectory(null);
+        playlistFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         proxyDialog.setTitle("Proxy Settings");
         proxyDialog.setAlwaysOnTop(true);
@@ -2311,6 +2392,7 @@ public class GUI extends JFrame implements GuiListener {
         profileDialog.setModal(true);
 
         profileSetButton.setText("Set");
+        profileSetButton.setEnabled(false);
         profileSetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profileSetButtonActionPerformed(evt);
@@ -2469,9 +2551,9 @@ public class GUI extends JFrame implements GuiListener {
         portDialog.setTitle("Port Settings");
         portDialog.setAlwaysOnTop(true);
         portDialog.setModal(true);
-        portDialog.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent evt) {
-                portDialogWindowClosing(evt);
+        portDialog.addComponentListener(new ComponentAdapter() {
+            public void componentHidden(ComponentEvent evt) {
+                portDialogComponentHidden(evt);
             }
         });
 
@@ -3010,7 +3092,274 @@ public class GUI extends JFrame implements GuiListener {
         });
         watchSourceButtonPopupMenu.add(watchSourceCancelMenuItem);
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        playlistFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        playlistFrame.setTitle("Playlist");
+        playlistFrame.setAlwaysOnTop(true);
+        playlistFrame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent evt) {
+                playlistFrameWindowClosing(evt);
+            }
+        });
+
+        playlistScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        playlistScrollPane.setAutoscrolls(true);
+
+        playlistTable.setAutoCreateRowSorter(true);
+        playlistTable.setModel(new DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "", "", "", ""
+            }
+        ) {
+            Class[] types = new Class [] {
+                String.class, Object.class, Object.class, Object.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        playlistTable.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        playlistTable.setFillsViewportHeight(true);
+        playlistTable.setMaximumSize(new Dimension(32767, 32767));
+        playlistTable.setMinimumSize(new Dimension(24, 24));
+        playlistTable.setName("Playlist"); // NOI18N
+        playlistTable.setOpaque(false);
+        playlistTable.setPreferredSize(null);
+        playlistScrollPane.setViewportView(playlistTable);
+        if (playlistTable.getColumnModel().getColumnCount() > 0) {
+            playlistTable.getColumnModel().getColumn(0).setPreferredWidth(709);
+            playlistTable.getColumnModel().getColumn(0).setHeaderValue(Constant.PLAYLIST_NAME_COL);
+            playlistTable.getColumnModel().getColumn(1).setPreferredWidth(65);
+            playlistTable.getColumnModel().getColumn(1).setHeaderValue(Constant.PLAYLIST_SIZE_COL);
+            playlistTable.getColumnModel().getColumn(2).setPreferredWidth(158);
+            playlistTable.getColumnModel().getColumn(2).setHeaderValue(Constant.PLAYLIST_PROGRESS_COL);
+            playlistTable.getColumnModel().getColumn(3).setPreferredWidth(0);
+            playlistTable.getColumnModel().getColumn(3).setHeaderValue(Constant.PLAYLIST_ITEM_COL);
+        }
+
+        playlistPlayButton.setText(null);
+        playlistPlayButton.setToolTipText("play/stop");
+        playlistPlayButton.setEnabled(false);
+        playlistPlayButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistPlayButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistPlayButtonActionPerformed(evt);
+            }
+        });
+
+        playlistMoveUpButton.setText(null);
+        playlistMoveUpButton.setToolTipText("move up");
+        playlistMoveUpButton.setEnabled(false);
+        playlistMoveUpButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistMoveUpButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMoveUpButtonActionPerformed(evt);
+            }
+        });
+
+        playlistMoveDownButton.setText(null);
+        playlistMoveDownButton.setToolTipText("move down");
+        playlistMoveDownButton.setEnabled(false);
+        playlistMoveDownButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistMoveDownButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMoveDownButtonActionPerformed(evt);
+            }
+        });
+
+        playlistRemoveButton.setText(null);
+        playlistRemoveButton.setToolTipText("remove");
+        playlistRemoveButton.setEnabled(false);
+        playlistRemoveButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistRemoveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistRemoveButtonActionPerformed(evt);
+            }
+        });
+
+        GroupLayout playlistFrameLayout = new GroupLayout(playlistFrame.getContentPane());
+        playlistFrame.getContentPane().setLayout(playlistFrameLayout);
+        playlistFrameLayout.setHorizontalGroup(
+            playlistFrameLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(playlistFrameLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 880, Short.MAX_VALUE)
+                    .addGroup(playlistFrameLayout.createSequentialGroup()
+                        .addComponent(playlistPlayButton)
+                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(playlistMoveUpButton)
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(playlistMoveDownButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(playlistRemoveButton)))
+                .addContainerGap())
+        );
+        playlistFrameLayout.setVerticalGroup(
+            playlistFrameLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(playlistFrameLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.UNRELATED)
+                .addGroup(playlistFrameLayout.createParallelGroup(Alignment.BASELINE)
+                    .addComponent(playlistPlayButton)
+                    .addComponent(playlistMoveUpButton)
+                    .addComponent(playlistMoveDownButton)
+                    .addComponent(playlistRemoveButton))
+                .addContainerGap())
+        );
+
+        playlistPlayMenuItem.setToolTipText("play/stop");
+        playlistPlayMenuItem.setEnabled(false);
+        playlistPlayMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistPlayMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistPlayMenuItem);
+
+        playlistOpenMenuItem.setText("Open");
+        playlistOpenMenuItem.setEnabled(false);
+        playlistOpenMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistOpenMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistOpenMenuItem);
+
+        playlistAutoOpenCheckBoxMenuItem.setSelected(true);
+        playlistAutoOpenCheckBoxMenuItem.setText("Auto-Open");
+        playlistAutoOpenCheckBoxMenuItem.setEnabled(false);
+        playlistTablePopupMenu.add(playlistAutoOpenCheckBoxMenuItem);
+
+        playlistMoveUpMenuItem.setText("Move Up");
+        playlistMoveUpMenuItem.setEnabled(false);
+        playlistMoveUpMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMoveUpMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistMoveUpMenuItem);
+
+        playlistMoveDownMenuItem.setText("Move Down");
+        playlistMoveDownMenuItem.setEnabled(false);
+        playlistMoveDownMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMoveDownMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistMoveDownMenuItem);
+        playlistTablePopupMenu.add(playlistTablePopupMenuSeparator1);
+
+        playlistCopyMenuItem.setText("Copy");
+        playlistCopyMenuItem.setEnabled(false);
+        playlistCopyMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistCopyMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistCopyMenuItem);
+        playlistTablePopupMenu.add(playlistTablePopupMenuSeparator2);
+
+        playlistRemoveMenuItem.setText("Remove");
+        playlistRemoveMenuItem.setEnabled(false);
+        playlistRemoveMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistRemoveMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistRemoveMenuItem);
+
+        activationDialog.setTitle("Activation");
+        activationDialog.setAlwaysOnTop(true);
+        activationDialog.setIconImage(null);
+        activationDialog.setModal(true);
+
+        activationUpgradeButton.setText("Upgrade");
+        activationUpgradeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                activationUpgradeButtonActionPerformed(evt);
+            }
+        });
+
+        activationUpgradeLabel.setText("to unlimited playback of movies and TV shows for");
+
+        activationUpgradeComboBox.setModel(new DefaultComboBoxModel(new String[] { "XXXXXXXXXXXXXXXXXXXXX" }));
+        activationUpgradeComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                activationUpgradeComboBoxActionPerformed(evt);
+            }
+        });
+
+        activationCodeLabel.setText("Activation Code:");
+
+        activationButton.setText("OK");
+        activationButton.setToolTipText("check activation code");
+        activationButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                activationButtonActionPerformed(evt);
+            }
+        });
+
+        activationLoadingLabel.setText(null);
+
+        GroupLayout activationDialogLayout = new GroupLayout(activationDialog.getContentPane());
+        activationDialog.getContentPane().setLayout(activationDialogLayout);
+        activationDialogLayout.setHorizontalGroup(
+            activationDialogLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(activationDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(activationDialogLayout.createSequentialGroup()
+                        .addComponent(activationCodeLabel)
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(activationTextField))
+                    .addGroup(activationDialogLayout.createSequentialGroup()
+                        .addComponent(activationUpgradeButton)
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(activationUpgradeLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING, false)
+                    .addGroup(activationDialogLayout.createSequentialGroup()
+                        .addComponent(activationButton)
+                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(activationLoadingLabel))
+                    .addComponent(activationUpgradeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
+
+        activationDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {activationCodeLabel, activationUpgradeButton});
+
+        activationDialogLayout.setVerticalGroup(
+            activationDialogLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(activationDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
+                    .addComponent(activationUpgradeButton)
+                    .addComponent(activationUpgradeLabel)
+                    .addComponent(activationUpgradeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(ComponentPlacement.UNRELATED)
+                .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
+                    .addComponent(activationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(activationCodeLabel)
+                    .addComponent(activationButton)
+                    .addComponent(activationLoadingLabel))
+                .addContainerGap())
+        );
+
+        activationDialog.pack();
+
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(Constant.APP_TITLE);
         setMinimumSize(null);
         addWindowListener(new WindowAdapter() {
@@ -3278,7 +3627,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         closeBoxButton.setText(null);
-        closeBoxButton.setToolTipText("stop search");
+        closeBoxButton.setToolTipText("stop play, download, and watch searches");
         closeBoxButton.setEnabled(false);
         closeBoxButton.setMargin(new Insets(0, 0, 0, 0));
         closeBoxButton.addActionListener(new ActionListener() {
@@ -3307,9 +3656,25 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        String downloadLinkToolTip = "download title (" + CTRL_CLICK + "exit backup mode)";
+        playButton.setText("Play");
+        playButton.setToolTipText("play title in default media player (" + exitBackupModeToolTip + ")");
+        playButton.setEnabled(false);
+        playButton.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                playButtonMousePressed(evt);
+            }
+            public void mouseReleased(MouseEvent evt) {
+                playButtonMouseReleased(evt);
+            }
+        });
+        playButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playButtonActionPerformed(evt);
+            }
+        });
+
         downloadLink1Button.setText("Download (Link 1)");
-        downloadLink1Button.setToolTipText(downloadLinkToolTip);
+        downloadLink1Button.setToolTipText("download title (" + exitBackupModeToolTip + ")");
         downloadLink1Button.setEnabled(false);
         downloadLink1Button.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -3326,7 +3691,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         downloadLink2Button.setText("Download (Link 2)");
-        downloadLink2Button.setToolTipText(downloadLinkToolTip);
+        downloadLink2Button.setToolTipText("download title (" + exitBackupModeToolTip + ")");
         downloadLink2Button.setEnabled(false);
         downloadLink2Button.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -3508,6 +3873,15 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.add(useProfileMenu);
         fileMenu.add(fileMenuSeparator2);
 
+        playlistSaveFolderMenuItem.setText("Set Playlist Save Folder");
+        playlistSaveFolderMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistSaveFolderMenuItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(playlistSaveFolderMenuItem);
+        fileMenu.add(fileMenuSeparator3);
+
         printMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         printMenuItem.setText("Print");
         printMenuItem.addActionListener(new ActionListener() {
@@ -3516,7 +3890,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         fileMenu.add(printMenuItem);
-        fileMenu.add(fileMenuSeparator3);
+        fileMenu.add(fileMenuSeparator4);
 
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new ActionListener() {
@@ -3607,6 +3981,15 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         viewMenu.add(resetWindowMenuItem);
+
+        playlistMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_MASK));
+        playlistMenuItem.setText("Playlist");
+        playlistMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMenuItemActionPerformed(evt);
+            }
+        });
+        viewMenu.add(playlistMenuItem);
 
         menuBar.add(viewMenu);
 
@@ -3744,6 +4127,14 @@ public class GUI extends JFrame implements GuiListener {
         helpMenu.add(faqMenuItem);
         helpMenu.add(helpMenuSeparator1);
 
+        activationMenuItem.setText("Activation");
+        activationMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                activationMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(activationMenuItem);
+
         updateMenuItem.setText("Check for Updates");
         updateMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3753,7 +4144,7 @@ public class GUI extends JFrame implements GuiListener {
         helpMenu.add(updateMenuItem);
 
         updateCheckBoxMenuItem.setSelected(true);
-        updateCheckBoxMenuItem.setText("Enable Auto-Updating");
+        updateCheckBoxMenuItem.setText("Show Update Notification");
         updateCheckBoxMenuItem.setToolTipText(null);
         helpMenu.add(updateCheckBoxMenuItem);
         helpMenu.add(helpMenuSeparator2);
@@ -3843,6 +4234,8 @@ public class GUI extends JFrame implements GuiListener {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(watchTrailerButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(playButton)
+                        .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(downloadLink1Button)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(downloadLink2Button)
@@ -3851,7 +4244,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(watchSource2Button)
                         .addGap(18, 18, 18)
-                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 456, Short.MAX_VALUE)
+                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(connectionIssueButton)))
                 .addContainerGap())
@@ -3865,7 +4258,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {ratingComboBox, typeComboBox});
 
@@ -3913,7 +4306,8 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(watchSource1Button)
                     .addComponent(watchSource2Button)
                     .addComponent(connectionIssueButton)
-                    .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(playButton))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(Alignment.CENTER)
                     .addComponent(resultsLabel)
@@ -3946,7 +4340,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
 
         setSize(new Dimension(1337, 773));
         setLocationRelativeTo(null);
@@ -3968,13 +4362,12 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        int numProfileNames = profileComboBox.getItemCount();
-        StringBuilder profileNames = new StringBuilder(128);
-        for (int i = 1; i < numProfileNames; i++) {
-            profileNames.append((String) profileComboBox.getItemAt(i)).append(Constant.NEWLINE);
+        StringBuilder profiles = new StringBuilder(128);
+        for (int i = 1, numProfiles = profileComboBox.getItemCount(); i < numProfiles; i++) {
+            profiles.append(profileComboBox.getItemAt(i)).append(Constant.NEWLINE);
         }
         try {
-            IO.write(Constant.APP_DIR + Constant.PROFILES, profileNames.toString().trim());
+            IO.write(Constant.APP_DIR + Constant.PROFILES, profiles.toString().trim());
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -4007,13 +4400,7 @@ public class GUI extends JFrame implements GuiListener {
                 Constant.ANY_COUNTRY);
         String minRating = (String) ratingComboBox.getSelectedItem();
 
-        loadMoreResultsButton.setEnabled(false);
-        searchButton.setEnabled(false);
-
-        //order matters because of Synthetica bug
-        popularTVShowsButton.setEnabled(false);
-        popularMoviesButton.setEnabled(false);
-        viewNewHighQualityMoviesMenuItem.setEnabled(false);
+        UI.enable(false, loadMoreResultsButton, searchButton, popularTVShowsButton, popularMoviesButton, viewNewHighQualityMoviesMenuItem);
 
         isRegularSearcher = true;
         workerListener.regularSearchStarted(numResultsPerSearch, isTVShowSearch, startDate, endDate, title, genres, languages, countries, minRating);
@@ -4061,14 +4448,14 @@ public class GUI extends JFrame implements GuiListener {
             protected Object doInBackground() {
                 Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR), defaultCursor = Cursor.getDefaultCursor();
                 rootPane.setCursor(waitCursor);
-                resultsTable.setCursor(waitCursor);
+                resultsSyncTable.table.setCursor(waitCursor);
                 try {
-                    resultsTable.print(PrintMode.FIT_WIDTH);
+                    resultsSyncTable.table.print(PrintMode.FIT_WIDTH);
                 } catch (Exception e) {
                     showException(e);
                 }
                 rootPane.setCursor(defaultCursor);
-                resultsTable.setCursor(defaultCursor);
+                resultsSyncTable.table.setCursor(defaultCursor);
                 printMenuItem.setText("Print");
                 printMenuItem.setEnabled(true);
                 return null;
@@ -4132,7 +4519,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_pasteMenuItemActionPerformed
 
     void resetWindowMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_resetWindowMenuItemActionPerformed
-        Dimension dimension = new Dimension(1000, 680);
+        Dimension dimension = new Dimension(1022, 680);
         if ((getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH && !UI.isMaxSize(dimension)) {
             setExtendedState(Frame.NORMAL);
         }
@@ -4152,6 +4539,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_anyTitleCheckBoxActionPerformed
 
     void timeoutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_timeoutMenuItemActionPerformed
+        resultsToBackground(true);
         timeoutDialog.setVisible(true);
     }//GEN-LAST:event_timeoutMenuItemActionPerformed
 
@@ -4173,6 +4561,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_tvCancelButtonActionPerformed
 
     void resultsPerSearchMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_resultsPerSearchMenuItemActionPerformed
+        resultsToBackground(true);
         resultsPerSearchDialog.setVisible(true);
     }//GEN-LAST:event_resultsPerSearchMenuItemActionPerformed
 
@@ -4220,6 +4609,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void downloadSizeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadSizeMenuItemActionPerformed
+        resultsToBackground(true);
         updateDownloadSizeComboBoxes();
         downloadSizeDialog.setVisible(true);
     }//GEN-LAST:event_downloadSizeMenuItemActionPerformed
@@ -4233,6 +4623,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_popularTVShowsButtonActionPerformed
 
     void fileExtensionsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_fileExtensionsMenuItemActionPerformed
+        resultsToBackground(true);
         customExtensionTextField.requestFocusInWindow();
         extensionsDialog.setVisible(true);
     }//GEN-LAST:event_fileExtensionsMenuItemActionPerformed
@@ -4301,6 +4692,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_extensionsButtonActionPerformed
 
     void editProfilesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_editProfilesMenuItemActionPerformed
+        resultsToBackground(true);
         profileDialog.setVisible(true);
     }//GEN-LAST:event_editProfilesMenuItemActionPerformed
 
@@ -4308,9 +4700,7 @@ public class GUI extends JFrame implements GuiListener {
         boolean enable = false;
         linkProgressBar.setIndeterminate(enable);
         linkProgressBar.setStringPainted(enable);
-        closeBoxButton.setEnabled(enable);
-        downloadLinkCancelMenuItem.setEnabled(enable);
-        watchSourceCancelMenuItem.setEnabled(enable);
+        UI.enable(enable, closeBoxButton, downloadLinkCancelMenuItem, watchSourceCancelMenuItem);
         workerListener.torrentSearchStopped();
         workerListener.streamSearchStopped();
     }//GEN-LAST:event_closeBoxButtonActionPerformed
@@ -4320,30 +4710,17 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        //order matters because of Synthetica bug
         boolean enable = false;
-        findSubtitleMenuItem.setEnabled(enable);
-        emailEverythingMenuItem.setEnabled(enable);
-        copySubtitleLinkMenuItem.setEnabled(enable);
+        UI.enable(enable, findSubtitleMenuItem, emailEverythingMenuItem, copySubtitleLinkMenuItem);
         enableWatch(enable);
         enableDownload(enable);
-        watchTrailerButton.setEnabled(enable);
-        watchTrailerMenuItem.setEnabled(enable);
-        emailTrailerLinkMenuItem.setEnabled(enable);
-        copyTrailerLinkMenuItem.setEnabled(enable);
-        readSummaryButton.setEnabled(enable);
-        readSummaryMenuItem.setEnabled(enable);
-        emailSummaryLinkMenuItem.setEnabled(enable);
-        copySummaryLinkMenuItem.setEnabled(enable);
-        copyPosterImageMenuItem.setEnabled(enable);
-        copyFullTitleAndYearMenuItem.setEnabled(enable);
-        copySelectionMenuItem.setEnabled(enable);
+        UI.enable(enable, watchTrailerButton, watchTrailerMenuItem, emailTrailerLinkMenuItem, copyTrailerLinkMenuItem, readSummaryButton, readSummaryMenuItem,
+                emailSummaryLinkMenuItem, copySummaryLinkMenuItem, copyPosterImageMenuItem, copyFullTitleAndYearMenuItem, copySelectionMenuItem);
 
         if (evt.getFirstIndex() < 0 || resultsSyncTable.getSelectedRows().length != 1) {
             return;
         }
 
-        //order matters because of Synthetica bug
         enable = true;
         boolean isStreamSearchDone = workerListener.isStreamSearchDone(), isTorrentSearchDone = workerListener.isTorrentSearchDone(),
                 isTrailerSearchDone = workerListener.isTrailerSearchDone(), isSummarySearchDone = workerListener.isSummarySearchDone();
@@ -4360,20 +4737,30 @@ public class GUI extends JFrame implements GuiListener {
             enableDownload(enable);
         }
         if (isTrailerSearchDone) {
-            watchTrailerButton.setEnabled(enable);
-            watchTrailerMenuItem.setEnabled(enable);
-            emailTrailerLinkMenuItem.setEnabled(enable);
-            copyTrailerLinkMenuItem.setEnabled(enable);
+            UI.enable(enable, watchTrailerButton, watchTrailerMenuItem, emailTrailerLinkMenuItem, copyTrailerLinkMenuItem);
         }
-        emailSummaryLinkMenuItem.setEnabled(enable);
-        copySummaryLinkMenuItem.setEnabled(enable);
-        copyPosterImageMenuItem.setEnabled(enable);
+        UI.enable(enable, emailSummaryLinkMenuItem, copySummaryLinkMenuItem, copyPosterImageMenuItem);
         if (isSummarySearchDone) {
-            readSummaryButton.setEnabled(enable);
-            readSummaryMenuItem.setEnabled(enable);
-            copyFullTitleAndYearMenuItem.setEnabled(enable);
+            UI.enable(enable, readSummaryButton, readSummaryMenuItem, copyFullTitleAndYearMenuItem);
         }
         copySelectionMenuItem.setEnabled(enable);
+    }
+
+    void playlistTableValueChanged(ListSelectionEvent evt) {
+        if (!evt.getSource().equals(playlistSyncTable.getSelectionModel())) {
+            return;
+        }
+
+        Component[] components = {playlistRemoveButton, playlistRemoveMenuItem, playlistCopyMenuItem, playlistMoveDownButton, playlistMoveDownMenuItem,
+            playlistMoveUpButton, playlistMoveUpMenuItem, playlistAutoOpenCheckBoxMenuItem};
+        UI.enable(false, components);
+        int[] selectedRows;
+        if (evt.getFirstIndex() >= 0 && (selectedRows = playlistSyncTable.getSelectedRows()).length >= 1) {
+            UI.enable(true, selectedRows.length == 1 ? (playlistSyncTable.getRowCount() == 1 ? new Component[]{playlistRemoveButton, playlistRemoveMenuItem,
+                playlistCopyMenuItem, playlistAutoOpenCheckBoxMenuItem} : components) : new Component[]{playlistRemoveButton, playlistRemoveMenuItem,
+                playlistCopyMenuItem, playlistAutoOpenCheckBoxMenuItem});
+        }
+        refreshPlaylistControls();
     }
 
     void updateMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_updateMenuItemActionPerformed
@@ -4394,7 +4781,7 @@ public class GUI extends JFrame implements GuiListener {
     private SelectedTableRow selectedRow() {
         hideFindTextField();
         SelectedTableRow row = new SelectedTableRow();
-        JViewport viewport = (JViewport) resultsTable.getParent();
+        JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
         viewport.scrollRectToVisible(rectangle(viewport, row.VIEW_VAL));
         return row;
     }
@@ -4430,25 +4817,27 @@ public class GUI extends JFrame implements GuiListener {
         workerListener.trailerSearchStarted(row.VAL, row.video, strExportListener);
     }
 
-    private void downloadLinkActionPerformed(ContentType downloadContentType, SelectedTableRow row, VideoStrExportListener strExportListener) {
+    private void downloadLinkActionPerformed(ContentType downloadContentType, SelectedTableRow row, VideoStrExportListener strExportListener, boolean play) {
         if (row.video.IS_TV_SHOW && !downloadLinkEpisodes.add(row.VAL)) {
             row.video.season = "";
             row.video.episode = "";
         }
-        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? ContentType.DOWNLOAD3 : downloadContentType, row.VAL, row.video, strExportListener);
+        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? ContentType.DOWNLOAD3 : downloadContentType, row.VAL, row.video, strExportListener,
+                play);
     }
 
     void downloadLink1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink1ButtonActionPerformed
         SelectedTableRow row = selectedRow();
-        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, null);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, null, false);
     }//GEN-LAST:event_downloadLink1ButtonActionPerformed
 
     void downloadLink2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink2ButtonActionPerformed
         SelectedTableRow row = selectedRow();
-        downloadLinkActionPerformed(ContentType.DOWNLOAD2, row, null);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD2, row, null, false);
     }//GEN-LAST:event_downloadLink2ButtonActionPerformed
 
     void languageCountryMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryMenuItemActionPerformed
+        resultsToBackground(true);
         languageCountryDialog.setVisible(true);
     }//GEN-LAST:event_languageCountryMenuItemActionPerformed
 
@@ -4673,6 +5062,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_textComponentPopupMenuPopupMenuWillBecomeVisible
 
     void proxyMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
+        resultsToBackground(true);
         proxyDialog.setVisible(true);
     }//GEN-LAST:event_proxyMenuItemActionPerformed
 
@@ -4685,12 +5075,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_proxyDownloadButtonActionPerformed
 
     private void enableProxyButtons(boolean enable) {
-        //order matters because of Synthetica bug
-        proxyExportButton.setEnabled(enable);
-        proxyImportButton.setEnabled(enable);
-        proxyDownloadButton.setEnabled(enable);
-        proxyRemoveButton.setEnabled(enable);
-        proxyAddButton.setEnabled(enable);
+        UI.enable(enable, proxyExportButton, proxyImportButton, proxyDownloadButton, proxyRemoveButton, proxyAddButton);
     }
 
     void proxyAddButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyAddButtonActionPerformed
@@ -5012,18 +5397,14 @@ public class GUI extends JFrame implements GuiListener {
 
     private void updateProfileGUIitems(int profile) {
         if (profile == 0) {
-            profileRenameButton.setEnabled(false);
-            profileClearButton.setEnabled(false);
             profileUseButton.setEnabled(true);
+            UI.enable(false, profileClearButton, profileSetButton, profileRenameButton);
         } else if (new File(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT).exists()) {
-            profileRenameButton.setEnabled(true);
-            profileClearButton.setEnabled(true);
-            profileUseButton.setEnabled(true);
+            UI.enable(true, profileUseButton, profileClearButton, profileSetButton, profileRenameButton);
             enableProfileMenuItem(profile, true);
         } else {
-            profileRenameButton.setEnabled(true);
-            profileClearButton.setEnabled(false);
-            profileUseButton.setEnabled(false);
+            UI.enable(false, profileUseButton, profileClearButton);
+            UI.enable(true, profileSetButton, profileRenameButton);
             enableProfileMenuItem(profile, false);
         }
     }
@@ -5135,9 +5516,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_profileRenameButtonActionPerformed
 
     void profileNameChangeOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileNameChangeOKButtonActionPerformed
-        int profile = profileComboBox.getSelectedIndex();
         String newProfileName = profileNameChangeTextField.getText().trim();
-
         if (!Regex.isMatch(newProfileName, "(\\p{Alpha}|\\d|-| ){1,20}+")) {
             profileNameChangeDialog.setAlwaysOnTop(false);
             showMsg("Profile names must be 1-20 letters, digits, hyphens, or spaces.", Constant.ERROR_MSG);
@@ -5152,6 +5531,7 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
+        int profile = profileComboBox.getSelectedIndex();
         String[] profileNames = new String[9];
         for (int i = 1; i < 10; i++) {
             if (i == profile) {
@@ -5276,6 +5656,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_resultsTableMouseClicked
 
     private void portMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_portMenuItemActionPerformed
+        resultsToBackground(true);
         if (!viewedPortBefore) {
             portRandomizeCheckBox.setSelected(false);
         }
@@ -5283,38 +5664,8 @@ public class GUI extends JFrame implements GuiListener {
         portDialog.setVisible(true);
     }//GEN-LAST:event_portMenuItemActionPerformed
 
-    private void portDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_portDialogWindowClosing
-        if (!isPortValid()) {
-            portTextField.setText(null);
-        }
-        setRandomizePort();
-    }//GEN-LAST:event_portDialogWindowClosing
-
-    private boolean isPortValid() {
-        String port = portTextField.getText().trim();
-        return port.isEmpty() || (Regex.isMatch(port, "\\d{1,5}+") && Integer.parseInt(port) <= 65535);
-    }
-
-    private void setRandomizePort() {
-        String port = portTextField.getText().trim();
-        portTextField.setText(port);
-        if (port.isEmpty() && !portRandomizeCheckBox.isSelected()) {
-            portRandomizeCheckBox.setSelected(true);
-        }
-    }
-
     private void portOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_portOkButtonActionPerformed
-        if (!isPortValid()) {
-            portDialog.setAlwaysOnTop(false);
-            showMsg("\'" + portTextField.getText().trim() + "' is invalid. The port must be a number between 0 and 65535. A number between 49161 and 65533 is"
-                    + " best.", Constant.ERROR_MSG);
-            portDialog.setAlwaysOnTop(true);
-            portTextField.setText(null);
-            return;
-        }
-        setRandomizePort();
         portDialog.setVisible(false);
-        workerListener.portChanged(getPort());
     }//GEN-LAST:event_portOkButtonActionPerformed
 
     private void tvSubtitleCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleCancelButtonActionPerformed
@@ -5368,8 +5719,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void updateFindTitles(String currTitle) {
         String title = Regex.htmlToPlainText(currTitle);
-        findTitles.addAll(Arrays.asList(title, Regex.replaceFirst(title, Str.get(327), Str.get(328)), title = Regex.clean(title), Regex.replaceFirst(title,
-                Str.get(327), Str.get(328))));
+        findTitles.addAll(Arrays.asList(title, Regex.replaceFirst(title, 327), title = Regex.clean(title), Regex.replaceFirst(title, 327)));
     }
 
     private void findTextFieldKeyPressed(KeyEvent evt) {//GEN-FIRST:event_findTextFieldKeyPressed
@@ -5475,6 +5825,24 @@ public class GUI extends JFrame implements GuiListener {
 
     private void formWindowClosing(WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         setVisible(false);
+        if (!playlistFrame.isShowing()) {
+            System.exit(0);
+        }
+
+        boolean isPlaylistActive = false;
+        synchronized (playlistSyncTable.lock) {
+            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                if (((PlaylistItem) playlistSyncTable.tableModel.getValueAt(row, playlistItemCol)).isActive()) {
+                    isPlaylistActive = true;
+                    break;
+                }
+            }
+        }
+
+        if (!isPlaylistActive) {
+            System.exit(0);
+        }
+        playlistFrame.setVisible(true);
     }//GEN-LAST:event_formWindowClosing
 
     private void textComponentPopupMenuPopupMenuWillBecomeInvisible(PopupMenuEvent evt) {//GEN-FIRST:event_textComponentPopupMenuPopupMenuWillBecomeInvisible
@@ -5720,7 +6088,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void downloadLinkExportActionPerformed(ContentType downloadContentType, boolean exportToEmail) {
         SelectedTableRow row = selectedRow();
-        downloadLinkActionPerformed(downloadContentType, row, row.strExportListener(exportToEmail));
+        downloadLinkActionPerformed(downloadContentType, row, row.strExportListener(exportToEmail), false);
     }
 
     private void copyDownloadLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyDownloadLink1MenuItemActionPerformed
@@ -5770,7 +6138,7 @@ public class GUI extends JFrame implements GuiListener {
         VideoStrExportListener strExportListener = row.strExportListener(true, true, 8);
         readSummaryActionPerformed(row, strExportListener);
         exportPosterImage(row, strExportListener);
-        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, strExportListener);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, strExportListener, false);
         watchSourceActionPerformed(ContentType.STREAM1, row, strExportListener);
         watchTrailerActionPerformed(row, strExportListener);
         exportSummaryLink(row, strExportListener);
@@ -5807,7 +6175,9 @@ public class GUI extends JFrame implements GuiListener {
     private void exitBackupModeMenuItemMouseReleased(MouseEvent evt) {//GEN-FIRST:event_exitBackupModeMenuItemMouseReleased
         if (exitBackupMode) {
             exitBackupMode = false;
-            if (downloadLinkPopupComponent == downloadLink1Button) {
+            if (downloadLinkPopupComponent == playButton) {
+                playButtonActionPerformed(null);
+            } else if (downloadLinkPopupComponent == downloadLink1Button) {
                 downloadLink1ButtonActionPerformed(null);
             } else if (downloadLinkPopupComponent == downloadLink2Button) {
                 downloadLink2ButtonActionPerformed(null);
@@ -5849,6 +6219,189 @@ public class GUI extends JFrame implements GuiListener {
         exitBackupModeMenuItemMouseReleased(evt);
     }//GEN-LAST:event_downloadLinkExitBackupModeMenuItemMouseReleased
 
+    private void portDialogComponentHidden(ComponentEvent evt) {//GEN-FIRST:event_portDialogComponentHidden
+        String port = portTextField.getText().trim();
+        portTextField.setText(port);
+        int portNum;
+
+        if (port.isEmpty()) {
+            portRandomizeCheckBox.setSelected(true);
+        } else if ((portNum = portNum(port)) == -1) {
+            if (isConfirmed("\'" + port + "' is invalid. The port must be a number between 0 and 65535. A number between 49161 and 65533 is best. Retry?")) {
+                resultsToBackground(true);
+                portDialog.setVisible(true);
+            } else {
+                portTextField.setText(null);
+                portRandomizeCheckBox.setSelected(true);
+            }
+        } else {
+            workerListener.portChanged(portNum);
+        }
+    }//GEN-LAST:event_portDialogComponentHidden
+
+    private void playButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
+        SelectedTableRow row = selectedRow();
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, null, true);
+    }//GEN-LAST:event_playButtonActionPerformed
+
+    private void playMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playMenuItemActionPerformed
+        playButtonActionPerformed(evt);
+    }//GEN-LAST:event_playMenuItemActionPerformed
+
+    private void playButtonMousePressed(MouseEvent evt) {//GEN-FIRST:event_playButtonMousePressed
+        exitBackupMode(evt);
+    }//GEN-LAST:event_playButtonMousePressed
+
+    private void playButtonMouseReleased(MouseEvent evt) {//GEN-FIRST:event_playButtonMouseReleased
+        if (exitBackupMode) {
+            exitBackupMode = false;
+            playButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_playButtonMouseReleased
+
+    private void playMenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_playMenuItemMousePressed
+        exitBackupMode(evt);
+    }//GEN-LAST:event_playMenuItemMousePressed
+
+    private void playlistMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMenuItemActionPerformed
+        playlistFrame.setVisible(true);
+    }//GEN-LAST:event_playlistMenuItemActionPerformed
+
+    private PlaylistItem selectedPlaylistItem() {
+        synchronized (playlistSyncTable.lock) {
+            int[] rows = playlistSyncTable.table.getSelectedRows();
+            if (rows.length != 1) {
+                return null;
+            }
+            return (PlaylistItem) playlistSyncTable.tableModel.getValueAt(playlistSyncTable.table.convertRowIndexToModel(rows[0]), playlistItemCol);
+        }
+    }
+
+    private void playlistPlayButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistPlayButtonActionPerformed
+        PlaylistItem playlistItem = selectedPlaylistItem();
+        if (playlistItem != null) {
+            if (playlistItem.canPlay()) {
+                playlistItem.play();
+            } else {
+                playlistItem.stop();
+            }
+        }
+    }//GEN-LAST:event_playlistPlayButtonActionPerformed
+
+    private void playlistPlayMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistPlayMenuItemActionPerformed
+        playlistPlayButtonActionPerformed(null);
+    }//GEN-LAST:event_playlistPlayMenuItemActionPerformed
+
+    private void playlistSaveFolderMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistSaveFolderMenuItemActionPerformed
+        playlistFileChooser.setSelectedFile(new File(playlistDir));
+        if (save(playlistFileChooser)) {
+            playlistDir = playlistFileChooser.getSelectedFile().getPath();
+        }
+    }//GEN-LAST:event_playlistSaveFolderMenuItemActionPerformed
+
+    private void playlistMoveUpButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMoveUpButtonActionPerformed
+        playlistMove(true);
+    }//GEN-LAST:event_playlistMoveUpButtonActionPerformed
+
+    private void playlistMove(boolean up) {
+        synchronized (playlistSyncTable.lock) {
+            int numRows = playlistSyncTable.tableModel.getRowCount();
+            int[] rows;
+            if (numRows > 1 && (rows = playlistSyncTable.table.getSelectedRows()).length == 1) {
+                playlistSyncTable.table.getRowSorter().setSortKeys(null);
+                int row = playlistSyncTable.table.getSelectedRow();
+                if (row == rows[0] && row != (up ? 0 : numRows - 1)) {
+                    playlistSyncTable.tableModel.moveRow(row, row, up ? --row : ++row);
+                    playlistSyncTable.table.changeSelection(row, 0, false, false);
+                }
+            }
+        }
+    }
+
+    private void playlistMoveUpMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMoveUpMenuItemActionPerformed
+        playlistMoveUpButtonActionPerformed(null);
+    }//GEN-LAST:event_playlistMoveUpMenuItemActionPerformed
+
+    private void playlistMoveDownButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMoveDownButtonActionPerformed
+        playlistMove(false);
+    }//GEN-LAST:event_playlistMoveDownButtonActionPerformed
+
+    private void playlistMoveDownMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMoveDownMenuItemActionPerformed
+        playlistMoveDownButtonActionPerformed(null);
+    }//GEN-LAST:event_playlistMoveDownMenuItemActionPerformed
+
+    private void playlistRemoveButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistRemoveButtonActionPerformed
+        synchronized (playlistSyncTable.lock) {
+            int[] viewRows = playlistSyncTable.table.getSelectedRows();
+            if (viewRows.length == 0) {
+                return;
+            }
+
+            int[] modelRows = new int[viewRows.length];
+            for (int i = 0; i < viewRows.length; i++) {
+                modelRows[i] = playlistSyncTable.table.convertRowIndexToModel(viewRows[i]);
+            }
+            Arrays.sort(modelRows);
+
+            for (int i = modelRows.length - 1; i > -1; i--) {
+                ((PlaylistItem) playlistSyncTable.tableModel.getValueAt(modelRows[i], playlistItemCol)).stop();
+                playlistSyncTable.tableModel.removeRow(modelRows[i]);
+            }
+
+            Arrays.sort(viewRows);
+            int numRows = playlistSyncTable.tableModel.getRowCount(), viewRow = viewRows[0];
+            while (viewRow >= numRows) {
+                viewRow--;
+            }
+            if (viewRow != -1) {
+                playlistSyncTable.table.changeSelection(viewRow, 0, false, false);
+            }
+        }
+    }//GEN-LAST:event_playlistRemoveButtonActionPerformed
+
+    private void playlistRemoveMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistRemoveMenuItemActionPerformed
+        playlistRemoveButtonActionPerformed(null);
+    }//GEN-LAST:event_playlistRemoveMenuItemActionPerformed
+
+    private void playlistCopyMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistCopyMenuItemActionPerformed
+        if (playlistSyncTable.getSelectedRowCount() != 0) {
+            playlistTableCopyListener.actionPerformed(new ActionEvent(playlistSyncTable, 0, Constant.COPY));
+        }
+    }//GEN-LAST:event_playlistCopyMenuItemActionPerformed
+
+    private void playlistOpenMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistOpenMenuItemActionPerformed
+        PlaylistItem playlistItem = selectedPlaylistItem();
+        if (playlistItem != null) {
+            playlistItem.open();
+        }
+    }//GEN-LAST:event_playlistOpenMenuItemActionPerformed
+
+    private void playlistFrameWindowClosing(WindowEvent evt) {//GEN-FIRST:event_playlistFrameWindowClosing
+        if (isVisible()) {
+            playlistFrame.setVisible(false);
+        } else {
+            System.exit(0);
+        }
+    }//GEN-LAST:event_playlistFrameWindowClosing
+
+    private void activationMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationMenuItemActionPerformed
+        licenseActivation();
+        licenseActivation();
+    }//GEN-LAST:event_activationMenuItemActionPerformed
+
+    private void activationButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationButtonActionPerformed
+        workerListener.license(activationTextField.getText().trim(), false);
+    }//GEN-LAST:event_activationButtonActionPerformed
+
+    private void activationUpgradeButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationUpgradeButtonActionPerformed
+        workerListener.license(null, false);
+    }//GEN-LAST:event_activationUpgradeButtonActionPerformed
+
+    private void activationUpgradeComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationUpgradeComboBoxActionPerformed
+        Object item = activationUpgradeComboBox.getSelectedItem();
+        activationUpgradeButton.setToolTipText("upgrade to unlimited playback of movies and TV shows" + (item == null ? "" : " for " + item));
+    }//GEN-LAST:event_activationUpgradeComboBoxActionPerformed
+
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
     }
@@ -5871,18 +6424,14 @@ public class GUI extends JFrame implements GuiListener {
         isAltSearch = false;
         boolean enable = true;
         if (!downloadLink2Button.isEnabled() && workerListener.isTorrentSearchDone()) {
-            downloadLink2Button.setEnabled(enable);
-            downloadLink2MenuItem.setEnabled(enable);
-            emailDownloadLink2MenuItem.setEnabled(enable);
-            copyDownloadLink2MenuItem.setEnabled(enable);
+            UI.enable(enable, downloadLink2Button, downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem);
             Object evtSource = evt.getSource();
-            if (downloadLink1Button == evtSource || downloadLink2Button == evtSource) {
+            if (playButton == evtSource || downloadLink1Button == evtSource || downloadLink2Button == evtSource) {
                 exitBackupMode = true;
             }
         }
         enableVideoFormats(enable);
-        exitBackupModeMenuItem.setEnabled(false);
-        downloadLinkExitBackupModeMenuItem.setEnabled(false);
+        UI.enable(false, exitBackupModeMenuItem, downloadLinkExitBackupModeMenuItem);
     }
 
     private void updateDownloadSizeComboBoxes() {
@@ -6059,7 +6608,7 @@ public class GUI extends JFrame implements GuiListener {
                 int i = -1;
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
                 i += restoreButtons(settings, i, buttonSet1());
-                usePeerBlock = Boolean.parseBoolean(settings[++i]);
+                ++i; // Backward compatibility
                 i += restoreButtons(settings, i, buttonSet2());
                 i += restoreComboBoxes(settings, i, proxyComboBox);
                 portTextField.setText(settings[++i].equals(Constant.NULL) ? null : settings[i]);
@@ -6076,7 +6625,7 @@ public class GUI extends JFrame implements GuiListener {
                         : customRadioButtonMenuItem.getModel(), true);
 
                 restoreSize(GUI.this, settings[++i]);
-                i += restoreWindows(settings, i);
+                i += restoreWindows(settings, i, windows());
 
                 restoreList("whitelist", settings[++i], whitelistListModel);
                 restoreList("blacklist", settings[++i], blacklistListModel);
@@ -6092,8 +6641,11 @@ public class GUI extends JFrame implements GuiListener {
 
                 i += restoreComboBoxes(settings, i, dummyComboBox); // Backward compatibility
                 i += restoreComboBoxes(settings, i, timeoutDownloadLinkComboBox);
+                i += restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
+                i += restoreWindows(settings, i, playlistFrame);
 
-                restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
+                playlistDir = getPath(settings, ++i);
+                usePeerBlock = Boolean.parseBoolean(settings[++i]);
 
                 if (!updateSettings) {
                     return;
@@ -6113,7 +6665,7 @@ public class GUI extends JFrame implements GuiListener {
             StringBuilder settings = new StringBuilder(1024);
             saveComboBoxes(settings, comboBoxSet1());
             saveButtons(settings, buttonSet1());
-            settings.append(usePeerBlock).append(Constant.NEWLINE);
+            settings.append(usePeerBlock).append(Constant.NEWLINE); // Backward compatibility
             saveButtons(settings, buttonSet2());
             saveComboBoxes(settings, proxyComboBox);
             String port = portTextField.getText().trim();
@@ -6131,15 +6683,14 @@ public class GUI extends JFrame implements GuiListener {
             saveList(settings, "blacklist", blacklistListModel.toArray());
             saveList(settings, "languageList", languageList.getSelectedValues());
             saveList(settings, "countryList", countryList.getSelectedValues());
-
             saveButtons(settings, downloadWithDefaultAppCheckBoxMenuItem, feedCheckBoxMenuItem);
-
             savePaths(settings, proxyImportFile, proxyExportFile, torrentDir, subtitleDir);
-
             saveComboBoxes(settings, dummyComboBox); // Backward compatibility
             saveComboBoxes(settings, timeoutDownloadLinkComboBox);
-
             saveButtons(settings, emailWithDefaultAppCheckBoxMenuItem);
+            settings.append(savePosition(playlistFrame));
+            savePaths(settings, playlistDir);
+            settings.append(usePeerBlock);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -6150,7 +6701,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         private AbstractButton[] buttonSet1() {
-            return new AbstractButton[]{downloadSizeIgnoreCheckBox, safetyCheckBoxMenuItem, peerBlockNotificationCheckBoxMenuItem};
+            return new AbstractButton[]{downloadSizeIgnoreCheckBox, safetyCheckBoxMenuItem, peerBlockMenuItem};
         }
 
         private AbstractButton[] buttonSet2() {
@@ -6262,8 +6813,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        private int restoreWindows(String[] settings, int settingsIndex) {
-            Window[] windows = windows();
+        private int restoreWindows(String[] settings, int settingsIndex, Window... windows) {
             for (int i = 0, j = settingsIndex + 1; i < windows.length; i++) {
                 if (windows[i] != GUI.this) {
                     windows[i].pack();
@@ -6312,9 +6862,9 @@ public class GUI extends JFrame implements GuiListener {
                 return;
             }
 
-            StringBuilder str = new StringBuilder(2048);
+            StringBuilder str = new StringBuilder(2048), str2 = new StringBuilder(64);
             for (int i = 0; i < selectedRows.length; i++) {
-                StringBuilder str2 = new StringBuilder(64);
+                str2.setLength(0);
                 for (int j = 0; j < selectedCols.length; j++) {
                     int col = resultsSyncTable.convertColumnIndexToModel(selectedCols[j]);
                     if (col == imageCol) {
@@ -6326,7 +6876,38 @@ public class GUI extends JFrame implements GuiListener {
                 }
                 str.append(str2.toString().trim()).append(Constant.NEWLINE);
             }
+            UI.exportToClipboard(str.toString().trim());
+        }
+    }
 
+    private class PlaylistTableCopyListener implements ActionListener {
+
+        PlaylistTableCopyListener() {
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent evt) {
+            if ((!evt.getActionCommand().equals(Constant.COPY) && !evt.getActionCommand().equals(Constant.CUT))) {
+                return;
+            }
+
+            StringBuilder str;
+            synchronized (playlistSyncTable.lock) {
+                int[] selectedRows = playlistSyncTable.table.getSelectedRows(), selectedCols;
+                if (selectedRows.length == 0 || (selectedCols = playlistSyncTable.table.getSelectedColumns()).length == 0) {
+                    return;
+                }
+
+                str = new StringBuilder(2048);
+                StringBuilder str2 = new StringBuilder(64);
+                for (int i = 0; i < selectedRows.length; i++) {
+                    str2.setLength(0);
+                    for (int j = 0; j < selectedCols.length; j++) {
+                        str2.append(playlistSyncTable.table.getValueAt(selectedRows[i], selectedCols[j])).append('\t');
+                    }
+                    str.append(str2.toString().trim()).append(Constant.NEWLINE);
+                }
+            }
             UI.exportToClipboard(str.toString().trim());
         }
     }
@@ -6383,69 +6964,42 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void readSummaryStarted() {
-        readSummaryButton.setEnabled(false);
-        readSummaryMenuItem.setEnabled(false);
-        copyFullTitleAndYearMenuItem.setEnabled(false);
+        UI.enable(false, readSummaryButton, readSummaryMenuItem, copyFullTitleAndYearMenuItem);
     }
 
     @Override
     public void readSummaryStopped() {
         if (resultsSyncTable.getSelectedRows().length == 1) {
-            readSummaryButton.setEnabled(true);
-            readSummaryMenuItem.setEnabled(true);
-            copyFullTitleAndYearMenuItem.setEnabled(true);
+            UI.enable(true, readSummaryButton, readSummaryMenuItem, copyFullTitleAndYearMenuItem);
         }
     }
 
     @Override
     public void watchTrailerStarted() {
-        watchTrailerButton.setEnabled(false);
-        watchTrailerMenuItem.setEnabled(false);
-        emailTrailerLinkMenuItem.setEnabled(false);
-        copyTrailerLinkMenuItem.setEnabled(false);
+        UI.enable(false, watchTrailerButton, watchTrailerMenuItem, emailTrailerLinkMenuItem, copyTrailerLinkMenuItem);
     }
 
     @Override
     public void watchTrailerStopped() {
         if (resultsSyncTable.getSelectedRows().length == 1) {
-            watchTrailerButton.setEnabled(true);
-            watchTrailerMenuItem.setEnabled(true);
-            emailTrailerLinkMenuItem.setEnabled(true);
-            copyTrailerLinkMenuItem.setEnabled(true);
+            UI.enable(true, watchTrailerButton, watchTrailerMenuItem, emailTrailerLinkMenuItem, copyTrailerLinkMenuItem);
         }
     }
 
     @Override
     public void enableDownload(boolean enable) {
-        //order matters because of Synthetica bug
         if (isAltSearch) {
-            downloadLink2Button.setEnabled(false);
-            downloadLink2MenuItem.setEnabled(false);
-            emailDownloadLink2MenuItem.setEnabled(false);
-            copyDownloadLink2MenuItem.setEnabled(false);
+            UI.enable(false, downloadLink2Button, downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem);
         } else {
-            downloadLink2Button.setEnabled(enable);
-            downloadLink2MenuItem.setEnabled(enable);
-            emailDownloadLink2MenuItem.setEnabled(enable);
-            copyDownloadLink2MenuItem.setEnabled(enable);
+            UI.enable(enable, downloadLink2Button, downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem);
         }
-        downloadLink1Button.setEnabled(enable);
-        downloadLink1MenuItem.setEnabled(enable);
-        emailDownloadLink1MenuItem.setEnabled(enable);
-        copyDownloadLink1MenuItem.setEnabled(enable);
+        UI.enable(enable, downloadLink1Button, downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem, playButton, playMenuItem);
     }
 
     @Override
     public void enableWatch(boolean enable) {
-        //order matters because of Synthetica bug
-        watchSource2Button.setEnabled(enable);
-        watchSource2MenuItem.setEnabled(enable);
-        emailWatchLink2MenuItem.setEnabled(enable);
-        copyWatchLink2MenuItem.setEnabled(enable);
-        watchSource1Button.setEnabled(enable);
-        watchSource1MenuItem.setEnabled(enable);
-        emailWatchLink1MenuItem.setEnabled(enable);
-        copyWatchLink1MenuItem.setEnabled(enable);
+        UI.enable(enable, watchSource2Button, watchSource2MenuItem, emailWatchLink2MenuItem, copyWatchLink2MenuItem, watchSource1Button, watchSource1MenuItem,
+                emailWatchLink1MenuItem, copyWatchLink1MenuItem);
     }
 
     @Override
@@ -6492,10 +7046,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void enableVideoFormats(boolean enable) {
-        hd720CheckBox.setEnabled(enable);
-        hd1080CheckBox.setEnabled(enable);
-        hqVideoTypeCheckBox.setEnabled(enable);
-        dvdCheckBox.setEnabled(enable);
+        UI.enable(enable, hd720CheckBox, hd1080CheckBox, hqVideoTypeCheckBox, dvdCheckBox);
     }
 
     @Override
@@ -6504,8 +7055,7 @@ public class GUI extends JFrame implements GuiListener {
             showConnectionException(new ConnectionException("<font color=\"red\">Switching to backup mode.</font> " + Connection.error("", null,
                     Connection.downloadLinkInfoFailUrl())));
             enableVideoFormats(false);
-            exitBackupModeMenuItem.setEnabled(true);
-            downloadLinkExitBackupModeMenuItem.setEnabled(true);
+            UI.enable(true, exitBackupModeMenuItem, downloadLinkExitBackupModeMenuItem);
             isAltSearch = true;
         }
     }
@@ -6553,17 +7103,28 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void resultsToBackground() {
+        resultsToBackground(false);
+    }
+
+    private void resultsToBackground(boolean permanent) {
         JScrollBar resultsScrollBar = resultsScrollPane.getVerticalScrollBar();
         JScrollBar resultsScrollBarCopy = new JScrollBar(resultsScrollBar.getOrientation(), resultsScrollBar.getValue(),
                 resultsScrollBar.getVisibleAmount(), resultsScrollBar.getMinimum(), resultsScrollBar.getMaximum());
         resultsScrollBarCopy.setUnitIncrement(resultsScrollBar.getUnitIncrement());
         resultsScrollBarCopy.setBlockIncrement(resultsScrollBar.getBlockIncrement());
         resultsScrollPane.setVerticalScrollBar(resultsScrollBarCopy); // Stop scrolling
-        summaryDialog.setAlwaysOnTop(false);
+        if (permanent) {
+            summaryDialog.setVisible(false);
+            playlistFrame.setVisible(false);
+        } else {
+            summaryDialog.setAlwaysOnTop(false);
+            playlistFrame.setAlwaysOnTop(false);
+        }
     }
 
     private void resultsToForeground() {
         summaryDialog.setAlwaysOnTop(true);
+        playlistFrame.setAlwaysOnTop(true);
     }
 
     @Override
@@ -6612,10 +7173,9 @@ public class GUI extends JFrame implements GuiListener {
                     imageSize = " width=\"" + Str.get(495) + "\" height=\"" + Str.get(496) + "\"";
                 }
             }
-            summaryPage += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, Str.get(237), Str.get(238)) + '"' + imageSize
-                    + "></td>";
+            summaryPage += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, 237) + '"' + imageSize + "></td>";
         }
-        summaryEditorPane.setText(summaryPage + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + summary.replace("</body>",
+        summaryEditorPane.setText(summaryPage + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + Regex.replaceFirst(summary, "\\</body\\>",
                 "</td></tr></table></body>"));
         summaryEditorPane.setSelectionStart(0);
         summaryEditorPane.setSelectionEnd(0);
@@ -6737,12 +7297,18 @@ public class GUI extends JFrame implements GuiListener {
 
         usePeerBlock = true;
         try {
-            if (!(new File(Constant.APP_DIR + Constant.PEER_BLOCK)).exists()) {
-                IO.unzip(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.ZIP, Constant.APP_DIR);
+            File peerBlock = new File(Constant.APP_DIR + Constant.PEER_BLOCK_VERSION);
+            if (!peerBlock.exists()) {
+                try {
+                    IO.unzip(Constant.PROGRAM_DIR + Constant.PEER_BLOCK_VERSION + Constant.ZIP, Constant.APP_DIR);
+                } catch (Exception e) {
+                    IO.fileOp(peerBlock, IO.RM_DIR);
+                    throw e;
+                }
             }
             List<String> cmd = new ArrayList<String>(8);
             Collections.addAll(cmd, Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR,
-                    Constant.APP_DIR + Constant.PEER_BLOCK + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE, Constant.APP_TITLE,
+                    Constant.APP_DIR + Constant.PEER_BLOCK_VERSION + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE, Constant.APP_TITLE,
                     Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit");
             (new ProcessBuilder(cmd)).start();
         } catch (Exception e) {
@@ -6797,6 +7363,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public boolean tvChoices(String season, String episode) {
+        resultsToBackground(true);
         tvSeasonComboBox.setSelectedItem(season);
         tvEpisodeComboBox.setSelectedItem(episode);
         cancelTVSelection = true;
@@ -6857,25 +7424,15 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void searchStarted() {
         loading(true);
-
-        loadMoreResultsButton.setEnabled(false);
-        searchButton.setEnabled(false);
-
-        //order matters because of Synthetica bug
-        popularTVShowsButton.setEnabled(false);
-        popularMoviesButton.setEnabled(false);
-        viewNewHighQualityMoviesMenuItem.setEnabled(false);
-
+        UI.enable(false, loadMoreResultsButton, searchButton, popularTVShowsButton, popularMoviesButton, viewNewHighQualityMoviesMenuItem);
         stopButton.setEnabled(true);
-
         resultsSyncTable.requestFocusInWindow();
     }
 
     @Override
     public void newSearch(int maxProgress, boolean isTVShow) {
         enableVideoFormats(true);
-        exitBackupModeMenuItem.setEnabled(false);
-        downloadLinkExitBackupModeMenuItem.setEnabled(false);
+        UI.enable(false, exitBackupModeMenuItem, downloadLinkExitBackupModeMenuItem);
         resultsSyncTable.setRowCount(0);
         isAltSearch = false;
         resultsLabel.setText("Results: 0");
@@ -6907,7 +7464,7 @@ public class GUI extends JFrame implements GuiListener {
         try {
             for (int i = 0; i < 25; i++) {
                 if (resultsSyncTable.getRowCount() > 0 && resultsSyncTable.getSelectedRow() == -1) {
-                    JViewport viewport = (JViewport) resultsTable.getParent();
+                    JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
                     if ((new Rectangle(viewport.getExtentSize())).intersects(rectangle(viewport, 0))) {
                         resultsSyncTable.setRowSelectionInterval(0, 0);
                     }
@@ -6920,10 +7477,7 @@ public class GUI extends JFrame implements GuiListener {
                 Debug.print(e);
             }
         }
-        searchButton.setEnabled(true);
-        popularTVShowsButton.setEnabled(true);
-        popularMoviesButton.setEnabled(true);
-        viewNewHighQualityMoviesMenuItem.setEnabled(true);
+        UI.enable(true, searchButton, popularTVShowsButton, popularMoviesButton, viewNewHighQualityMoviesMenuItem);
     }
 
     @Override
@@ -6969,6 +7523,99 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void searchProgressIncrement() {
         progressBar.setValue(progressBar.getValue() + 1);
+    }
+
+    @Override
+    public boolean newPlaylistItem(Object[] item) {
+        synchronized (playlistSyncTable.lock) {
+            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(item[playlistItemCol])) {
+                    return false;
+                }
+            }
+            playlistSyncTable.tableModel.addRow(item);
+            return true;
+        }
+    }
+
+    @Override
+    public void removePlaylistItem(PlaylistItem playlistItem) {
+        synchronized (playlistSyncTable.lock) {
+            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
+                    playlistSyncTable.tableModel.removeRow(row);
+                    return;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem) {
+        synchronized (playlistSyncTable.lock) {
+            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
+                    if (!progress.equals(playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol))) {
+                        playlistSyncTable.tableModel.setValueAt(progress, row, playlistProgressCol);
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void showPlaylist(PlaylistItem selectedPlaylistItem) {
+        playlistFrame.setVisible(true);
+        synchronized (playlistSyncTable.lock) {
+            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(selectedPlaylistItem)) {
+                    int viewRow = playlistSyncTable.table.convertRowIndexToView(row);
+                    playlistSyncTable.table.setRowSelectionInterval(viewRow, viewRow);
+                    break;
+                }
+            }
+        }
+        refreshPlaylistControls();
+    }
+
+    @Override
+    public String getPlaylistSaveDir() {
+        return playlistDir;
+    }
+
+    @Override
+    public void playlistError(String msg) {
+        synchronized (optionDialogLock) {
+            resultsToBackground();
+            JOptionPane.showMessageDialog(playlistFrame.isShowing() ? playlistFrame : this, getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG);
+            resultsToForeground();
+        }
+    }
+
+    private void play(PlaylistItem playlistItem) {
+        if (playlistItem == null) {
+            playlistPlayButton.setIcon(playIcon);
+            playlistPlayMenuItem.setText("Play");
+            UI.enable(false, playlistOpenMenuItem, playlistPlayButton, playlistPlayMenuItem);
+            return;
+        }
+        playlistOpenMenuItem.setEnabled(playlistItem.canOpen());
+        boolean play = playlistItem.canPlay(), active = playlistItem.isActive();
+        playlistPlayButton.setIcon(play ? playIcon : stopIcon);
+        playlistPlayMenuItem.setText(play ? "Play" : "Stop");
+        UI.enable((play && !active) || (!play && active), playlistPlayButton, playlistPlayMenuItem);
+    }
+
+    @Override
+    public void refreshPlaylistControls() {
+        play(selectedPlaylistItem());
+    }
+
+    @Override
+    public void setPlaylistPlayHint(String msg) {
+        playlistPlayButton.setToolTipText(playlistPlayButton.getToolTipText() + msg);
+        playlistPlayMenuItem.setToolTipText(playlistPlayMenuItem.getToolTipText() + msg);
     }
 
     @Override
@@ -7105,6 +7752,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public boolean canAutoOpenPlaylistItem() {
+        return playlistAutoOpenCheckBoxMenuItem.isSelected();
+    }
+
+    @Override
     public String getFormat() {
         for (AbstractButton button : new AbstractButton[]{hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox, hd1080CheckBox}) {
             if (button.isSelected()) {
@@ -7202,6 +7854,16 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public Object[] makePlaylistRow(String name, FormattedNum size, FormattedNum progress, PlaylistItem playlistItem) {
+        Object[] row = new Object[4];
+        row[playlistNameCol] = name;
+        row[playlistSizeCol] = size;
+        row[playlistProgressCol] = progress;
+        row[playlistItemCol] = playlistItem;
+        return row;
+    }
+
+    @Override
     public void updateStarted() {
         updateMenuItem.setEnabled(false);
         updateMenuItem.setText("Checking for Updates...");
@@ -7249,16 +7911,12 @@ public class GUI extends JFrame implements GuiListener {
     public void subtitleSearchStarted() {
         if (isTVShowSubtitle) {
             tvSubtitleLoadingLabel.setIcon(loadingIcon);
-            //order matters because of Synthetica bug
             tvSubtitleCancelButton.setEnabled(true);
-            tvSubtitleDownloadMatch2Button.setEnabled(false);
-            tvSubtitleDownloadMatch1Button.setEnabled(false);
+            UI.enable(false, tvSubtitleDownloadMatch2Button, tvSubtitleDownloadMatch1Button);
         } else {
             movieSubtitleLoadingLabel.setIcon(loadingIcon);
-            //order matters because of Synthetica bug
             movieSubtitleCancelButton.setEnabled(true);
-            movieSubtitleDownloadMatch2Button.setEnabled(false);
-            movieSubtitleDownloadMatch1Button.setEnabled(false);
+            UI.enable(false, movieSubtitleDownloadMatch2Button, movieSubtitleDownloadMatch1Button);
         }
     }
 
@@ -7266,17 +7924,13 @@ public class GUI extends JFrame implements GuiListener {
     public void subtitleSearchStopped() {
         if (isTVShowSubtitle) {
             tvSubtitleDialog.setVisible(false);
-            //order matters because of Synthetica bug
             tvSubtitleCancelButton.setEnabled(false);
-            tvSubtitleDownloadMatch2Button.setEnabled(true);
-            tvSubtitleDownloadMatch1Button.setEnabled(true);
+            UI.enable(true, tvSubtitleDownloadMatch2Button, tvSubtitleDownloadMatch1Button);
             tvSubtitleLoadingLabel.setIcon(notLoadingIcon);
         } else {
             movieSubtitleDialog.setVisible(false);
-            //order matters because of Synthetica bug
             movieSubtitleCancelButton.setEnabled(false);
-            movieSubtitleDownloadMatch2Button.setEnabled(true);
-            movieSubtitleDownloadMatch1Button.setEnabled(true);
+            UI.enable(true, movieSubtitleDownloadMatch2Button, movieSubtitleDownloadMatch1Button);
             movieSubtitleLoadingLabel.setIcon(notLoadingIcon);
         }
     }
@@ -7295,6 +7949,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void restrictedWebsite() {
+        resultsToBackground(true);
         proxyDialog.setVisible(true);
     }
 
@@ -7327,6 +7982,11 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
+    private int portNum(String port) {
+        int portNum;
+        return Regex.isMatch(port, "\\d{1,5}+") && (portNum = Integer.parseInt(port)) <= 65535 ? portNum : -1;
+    }
+
     int setRandomPort() {
         int portNum = (new Random()).nextInt(16373) + 49161;
         portTextField.setText(String.valueOf(portNum));
@@ -7335,20 +7995,85 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public int getPort() {
-        if (!isPortValid()) {
-            portTextField.setText(null);
-        }
         String port = portTextField.getText().trim();
-        if (port.isEmpty()) {
-            return setRandomPort();
+        int portNum;
+        return port.isEmpty() || (portNum = portNum(port)) == -1 ? setRandomPort() : portNum;
+    }
+
+    @Override
+    public void licenseActivation() {
+        workerListener.license(null, true);
+    }
+
+    @Override
+    public void showLicenseActivation(Iterable<String> upgradeOptions) {
+        activationUpgradeComboBox.removeAllItems();
+        for (String upgradeOption : upgradeOptions) {
+            activationUpgradeComboBox.addItem(upgradeOption);
         }
-        return Integer.parseInt(port);
+        activationDialog.pack();
+        activationDialog.setLocationRelativeTo(playlistFrame.isShowing() ? playlistFrame : this);
+        resultsToBackground(true);
+        activationDialog.setVisible(true);
+    }
+
+    @Override
+    public String licenseUpgradeOption() {
+        return (String) activationUpgradeComboBox.getSelectedItem();
+    }
+
+    @Override
+    public void licenseActivationError(String msg) {
+        activationDialog.setAlwaysOnTop(false);
+        showMsg(msg, Constant.ERROR_MSG);
+        activationDialog.setAlwaysOnTop(true);
+    }
+
+    @Override
+    public void licenseActivated(boolean alert, String licenseNum) {
+        activationTextField.setForeground(new Color(21, 138, 12));
+        activationTextField.setText(licenseNum);
+        if (alert) {
+            activationDialog.setVisible(false);
+            showMsg("Activation Successful!", Constant.INFO_MSG);
+        }
+    }
+
+    @Override
+    public void licenseDeactivated(boolean alert) {
+        activationTextField.setForeground(Color.BLACK);
+        if (alert) {
+            activationDialog.setAlwaysOnTop(false);
+            showMsg("Activation Failed.", Constant.ERROR_MSG);
+            activationDialog.setAlwaysOnTop(true);
+        }
+    }
+
+    @Override
+    public void licenseActivationStarted() {
+        UI.enable(false, activationButton, activationUpgradeButton);
+        activationLoadingLabel.setIcon(loadingIcon);
+    }
+
+    @Override
+    public void licenseActivationStopped() {
+        UI.enable(true, activationButton, activationUpgradeButton);
+        activationLoadingLabel.setIcon(notLoadingIcon);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     JDialog aboutDialog;
     JEditorPane aboutEditorPane;
     JMenuItem aboutMenuItem;
     JScrollPane aboutScrollPane;
+    JButton activationButton;
+    JLabel activationCodeLabel;
+    JDialog activationDialog;
+    JLabel activationLoadingLabel;
+    JMenuItem activationMenuItem;
+    JTextField activationTextField;
+    JButton activationUpgradeButton;
+    JComboBox activationUpgradeComboBox;
+    JLabel activationUpgradeLabel;
     JButton addProxiesAddButton;
     JButton addProxiesCancelButton;
     JDialog addProxiesDialog;
@@ -7449,6 +8174,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator fileMenuSeparator1;
     Separator fileMenuSeparator2;
     Separator fileMenuSeparator3;
+    Separator fileMenuSeparator4;
     JMenuItem findMenuItem;
     JMenuItem findSubtitleMenuItem;
     JTextField findTextField;
@@ -7500,6 +8226,28 @@ public class GUI extends JFrame implements GuiListener {
     JTextArea optionalMsgTextArea;
     JMenuItem pasteMenuItem;
     JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
+    JButton playButton;
+    JMenuItem playMenuItem;
+    JCheckBoxMenuItem playlistAutoOpenCheckBoxMenuItem;
+    JMenuItem playlistCopyMenuItem;
+    JFileChooser playlistFileChooser;
+    JFrame playlistFrame;
+    JMenuItem playlistMenuItem;
+    JButton playlistMoveDownButton;
+    JMenuItem playlistMoveDownMenuItem;
+    JButton playlistMoveUpButton;
+    JMenuItem playlistMoveUpMenuItem;
+    JMenuItem playlistOpenMenuItem;
+    JButton playlistPlayButton;
+    JMenuItem playlistPlayMenuItem;
+    JButton playlistRemoveButton;
+    JMenuItem playlistRemoveMenuItem;
+    JMenuItem playlistSaveFolderMenuItem;
+    JScrollPane playlistScrollPane;
+    JTable playlistTable;
+    JPopupMenu playlistTablePopupMenu;
+    Separator playlistTablePopupMenuSeparator1;
+    Separator playlistTablePopupMenuSeparator2;
     JButton popularMoviesButton;
     JPopupMenu popularMoviesButtonPopupMenu;
     JComboBox popularMoviesResultsPerSearchComboBox;

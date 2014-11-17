@@ -16,7 +16,7 @@ public class BoxSetVideo {
     public static final Collection<List<BoxSetVideo>> movieBoxSets = new ArrayList<List<BoxSetVideo>>(4096);
 
     static {
-        for (String boxSet : Regex.split(Str.get(338), Constant.SEPARATOR3)) {
+        for (String boxSet : Regex.split(338, Constant.SEPARATOR3)) {
             List<BoxSetVideo> boxSetArr = new ArrayList<BoxSetVideo>(8);
             for (String title : Regex.split(boxSet, Constant.SEPARATOR1)) {
                 String[] titleParts = Regex.split(title, Constant.SEPARATOR2);
@@ -35,37 +35,37 @@ public class BoxSetVideo {
         if (!imdbYear.equals(year)) {
             return false;
         }
-        String escapedImdbTitle = Regex.replaceAll(Regex.replaceAll(escapeTitle(imdbTitle), Str.get(313), Str.get(314)), Str.get(315), Str.get(316)).trim();
+        String escapedImdbTitle = Regex.replaceAll(Regex.replaceAll(escapeTitle(imdbTitle), 313), 315).trim();
         if (!isTitleValid(escapedImdbTitle)) {
             return false;
         }
-        String escapedWikiTitle = Regex.replaceAll(Regex.replaceAll(title, Str.get(317), Str.get(318)), Str.get(319), Str.get(320)).trim();
+        String escapedWikiTitle = Regex.replaceAll(Regex.replaceAll(title, 317), 319).trim();
         return isTitleValid(escapedWikiTitle) && escapedImdbTitle.equalsIgnoreCase(escapedWikiTitle);
     }
 
     private static String escapeTitle(String title) throws Exception {
-        String newTitle = Regex.replaceAll(Regex.htmlToPlainText(title), Str.get(311), Str.get(312));
+        String newTitle = Regex.replaceAll(Regex.htmlToPlainText(title), 311);
         int len = newTitle.length();
         StringBuilder escapedTitleBuf = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
             String currChar = String.valueOf(newTitle.charAt(i));
-            if (Regex.match(URLEncoder.encode(currChar, Constant.UTF8), Str.get(321)).isEmpty()) {
+            if (Regex.firstMatch(URLEncoder.encode(currChar, Constant.UTF8), 321).isEmpty()) {
                 escapedTitleBuf.append(currChar);
             } else {
                 escapedTitleBuf.append(Str.get(322));
             }
         }
-        return Regex.replaceAll(escapedTitleBuf.toString(), Str.get(323), Str.get(324)).trim();
+        return Regex.replaceAll(escapedTitleBuf.toString(), 323).trim();
     }
 
     public static String[] getSearchTitles(List<BoxSetVideo> boxSet) {
         int numVideos = boxSet.size();
         List<String> titles = new ArrayList<String>(numVideos);
-        String boxSetName = Regex.replaceFirst(boxSet.get(0).title, Str.get(325), Str.get(326));
+        String boxSetName = Regex.replaceFirst(boxSet.get(0).title, 325);
         String[] result = {boxSetName, null};
 
         for (int i = 1; i < numVideos; i++) {
-            titles.add(Regex.replaceFirst(boxSet.get(i).title, Str.get(327), Str.get(328)));
+            titles.add(Regex.replaceFirst(boxSet.get(i).title, 327));
         }
 
         numVideos--;
@@ -98,8 +98,7 @@ public class BoxSetVideo {
     private static String validatePrefix(String title, String prefix) {
         String newPrefix = prefix;
         if (title.length() != newPrefix.length()) {
-            if (Regex.matches(newPrefix, Str.get(329)).isEmpty() && Regex.matches(title.replace(newPrefix, Str.get(330)),
-                    Str.get(331)).isEmpty()) {
+            if (Regex.allMatches(newPrefix, 329).isEmpty() && Regex.allMatches(title.replace(newPrefix, Str.get(330)), 331).isEmpty()) {
                 int i = newPrefix.length() - 1;
                 for (; i > -1; i--) {
                     if (newPrefix.charAt(i) == Str.get(332).charAt(0) || newPrefix.charAt(i) == Str.get(333).charAt(0)) {
@@ -123,7 +122,7 @@ public class BoxSetVideo {
     }
 
     private static boolean isTitleValid(String title) {
-        return !(title.isEmpty() || Regex.match(title, Str.get(335)).isEmpty());
+        return !(title.isEmpty() || Regex.firstMatch(title, 335).isEmpty());
     }
 
     @Override

@@ -78,8 +78,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
 
     private static boolean hasLatestProxies() {
         try {
-            Collection<String> proxies = new ArrayList<String>(Arrays.asList(Regex.split(IO.read(Constant.APP_DIR + "bk_" + Constant.PROXIES),
-                    Constant.NEWLINE)));
+            Collection<String> proxies = new ArrayList<String>(Arrays.asList(Regex.split(IO.read(Constant.APP_DIR + "bk_" + Constant.PROXIES), Constant.NEWLINE)));
             proxies.removeAll(Arrays.asList(Regex.split(IO.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)));
             return proxies.isEmpty();
         } catch (Exception e) {

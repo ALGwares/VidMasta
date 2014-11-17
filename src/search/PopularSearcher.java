@@ -51,7 +51,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     static boolean isValidLocale(String sourceCode, String[] locales, int regexStartIndex) {
         for (String locale : locales) {
-            if (Regex.match(sourceCode, Str.get(regexStartIndex) + locale + Str.get(regexStartIndex + 1)).isEmpty()) {
+            if (Regex.firstMatch(sourceCode, Str.get(regexStartIndex) + locale + Str.get(regexStartIndex + 1)).isEmpty()) {
                 if (Debug.DEBUG) {
                     Debug.println("Wrong locale (NOT " + locale + ")");
                 }
@@ -105,7 +105,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     @Override
     protected int getTitleRegexIndex(String url) throws Exception {
-        if (!Regex.match(currSourceCode, Str.get(147)).isEmpty()) {
+        if (!Regex.firstMatch(currSourceCode, 147).isEmpty()) {
             fail(url);
             return -1;
         }
@@ -126,8 +126,8 @@ public class PopularSearcher extends AbstractSearcher {
 
     @Override
     protected void addVideo(String titleMatch) {
-        String video = Regex.match(titleMatch, Str.get(123), Str.get(124));
-        String titleName = Regex.match(video, Str.get(125), Str.get(126));
+        String video = Regex.match(titleMatch, 123);
+        String titleName = Regex.match(video, 125);
         if (!titleName.isEmpty() && (!isFeed || isTitleValid(titleName, video))) {
             addCurrVideo(titleName);
         }
@@ -183,7 +183,7 @@ public class PopularSearcher extends AbstractSearcher {
             return null;
         }
 
-        String titleID = Regex.match(titleLink, Str.get(628));
+        String titleID = Regex.firstMatch(titleLink, 628);
         if (titleID.isEmpty()) {
             return null;
         }
@@ -206,7 +206,7 @@ public class PopularSearcher extends AbstractSearcher {
         }
 
         Video vid = new Video(titleID, titleParts[0], titleParts[1], video.IS_TV_SHOW, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
-        vid.rating = VideoSearch.rating(Regex.match(sourceCode, Str.get(127), Str.get(128)));
+        vid.rating = VideoSearch.rating(Regex.match(sourceCode, 127));
         vid.season = video.season;
         vid.episode = video.episode;
         vid.summary = sourceCode;
@@ -219,25 +219,24 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     private static boolean isTitleValid(String titleName, String video) {
-        if (Regex.match(Regex.replaceAll(titleName, Str.get(77), Str.get(78)), Str.get(569)).isEmpty() || (Boolean.parseBoolean(Str.get(565)) && Regex.match(video,
-                Str.get(74), Str.get(75)).isEmpty())) {
+        if (Regex.firstMatch(Regex.replaceAll(titleName, 77), 569).isEmpty() || (Boolean.parseBoolean(Str.get(565)) && Regex.match(video, 74).isEmpty())) {
             return false; // Wrong format or unsafe source
         }
-        String size = Regex.match(video, Str.get(64), Str.get(65));
+        String size = Regex.match(video, 64);
         if (!size.isEmpty() && (int) Math.ceil(Double.parseDouble(size)) > Integer.parseInt(Str.get(567))) {
             return false; // Size too large
         }
-        String uploadYear = Regex.match(video, Str.get(60));
+        String uploadYear = Regex.firstMatch(video, 60);
         if (!uploadYear.isEmpty() && Integer.parseInt(uploadYear.substring(uploadYear.length() - Integer.parseInt(Str.get(61)))) + Integer.parseInt(Str.get(568))
                 < Calendar.getInstance().get(Calendar.YEAR)) {
             return false; // Upload year too old
         }
-        String numSeeders = Regex.match(video, Str.get(72), Str.get(73));
+        String numSeeders = Regex.match(video, 72);
         return numSeeders.isEmpty() || Integer.parseInt(numSeeders) >= Integer.parseInt(Str.get(566)); // Seeders too few if false
     }
 
     private static boolean isTitleValid(String titleName, String isSafe, String year) {
-        return !Regex.match(Regex.replaceAll(titleName.trim(), Str.get(77), Str.get(78)), Str.get(569)).isEmpty() && (!Boolean.parseBoolean(Str.get(565))
+        return !Regex.firstMatch(Regex.replaceAll(titleName.trim(), 77), 569).isEmpty() && (!Boolean.parseBoolean(Str.get(565))
                 || Integer.parseInt(isSafe.trim()) == 1) && isTitleYearValid(year.trim()); // Wrong format or unsafe source or year too old if false
     }
 

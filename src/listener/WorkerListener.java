@@ -39,7 +39,7 @@ public interface WorkerListener {
 
     void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
-    void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
+    void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play);
 
     void streamSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
 
@@ -56,4 +56,6 @@ public interface WorkerListener {
     void updateStarted(boolean isStartUp);
 
     void portChanged(int port);
+
+    void license(String activationCode, boolean check);
 }

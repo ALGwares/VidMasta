@@ -42,7 +42,7 @@ public class Regex {
         init(subtitleLanguages = new TreeMap<String, String>(), 420, Constant.SEPARATOR2, Constant.SEPARATOR1);
         torrentFileFilter = new FileNameExtensionFilter("Torrents (*.torrent)", "torrent");
         proxyListFileFilter = new FileNameExtensionFilter("Proxy List (*" + Constant.TXT + ")", "txt");
-        subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", split(Str.get(452), ","));
+        subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", split(452, ","));
     }
 
     private static void init(Map<String, String> map, int strIndex) {
@@ -50,10 +50,18 @@ public class Regex {
     }
 
     private static void init(Map<String, String> map, int strIndex, String splitStr1, String splitStr2) {
-        for (String currKeyVal : split(Str.get(strIndex), splitStr1)) {
+        for (String currKeyVal : split(strIndex, splitStr1)) {
             String[] keyVal = split(currKeyVal, splitStr2);
             map.put(keyVal[0], keyVal[1]);
         }
+    }
+
+    public static String[] split(int inputRegex, String regex) {
+        return split(Str.get(inputRegex), regex);
+    }
+
+    public static String[] split(String input, int regexIndex) {
+        return split(input, Str.get(regexIndex));
     }
 
     public static String[] split(String input, String regex) {
@@ -85,8 +93,16 @@ public class Regex {
         }
     }
 
+    public static String replaceFirst(String input, int regexIndex) {
+        return replaceFirst(input, Str.get(regexIndex), Str.get(regexIndex + 1));
+    }
+
     public static String replaceFirst(String input, String regex, String replacement) {
         return matcher(regex, input).replaceFirst(replacement);
+    }
+
+    public static String replaceAll(String input, int regexIndex) {
+        return replaceAll(input, Str.get(regexIndex), Str.get(regexIndex + 1));
     }
 
     public static String replaceAll(String input, String regex, String replacement) {
@@ -117,7 +133,7 @@ public class Regex {
         for (Entry<String, String> entry : badStrs.entrySet()) {
             result = replaceAll(result, entry.getKey(), entry.getValue());
         }
-        return replaceAll(replaceAll(htmlToPlainText(result), Str.get(136), Str.get(133)), Str.get(339), Str.get(340)).trim();
+        return replaceAll(replaceAll(htmlToPlainText(result), Str.get(136), Str.get(133)), 339).trim();
     }
 
     public static String cleanWeirdChars(String str) {
@@ -132,11 +148,19 @@ public class Regex {
         return replaceAll(clean(str).replace(' ', '+'), "[^\\p{Alnum}\\+]", "");
     }
 
+    public static boolean isMatch(String input, int regexIndex) {
+        return isMatch(input, Str.get(regexIndex));
+    }
+
     public static boolean isMatch(String input, String regex) {
         return matcher(regex, input).matches();
     }
 
-    public static String match(String input, String regex) {
+    public static String firstMatch(String input, int regexIndex) {
+        return firstMatch(input, Str.get(regexIndex));
+    }
+
+    public static String firstMatch(String input, String regex) {
         Matcher matcher = matcher(regex, input);
         while (!matcher.hitEnd()) {
             if (matcher.find()) {
@@ -147,10 +171,10 @@ public class Regex {
         return "";
     }
 
-    public static List<String> matches(String input, String regex) {
+    public static List<String> allMatches(String input, int regexIndex) {
         List<String> result = new ArrayList<String>(8);
 
-        Matcher matcher = matcher(regex, input);
+        Matcher matcher = matcher(regexIndex, input);
         while (!matcher.hitEnd()) {
             if (matcher.find()) {
                 result.add(matcher.group().trim());
@@ -158,6 +182,10 @@ public class Regex {
         }
 
         return result;
+    }
+
+    public static List<String> matches(String input, int startRegexIndex) {
+        return matches(input, Str.get(startRegexIndex), Str.get(startRegexIndex + 1));
     }
 
     public static List<String> matches(String input, String startRegex, String endRegex) {
@@ -189,6 +217,10 @@ public class Regex {
         return result;
     }
 
+    public static String match(String input, int startRegexIndex) {
+        return match(input, Str.get(startRegexIndex), Str.get(startRegexIndex + 1));
+    }
+
     public static String match(String input, String startRegex, String endRegex) {
         Matcher startMatcher = matcher(startRegex, input);
         while (!startMatcher.hitEnd()) {
@@ -216,8 +248,16 @@ public class Regex {
         return "";
     }
 
+    public static Matcher matcher(int regexIndex, String input) {
+        return matcher(Str.get(regexIndex), input);
+    }
+
     public static Matcher matcher(String regex, String input) {
         return pattern(regex).matcher(input);
+    }
+
+    public static Pattern pattern(int regexIndex) {
+        return pattern(Str.get(regexIndex));
     }
 
     public static Pattern pattern(String regex) {

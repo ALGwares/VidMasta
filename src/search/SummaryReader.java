@@ -1,15 +1,19 @@
 package search;
 
+import com.flagstone.transform.DoAction;
 import com.flagstone.transform.Movie;
 import com.flagstone.transform.MovieHeader;
 import com.flagstone.transform.MovieTag;
 import com.flagstone.transform.ShowFrame;
+import com.flagstone.transform.action.Action;
+import com.flagstone.transform.action.BasicAction;
 import com.flagstone.transform.sound.SoundStreamBlock;
 import com.flagstone.transform.sound.SoundStreamHead;
 import gui.AbstractSwingWorker;
 import java.io.File;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -70,19 +74,20 @@ public class SummaryReader extends AbstractSwingWorker {
         String br1 = "<br>", br2 = br1 + "\\s*+" + br1;
         String newSummary = Regex.match(video.summary, "Storyline:", br2);
         if (newSummary.isEmpty()) {
-            newSummary = Regex.match(video.summary, "Genre:").isEmpty() ? Regex.match(video.summary, "<font[^>]++>", br2) : Regex.match(video.summary, br2, br2);
+            newSummary = Regex.firstMatch(video.summary, "Genre:").isEmpty() ? Regex.match(video.summary, "<font[^>]++>", br2) : Regex.match(video.summary, br2,
+                    br2);
         } else {
             newSummary = Regex.match(newSummary, br1, "\\z");
         }
 
-        video.summary = Regex.replaceAll(Regex.replaceAll(newSummary, Str.get(468), Str.get(469)), Str.get(470), Str.get(471));
+        video.summary = Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470);
         for (Entry<String, String> entry : Regex.badStrs.entrySet()) {
             String hexCode = entry.getKey();
             if (hexCode.charAt(0) == '&') {
                 video.summary = Regex.replaceAll(video.summary, hexCode, entry.getValue());
             }
         }
-        video.summary = Regex.replaceAll(Regex.replaceAll(Regex.htmlToPlainText(video.summary), Str.get(472), Str.get(473)), Str.get(339), Str.get(340)).trim();
+        video.summary = Regex.replaceAll(Regex.replaceAll(Regex.htmlToPlainText(video.summary), 472), 339).trim();
 
         List<String> summaryParts = Regex.split(video.summary, Str.get(477), Integer.parseInt(Str.get(478)));
         Collection<MoviePartFinder> moviePartFinders = new ArrayList<MoviePartFinder>(8);
@@ -135,8 +140,8 @@ public class SummaryReader extends AbstractSwingWorker {
             }
             IO.fileOp(moviePart, IO.RM_FILE);
         }
-        audioClip.add(audioClip.getObjects().get(0));
-
+        audioClip.add(new DoAction(Arrays.asList((Action) BasicAction.STOP, BasicAction.END)));
+        audioClip.add(ShowFrame.getInstance());
         return audioClip;
     }
 
@@ -163,7 +168,7 @@ public class SummaryReader extends AbstractSwingWorker {
                 }
                 String source = Connection.getSourceCode(url, DomainType.VIDEO_INFO);
 
-                if (!Regex.match(source, Str.get(485)).isEmpty()) {
+                if (!Regex.firstMatch(source, 485).isEmpty()) {
                     Connection.removeFromCache(url);
                     throw new ConnectionException(Connection.error(url));
                 }
@@ -172,7 +177,7 @@ public class SummaryReader extends AbstractSwingWorker {
                     return null;
                 }
 
-                url = Regex.match(source, Str.get(475), Str.get(476));
+                url = Regex.match(source, 475);
                 String movie = Constant.TEMP_DIR + swfName + "_" + partNumber + Constant.SWF;
                 if (failure.get()) {
                     return null;

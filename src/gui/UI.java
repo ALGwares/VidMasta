@@ -1,6 +1,7 @@
 package gui;
 
 import debug.Debug;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
@@ -28,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.DefaultListModel;
+import javax.swing.DefaultRowSorter;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -36,6 +38,9 @@ import javax.swing.JList;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
+import javax.swing.SortOrder;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.text.JTextComponent;
 import str.Str;
 import util.Constant;
@@ -76,6 +81,25 @@ public class UI {
                 }
             }
         }, components);
+    }
+
+    public static void addPopupMenu(final JPopupMenu popupMenu, final SyncTable syncTable, final boolean oneSelectedRowMode) {
+        UI.addMouseListener(new AbstractPopupListener() {
+            @Override
+            protected void showPopup(MouseEvent evt) {
+                int row, col;
+                if (!evt.isPopupTrigger() || (row = syncTable.rowAtPoint(evt.getPoint())) == -1 || (col = syncTable.columnAtPoint(evt.getPoint()))
+                        == -1) {
+                    return;
+                }
+
+                if (oneSelectedRowMode || syncTable.getSelectedRow() == -1) {
+                    syncTable.clearSelection();
+                    syncTable.changeSelection(row, col, false, false);
+                }
+                show(popupMenu, evt);
+            }
+        }, syncTable.table);
     }
 
     public static boolean isClipboardEmpty() {
@@ -277,6 +301,59 @@ public class UI {
 
     public static String innerHTML(String htmlText) {
         return htmlText.startsWith("<html>") ? innerHTML(htmlText, 0) : htmlText;
+    }
+
+    public static Icon icon(String name) {
+        return new ImageIcon(Constant.PROGRAM_DIR + name);
+    }
+
+    public static void setIcon(AbstractButton button, String name) {
+        button.setIcon(icon(name + ".png"));
+    }
+
+    public static void enable(boolean enable, Component... components) {
+        for (Component component : components) {
+            component.setEnabled(enable);
+        }
+    }
+
+    public static DefaultRowSorter<TableModel, Integer> setRowSorter(SyncTable syncTable, final int... reversedCols) {
+        DefaultRowSorter<TableModel, Integer> rowSorter = new TableRowSorter<TableModel>(syncTable.tableModel) {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void setSortKeys(List<? extends SortKey> sortKeys) {
+                List<SortKey> newSortKeys = (List<SortKey>) sortKeys;
+                SortKey primarySortKey;
+                if (sortKeys != null && !sortKeys.isEmpty() && (primarySortKey = sortKeys.get(0)) != null) {
+                    int sortCol = primarySortKey.getColumn();
+                    SortOrder sortOrder = null;
+
+                    for (SortKey sortKey : getSortKeys()) {
+                        if (sortKey.getColumn() == sortCol) {
+                            sortOrder = sortKey.getSortOrder();
+                            break;
+                        }
+                    }
+
+                    for (int reversedCol : reversedCols) {
+                        if (sortCol == reversedCol) {
+                            if (sortOrder == null) {
+                                (newSortKeys = new ArrayList<SortKey>(sortKeys)).set(0, new SortKey(sortCol, SortOrder.DESCENDING));
+                            }
+                            sortOrder = primarySortKey.getSortOrder();
+                            break;
+                        }
+                    }
+
+                    if (sortOrder == SortOrder.DESCENDING) {
+                        newSortKeys = null;
+                    }
+                }
+                super.setSortKeys(newSortKeys);
+            }
+        };
+        syncTable.table.setRowSorter(rowSorter);
+        return rowSorter;
     }
 
     private UI() {

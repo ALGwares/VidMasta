@@ -34,7 +34,7 @@ public class RegularSearcher extends AbstractSearcher {
         this.endDate = endDate;
         startDateStr = dateToStr(startDate);
         endDateStr = dateToStr(endDate);
-        this.title = Regex.replaceAll(title, Str.get(3), Str.get(4));
+        this.title = Regex.replaceAll(title, 3);
         this.genres = Arrays.copyOf(genres, genres.length);
         genresStr = searchStr(genres, Constant.ANY_GENRE, null);
         this.languages = searchStr(languages, Constant.ANY_LANGUAGE, Regex.languages);
@@ -99,7 +99,7 @@ public class RegularSearcher extends AbstractSearcher {
             return;
         }
 
-        String titleID = Regex.match(titleLink, Str.get(628));
+        String titleID = Regex.firstMatch(titleLink, 628);
         if (titleID.isEmpty()) {
             return;
         }
@@ -119,9 +119,9 @@ public class RegularSearcher extends AbstractSearcher {
 
         Video video = new Video(titleID, titleParts[0], titleParts[1], isTVShow, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
         video.oldTitle = VideoSearch.getOldTitle(sourceCode);
-        video.rating = VideoSearch.rating(Regex.match(sourceCode, Str.get(127), Str.get(128)));
+        video.rating = VideoSearch.rating(Regex.match(sourceCode, 127));
         video.summary = VideoSearch.getSummary(sourceCode, isTVShow);
-        video.imageLink = Regex.match(sourceCode, Str.get(190), Str.get(191));
+        video.imageLink = Regex.match(sourceCode, 190);
         if (!video.imageLink.isEmpty()) {
             VideoSearch.saveImage(video);
         }
@@ -142,11 +142,10 @@ public class RegularSearcher extends AbstractSearcher {
     protected String getUrl(int page) throws Exception {
         int maxNumResultsPerSearch = Integer.parseInt(Str.get(503));
         int numResultsPerPage = (numResultsPerSearch > maxNumResultsPerSearch ? maxNumResultsPerSearch : numResultsPerSearch);
-        String urlCountries = countries.equals(Constant.ANY_COUNTRY) ? Str.get(179) : Str.get(180) + countries;
-        String urlGenres = (genresStr.equals(Constant.ANY_GENRE) ? Str.get(141) : (Str.get(7) + Regex.replaceAll(genresStr.toLowerCase(Locale.ENGLISH), Str.get(8),
-                Str.get(9))));
-        String urlLanguages = languages.equals(Constant.ANY_LANGUAGE) ? Str.get(181) : Str.get(182) + languages;
-        String urlReleaseDates = startDateStr.isEmpty() && endDateStr.isEmpty() ? Str.get(240) : Str.get(14) + startDateStr + Str.get(15) + endDateStr;
+        String urlCountries = (countries.equals(Constant.ANY_COUNTRY) ? Str.get(179) : Str.get(180) + countries);
+        String urlGenres = (genresStr.equals(Constant.ANY_GENRE) ? Str.get(141) : (Str.get(7) + Regex.replaceAll(genresStr.toLowerCase(Locale.ENGLISH), 8)));
+        String urlLanguages = (languages.equals(Constant.ANY_LANGUAGE) ? Str.get(181) : Str.get(182) + languages);
+        String urlReleaseDates = (startDateStr.isEmpty() && endDateStr.isEmpty() ? Str.get(240) : Str.get(14) + startDateStr + Str.get(15) + endDateStr);
         String urlStart = (page == 0 ? Str.get(144) : Str.get(13) + ((page * numResultsPerPage) + 1));
         String urlTitle = (title.isEmpty() ? Str.get(142) : Str.get(10) + URLEncoder.encode(Regex.clean(title), Constant.UTF8));
         String urlTitleType = Str.get(16) + Str.get(isTVShow ? 18 : 17);
@@ -168,7 +167,7 @@ public class RegularSearcher extends AbstractSearcher {
 
     @Override
     protected int getTitleRegexIndex(String url) throws Exception {
-        if (!Regex.match(currSourceCode, Str.get(145)).isEmpty()) {
+        if (!Regex.firstMatch(currSourceCode, 145).isEmpty()) {
             Connection.removeFromCache(url);
             if (!isCancelled()) {
                 if (isInitialSearchSuccessful) {
@@ -184,18 +183,18 @@ public class RegularSearcher extends AbstractSearcher {
 
     @Override
     protected void addVideo(String titleMatch) {
-        String yearAndType = Regex.match(titleMatch, Str.get(27), Str.get(28));
-        Video video = new Video(Regex.match(Regex.match(titleMatch, Str.get(23), Str.get(24)), Str.get(628)), Regex.match(titleMatch, Str.get(25), Str.get(26)),
-                Regex.match(yearAndType, Str.get(29)), isTVShow, !Regex.match(yearAndType, Str.get(isTVShow ? 591 : 592)).isEmpty());
+        String yearAndType = Regex.match(titleMatch, 27);
+        Video video = new Video(Regex.firstMatch(Regex.match(titleMatch, 23), 628), Regex.match(titleMatch, 25), Regex.firstMatch(yearAndType, 29), isTVShow,
+                !Regex.firstMatch(yearAndType, isTVShow ? 591 : 592).isEmpty());
         if (video.title.isEmpty() || video.year.isEmpty() || video.ID.isEmpty()) {
             if (Debug.DEBUG) {
                 Debug.println("video ('" + video.title + "' '" + video.year + "' '" + video.ID + "') is invalid!");
             }
             return;
         }
-        video.rating = VideoSearch.rating(Regex.match(Regex.match(titleMatch, Str.get(30), Str.get(31)), Str.get(32)));
-        String imageLink = Regex.match(titleMatch, Str.get(384), Str.get(385));
-        if (Regex.isMatch(imageLink, Str.get(386))) {
+        video.rating = VideoSearch.rating(Regex.firstMatch(Regex.match(titleMatch, 30), 32));
+        String imageLink = Regex.match(titleMatch, 384);
+        if (Regex.isMatch(imageLink, 386)) {
             noImageTitles.add(video.ID);
         }
         if (isValid(video, titleMatch) && allBufferVideos.add(video.ID)) {
@@ -236,7 +235,7 @@ public class RegularSearcher extends AbstractSearcher {
         }
 
         if (!genresStr.equals(Constant.ANY_GENRE)) {
-            Collection<String> videoGenres = Regex.matches(Regex.match(source, Str.get(416), Str.get(417)), Str.get(418), Str.get(419));
+            Collection<String> videoGenres = Regex.matches(Regex.match(source, 416), 418);
             if (videoGenres.isEmpty()) {
                 if (Debug.DEBUG) {
                     Debug.println("video (" + video.title + ", " + video.year + ") genre is unknown!");

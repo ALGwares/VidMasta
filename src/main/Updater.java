@@ -11,13 +11,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
+import java.util.Collection;
 import listener.DomainType;
 import listener.GuiListener;
 import str.Str;
 import util.Connection;
 import util.Constant;
 import util.IO;
-import util.Regex;
 
 class Updater extends AbstractSwingWorker {
 
@@ -36,14 +37,7 @@ class Updater extends AbstractSwingWorker {
             Str.update(false, guiListener);
             (new AppUpdater()).update(guiListener);
             try {
-                setJavaSecurityLevelToNormal();
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
-                }
-            }
-            try {
-                updateJavaTrustedCertificatesKeystore();
+                updateJavaDeployment();
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
@@ -58,55 +52,71 @@ class Updater extends AbstractSwingWorker {
         return null;
     }
 
-    private static void setJavaSecurityLevelToNormal() throws Exception {
-        if (Str.get(632).isEmpty()) {
+    private static void updateJavaDeployment() throws Exception {
+        boolean skipSites = Str.get(637).isEmpty(), skipCertificates = Str.get(598).isEmpty();
+        if (skipSites && skipCertificates) {
             return;
         }
 
-        String propertiesPath = Str.get(Constant.WINDOWS ? 629 : (Constant.MAC ? 630 : 631)).replace(Str.get(596), Constant.FILE_SEPARATOR);
         String[] appDirs = Constant.appDirs();
-
+        Collection<String> appDirsToUpdate = new ArrayList<String>(appDirs.length);
         for (int i = 0; i < appDirs.length; i++) {
-            File javaVersionFile = new File(Constant.APP_DIR + "java" + (i + 1) + "Version" + Constant.TXT);
-            String javaVersion = System.getProperty("java.version", "");
-            if (!javaVersionFile.exists() || !javaVersion.equals(IO.read(javaVersionFile))) {
-                IO.write(javaVersionFile, javaVersion);
-            } else {
-                continue;
+            File javaVersionFile = new File(Constant.APP_DIR + "java" + (i + 1) + "Version_2" + Constant.TXT);
+            if (!javaVersionFile.exists() || !Constant.JAVA_VERSION.equals(IO.read(javaVersionFile))) {
+                IO.write(javaVersionFile, Constant.JAVA_VERSION);
+                appDirsToUpdate.add(appDirs[i]);
             }
+        }
 
-            File propertiesFile = new File(appDirs[i] + propertiesPath);
-            String newProperty = Str.get(632);
-            if (propertiesFile.exists()) {
-                String properties = IO.read(propertiesFile);
-                String property = Regex.match(properties, Str.get(633));
-                if (!property.equals(newProperty)) {
-                    IO.write(propertiesFile, property.isEmpty() ? properties + Constant.NEWLINE + newProperty + Constant.NEWLINE : Regex.replaceFirst(properties,
-                            Str.get(633), newProperty));
+        if (!skipSites) {
+            try {
+                updateJavaTrustedSites(appDirsToUpdate);
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
                 }
-            } else {
-                IO.fileOp(propertiesFile.getParentFile(), IO.MK_DIR);
-                IO.write(propertiesFile, Str.get(635) + Constant.NEWLINE + newProperty + Constant.NEWLINE);
+            }
+        }
+        if (!skipCertificates) {
+            try {
+                updateJavaTrustedCertificatesKeystore(appDirsToUpdate);
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
             }
         }
     }
 
-    private static void updateJavaTrustedCertificatesKeystore() throws Exception {
-        if (Str.get(598).isEmpty()) {
-            return;
+    private static void updateJavaTrustedSites(Iterable<String> appDirs) throws Exception {
+        String sites = Str.get(637).replace(Constant.SEPARATOR3, Constant.NEWLINE), trustedSitesPath = Str.get(Constant.WINDOWS ? 638 : (Constant.MAC ? 639
+                : 640)).replace(Str.get(641), Constant.FILE_SEPARATOR);
+
+        for (String appDir : appDirs) {
+            File trustedSitesFile = new File(appDir + trustedSitesPath);
+            if (trustedSitesFile.exists()) {
+                String trustedSites = IO.read(trustedSitesFile).trim();
+                if (!trustedSites.contains(sites)) {
+                    IO.write(trustedSitesFile, (trustedSites.isEmpty() ? sites : trustedSites + Constant.NEWLINE + sites) + Constant.NEWLINE);
+                }
+            } else {
+                IO.fileOp(trustedSitesFile.getParentFile(), IO.MK_DIR);
+                IO.write(trustedSitesFile, sites + Constant.NEWLINE);
+            }
         }
+    }
+
+    private static void updateJavaTrustedCertificatesKeystore(Iterable<String> appDirs) throws Exception {
         String bitTorrentClientCertificate = Constant.APP_DIR + Str.get(634) + ".cer";
         File bitTorrentClientCertificateFile = new File(bitTorrentClientCertificate);
-        if (bitTorrentClientCertificateFile.exists()) {
-            return;
+        if (!bitTorrentClientCertificateFile.exists()) {
+            Connection.saveData(Str.get(598), bitTorrentClientCertificate, DomainType.UPDATE, false);
         }
-
-        Connection.saveData(Str.get(598), bitTorrentClientCertificate, DomainType.UPDATE, false);
 
         KeyStore trustedCertificatesKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
         String certificatesPath = Str.get(Constant.WINDOWS ? 593 : (Constant.MAC ? 594 : 595)).replace(Str.get(596), Constant.FILE_SEPARATOR);
 
-        for (String appDir : Constant.appDirs()) {
+        for (String appDir : appDirs) {
             File trustedCertificates = new File(appDir + certificatesPath);
             char[] keystorePassword = new char[0];
 
@@ -118,9 +128,7 @@ class Updater extends AbstractSwingWorker {
                     if (Debug.DEBUG) {
                         Debug.print(e);
                     }
-                    IO.close(is);
-                    IO.fileOp(trustedCertificates, IO.RM_FILE);
-                    trustedCertificatesKeystore.load(null, keystorePassword);
+                    continue;
                 } finally {
                     IO.close(is);
                 }

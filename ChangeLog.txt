@@ -1,6 +1,20 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.11.??   | VidMasta 18.0
+
+CHANGE: UI   | Added play button to immediately play/stream movies and TV shows in default system media player
+CHANGE: UI   | Sort title table column case-insensitively instead of case-sensitively
+CHANGE: UI   | Clarified some tooltips and text labels
+CHANGE: UI   | Simplified setting of incoming listen port
+CHANGE: UI   | Fixed minor bug in which Set button for profiles is incorrectly active for default profile due to a change in VidMasta 17.8
+CHANGE: UI   | Fixed bug with non-modal dialogs sometimes hiding modal dialogs
+CHANGE: CORE | Updated PeerBlock integration to work better with 32-bit and 64-bit Windows XP and higher
+CHANGE: CORE | Updated list of untrusty IPs that are automatically filtered
+
+
+
+
 2014.09.12   | VidMasta 17.9
 
 CHANGE: CORE | Improved prediction of previous episode and next/current episode in summary for TV shows when airdates are unknown
@@ -37,22 +51,22 @@ CHANGE: UI   | Fixed bug preventing copying of discontiguous table rows
 
 2014.05.03   | VidMasta 17.6
 
-CHANGE: Core | Improved accuracy and performance of searches by using 1-2 alternative search engines when there is no result found or a connection problem
+CHANGE: CORE | Improved accuracy and performance of searches by using 1-2 alternative search engines when there is no result found or a connection problem
 
 
 
 
 2014.04.18   | VidMasta 17.5
 
-CHANGE: Core | Improved overall performance by caching more compiled regular expressions
+CHANGE: CORE | Improved overall performance by caching more compiled regular expressions
 
 
 
 
 2014.04.03   | VidMasta 17.4
 
-CHANGE: Core | Removed inaccurate and no longer necessary (since version 17.0) blocked port and bad IP filtering checks that may be incorrectly triggered when a download link is not found
-CHANGE: Core | Updated list of untrusty IPs that are automatically filtered
+CHANGE: CORE | Removed inaccurate and no longer necessary (since version 17.0) blocked port and bad IP filtering checks that may be incorrectly triggered when a download link is not found
+CHANGE: CORE | Updated list of untrusty IPs that are automatically filtered
 CHANGE: UI   | Improved formatting of download link name shown in message dialogs
 CHANGE: UI   | Made first country and language selections visible without the need to scroll
 
@@ -61,7 +75,7 @@ CHANGE: UI   | Made first country and language selections visible without the ne
 
 2014.03.26   | VidMasta 17.3
 
-CHANGE: Core | Improved download link performance by improved caching
+CHANGE: CORE | Improved download link performance by improved caching
 CHANGE: UI   | Added download link timeout selection to connection timeout dialog for finer control
 
 
@@ -69,8 +83,8 @@ CHANGE: UI   | Added download link timeout selection to connection timeout dialo
 
 2014.03.24   | VidMasta 17.2
 
-CHANGE: Core | Cached download links longer for faster downloads
-CHANGE: Core | Added hash code of magnet link to download link filename to prevent overwriting download links with the same name
+CHANGE: CORE | Cached download links longer for faster downloads
+CHANGE: CORE | Added hash code of magnet link to download link filename to prevent overwriting download links with the same name
 CHANGE: UI   | Added download link name to safety warning message that is shown when download link is from an untrustworthy source
 CHANGE: UI   | Selected all find text when find (under edit menu) functionality is reactivated while active
 
@@ -79,8 +93,8 @@ CHANGE: UI   | Selected all find text when find (under edit menu) functionality 
 
 2014.02.27   | VidMasta 17.1
 
-CHANGE: Core | Fixed bug in which user interface can become temporarily unresponsive after cancelling a TV show download link search and then quickly starting a download link search again for the first time
-CHANGE: Core | Improved file IO error handling for reading files
+CHANGE: CORE | Fixed bug in which user interface can become temporarily unresponsive after cancelling a TV show download link search and then quickly starting a download link search again for the first time
+CHANGE: CORE | Improved file IO error handling for reading files
 CHANGE: UI   | Enabled cancel button for download link searches sooner
 
 
@@ -88,10 +102,10 @@ CHANGE: UI   | Enabled cancel button for download link searches sooner
 
 2014.02.11   | VidMasta 17.0
 
-CHANGE: Core | Added automatic opening of magnet link in default application (e.g. a BitTorrent client) if conversion to torrent fails
-CHANGE: Core | Improved accuracy of TV show episode download link searches
-CHANGE: Core | Improved connection error detection by adding HTTP status code check
-CHANGE: Core | Made cancellation of connection-related actions instantaneous (e.g. searches)
+CHANGE: CORE | Added automatic opening of magnet link in default application (e.g. a BitTorrent client) if conversion to torrent fails
+CHANGE: CORE | Improved accuracy of TV show episode download link searches
+CHANGE: CORE | Improved connection error detection by adding HTTP status code check
+CHANGE: CORE | Made cancellation of connection-related actions instantaneous (e.g. searches)
 CHANGE: UI   | Added high video quality (TV video quality or better) option for download link and subtitle searches
 CHANGE: UI   | Remembered all file browse paths (e.g. import/export proxy paths, save torrent path, save subtitle path)
 CHANGE: UI   | Updated user interface library
@@ -104,7 +118,7 @@ CHANGE: UI   | Updated autocompletion titles
 
 2013.11.17   | VidMasta 16.9
 
-CHANGE: Core | Improved overall performance by processing regular expressions more efficiently
+CHANGE: CORE | Improved overall performance by processing regular expressions more efficiently
 CHANGE: UI   | Added a popup menu to each button with ctrl+click functionality
 
 
@@ -134,7 +148,7 @@ CHANGE: UI   | Shortened some tooltip messages
 
 2013.07.01   | VidMasta 16.6
 
-CHANGE: Core | Updated watch source 1 search to use updated source website
+CHANGE: CORE | Updated watch source 1 search to use updated source website
 CHANGE: UI   | Updated proxy dialog tool tip messages
 CHANGE: UI   | Title text field gains focus if it is enabled and there are no search results
 
@@ -143,9 +157,9 @@ CHANGE: UI   | Title text field gains focus if it is enabled and there are no se
 
 2013.06.09   | VidMasta 16.4
 
-CHANGE: Core | Fixed rare instance of possible failure to immediately cancel a search if only the last of several helper threads is active during cancellation
-CHANGE: Core | Improved accuracy of find (under edit menu) functionality
-CHANGE: Core | Improved result of table clipboard copy/cut functionality by better conversion of special characters and HTML codes
+CHANGE: CORE | Fixed rare instance of possible failure to immediately cancel a search if only the last of several helper threads is active during cancellation
+CHANGE: CORE | Improved accuracy of find (under edit menu) functionality
+CHANGE: CORE | Improved result of table clipboard copy/cut functionality by better conversion of special characters and HTML codes
 CHANGE: UI   | Updated autocompletion titles
 
 
@@ -153,6 +167,6 @@ CHANGE: UI   | Updated autocompletion titles
 
 2013.06.05   | VidMasta 16.3
 
-CHANGE: Core | Fixed accidental cancellation of summary, download, watch, and subtitle searches when loading more search results or starting a new search
-CHANGE: Core | Improved overall performance by caching more compiled regular expressions
+CHANGE: CORE | Fixed accidental cancellation of summary, download, watch, and subtitle searches when loading more search results or starting a new search
+CHANGE: CORE | Improved overall performance by caching more compiled regular expressions
 CHANGE: UI   | Removed unnecessary messages and confirmations when downloading proxies

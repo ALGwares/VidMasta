@@ -229,7 +229,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
         videoBuffer.clear();
 
-        Matcher titleMatcher = Regex.matcher(Str.get(titleRegexIndex), currSourceCode);
+        Matcher titleMatcher = Regex.matcher(titleRegexIndex, currSourceCode);
         while (!titleMatcher.hitEnd()) {
             if (isCancelled()) {
                 return;
@@ -320,7 +320,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 String sourceCode = video.summary;
                 video.oldTitle = VideoSearch.getOldTitle(sourceCode);
                 video.summary = VideoSearch.getSummary(sourceCode, video.IS_TV_SHOW);
-                video.imageLink = Regex.match(sourceCode, Str.get(190), Str.get(191));
+                video.imageLink = Regex.match(sourceCode, 190);
                 if (video.imageLink.isEmpty()) {
                     if (noImage(video)) {
                         return;

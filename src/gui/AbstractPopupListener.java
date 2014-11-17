@@ -20,5 +20,5 @@ public abstract class AbstractPopupListener extends MouseAdapter {
         popupMenu.show(evt.getComponent(), evt.getX(), evt.getY());
     }
 
-    abstract protected void showPopup(MouseEvent evt);
+    protected abstract void showPopup(MouseEvent evt);
 }

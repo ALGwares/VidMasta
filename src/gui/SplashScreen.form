@@ -81,8 +81,8 @@
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="progressBarLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="progressBar" pref="394" max="32767" attributes="0"/>
-                      <EmptySpace pref="145" max="32767" attributes="0"/>
+                      <Component id="progressBar" pref="395" max="32767" attributes="0"/>
+                      <EmptySpace pref="146" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="dvdCheckBox" linkSize="64" min="-2" max="-2" attributes="2"/>
                           <Component id="hqVideoTypeCheckBox" linkSize="64" alignment="0" min="-2" max="-2" attributes="2"/>
@@ -115,30 +115,30 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="titleLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="titleTextField" pref="848" max="32767" attributes="0"/>
+                              <Component id="titleTextField" pref="827" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="typeLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Component id="typeComboBox" linkSize="165" min="-2" pref="77" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" pref="20" max="32767" attributes="0"/>
                               <Component id="ratingLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Component id="ratingComboBox" linkSize="165" min="-2" pref="59" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="19" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" pref="21" max="32767" attributes="0"/>
                               <Component id="releasedLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="startDateTextField" max="32767" attributes="0"/>
+                              <Component id="startDateTextField" pref="255" max="32767" attributes="0"/>
                               <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
-                              <Component id="toLabel" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
-                              <Component id="endDateTextField" max="32767" attributes="0"/>
+                              <Component id="releasedToLabel" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="6" max="-2" attributes="0"/>
+                              <Component id="endDateTextField" pref="256" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Component id="genreLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="genreScrollPane" pref="241" max="32767" attributes="0"/>
+                      <Component id="genreScrollPane" pref="262" max="32767" attributes="0"/>
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
                           <Component id="searchButton" linkSize="92" max="32767" attributes="1"/>
@@ -149,7 +149,9 @@
                       <Component id="readSummaryButton" linkSize="154" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Component id="watchTrailerButton" linkSize="154" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="playButton" linkSize="154" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="downloadLink1Button" linkSize="154" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Component id="downloadLink2Button" linkSize="154" min="-2" max="-2" attributes="0"/>
@@ -158,7 +160,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="watchSource2Button" linkSize="154" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
-                      <Component id="findTextField" pref="456" max="32767" attributes="0"/>
+                      <Component id="findTextField" pref="331" max="32767" attributes="0"/>
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Component id="connectionIssueButton" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -195,10 +197,10 @@
                               <Component id="ratingLabel" linkSize="12" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="ratingComboBox" linkSize="11" alignment="3" max="32767" attributes="1"/>
                               <Component id="releasedLabel" linkSize="12" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="toLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="endDateTextField" linkSize="178" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="startDateTextField" linkSize="178" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="releasedToLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
+                          <Component id="startDateTextField" linkSize="11" alignment="1" min="-2" max="-2" attributes="0"/>
+                          <Component id="endDateTextField" linkSize="11" alignment="1" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
@@ -208,7 +210,7 @@
                   </Group>
                   <Component id="genreScrollPane" alignment="0" min="-2" pref="64" max="-2" attributes="1"/>
               </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
               <Component id="resultsScrollPane" pref="486" max="32767" attributes="0"/>
               <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -220,6 +222,7 @@
                   <Component id="watchSource2Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="connectionIssueButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="findTextField" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="playButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="2" attributes="0">
@@ -309,10 +312,8 @@
           <Properties>
             <Property name="autoCreateRowSorter" type="boolean" value="true"/>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-              <Table columnCount="6" rowCount="0">
+              <Table columnCount="4" rowCount="0">
                 <Column editable="false" title="" type="java.lang.Object"/>
-                <Column editable="false" title="" type="java.lang.String"/>
-                <Column editable="false" title="" type="java.lang.String"/>
                 <Column editable="false" title="" type="java.lang.String"/>
                 <Column editable="false" title="" type="java.lang.String"/>
                 <Column editable="false" title="" type="java.lang.String"/>
@@ -344,20 +345,6 @@
                 <Column maxWidth="65" minWidth="65" prefWidth="65" resizable="true">
                   <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                     <Connection code="Constant.RATING_COL" type="code"/>
-                  </Title>
-                  <Editor/>
-                  <Renderer/>
-                </Column>
-                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
-                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                    <Connection code="Constant.SUMMARY_COL" type="code"/>
-                  </Title>
-                  <Editor/>
-                  <Renderer/>
-                </Column>
-                <Column maxWidth="0" minWidth="0" prefWidth="0" resizable="true">
-                  <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                    <Connection code="Constant.ID_COL" type="code"/>
                   </Title>
                   <Editor/>
                   <Renderer/>
@@ -441,6 +428,9 @@
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="genreScrollPane">
+      <Properties>
+        <Property name="verticalScrollBarPolicy" type="int" value="22"/>
+      </Properties>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
@@ -474,7 +464,7 @@
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="toLabel">
+    <Component class="javax.swing.JLabel" name="releasedToLabel">
       <Properties>
         <Property name="text" type="java.lang.String" value="to"/>
         <Property name="enabled" type="boolean" value="false"/>
@@ -567,6 +557,12 @@
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
+    <Component class="javax.swing.JButton" name="playButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Play"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+    </Component>
     <Component class="javax.swing.JButton" name="downloadLink1Button">
       <Properties>
         <Property name="text" type="java.lang.String" value="Download (Link 1)"/>
@@ -617,14 +613,6 @@
         </Property>
       </Properties>
     </Component>
-    <Component class="javax.swing.JTextField" name="findTextField">
-      <Properties>
-        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="null"/>
-        </Property>
-        <Property name="enabled" type="boolean" value="false"/>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JTextField" name="startDateTextField">
       <Properties>
         <Property name="enabled" type="boolean" value="false"/>
@@ -632,6 +620,14 @@
     </Component>
     <Component class="javax.swing.JTextField" name="endDateTextField">
       <Properties>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="findTextField">
+      <Properties>
+        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+          <Border info="null"/>
+        </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>

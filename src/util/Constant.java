@@ -14,20 +14,22 @@ public class Constant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 17.9;
+    public static final double APP_VERSION = 18.0;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
     public static final String TV_SHOW = "TV Show";
     public static final String IP_FILTER = "ipfilter.dat";
     public static final String PEER_BLOCK_APP_TITLE = "PeerBlock";
-    public static final String PEER_BLOCK = "peerblock";
+    public static final String PEER_BLOCK = "peerblock", PEER_BLOCK_VERSION;
     public static final String CONNECTIVITY = "connectivity";
-    public static final String STD_NEWLINE = IOConstant.STD_NEWLINE, NEWLINE = IOConstant.NEWLINE, NEWLINE2 = NEWLINE + NEWLINE;
+    public static final String STD_NEWLINE = IOConstant.STD_NEWLINE, STD_NEWLINE2 = STD_NEWLINE + STD_NEWLINE;
+    public static final String NEWLINE = IOConstant.NEWLINE, NEWLINE2 = NEWLINE + NEWLINE;
     public static final String UTF8 = IOConstant.UTF8;
     public static final String SEPARATOR1 = ":::", SEPARATOR2 = "~~~", SEPARATOR3 = ";;;";
     public static final String IMAGE_COL = "", TITLE_COL = "Title", YEAR_COL = "Year", RATING_COL = "Rating", ID_COL = "0", CURR_TITLE_COL = "1";
     public static final String OLD_TITLE_COL = "2", SUMMARY_COL = "3", IMAGE_LINK_COL = "4", IS_TV_SHOW_COL = "5", IS_TV_SHOW_AND_MOVIE_COL = "6";
+    public static final String PLAYLIST_NAME_COL = "Name", PLAYLIST_SIZE_COL = "Size", PLAYLIST_PROGRESS_COL = "Progress", PLAYLIST_ITEM_COL = "0";
     public static final String SEASON_COL = "7", EPISODE_COL = "8";
     public static final String TV_EPISODE_FORMAT = "%02d";
     public static final String ZERO_WIDTH_SPACE;
@@ -41,10 +43,10 @@ public class Constant {
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
     public static final String PROFILES = "profiles" + TXT;
-    public static final int UPDATE_FILE_VERSION = 55;
+    public static final int UPDATE_FILE_VERSION = 56;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
-    public static final int SETTINGS_LEN = 64;
+    public static final int SETTINGS_LEN = 67;
     public static final int SETTINGS_VERSION = 11;
     public static final String PROFILE = "profile" + SETTINGS_VERSION + "_";
     public static final String USER_SETTINGS = "userSettings" + SETTINGS_VERSION + TXT;
@@ -68,13 +70,13 @@ public class Constant {
     public static final String PROGRAM_JAR = APP_TITLE + JAR;
     public static final String DEFAULT_PROFILE = "Default Profile";
     public static final String TORRENTS = "torrents";
-    public static final String CONNECTING = " Connecting to ";
-    public static final String TRANSFERRING = " Transferring data from ";
+    public static final String CONNECTING = "Connecting to ";
+    public static final String TRANSFERRING = "Transferring data from ";
     public static final String OS_NAME = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH);
     public static final boolean WINDOWS = OS_NAME.startsWith("win"), MAC = OS_NAME.startsWith("mac");
-    public static final String WORKING_DIR = System.getProperty("user.dir", ".");
-    public static final String FILE_SEPARATOR, PROGRAM_DIR, APP_DIR, CACHE_DIR, TEMP_DIR, TORRENTS_DIR;
-    public static final String JAVA;
+    public static final String HOME_DIR = System.getProperty("user.home", ""), WORKING_DIR = System.getProperty("user.dir", ".");
+    public static final String FILE_SEPARATOR, PROGRAM_DIR, APP_DIR, CACHE_DIR, TEMP_DIR, TORRENTS_DIR, DESKTOP_DIR;
+    public static final String JAVA, JAVA_VERSION = System.getProperty("java.version", "");
 
     static {
         FILE_SEPARATOR = IOConstant.FILE_SEPARATOR;
@@ -85,7 +87,24 @@ public class Constant {
         CACHE_DIR = APP_DIR + "cache" + FILE_SEPARATOR;
         TEMP_DIR = APP_DIR + "temp" + FILE_SEPARATOR;
         TORRENTS_DIR = APP_DIR + TORRENTS + FILE_SEPARATOR;
-        CAN_PEER_BLOCK = WINDOWS && !OS_NAME.equals("windows 95") && !OS_NAME.equals("windows 98") && !OS_NAME.equals("windows me");
+        DESKTOP_DIR = (HOME_DIR.isEmpty() ? "" : HOME_DIR + FILE_SEPARATOR + "Desktop");
+
+        if (WINDOWS) {
+            double osVersion;
+            try {
+                osVersion = Double.parseDouble(System.getProperty("os.version", "0"));
+            } catch (NumberFormatException e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+                osVersion = 0;
+            }
+            PEER_BLOCK_VERSION = ((CAN_PEER_BLOCK = osVersion > 5) ? PEER_BLOCK + '_' + (osVersion < 6 ? "xp" : "vista") + (System.getenv("ProgramFiles(X86)")
+                    == null ? "" : "_64") : null);
+        } else {
+            CAN_PEER_BLOCK = false;
+            PEER_BLOCK_VERSION = null;
+        }
 
         int zeroWidthSpaceCharPoint = 8203;
         ZERO_WIDTH_SPACE = new String(new int[]{zeroWidthSpaceCharPoint}, 0, 1);
@@ -105,7 +124,7 @@ public class Constant {
     }
 
     private static String initProgramDir() {
-        String tempProgramDir = WORKING_DIR + FILE_SEPARATOR;
+        String tempProgramDir = "";
         try {
             tempProgramDir = (new File(Constant.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath() + FILE_SEPARATOR
                     + "..")).getCanonicalPath() + FILE_SEPARATOR;
@@ -171,7 +190,7 @@ public class Constant {
     }
 
     public static String userHomeDir() throws IOException {
-        return (new File(System.getProperty("user.home", WORKING_DIR))).getCanonicalPath() + FILE_SEPARATOR;
+        return (new File(HOME_DIR.isEmpty() ? WORKING_DIR : HOME_DIR)).getCanonicalPath() + FILE_SEPARATOR;
     }
 
     public static String[] appDirs() throws IOException {

@@ -107,6 +107,22 @@ public interface GuiListener {
 
     void searchProgressIncrement();
 
+    boolean newPlaylistItem(Object[] item);
+
+    void removePlaylistItem(PlaylistItem playlistItem);
+
+    void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem);
+
+    void showPlaylist(PlaylistItem selectedPlaylistItem);
+
+    String getPlaylistSaveDir();
+
+    void playlistError(String msg);
+
+    void refreshPlaylistControls();
+
+    void setPlaylistPlayHint(String msg);
+
     boolean isConfirmed(String msg);
 
     boolean isAuthorizationConfirmed(String msg);
@@ -151,6 +167,8 @@ public interface GuiListener {
 
     boolean canProxySubtitles();
 
+    boolean canAutoOpenPlaylistItem();
+
     String getFormat();
 
     String getMinDownloadSize();
@@ -182,6 +200,8 @@ public interface GuiListener {
     Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
             String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode);
 
+    Object[] makePlaylistRow(String name, FormattedNum size, FormattedNum progress, PlaylistItem playlistItem);
+
     void updateStarted();
 
     void updateStopped();
@@ -203,4 +223,20 @@ public interface GuiListener {
     void setCanProxy(DomainType domainType);
 
     int getPort();
+
+    void licenseActivation();
+
+    void showLicenseActivation(Iterable<String> upgradeOptions);
+
+    String licenseUpgradeOption();
+
+    void licenseActivationError(String msg);
+
+    void licenseActivated(boolean alert, String licenseNum);
+
+    void licenseDeactivated(boolean alert);
+
+    void licenseActivationStarted();
+
+    void licenseActivationStopped();
 }

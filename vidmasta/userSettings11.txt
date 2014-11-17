@@ -26,7 +26,7 @@ null
 true
 false
 false
-1000x680
+1022x680
 center
 null
 null
@@ -61,4 +61,7 @@ EMPTY
 EMPTY
 90
 0
+true
+null
+EMPTY
 true

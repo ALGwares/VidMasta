@@ -172,6 +172,7 @@ public class Connection {
 
                     checkConnectionResponse(connection, url);
                 } catch (IOException e) {
+                    IO.consumeErrorStream(connection);
                     if (throwException) {
                         throw e;
                     }
@@ -306,7 +307,7 @@ public class Connection {
     }
 
     public static void checkConnectionResponse(HttpURLConnection connection, String url) throws IOException {
-        if (!Regex.isMatch(String.valueOf(connection.getResponseCode()), Str.get(599))) {
+        if (!Regex.isMatch(String.valueOf(connection.getResponseCode()), 599)) {
             if (Debug.DEBUG) {
                 Debug.println("'" + url + "' response: '" + connection.getResponseMessage() + "'");
             }
@@ -405,6 +406,7 @@ public class Connection {
 
                     checkConnectionResponse(connection, url);
                 } catch (Exception e) {
+                    IO.consumeErrorStream(connection);
                     if (outputStarted) {
                         IO.close(os);
                         IO.fileOp(outputPath, IO.RM_FILE);
@@ -422,12 +424,12 @@ public class Connection {
     }
 
     public static String getShortUrl(String url, boolean showDots) {
-        String host = Regex.match(url, Str.get(302)), dots = Str.get(303);
+        String host = Regex.firstMatch(url, 302), dots = Str.get(303);
         if (host.isEmpty()) {
             host = url;
             dots = Str.get(304);
         }
-        return Regex.replaceFirst(Regex.replaceFirst(host, Str.get(305), Str.get(306)), Str.get(307), Str.get(308)) + (showDots ? dots : Str.get(309));
+        return Regex.replaceFirst(Regex.replaceFirst(host, 305), 307) + (showDots ? dots : Str.get(309));
     }
 
     public static Proxy getProxy(DomainType domainType) {
@@ -443,7 +445,7 @@ public class Connection {
             return Proxy.NO_PROXY;
         }
 
-        String[] ipPort = Regex.split(getProxy(selectedProxy), Str.get(256));
+        String[] ipPort = Regex.split(getProxy(selectedProxy), 256);
         return new Proxy(Type.HTTP, new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1])));
     }
 
@@ -494,6 +496,7 @@ public class Connection {
 
                 checkConnectionResponse(connection, url);
             } catch (IOException e) {
+                IO.consumeErrorStream(connection);
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
@@ -514,11 +517,11 @@ public class Connection {
     }
 
     public static String getProxy(String proxy) {
-        if (!Regex.isMatch(proxy, Str.get(250))) {
+        if (!Regex.isMatch(proxy, 250)) {
             return null;
         }
 
-        String[] ipPort = Regex.split(Regex.match(proxy, Str.get(253)), Str.get(254)), ipParts = Regex.split(ipPort[0], Str.get(255));
+        String[] ipPort = Regex.split(Regex.firstMatch(proxy, 253), 254), ipParts = Regex.split(ipPort[0], 255);
         StringBuilder ip = new StringBuilder(16);
 
         for (int i = 0; i < 4; i++) {
@@ -535,7 +538,7 @@ public class Connection {
             return null;
         }
 
-        return Regex.replaceAll(ip + port, Str.get(251), Str.get(252));
+        return Regex.replaceAll(ip + port, 251);
     }
 
     public static boolean isPeerBlockRunning() {
@@ -569,7 +572,7 @@ public class Connection {
     }
 
     public static void setStatusBar(String str) {
-        statusBar.set(Thread.currentThread(), str);
+        statusBar.set(Thread.currentThread(), ' ' + str);
     }
 
     public static void unsetStatusBar() {
@@ -681,6 +684,25 @@ public class Connection {
         }
     }
 
+    public static void browse(File file) throws IOException {
+        Desktop desktop;
+        if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.BROWSE)) {
+            try {
+                desktop.browse(file.toURI());
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.println(e.toString());
+                }
+                browseFile(file.getCanonicalPath());
+            }
+        } else {
+            if (Debug.DEBUG) {
+                Debug.println("Desktop browse action not supported");
+            }
+            browseFile(file.getCanonicalPath());
+        }
+    }
+
     public static void browseFile(String file) throws IOException {
         try {
             (new ProcessBuilder(Constant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", file} : (Constant.MAC ? new String[]{"open", file}
@@ -702,7 +724,7 @@ public class Connection {
             @Override
             public void run() {
                 try {
-                    setStatusBar(" Update error: " + ExceptionUtil.toString(e));
+                    setStatusBar("Update error: " + ExceptionUtil.toString(e));
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e2) {

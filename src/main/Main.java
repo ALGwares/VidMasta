@@ -327,7 +327,7 @@ public class Main implements WorkerListener {
             return;
         }
         summaryReaderVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
-        startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener));
+        startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener, false));
         summaryFinder.execute();
     }
 
@@ -336,17 +336,17 @@ public class Main implements WorkerListener {
         if (!isTrailerSearchDone()) {
             return;
         }
-        startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener));
+        startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener, false));
         trailerFinder.execute();
     }
 
     @Override
-    public void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
+    public void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play) {
         if (!isTorrentSearchDone()) {
             return;
         }
         Magnet.startAzureus(gui);
-        startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener));
+        startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener, play));
         torrentFinder.execute();
     }
 
@@ -355,7 +355,7 @@ public class Main implements WorkerListener {
         if (!isStreamSearchDone()) {
             return;
         }
-        startPrefetcher(streamFinder = new VideoFinder(gui, contentType, row, video, strExportListener));
+        startPrefetcher(streamFinder = new VideoFinder(gui, contentType, row, video, strExportListener, false));
         streamFinder.execute();
     }
 
@@ -369,7 +369,7 @@ public class Main implements WorkerListener {
 
     @Override
     public void summaryReadStarted(String summary) {
-        if (!isWorkDone(summaryReader)) {
+        if (!isWorkDone(summaryReader) || summaryReaderVideo == null) {
             return;
         }
         summaryReaderVideo.summary = summary;
@@ -405,6 +405,10 @@ public class Main implements WorkerListener {
     @Override
     public void portChanged(int port) {
         Magnet.changePorts(port);
+    }
+
+    @Override
+    public void license(String activationCode, boolean check) {
     }
 
     private void startPrefetcher(VideoFinder videoFinder) {

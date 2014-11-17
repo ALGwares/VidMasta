@@ -8,9 +8,9 @@ import javax.swing.table.DefaultTableModel;
 
 public class SyncTable {
 
-    private JTable table;
-    private DefaultTableModel tableModel;
-    private final Object lock = new Object();
+    final JTable table;
+    final DefaultTableModel tableModel;
+    final Object lock = new Object();
 
     SyncTable(JTable table) {
         this.table = table;
@@ -33,10 +33,10 @@ public class SyncTable {
         return row < tableModel.getRowCount() && rowID.equals(tableModel.getValueAt(row, idColumn));
     }
 
-    public void setModelValueAt(Object aValue, int row, int column, int idColumn, String rowID) {
+    public void setModelValueAt(Object val, int row, int column, int idColumn, String rowID) {
         synchronized (lock) {
             if (rowExists(row, idColumn, rowID)) {
-                tableModel.setValueAt(aValue, row, column);
+                tableModel.setValueAt(val, row, column);
             }
         }
     }

@@ -78,23 +78,23 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 - Integer.parseInt(Str.get(342)));
         String source = getSourceCode(isTVShow ? Str.get(439) + languageID + Str.get(440) + video.season + Str.get(441) + video.episode + Str.get(442) + searchYear
                 + Str.get(443) + searchTitle : Str.get(444) + languageID + Str.get(445) + searchYear + Str.get(446) + searchTitle);
-        String titleLink = Regex.match(source, Str.get(506), Str.get(507));
+        String titleLink = Regex.match(source, 506);
         List<String> results;
 
         if (!titleLink.isEmpty()) {
             results = new ArrayList<String>(1);
-            String subtitleID = Regex.match(source, Str.get(508), Str.get(509));
+            String subtitleID = Regex.match(source, 508);
             if (!subtitleID.isEmpty()) {
-                String titleName = Regex.match(source, Str.get(514), Str.get(515));
+                String titleName = Regex.match(source, 514);
                 results.add(titleLink + Constant.SEPARATOR1 + subtitleID + Constant.SEPARATOR1 + (titleName.isEmpty() ? ' ' : titleName));
             }
             saveSubtitle(results, true);
             return;
         }
 
-        results = Regex.matches(source, Str.get(425));
+        results = Regex.allMatches(source, 425);
         if (results.isEmpty()) {
-            results = Regex.matches(source, Str.get(426));
+            results = Regex.allMatches(source, 426);
             if (results.isEmpty()) {
                 notFound();
             } else {
@@ -102,7 +102,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                     if (!resultMatches(result)) {
                         continue;
                     }
-                    saveSubtitle(Regex.matches(getSourceCode(Str.get(454) + Regex.match(result, Str.get(430), Str.get(431))), Str.get(425)), false);
+                    saveSubtitle(Regex.allMatches(getSourceCode(Str.get(454) + Regex.match(result, 430)), 425), false);
                     return;
                 }
                 notFound();
@@ -121,7 +121,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
             if (e.URL == null || e.URL.equals(url)) {
                 throw e;
             }
-            String titleName = Regex.match(e.URL, Str.get(510), Str.get(511));
+            String titleName = Regex.match(e.URL, 510);
             if (!titleName.equals(URLDecoder.decode(titleName, Constant.UTF8))) {
                 throw e;
             }
@@ -129,7 +129,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                     DomainType.SUBTITLE);
         }
 
-        if (!Regex.match(source, Str.get(453)).isEmpty()) {
+        if (!Regex.firstMatch(source, 453).isEmpty()) {
             Connection.removeFromCache(url);
             if (!isCancelled()) {
                 searchStopped();
@@ -145,8 +145,8 @@ public class SubtitleFinder extends AbstractSwingWorker {
         if (isTVShow) {
             return true; //TV show's episode imdb title IDs != TV show's general imdb title ID
         }
-        String titleLink = Regex.match(result, Str.get(427));
-        String resultID = Regex.replaceAll(Regex.replaceFirst(titleLink, Str.get(428), Str.get(429)), Str.get(423), Str.get(424));
+        String titleLink = Regex.firstMatch(result, 427);
+        String resultID = Regex.replaceAll(Regex.replaceFirst(titleLink, 428), 423);
         if (Debug.DEBUG) {
             Debug.println("subtitle search result: resultID='" + resultID + "' titleID='" + video.ID + "'");
         }
@@ -185,11 +185,9 @@ public class SubtitleFinder extends AbstractSwingWorker {
                     continue;
                 }
 
-                String subtitleID = Regex.match(result, Str.get(432), Str.get(433));
-                String downloadCount = Regex.match(Regex.match(result, Str.get(434)), Str.get(435),
-                        Str.get(436));
-                String titleName = Regex.match(Regex.match(result, Str.get(455)), Str.get(456),
-                        Str.get(457));
+                String subtitleID = Regex.match(result, 432);
+                String downloadCount = Regex.match(Regex.firstMatch(result, 434), 435);
+                String titleName = Regex.match(Regex.firstMatch(result, 455), 456);
                 if (Debug.DEBUG) {
                     Debug.println("subtitle match: name='" + Regex.replaceAll(titleName, "\\s++", " ") + "' subtitleID='" + subtitleID + "' downloadCount='"
                             + downloadCount + "'");
@@ -320,7 +318,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 if (subtitleFile != null) {
                     return subtitleFile;
                 }
-            } else if (Regex.isMatch(file.getName(), Str.get(438))) {
+            } else if (Regex.isMatch(file.getName(), 438)) {
                 return file;
             }
         }

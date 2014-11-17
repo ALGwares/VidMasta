@@ -9,12 +9,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,16 +27,14 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.impl.IpFilterImpl;
 import org.gudy.azureus2.core3.ipfilter.impl.IpRangeImpl;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.impl.TOTorrentImpl;
+import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManagerDefaults;
 import org.gudy.azureus2.plugins.PluginState;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import str.Str;
 import util.Connection;
 import util.Constant;
@@ -52,10 +51,10 @@ public class Magnet extends Thread {
     public final String MAGNET_LINK;
     public final File TORRENT;
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
+    private static final ConcurrentMap<String, Thread> downloaders = new ConcurrentHashMap<String, Thread>(16);
     private static volatile String ipBlockMsg = "";
     private static volatile SwingWorker<?, ?> azureusStarter;
     private static Thread ipFilterInitializer;
-    private static Method serialiseToByteArray;
 
     public Magnet(String magnetLink) {
         MAGNET_LINK = magnetLink;
@@ -84,7 +83,7 @@ public class Magnet extends Thread {
                             + ipBlockMsg);
                 }
                 join(1000);
-                if ((!isDoneDownloading.get() && torrentExists()) || isDoneSaving.get() || parent.isCancelled()) {
+                if ((!isDoneDownloading.get() && torrentExists()) || isDoneSaving.get() || !isAlive() || parent.isCancelled()) {
                     break;
                 }
             } finally {
@@ -97,50 +96,45 @@ public class Magnet extends Thread {
 
     @Override
     public void run() {
-        try {
-            download();
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
+        if (!torrentExists()) {
+            try {
+                download();
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
             }
         }
     }
 
     private void download() throws Exception {
-        TorrentImpl torrent = (TorrentImpl) TorrentManagerImpl.getSingleton().getURLDownloader(new URL(MAGNET_LINK)).download();
-        isDoneDownloading.set(true);
-
-        if (torrentExists()) {
+        Thread downloader = downloaders.putIfAbsent(MAGNET_LINK, this);
+        if (downloader != null) {
+            downloader.join();
             return;
         }
-        synchronized (saveTorrentLock) {
-            if (TORRENT.exists()) {
+        try {
+            byte[] torrentBytes = FileUtil.readInputStreamAsByteArray(ResourceDownloaderFactoryImpl.getSingleton().create(new URL(MAGNET_LINK)).download(),
+                    BDecoder.MAX_BYTE_ARRAY_SIZE);
+            isDoneDownloading.set(true);
+
+            if (torrentExists()) {
                 return;
             }
-
-            TOTorrent toTorrent = torrent.getTorrent();
-            if (toTorrent.isCreated()) {
-                TorrentUtils.addCreatedTorrent(toTorrent);
+            synchronized (saveTorrentLock) {
+                if (TORRENT.exists()) {
+                    return;
+                }
+                IO.write(TORRENT, torrentBytes);
             }
 
-            if (serialiseToByteArray == null) {
-                serialiseToByteArray = TOTorrentImpl.class.getDeclaredMethod("serialiseToByteArray");
-                serialiseToByteArray.setAccessible(true);
+            if (Debug.DEBUG) {
+                Debug.println(TORRENT.getName() + " converted");
             }
-            byte[] torrentBytes = (byte[]) serialiseToByteArray.invoke(toTorrent);
-
-            String vuzeDir = System.getProperty(Str.get(564));
-            if (vuzeDir != null && (new String(torrentBytes, Constant.UTF8)).contains(vuzeDir)) {
-                throw new Exception(TORRENT.getName() + " is corrupt");
-            }
-
-            IO.write(TORRENT, torrentBytes);
+            isDoneSaving.set(true);
+        } finally {
+            downloaders.remove(MAGNET_LINK);
         }
-
-        if (Debug.DEBUG) {
-            Debug.println(TORRENT.getName() + " converted");
-        }
-        isDoneSaving.set(true);
     }
 
     private boolean torrentExists() {
@@ -164,7 +158,7 @@ public class Magnet extends Thread {
         ipFilterInitializerStartSignal.countDown();
     }
 
-    // Intentionally un-synchronized because caller is event dispatch thread
+    // Intentionally un-synchronized because a caller is the event dispatch thread
     public static void startAzureus(final GuiListener guiListener) {
         if (core != null) {
             return;
@@ -236,6 +230,7 @@ public class Magnet extends Thread {
                 ipFilterInitializerStartSignal.await();
                 ipFilterInitializer.join();
                 setIpBlockMsg(IpFilterImpl.getInstance());
+                guiListener.setPlaylistPlayHint(ipBlockMsg);
                 if (Debug.DEBUG) {
                     Debug.println(ipBlockMsg);
                 }
@@ -398,8 +393,14 @@ public class Magnet extends Thread {
         }
 
         private static void initIpFilter() throws Exception {
-            if (!(new File(Constant.APP_DIR + Constant.IP_FILTER)).exists() || !(new File(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION)).exists()) {
-                IO.unzip(Constant.PROGRAM_DIR + Constant.IP_FILTER + Constant.ZIP, Constant.APP_DIR);
+            File blockedIPs = new File(Constant.APP_DIR + Constant.IP_FILTER);
+            if (!blockedIPs.exists() || !(new File(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION)).exists()) {
+                try {
+                    IO.unzip(Constant.PROGRAM_DIR + Constant.IP_FILTER + Constant.ZIP, Constant.APP_DIR);
+                } catch (Exception e) {
+                    IO.fileOp(blockedIPs, IO.RM_FILE);
+                    throw e;
+                }
                 IO.fileOp(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION, IO.MK_FILE);
             }
 
@@ -409,7 +410,7 @@ public class Magnet extends Thread {
             IpFilter ipFilter = IpFilterImpl.getInstance();
 
             try {
-                br = new BufferedReader(new InputStreamReader(new FileInputStream(Constant.APP_DIR + Constant.IP_FILTER), Constant.UTF8));
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(blockedIPs), Constant.UTF8));
                 while ((line = br.readLine()) != null) {
                     Matcher ipMatcher = ipPattern.matcher(line);
                     while (!ipMatcher.hitEnd()) {
@@ -438,5 +439,11 @@ public class Magnet extends Thread {
                 IO.close(br);
             }
         }
+    }
+
+    public static String getIP(GuiListener guiListener) throws Exception {
+        startAzureus(guiListener);
+        waitForAzureusToStart();
+        return core.getInstanceManager().getMyInstance().getExternalAddress().getHostAddress();
     }
 }

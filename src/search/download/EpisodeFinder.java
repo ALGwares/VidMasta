@@ -85,12 +85,12 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
 
     private void setEpisodeText(String season, String episode, String airdate, SimpleDateFormat dateFormat, boolean isNextEpisode) {
         String airdateText = airdate;
-        if (Regex.isMatch(airdateText, Str.get(534))) {
-            airdateText = VideoSearch.dateToString(dateFormat, Regex.replaceAll(airdateText, Str.get(535), Str.get(536)), Boolean.parseBoolean(Str.get(558)));
-        } else if (Regex.isMatch(airdateText, Str.get(546))) {
-            airdateText = VideoSearch.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdateText, Str.get(535), Str.get(536)),
+        if (Regex.isMatch(airdateText, 534)) {
+            airdateText = VideoSearch.dateToString(dateFormat, Regex.replaceAll(airdateText, 535), Boolean.parseBoolean(Str.get(558)));
+        } else if (Regex.isMatch(airdateText, 546)) {
+            airdateText = VideoSearch.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdateText, 535),
                     Boolean.parseBoolean(Str.get(559)));
-        } else if (airdateText.isEmpty() || Regex.isMatch(airdateText, Str.get(537))) {
+        } else if (airdateText.isEmpty() || Regex.isMatch(airdateText, 537)) {
             airdateText = "unknown";
         }
         String seasonNumber, episodeNumber, episodeText = "S" + (seasonNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(season))) + "E"
@@ -113,8 +113,8 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
         Date currTime = currDate.getTime();
 
         String url = VideoSearch.url(video), source = Connection.getSourceCode(url, DomainType.VIDEO_INFO, false);
-        List<String> seasons = Regex.matches(source, Str.get(520), Str.get(521));
-        seasons.add(Regex.match(source, Str.get(550), Str.get(551)));
+        List<String> seasons = Regex.matches(source, 520);
+        seasons.add(Regex.match(source, 550));
         seasons = sortedNumListSet(seasons, false);
         if (seasons.isEmpty()) {
             return;
@@ -144,8 +144,7 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
                     }
                     episodes.remove(0);
                 }
-                if (!Regex.isMatch(currEpisode.airdate, Str.get(534)) || dateFormat.parse(Regex.replaceAll(currEpisode.airdate, Str.get(535),
-                        Str.get(536))).compareTo(currTime) > 0) {
+                if (!Regex.isMatch(currEpisode.airdate, 534) || dateFormat.parse(Regex.replaceAll(currEpisode.airdate, 535)).compareTo(currTime) > 0) {
                     prevNextEpisodes.clear();
                     prevNextEpisodes.addAll(episodes);
                     continue outer;
