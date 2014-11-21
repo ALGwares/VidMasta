@@ -232,7 +232,7 @@ public interface GuiListener {
 
     void licenseActivationError(String msg);
 
-    void licenseActivated(boolean alert, String licenseNum);
+    void licenseActivated(boolean alert, String activationCode);
 
     void licenseDeactivated(boolean alert);
 

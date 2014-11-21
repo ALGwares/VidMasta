@@ -4084,6 +4084,9 @@
         </Property>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
+      <Events>
+        <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="activationDialogWindowClosing"/>
+      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_LayoutCodePost" type="java.lang.String" value="activationDialog.pack();"/>
       </AuxValues>

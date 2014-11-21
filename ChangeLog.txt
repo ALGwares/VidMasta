@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.11.20   | VidMasta 18.1
+
+CHANGE: CORE | Fixed buffer corruption bug affecting playback for play button introduced in VidMasta 18.0
+CHANGE: UI   | Improved speed of buffering for play button
+
+
+
+
 2014.11.16   | VidMasta 18.0
 
 CHANGE: UI   | Added play button to immediately play/stream movies and TV shows in default system media player

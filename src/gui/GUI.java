@@ -3284,6 +3284,11 @@ public class GUI extends JFrame implements GuiListener {
         activationDialog.setAlwaysOnTop(true);
         activationDialog.setIconImage(null);
         activationDialog.setModal(true);
+        activationDialog.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent evt) {
+                activationDialogWindowClosing(evt);
+            }
+        });
 
         activationUpgradeButton.setText("Upgrade");
         activationUpgradeButton.addActionListener(new ActionListener() {
@@ -6402,6 +6407,12 @@ public class GUI extends JFrame implements GuiListener {
         activationUpgradeButton.setToolTipText("upgrade to unlimited playback of movies and TV shows" + (item == null ? "" : " for " + item));
     }//GEN-LAST:event_activationUpgradeComboBoxActionPerformed
 
+    private void activationDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_activationDialogWindowClosing
+        if (!isVisible()) {
+            setVisible(true);
+        }
+    }//GEN-LAST:event_activationDialogWindowClosing
+
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
     }
@@ -8012,6 +8023,7 @@ public class GUI extends JFrame implements GuiListener {
             activationUpgradeComboBox.addItem(upgradeOption);
         }
         activationDialog.pack();
+        playlistFrame.setExtendedState(playlistFrame.getExtendedState() & ~Frame.ICONIFIED);
         activationDialog.setLocationRelativeTo(playlistFrame.isShowing() ? playlistFrame : this);
         resultsToBackground(true);
         activationDialog.setVisible(true);
@@ -8030,9 +8042,9 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void licenseActivated(boolean alert, String licenseNum) {
+    public void licenseActivated(boolean alert, String activationCode) {
         activationTextField.setForeground(new Color(21, 138, 12));
-        activationTextField.setText(licenseNum);
+        activationTextField.setText(activationCode);
         if (alert) {
             activationDialog.setVisible(false);
             showMsg("Activation Successful!", Constant.INFO_MSG);

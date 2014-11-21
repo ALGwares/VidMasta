@@ -1,4 +1,4 @@
-151
+154
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -515,7 +515,7 @@ http://piratebayguru.com
 ,
 title\s*+=\s*+"Release name"[^>]+?>
 <
-http://piratebayguru.com:::http://baymirror.com:::http://pirateshit.com
+http://piratebayguru.com:::http://baymirror.com:::http://superbay.net
 33,39,41,47,117,150,466,491,505,518
 http://piratebayguru.com
 http://www.imdb.com/title/tt
@@ -635,7 +635,7 @@ deployment.security.level=MEDIUM
 (?<=(\n|\r|\A))[ \t]*+deployment\.security\.level[ \t]*+\=[ \t]*+((HIGH)|(VERY_HIGH))
 BitTorrentClient2
 deployment.version=999
-120
+90
 https://sites.google.com/site/algwares/;;;https://jujo00obo2o234ungd3t8qjfcjrs3o6k-a-sites-opensocial.googleusercontent.com/;;;https://c6436101-a-62cb3a1a-s-sites.googlegroups.com/
 Sun/Java/Deployment/security/exception.sites
 Oracle/Java/Deployment/security/exception.sites
@@ -646,4 +646,5 @@ Oracle/Java/Deployment/security/exception.sites
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F757067726164653F
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F636865636B3F
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F636865636B323F
+68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C323F
 eof
