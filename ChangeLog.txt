@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.11.26   | VidMasta 18.2
+
+CHANGE: UI   | Improved smoothness of the progress displayed for playlist items
+CHANGE: CORE | Improved the opening of files in default system applications
+
+
+
+
 2014.11.20   | VidMasta 18.1
 
 CHANGE: CORE | Fixed buffer corruption bug affecting playback for play button introduced in VidMasta 18.0

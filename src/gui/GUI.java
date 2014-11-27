@@ -4584,7 +4584,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_faqEditorPaneHyperlinkUpdate
 
-    private void hyperlinkHandler(HyperlinkEvent evt) throws IOException {
+    private static void hyperlinkHandler(HyperlinkEvent evt) throws IOException {
         if (evt.getEventType().equals(EventType.ACTIVATED)) {
             String url = evt.getURL().toString();
             if (url.startsWith("mailto:")) {
@@ -4859,8 +4859,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_langaugeCountryOkButtonActionPerformed
 
     void trashCanButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_trashCanButtonActionPerformed
-        Object[] whitelistValues = whitelistedList.getSelectedValues();
-        Object[] blacklistValues = blacklistedList.getSelectedValues();
+        Object[] whitelistValues = whitelistedList.getSelectedValues(), blacklistValues = blacklistedList.getSelectedValues();
         for (Object whitelistValue : whitelistValues) {
             whitelistListModel.removeElement(whitelistValue);
         }
@@ -6391,7 +6390,6 @@ public class GUI extends JFrame implements GuiListener {
 
     private void activationMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationMenuItemActionPerformed
         licenseActivation();
-        licenseActivation();
     }//GEN-LAST:event_activationMenuItemActionPerformed
 
     private void activationButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationButtonActionPerformed
@@ -7090,7 +7088,7 @@ public class GUI extends JFrame implements GuiListener {
                     timedMsgDialog.setLocationRelativeTo(GUI.this);
                     timedMsgDialog.setVisible(true);
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(Regex.split(msg, " ").length * 400);
                         timedMsgDialog.setVisible(false);
                     } catch (InterruptedException e) {
                         if (Debug.DEBUG) {
@@ -7993,7 +7991,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private int portNum(String port) {
+    private static int portNum(String port) {
         int portNum;
         return Regex.isMatch(port, "\\d{1,5}+") && (portNum = Integer.parseInt(port)) <= 65535 ? portNum : -1;
     }

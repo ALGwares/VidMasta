@@ -64,9 +64,9 @@ public class SummaryReader extends AbstractSwingWorker {
     public void readSummary() throws Exception {
         IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
         swfName = Str.hashCode(video.ID);
-        String swfSpeech = Constant.TEMP_DIR + swfName + Constant.SWF;
-        String swfPage = Constant.TEMP_DIR + swfName + Constant.HTML;
-        if ((new File(swfSpeech)).exists() && (new File(swfPage)).exists()) {
+        String swfSpeechPath = Constant.TEMP_DIR + swfName + Constant.SWF;
+        File swfSpeech = new File(swfSpeechPath), swfPage = new File(Constant.TEMP_DIR + swfName + Constant.HTML);
+        if (swfSpeech.exists() && swfPage.exists()) {
             browse(swfPage);
             return;
         }
@@ -102,9 +102,10 @@ public class SummaryReader extends AbstractSwingWorker {
             return;
         }
 
-        convertMoviesToAudioClip().encodeToFile(new File(swfSpeech));
+        convertMoviesToAudioClip().encodeToFile(swfSpeech);
 
-        String page = Str.get(479).replace(Str.get(480), swfSpeech).replace(Str.get(481), Regex.cleanWeirdChars(video.title) + " (" + video.year + ")"), imagePath;
+        String page = Str.get(479).replace(Str.get(480), swfSpeechPath).replace(Str.get(481), Regex.cleanWeirdChars(video.title) + " (" + video.year + ")"),
+                imagePath;
         page = page.replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video))).exists() ? imagePath : Constant.PROGRAM_DIR
                 + "noPosterBig.jpg");
 
@@ -145,9 +146,9 @@ public class SummaryReader extends AbstractSwingWorker {
         return audioClip;
     }
 
-    private void browse(String swfPage) throws Exception {
+    private void browse(File swfPage) throws Exception {
         guiListener.browserNotification("summary", "read to you", DomainType.VIDEO_INFO);
-        Connection.browseFile(swfPage);
+        IO.browse(swfPage);
     }
 
     private class MoviePartFinder extends SwingWorker<Object, Object> {

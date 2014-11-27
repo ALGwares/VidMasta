@@ -684,37 +684,6 @@ public class Connection {
         }
     }
 
-    public static void browse(File file) throws IOException {
-        Desktop desktop;
-        if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.BROWSE)) {
-            try {
-                desktop.browse(file.toURI());
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.println(e.toString());
-                }
-                browseFile(file.getCanonicalPath());
-            }
-        } else {
-            if (Debug.DEBUG) {
-                Debug.println("Desktop browse action not supported");
-            }
-            browseFile(file.getCanonicalPath());
-        }
-    }
-
-    public static void browseFile(String file) throws IOException {
-        try {
-            (new ProcessBuilder(Constant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", file} : (Constant.MAC ? new String[]{"open", file}
-                    : new String[]{"xdg-open", file}))).start();
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-            throw new IOException("Manually enter the following file location into a web browser:" + Constant.NEWLINE2 + "file://" + file + Constant.NEWLINE);
-        }
-    }
-
     public static void updateError(final Exception e) {
         if (e.getClass().equals(UpdateException.class)) {
             return;

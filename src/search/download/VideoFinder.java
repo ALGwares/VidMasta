@@ -397,7 +397,7 @@ public class VideoFinder extends AbstractSwingWorker {
         Connection.browse(url);
     }
 
-    private void browseMagnetLink(Torrent torrent) throws IOException {
+    private static void browseMagnetLink(Torrent torrent) throws IOException {
         Connection.browse(torrent.MAGNET_LINK, "a BitTorrent client", "magnet");
     }
 
@@ -449,7 +449,7 @@ public class VideoFinder extends AbstractSwingWorker {
         } else if (guiListener.canDownloadWithDefaultApp()) {
             startPeerBlock();
             try {
-                Connection.browseFile(torrentFile.getPath());
+                IO.open(torrentFile);
             } catch (Exception e) {
                 try {
                     browseMagnetLink(torrent);
@@ -986,7 +986,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    public String getComments() {
+    public static String getComments() {
         return commentsFinder == null || commentsFinder.comments == null ? CommentsFinder.NO_COMMENTS : commentsFinder.comments;
     }
 }

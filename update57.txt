@@ -1,4 +1,4 @@
-154
+155
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -478,7 +478,7 @@ http://imtranslator.net/translate-and-speak/sockets/tts.asp?FA=1&dir=en&text=
 "
 [\.\!\?;,]
 245
-<html><head><title>TTS_TITLE: Audio Summary</title></head><body><div style="text-align: center;"><br><br><br><object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="115" height="102" id="movie_name" align="middle"><param name="movie" value="file://TTS_AUDIO_CLIP"/><!--[if !IE]>--><object type="application/x-shockwave-flash" data="file://TTS_AUDIO_CLIP" width="115" height="102"><param name="movie" value="file://TTS_AUDIO_CLIP"/><!--<![endif]--><a href="http://www.adobe.com/go/getflash"><img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" border="0"/></a><!--[if !IE]>--></object><!--<![endif]--></object><br><br><font face="Verdana" size="3"><b>TTS_TITLE</b></font><br><font face="Verdana" size="2">Audio Summary</font><br><br><img src="file://TTS_POSTER"/></div></body></html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">NEWLINE<html>NEWLINE<head>NEWLINE<meta http-equiv="Content-Type" content="text/html; charset=utf-8">NEWLINE<title>TTS_TITLE: Audio Summary</title>NEWLINE</head>NEWLINE<body>NEWLINE<div style="text-align: center;"><br>NEWLINE  <br>NEWLINE  <br>NEWLINE  <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="115" height="102" id="movie_name" align="middle">NEWLINE    <param name="movie" value="file://TTS_AUDIO_CLIP">NEWLINE    <!--[if !IE]>-->NEWLINE    <object type="application/x-shockwave-flash" data="file://TTS_AUDIO_CLIP" width="115" height="102">NEWLINE      <param name="movie" value="file://TTS_AUDIO_CLIP">NEWLINE      <!--<![endif]--><a href="http://www.adobe.com/go/getflash"><img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" border="0"></a><!--[if !IE]>-->NEWLINE    </object>NEWLINE    <!--<![endif]-->NEWLINE  </object>NEWLINE  <br>NEWLINE  <br>NEWLINE  <font face="Verdana" size="3"><b>TTS_TITLE</b></font><br>NEWLINE  <font face="Verdana" size="2">Audio Summary</font><br>NEWLINE  <br>NEWLINE  <img src="file://TTS_POSTER" alt=""></div>NEWLINE</body>NEWLINE</html>
 TTS_AUDIO_CLIP
 TTS_TITLE
 TTS_POSTER

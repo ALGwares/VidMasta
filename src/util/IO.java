@@ -1,6 +1,8 @@
 package util;
 
 import debug.Debug;
+import java.awt.Desktop;
+import java.awt.Desktop.Action;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -9,6 +11,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -300,6 +303,50 @@ public class IO {
     public static boolean isFileTooOld(File file, long maxAge) {
         long lastModified = file.lastModified();
         return lastModified != 0L && (System.currentTimeMillis() - lastModified) > maxAge;
+    }
+
+    public static void browse(File file) throws IOException {
+        browseOrOpen(file, Action.BROWSE);
+    }
+
+    public static void open(File file) throws IOException {
+        browseOrOpen(file, Action.OPEN);
+    }
+
+    private static void browseOrOpen(File file, Action action) throws IOException {
+        Desktop desktop;
+        if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(action)) {
+            try {
+                if (action == Action.OPEN) {
+                    desktop.open(file);
+                } else {
+                    desktop.browse(file.toURI());
+                }
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.println(e.toString());
+                }
+                openHelper(file);
+            }
+        } else {
+            if (Debug.DEBUG) {
+                Debug.println("Desktop " + action + " action not supported");
+            }
+            openHelper(file);
+        }
+    }
+
+    private static void openHelper(File file) throws IOException {
+        String filePath = file.getCanonicalPath();
+        try {
+            (new ProcessBuilder(Constant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", filePath} : (Constant.MAC ? new String[]{"open",
+                filePath} : new String[]{"xdg-open", filePath}))).start();
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+            throw new IOException("Manually enter the following file location into a web browser:" + Constant.NEWLINE2 + "file://" + filePath + Constant.NEWLINE);
+        }
     }
 
     private IO() {

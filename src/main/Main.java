@@ -318,7 +318,7 @@ public class Main implements WorkerListener {
 
     @Override
     public String getSafetyComments() {
-        return torrentFinder == null ? CommentsFinder.NO_COMMENTS : torrentFinder.getComments();
+        return torrentFinder == null ? CommentsFinder.NO_COMMENTS : VideoFinder.getComments();
     }
 
     @Override
