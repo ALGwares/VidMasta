@@ -150,7 +150,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private static final long serialVersionUID = 1L;
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode;
+    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode, forcePlay;
     boolean viewedPortBefore;
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
     DefaultListModel blacklistListModel, whitelistListModel;
@@ -2897,12 +2897,12 @@ public class GUI extends JFrame implements GuiListener {
 
         authenticationUsernameTextField.setText(null);
         authenticationUsernameTextField.addAncestorListener(new AncestorListener() {
-            public void ancestorMoved(AncestorEvent evt) {
-            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationUsernameTextFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
+            }
+            public void ancestorMoved(AncestorEvent evt) {
             }
         });
 
@@ -2911,12 +2911,12 @@ public class GUI extends JFrame implements GuiListener {
         authenticationPasswordField.setText(null);
         authenticationPasswordField.setEchoChar('\u2022');
         authenticationPasswordField.addAncestorListener(new AncestorListener() {
-            public void ancestorMoved(AncestorEvent evt) {
-            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationPasswordFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
+            }
+            public void ancestorMoved(AncestorEvent evt) {
             }
         });
 
@@ -3147,10 +3147,16 @@ public class GUI extends JFrame implements GuiListener {
             playlistTable.getColumnModel().getColumn(3).setHeaderValue(Constant.PLAYLIST_ITEM_COL);
         }
 
+        String playlistPlayToolTip = "play/stop (" + CTRL_CLICK + "force play)";
         playlistPlayButton.setText(null);
-        playlistPlayButton.setToolTipText("play/stop");
+        playlistPlayButton.setToolTipText(playlistPlayToolTip);
         playlistPlayButton.setEnabled(false);
         playlistPlayButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistPlayButton.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                playlistPlayButtonMousePressed(evt);
+            }
+        });
         playlistPlayButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 playlistPlayButtonActionPerformed(evt);
@@ -3219,8 +3225,13 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap())
         );
 
-        playlistPlayMenuItem.setToolTipText("play/stop");
+        playlistPlayMenuItem.setToolTipText(playlistPlayToolTip);
         playlistPlayMenuItem.setEnabled(false);
+        playlistPlayMenuItem.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                playlistPlayMenuItemMousePressed(evt);
+            }
+        });
         playlistPlayMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 playlistPlayMenuItemActionPerformed(evt);
@@ -4430,11 +4441,15 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_loadMoreResultsButtonActionPerformed
 
     void faqMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_faqMenuItemActionPerformed
-        showFaqFrame();
+        faqEditorPane.setSelectionStart(0);
+        faqEditorPane.setSelectionEnd(0);
+        faqFrame.setVisible(true);
     }//GEN-LAST:event_faqMenuItemActionPerformed
 
     void aboutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
-        showAboutDialog();
+        aboutEditorPane.setSelectionStart(0);
+        aboutEditorPane.setSelectionEnd(0);
+        aboutDialog.setVisible(true);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
     void exitMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
@@ -4787,13 +4802,12 @@ public class GUI extends JFrame implements GuiListener {
         hideFindTextField();
         SelectedTableRow row = new SelectedTableRow();
         JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
-        viewport.scrollRectToVisible(rectangle(viewport, row.VIEW_VAL));
+        viewport.scrollRectToVisible(rectangle(viewport, resultsSyncTable.getCellRect(row.VIEW_VAL, 0, true)));
         return row;
     }
 
-    private Rectangle rectangle(JViewport viewport, int row) {
+    private Rectangle rectangle(JViewport viewport, Rectangle cellRect) {
         Point viewPosition = viewport.getViewPosition();
-        Rectangle cellRect = resultsSyncTable.getCellRect(row, 0, true);
         cellRect.setLocation(cellRect.x - viewPosition.x, cellRect.y - viewPosition.y);
         return cellRect;
     }
@@ -6169,13 +6183,6 @@ public class GUI extends JFrame implements GuiListener {
         exitBackupMode(evt);
     }//GEN-LAST:event_emailDownloadLink2MenuItemMousePressed
 
-    private void downloadLink1ButtonMouseReleased(MouseEvent evt) {//GEN-FIRST:event_downloadLink1ButtonMouseReleased
-        if (exitBackupMode) {
-            exitBackupMode = false;
-            downloadLink1ButtonActionPerformed(null);
-        }
-    }//GEN-LAST:event_downloadLink1ButtonMouseReleased
-
     private void exitBackupModeMenuItemMouseReleased(MouseEvent evt) {//GEN-FIRST:event_exitBackupModeMenuItemMouseReleased
         if (exitBackupMode) {
             exitBackupMode = false;
@@ -6256,13 +6263,6 @@ public class GUI extends JFrame implements GuiListener {
         exitBackupMode(evt);
     }//GEN-LAST:event_playButtonMousePressed
 
-    private void playButtonMouseReleased(MouseEvent evt) {//GEN-FIRST:event_playButtonMouseReleased
-        if (exitBackupMode) {
-            exitBackupMode = false;
-            playButtonActionPerformed(null);
-        }
-    }//GEN-LAST:event_playButtonMouseReleased
-
     private void playMenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_playMenuItemMousePressed
         exitBackupMode(evt);
     }//GEN-LAST:event_playMenuItemMousePressed
@@ -6282,10 +6282,12 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void playlistPlayButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistPlayButtonActionPerformed
+        boolean force = forcePlay;
+        forcePlay = false;
         PlaylistItem playlistItem = selectedPlaylistItem();
         if (playlistItem != null) {
             if (playlistItem.canPlay()) {
-                playlistItem.play();
+                playlistItem.play(force);
             } else {
                 playlistItem.stop();
             }
@@ -6410,6 +6412,24 @@ public class GUI extends JFrame implements GuiListener {
             setVisible(true);
         }
     }//GEN-LAST:event_activationDialogWindowClosing
+
+    private void playlistPlayButtonMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayButtonMousePressed
+        if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK) {
+            forcePlay = true;
+        }
+    }//GEN-LAST:event_playlistPlayButtonMousePressed
+
+    private void playlistPlayMenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayMenuItemMousePressed
+        playlistPlayButtonMousePressed(evt);
+    }//GEN-LAST:event_playlistPlayMenuItemMousePressed
+
+    private void playButtonMouseReleased(MouseEvent evt) {//GEN-FIRST:event_playButtonMouseReleased
+        exitBackupMode = false;
+    }//GEN-LAST:event_playButtonMouseReleased
+
+    private void downloadLink1ButtonMouseReleased(MouseEvent evt) {//GEN-FIRST:event_downloadLink1ButtonMouseReleased
+        exitBackupMode = false;
+    }//GEN-LAST:event_downloadLink1ButtonMouseReleased
 
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
@@ -6577,18 +6597,6 @@ public class GUI extends JFrame implements GuiListener {
                 + ") is from an untrustworthy source." + (statistic == null || link == null ? "" : " " + statistic + " of the <a href=\"" + link
                 + "\">comments</a> on the video indicate that it may be fake.")
                 + "<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
-    }
-
-    private void showFaqFrame() {
-        faqEditorPane.setSelectionStart(0);
-        faqEditorPane.setSelectionEnd(0);
-        faqFrame.setVisible(true);
-    }
-
-    private void showAboutDialog() {
-        aboutEditorPane.setSelectionStart(0);
-        aboutEditorPane.setSelectionEnd(0);
-        aboutDialog.setVisible(true);
     }
 
     private Window[] windows() {
@@ -7088,7 +7096,7 @@ public class GUI extends JFrame implements GuiListener {
                     timedMsgDialog.setLocationRelativeTo(GUI.this);
                     timedMsgDialog.setVisible(true);
                     try {
-                        Thread.sleep(Regex.split(msg, " ").length * 400);
+                        Thread.sleep(Regex.split(msg, " ").length * 400L);
                         timedMsgDialog.setVisible(false);
                     } catch (InterruptedException e) {
                         if (Debug.DEBUG) {
@@ -7474,7 +7482,7 @@ public class GUI extends JFrame implements GuiListener {
             for (int i = 0; i < 25; i++) {
                 if (resultsSyncTable.getRowCount() > 0 && resultsSyncTable.getSelectedRow() == -1) {
                     JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
-                    if ((new Rectangle(viewport.getExtentSize())).intersects(rectangle(viewport, 0))) {
+                    if ((new Rectangle(viewport.getExtentSize())).intersects(rectangle(viewport, resultsSyncTable.getCellRect(0, 0, true)))) {
                         resultsSyncTable.setRowSelectionInterval(0, 0);
                     }
                     break;
@@ -7576,11 +7584,14 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void showPlaylist(PlaylistItem selectedPlaylistItem) {
         playlistFrame.setVisible(true);
+        playlistFrame.setExtendedState(playlistFrame.getExtendedState() & ~Frame.ICONIFIED);
         synchronized (playlistSyncTable.lock) {
             for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
                 if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(selectedPlaylistItem)) {
                     int viewRow = playlistSyncTable.table.convertRowIndexToView(row);
                     playlistSyncTable.table.setRowSelectionInterval(viewRow, viewRow);
+                    JViewport viewport = (JViewport) playlistSyncTable.table.getParent();
+                    viewport.scrollRectToVisible(rectangle(viewport, playlistSyncTable.table.getCellRect(viewRow, 0, true)));
                     break;
                 }
             }
@@ -7597,6 +7608,7 @@ public class GUI extends JFrame implements GuiListener {
     public void playlistError(String msg) {
         synchronized (optionDialogLock) {
             resultsToBackground();
+            playlistFrame.setExtendedState(playlistFrame.getExtendedState() & ~Frame.ICONIFIED);
             JOptionPane.showMessageDialog(playlistFrame.isShowing() ? playlistFrame : this, getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG);
             resultsToForeground();
         }

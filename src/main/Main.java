@@ -154,7 +154,7 @@ public class Main implements WorkerListener {
             @Override
             public void run() {
                 // Warm and clean cache
-                for (File file : (new File(Constant.CACHE_DIR)).listFiles()) {
+                for (File file : IO.listFiles(Constant.CACHE_DIR)) {
                     if (file.isDirectory()) {
                         file.listFiles();
                     } else {
@@ -194,13 +194,10 @@ public class Main implements WorkerListener {
     }
 
     static void removeTempFiles() {
-        File[] torrents = new File(Constant.TORRENTS_DIR).listFiles();
-        if (torrents != null) {
-            long maxAge = Long.parseLong(Str.get(608));
-            for (File torrent : torrents) {
-                if (IO.isFileTooOld(torrent, maxAge)) {
-                    IO.fileOp(torrent, IO.RM_FILE);
-                }
+        long maxAge = Long.parseLong(Str.get(608));
+        for (File torrent : IO.listFiles(Constant.TORRENTS_DIR)) {
+            if (IO.isFileTooOld(torrent, maxAge)) {
+                IO.fileOp(torrent, IO.RM_FILE);
             }
         }
         IO.fileOp(Constant.TEMP_DIR, IO.RM_DIR);

@@ -6,7 +6,7 @@ public interface PlaylistItem {
 
     boolean isActive();
 
-    void play();
+    void play(boolean force);
 
     void stop();
 

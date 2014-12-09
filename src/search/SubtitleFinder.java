@@ -300,11 +300,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
     }
 
     public static File getSubtitle(File dir) {
-        if (!dir.exists()) {
-            return null;
-        }
-
-        File[] files = dir.listFiles();
+        File[] files = IO.listFiles(dir);
         Arrays.sort(files, new Comparator<File>() {
             @Override
             public int compare(File file1, File file2) {

@@ -10,11 +10,11 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 
-public class Constant {
+public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 18.2;
+    public static final double APP_VERSION = 18.3;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -23,9 +23,6 @@ public class Constant {
     public static final String PEER_BLOCK_APP_TITLE = "PeerBlock";
     public static final String PEER_BLOCK = "peerblock", PEER_BLOCK_VERSION;
     public static final String CONNECTIVITY = "connectivity";
-    public static final String STD_NEWLINE = IOConstant.STD_NEWLINE, STD_NEWLINE2 = STD_NEWLINE + STD_NEWLINE;
-    public static final String NEWLINE = IOConstant.NEWLINE, NEWLINE2 = NEWLINE + NEWLINE;
-    public static final String UTF8 = IOConstant.UTF8;
     public static final String SEPARATOR1 = ":::", SEPARATOR2 = "~~~", SEPARATOR3 = ";;;";
     public static final String IMAGE_COL = "", TITLE_COL = "Title", YEAR_COL = "Year", RATING_COL = "Rating", ID_COL = "0", CURR_TITLE_COL = "1";
     public static final String OLD_TITLE_COL = "2", SUMMARY_COL = "3", IMAGE_LINK_COL = "4", IS_TV_SHOW_COL = "5", IS_TV_SHOW_AND_MOVIE_COL = "6";
@@ -72,14 +69,11 @@ public class Constant {
     public static final String TORRENTS = "torrents";
     public static final String CONNECTING = "Connecting to ";
     public static final String TRANSFERRING = "Transferring data from ";
-    public static final String OS_NAME = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH);
-    public static final boolean WINDOWS = OS_NAME.startsWith("win"), MAC = OS_NAME.startsWith("mac");
     public static final String HOME_DIR = System.getProperty("user.home", ""), WORKING_DIR = System.getProperty("user.dir", ".");
-    public static final String FILE_SEPARATOR, PROGRAM_DIR, APP_DIR, CACHE_DIR, TEMP_DIR, TORRENTS_DIR, DESKTOP_DIR;
+    public static final String PROGRAM_DIR, APP_DIR, CACHE_DIR, TEMP_DIR, TORRENTS_DIR, DESKTOP_DIR;
     public static final String JAVA, JAVA_VERSION = System.getProperty("java.version", "");
 
     static {
-        FILE_SEPARATOR = IOConstant.FILE_SEPARATOR;
         String java = System.getProperty("java.home", "java");
         JAVA = java + (java.equals("java") ? "" : FILE_SEPARATOR + "bin" + FILE_SEPARATOR + "java");
         PROGRAM_DIR = initProgramDir();

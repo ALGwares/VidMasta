@@ -1,6 +1,18 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.12.08   | VidMasta 18.3
+
+CHANGE: UI   | Updated Windows installer to create shortcuts that target "javaw.exe -jar VidMasta.jar" instead of "VidMasta.jar" so that the shortcuts can be pinned to the Windows taskbar
+CHANGE: UI   | Updated Mac and Linux installers to create a desktop shortcut/symbolic link to the application
+CHANGE: UI   | Play download link 2 in addition to download link 1 that is already played when clicking the play button
+CHANGE: UI   | Force playlist item to play if stopped and another play item is already playing by ctrl+clicking the play/stop button
+CHANGE: UI   | Clean-up playlist item save folder when play item finishes/stops
+CHANGE: UI   | Improved smoothness of the progress displayed for playlist items
+
+
+
+
 2014.11.26   | VidMasta 18.2
 
 CHANGE: UI   | Improved smoothness of the progress displayed for playlist items

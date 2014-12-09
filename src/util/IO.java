@@ -22,7 +22,10 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.nio.channels.FileLock;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
@@ -193,15 +196,12 @@ public class IO {
     }
 
     private static boolean rmDir(File dir) {
-        if (!dir.isDirectory()) {
-            return false;
-        }
         rmDirHelper(dir);
         return !dir.exists();
     }
 
     private static void rmDirHelper(File dir) {
-        for (File file : dir.listFiles()) {
+        for (File file : listFiles(dir)) {
             if (file.isDirectory()) {
                 rmDirHelper(file);
             } else {
@@ -285,6 +285,48 @@ public class IO {
         }
     }
 
+    public static void rmEmptyDirs(File dir, Collection<File> excludedDirs) {
+        File[] files = listFiles(dir);
+        if (files.length == 0) {
+            if (!excludedDirs.contains(dir)) {
+                fileOp(dir, RM_FILE);
+            }
+        } else {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    rmEmptyDirs(file, excludedDirs);
+                }
+            }
+            if (listFiles(dir).length == 0 && !excludedDirs.contains(dir)) {
+                fileOp(dir, RM_FILE);
+            }
+        }
+    }
+
+    public static File[] listFiles(String filePath) {
+        return listFiles(new File(filePath));
+    }
+
+    public static File[] listFiles(File file) {
+        File[] files = file.listFiles();
+        return files == null ? new File[0] : files;
+    }
+
+    public static Set<File> listAllFiles(File file) {
+        Set<File> files = new HashSet<File>(8);
+        listAllFiles(file, files);
+        return files;
+    }
+
+    private static void listAllFiles(File file, Collection<File> allFiles) {
+        for (File currFile : listFiles(file)) {
+            allFiles.add(currFile);
+            if (currFile.isDirectory()) {
+                listAllFiles(currFile, allFiles);
+            }
+        }
+    }
+
     public static String parentDir(String path) {
         return parentDir(new File(path));
     }
@@ -339,13 +381,14 @@ public class IO {
     private static void openHelper(File file) throws IOException {
         String filePath = file.getCanonicalPath();
         try {
-            (new ProcessBuilder(Constant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", filePath} : (Constant.MAC ? new String[]{"open",
+            (new ProcessBuilder(IOConstant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", filePath} : (IOConstant.MAC ? new String[]{"open",
                 filePath} : new String[]{"xdg-open", filePath}))).start();
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            throw new IOException("Manually enter the following file location into a web browser:" + Constant.NEWLINE2 + "file://" + filePath + Constant.NEWLINE);
+            throw new IOException("Manually enter the following file location into a web browser:" + IOConstant.NEWLINE2 + "file://" + filePath
+                    + IOConstant.NEWLINE);
         }
     }
 

@@ -342,12 +342,9 @@ public class Connection {
     }
 
     public static void clearCache() {
-        File[] files = (new File(Constant.CACHE_DIR)).listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.getName().endsWith(Constant.HTML)) {
-                    IO.fileOp(file, IO.RM_FILE);
-                }
+        for (File file : IO.listFiles(Constant.CACHE_DIR)) {
+            if (file.getName().endsWith(Constant.HTML)) {
+                IO.fileOp(file, IO.RM_FILE);
             }
         }
         cache.clear();

@@ -45,7 +45,7 @@ public class VideoFinder extends AbstractSwingWorker {
     public final String TITLE;
     volatile String streamLink;
     final AtomicBoolean isStream2 = new AtomicBoolean(), findOldTitleStream = new AtomicBoolean(), isLinkProgressDone = new AtomicBoolean();
-    private boolean isDownload1;
+    private boolean isDownload1, cancelTVSelection, playAutoStart = true;
     private String oldTitle, export;
     private static volatile SwingWorker<?, ?> episodeFinder;
     private Collection<Torrent> torrents;
@@ -86,21 +86,23 @@ public class VideoFinder extends AbstractSwingWorker {
     protected Object doInBackground() {
         guiListener.loading(true);
         search(CONTENT_TYPE);
+
         boolean isCancelled = false;
         ContentType export2ContentType = null;
         String export1 = export;
-        if (strExportListener != null) {
+
+        if (strExportListener == null) {
+            if (PLAY && !cancelTVSelection && !isCancelled() && (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3)) {
+                resetDownloadVideoFinder();
+                search(ContentType.DOWNLOAD2);
+            }
+        } else {
             isCancelled = isCancelled();
             if (strExportListener.exportSecondaryContent()) {
                 if (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3) {
                     export = null;
                     export2ContentType = ContentType.DOWNLOAD2;
-                    Connection.unfailDownloadLinkInfo();
-                    isLinkProgressDone.set(false);
-                    torrents.clear();
-                    if (torrentFinders != null) {
-                        torrentFinders.clear();
-                    }
+                    resetDownloadVideoFinder();
                     search(export2ContentType);
                 } else if (CONTENT_TYPE == ContentType.STREAM1) {
                     export = null;
@@ -112,15 +114,29 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
             }
         }
+
         workDone();
         guiListener.loading(false);
+
         if (strExportListener != null) {
             strExportListener.export(CONTENT_TYPE, export1, isCancelled, guiListener);
             if (export2ContentType != null) {
                 strExportListener.export(export2ContentType, export, isCancelled(), guiListener);
             }
         }
+
         return null;
+    }
+
+    private void resetDownloadVideoFinder() {
+        Connection.unfailDownloadLinkInfo();
+        isLinkProgressDone.set(false);
+        torrents.clear();
+        if (torrentFinders == null) {
+            torrentFinders = new ArrayList<TorrentFinder>(12);
+        } else {
+            torrentFinders.clear();
+        }
     }
 
     public boolean isLinkProgressDone() {
@@ -305,7 +321,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (torrent == null) {
-                    msg("download link", true);
+                    msg(PLAY ? (isDownload1 || contentType == ContentType.DOWNLOAD3 ? "first" : "second") + " download link to play" : "download link", true);
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
@@ -626,12 +642,12 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private boolean tvChoices() {
         synchronized (tvChoicesLock) {
-            if (strExportListener == null || strExportListener.showTVChoices()) {
-                boolean cancel = guiListener.tvChoices(video.season, video.episode);
+            if ((strExportListener == null || strExportListener.showTVChoices()) && (!PLAY || isDownload1)) {
+                cancelTVSelection = guiListener.tvChoices(video.season, video.episode);
                 if (strExportListener != null) {
                     strExportListener.setEpisode(guiListener.getSeason(), guiListener.getEpisode());
                 }
-                return cancel;
+                return cancelTVSelection;
             }
             return false;
         }
