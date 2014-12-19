@@ -3,6 +3,7 @@ package gui;
 import debug.Debug;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
@@ -354,6 +355,20 @@ public class UI {
         };
         syncTable.table.setRowSorter(rowSorter);
         return rowSorter;
+    }
+
+    public static void show(Frame frame) {
+        frame.setVisible(true);
+        deiconify(frame);
+    }
+
+    public static boolean deiconifyThenIsShowing(Frame frame) {
+        deiconify(frame);
+        return frame.isShowing();
+    }
+
+    public static void deiconify(Frame frame) {
+        frame.setExtendedState(frame.getExtendedState() & ~Frame.ICONIFIED);
     }
 
     private UI() {

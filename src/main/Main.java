@@ -21,7 +21,9 @@ import java.util.concurrent.Future;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import listener.ContentType;
+import listener.FormattedNum;
 import listener.GuiListener;
+import listener.PlaylistItem;
 import listener.Video;
 import listener.VideoStrExportListener;
 import listener.WorkerListener;
@@ -107,6 +109,7 @@ public class Main implements WorkerListener {
             @Override
             public void run() {
                 gui.saveUserSettings();
+                gui.savePlaylist();
                 AbstractWorker.shutdown();
                 removeTempFiles();
                 gui.stopPosterCacher();
@@ -402,6 +405,27 @@ public class Main implements WorkerListener {
     @Override
     public void portChanged(int port) {
         Magnet.changePorts(port);
+    }
+
+    @Override
+    public void initPlaylist() throws Exception {
+        Magnet.startAzureus(gui);
+        Magnet.waitForAzureusToStart();
+    }
+
+    @Override
+    public FormattedNum playlistItemSize(long size) {
+        return null;
+    }
+
+    @Override
+    public FormattedNum playlistItemProgress(double progress) {
+        return null;
+    }
+
+    @Override
+    public PlaylistItem playlistItem(String groupID, String groupName, File groupFile, int groupIndex, String name) {
+        return null;
     }
 
     @Override

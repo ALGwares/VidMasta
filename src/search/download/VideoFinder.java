@@ -92,7 +92,8 @@ public class VideoFinder extends AbstractSwingWorker {
         String export1 = export;
 
         if (strExportListener == null) {
-            if (PLAY && !cancelTVSelection && !isCancelled() && (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3)) {
+            if (PLAY && !cancelTVSelection && !isCancelled() && (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3)
+                    && !Connection.downloadLinkInfoFail()) {
                 resetDownloadVideoFinder();
                 search(ContentType.DOWNLOAD2);
             }
@@ -102,8 +103,10 @@ public class VideoFinder extends AbstractSwingWorker {
                 if (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3) {
                     export = null;
                     export2ContentType = ContentType.DOWNLOAD2;
-                    resetDownloadVideoFinder();
-                    search(export2ContentType);
+                    if (!Connection.downloadLinkInfoFail()) {
+                        resetDownloadVideoFinder();
+                        search(export2ContentType);
+                    }
                 } else if (CONTENT_TYPE == ContentType.STREAM1) {
                     export = null;
                     export2ContentType = ContentType.STREAM2;
@@ -129,7 +132,6 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void resetDownloadVideoFinder() {
-        Connection.unfailDownloadLinkInfo();
         isLinkProgressDone.set(false);
         torrents.clear();
         if (torrentFinders == null) {
@@ -342,7 +344,7 @@ public class VideoFinder extends AbstractSwingWorker {
                             commentsFinder.cancel(true);
                         }
 
-                        commentsFinder = new CommentsFinder(guiListener, Str.get(150) + torrent.ID, torrentSaveName);
+                        commentsFinder = new CommentsFinder(guiListener, torrent.COMMENTS_LINK, torrentSaveName);
                         commentsFinder.execute();
 
                         guiListener.showSafetyDialog();
@@ -748,7 +750,8 @@ public class VideoFinder extends AbstractSwingWorker {
                     extensions = "";
                 }
 
-                torrents.add(new Torrent("", magnet.MAGNET_LINK, results[i + 2].trim(), torrent, extensions, Integer.parseInt(results[i + 3].trim()) == 1, 0, 0));
+                torrents.add(new Torrent("", magnet.MAGNET_LINK, results[i + 2].trim(), torrent, extensions, null, Integer.parseInt(results[i + 3].trim()) == 1, 0,
+                        0));
             } catch (Exception e) {
                 error(e);
             }
@@ -783,7 +786,7 @@ public class VideoFinder extends AbstractSwingWorker {
         } else if (!video.season.equals(Constant.ANY) && video.episode.equals(Constant.ANY)) {
             seasonAndEpisodes.add(" season " + Integer.valueOf(video.season));
         } else if (video.season.equals(Constant.ANY) && !video.episode.equals(Constant.ANY)) {
-            seasonAndEpisodes.add(" episode " + Integer.valueOf(video.episode));
+            Collections.addAll(seasonAndEpisodes, " e" + video.episode, " episode " + Integer.valueOf(video.episode));
         } else {
             String seasonNum = Integer.valueOf(video.season).toString();
             Collections.addAll(seasonAndEpisodes, " s" + video.season + 'e' + video.episode, ' ' + seasonNum + 'x' + video.episode);

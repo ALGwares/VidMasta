@@ -3937,6 +3937,9 @@
                   <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistTableKeyPressed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -3956,6 +3959,7 @@
           <Events>
             <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="playlistPlayButtonMousePressed"/>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistPlayButtonActionPerformed"/>
+            <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistPlayButtonKeyPressed"/>
           </Events>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_InitCodePre" type="java.lang.String" value="String playlistPlayToolTip = &quot;play/stop (&quot; + CTRL_CLICK + &quot;force play)&quot;;"/>
@@ -3974,6 +3978,7 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistMoveUpButtonActionPerformed"/>
+            <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistMoveUpButtonKeyPressed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JButton" name="playlistMoveDownButton">
@@ -3989,6 +3994,7 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistMoveDownButtonActionPerformed"/>
+            <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistMoveDownButtonKeyPressed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JButton" name="playlistRemoveButton">
@@ -4004,6 +4010,7 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistRemoveButtonActionPerformed"/>
+            <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistRemoveButtonKeyPressed"/>
           </Events>
         </Component>
       </SubComponents>

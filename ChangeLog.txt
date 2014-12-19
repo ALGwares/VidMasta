@@ -1,6 +1,24 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2014.12.18   | VidMasta 18.4
+
+CHANGE: UI   | Saved and restored playlist between restarts of VidMasta
+CHANGE: UI   | Showed percentage complete for initializing stage of playback when available
+CHANGE: UI   | Allowed main application window to be restored when the playlist window is the only window open by pressing ctrl+w
+CHANGE: UI   | Fixed slowness when deleting a lot of playlist items at once
+CHANGE: UI   | Selected a nearby playlist item when a playlist item is deleted while selected
+CHANGE: UI   | Changed "Latest Episode" to more accurately say "Popular Episode" in Popular TV Show search results
+CHANGE: CORE | Increased playback initial buffer size slightly to better handle fluctuations in download speed
+CHANGE: CORE | Improved accuracy of TV show episode download link searches
+CHANGE: CORE | Started PeerBlock after enabling Administrator permissions
+CHANGE: CORE | Stopped trying to automatically play download link 2 when download link 1 fails because of a connection issue
+CHANGE: CORE | Stopped trying to email download link 2 when download link 1 fails because of a connection issue
+CHANGE: CORE | Fixed a few issues resulting from a critical and silent update, in-between the release of VidMasta 18.3 and VidMasta 18.4, of download link sources. The issues fixed are upload year check disabled, comments provider for untrusty download links temporarily un-proxied and sometimes only returns partial results, second set of results for popular searches not prefetched, and a very rare unhandled HTTP 404 error when trying to find a download link that does not exist.
+
+
+
+
 2014.12.08   | VidMasta 18.3
 
 CHANGE: UI   | Updated Windows installer to create shortcuts that target "javaw.exe -jar VidMasta.jar" instead of "VidMasta.jar" so that the shortcuts can be pinned to the Windows taskbar

@@ -51,6 +51,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -152,6 +153,7 @@ public class GUI extends JFrame implements GuiListener {
     private WorkerListener workerListener;
     private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode, forcePlay;
     boolean viewedPortBefore;
+    private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
     DefaultListModel blacklistListModel, whitelistListModel;
     private DefaultListModel removeProxiesListModel;
@@ -175,7 +177,7 @@ public class GUI extends JFrame implements GuiListener {
     private AbstractPopupListener textComponentPopupListener;
     private final ActionListener htmlCopyListener = new HTMLCopyListener(), tableCopyListener = new TableCopyListener(),
             playlistTableCopyListener = new PlaylistTableCopyListener();
-    private final Object msgDialogLock = new Object(), optionDialogLock = new Object();
+    private final Object msgDialogLock = new Object(), optionDialogLock = new Object(), playlistRestorationLock = new Object();
     private final Settings settings = new Settings();
     final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
     final BlockingQueue<String> posterImagePaths = new LinkedBlockingQueue<String>();
@@ -1039,8 +1041,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout safetyDialogLayout = new GroupLayout(safetyDialog.getContentPane());
         safetyDialog.getContentPane().setLayout(safetyDialogLayout);
-        safetyDialogLayout.setHorizontalGroup(
-            safetyDialogLayout.createParallelGroup(Alignment.LEADING)
+        safetyDialogLayout.setHorizontalGroup(safetyDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(safetyDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(safetyDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1056,8 +1057,7 @@ public class GUI extends JFrame implements GuiListener {
 
         safetyDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {noButton, yesButton});
 
-        safetyDialogLayout.setVerticalGroup(
-            safetyDialogLayout.createParallelGroup(Alignment.LEADING)
+        safetyDialogLayout.setVerticalGroup(safetyDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(Alignment.TRAILING, safetyDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(safetyScrollPane, GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
@@ -1112,8 +1112,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout summaryDialogLayout = new GroupLayout(summaryDialog.getContentPane());
         summaryDialog.getContentPane().setLayout(summaryDialogLayout);
-        summaryDialogLayout.setHorizontalGroup(
-            summaryDialogLayout.createParallelGroup(Alignment.LEADING)
+        summaryDialogLayout.setHorizontalGroup(summaryDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(summaryDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(summaryDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1129,8 +1128,7 @@ public class GUI extends JFrame implements GuiListener {
 
         summaryDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {summaryCloseButton, summaryLoadingLabel, summaryTextToSpeechButton});
 
-        summaryDialogLayout.setVerticalGroup(
-            summaryDialogLayout.createParallelGroup(Alignment.LEADING)
+        summaryDialogLayout.setVerticalGroup(summaryDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(Alignment.TRAILING, summaryDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(summaryScrollPane, GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
@@ -1166,12 +1164,10 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout faqFrameLayout = new GroupLayout(faqFrame.getContentPane());
         faqFrame.getContentPane().setLayout(faqFrameLayout);
-        faqFrameLayout.setHorizontalGroup(
-            faqFrameLayout.createParallelGroup(Alignment.LEADING)
+        faqFrameLayout.setHorizontalGroup(faqFrameLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(faqScrollPane, GroupLayout.DEFAULT_SIZE, 715, Short.MAX_VALUE)
         );
-        faqFrameLayout.setVerticalGroup(
-            faqFrameLayout.createParallelGroup(Alignment.LEADING)
+        faqFrameLayout.setVerticalGroup(faqFrameLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(faqScrollPane, GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
         );
 
@@ -1190,12 +1186,10 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout aboutDialogLayout = new GroupLayout(aboutDialog.getContentPane());
         aboutDialog.getContentPane().setLayout(aboutDialogLayout);
-        aboutDialogLayout.setHorizontalGroup(
-            aboutDialogLayout.createParallelGroup(Alignment.LEADING)
+        aboutDialogLayout.setHorizontalGroup(aboutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(aboutScrollPane)
         );
-        aboutDialogLayout.setVerticalGroup(
-            aboutDialogLayout.createParallelGroup(Alignment.LEADING)
+        aboutDialogLayout.setVerticalGroup(aboutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(aboutScrollPane, GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE)
         );
 
@@ -1229,8 +1223,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout timeoutDialogLayout = new GroupLayout(timeoutDialog.getContentPane());
         timeoutDialog.getContentPane().setLayout(timeoutDialogLayout);
-        timeoutDialogLayout.setHorizontalGroup(
-            timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
+        timeoutDialogLayout.setHorizontalGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timeoutDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1250,8 +1243,7 @@ public class GUI extends JFrame implements GuiListener {
 
         timeoutDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {timeoutComboBox, timeoutDownloadLinkComboBox});
 
-        timeoutDialogLayout.setVerticalGroup(
-            timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
+        timeoutDialogLayout.setVerticalGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timeoutDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -1315,8 +1307,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout tvDialogLayout = new GroupLayout(tvDialog.getContentPane());
         tvDialog.getContentPane().setLayout(tvDialogLayout);
-        tvDialogLayout.setHorizontalGroup(
-            tvDialogLayout.createParallelGroup(Alignment.LEADING)
+        tvDialogLayout.setHorizontalGroup(tvDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(tvDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(tvDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1340,8 +1331,7 @@ public class GUI extends JFrame implements GuiListener {
 
         tvDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {tvEpisodeComboBox, tvSeasonComboBox});
 
-        tvDialogLayout.setVerticalGroup(
-            tvDialogLayout.createParallelGroup(Alignment.LEADING)
+        tvDialogLayout.setVerticalGroup(tvDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(tvDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(tvSelectionLabel)
@@ -1384,8 +1374,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout resultsPerSearchDialogLayout = new GroupLayout(resultsPerSearchDialog.getContentPane());
         resultsPerSearchDialog.getContentPane().setLayout(resultsPerSearchDialogLayout);
-        resultsPerSearchDialogLayout.setHorizontalGroup(
-            resultsPerSearchDialogLayout.createParallelGroup(Alignment.LEADING)
+        resultsPerSearchDialogLayout.setHorizontalGroup(resultsPerSearchDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(resultsPerSearchDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(resultsPerSearchDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1409,8 +1398,7 @@ public class GUI extends JFrame implements GuiListener {
 
         resultsPerSearchDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesResultsPerSearchLabel, popularTVShowsResultsPerSearchLabel, regularResultsPerSearchLabel});
 
-        resultsPerSearchDialogLayout.setVerticalGroup(
-            resultsPerSearchDialogLayout.createParallelGroup(Alignment.LEADING)
+        resultsPerSearchDialogLayout.setVerticalGroup(resultsPerSearchDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(resultsPerSearchDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(resultsPerSearchDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -1475,8 +1463,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout downloadSizeDialogLayout = new GroupLayout(downloadSizeDialog.getContentPane());
         downloadSizeDialog.getContentPane().setLayout(downloadSizeDialogLayout);
-        downloadSizeDialogLayout.setHorizontalGroup(
-            downloadSizeDialogLayout.createParallelGroup(Alignment.LEADING)
+        downloadSizeDialogLayout.setHorizontalGroup(downloadSizeDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(downloadSizeDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(downloadSizeDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1496,8 +1483,7 @@ public class GUI extends JFrame implements GuiListener {
 
         downloadSizeDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {maxDownloadSizeComboBox, minDownloadSizeComboBox});
 
-        downloadSizeDialogLayout.setVerticalGroup(
-            downloadSizeDialogLayout.createParallelGroup(Alignment.LEADING)
+        downloadSizeDialogLayout.setVerticalGroup(downloadSizeDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(downloadSizeDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(downloadSizeDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -1582,8 +1568,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout extensionsDialogLayout = new GroupLayout(extensionsDialog.getContentPane());
         extensionsDialog.getContentPane().setLayout(extensionsDialogLayout);
-        extensionsDialogLayout.setHorizontalGroup(
-            extensionsDialogLayout.createParallelGroup(Alignment.LEADING)
+        extensionsDialogLayout.setHorizontalGroup(extensionsDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(extensionsDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(extensionsDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1608,8 +1593,7 @@ public class GUI extends JFrame implements GuiListener {
 
         extensionsDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {blacklistedToWhitelistedButton, customExtensionTextField, extensionsButton, whitelistedToBlacklistedButton});
 
-        extensionsDialogLayout.setVerticalGroup(
-            extensionsDialogLayout.createParallelGroup(Alignment.LEADING)
+        extensionsDialogLayout.setVerticalGroup(extensionsDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(extensionsDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(fileExtensionsLabel)
@@ -1672,8 +1656,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout languageCountryDialogLayout = new GroupLayout(languageCountryDialog.getContentPane());
         languageCountryDialog.getContentPane().setLayout(languageCountryDialogLayout);
-        languageCountryDialogLayout.setHorizontalGroup(
-            languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
+        languageCountryDialogLayout.setHorizontalGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(languageCountryDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -1689,8 +1672,7 @@ public class GUI extends JFrame implements GuiListener {
                             .addComponent(countryScrollPane, GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))))
                 .addContainerGap())
         );
-        languageCountryDialogLayout.setVerticalGroup(
-            languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
+        languageCountryDialogLayout.setVerticalGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(languageCountryDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(languageCountryWarningLabel)
@@ -2137,8 +2119,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout proxyDialogLayout = new GroupLayout(proxyDialog.getContentPane());
         proxyDialog.getContentPane().setLayout(proxyDialogLayout);
-        proxyDialogLayout.setHorizontalGroup(
-            proxyDialogLayout.createParallelGroup(Alignment.LEADING)
+        proxyDialogLayout.setHorizontalGroup(proxyDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(proxyDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(proxyDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -2175,8 +2156,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(proxyLoadingLabel)))
                 .addContainerGap())
         );
-        proxyDialogLayout.setVerticalGroup(
-            proxyDialogLayout.createParallelGroup(Alignment.LEADING)
+        proxyDialogLayout.setVerticalGroup(proxyDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(proxyDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(proxyComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -2239,8 +2219,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout addProxiesDialogLayout = new GroupLayout(addProxiesDialog.getContentPane());
         addProxiesDialog.getContentPane().setLayout(addProxiesDialogLayout);
-        addProxiesDialogLayout.setHorizontalGroup(
-            addProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
+        addProxiesDialogLayout.setHorizontalGroup(addProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(addProxiesDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(addProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -2255,8 +2234,7 @@ public class GUI extends JFrame implements GuiListener {
 
         addProxiesDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {addProxiesAddButton, addProxiesCancelButton});
 
-        addProxiesDialogLayout.setVerticalGroup(
-            addProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
+        addProxiesDialogLayout.setVerticalGroup(addProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(addProxiesDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(addProxiesLabel)
@@ -2307,8 +2285,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout removeProxiesDialogLayout = new GroupLayout(removeProxiesDialog.getContentPane());
         removeProxiesDialog.getContentPane().setLayout(removeProxiesDialogLayout);
-        removeProxiesDialogLayout.setHorizontalGroup(
-            removeProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
+        removeProxiesDialogLayout.setHorizontalGroup(removeProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(removeProxiesDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(removeProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -2323,8 +2300,7 @@ public class GUI extends JFrame implements GuiListener {
 
         removeProxiesDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {removeProxiesCancelButton, removeProxiesRemoveButton});
 
-        removeProxiesDialogLayout.setVerticalGroup(
-            removeProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
+        removeProxiesDialogLayout.setVerticalGroup(removeProxiesDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(removeProxiesDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(removeProxiesLabel)
@@ -2366,8 +2342,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout msgDialogLayout = new GroupLayout(msgDialog.getContentPane());
         msgDialog.getContentPane().setLayout(msgDialogLayout);
-        msgDialogLayout.setHorizontalGroup(
-            msgDialogLayout.createParallelGroup(Alignment.LEADING)
+        msgDialogLayout.setHorizontalGroup(msgDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(msgDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(msgDialogLayout.createParallelGroup(Alignment.CENTER)
@@ -2375,8 +2350,7 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(msgScrollPane, GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE))
                 .addContainerGap())
         );
-        msgDialogLayout.setVerticalGroup(
-            msgDialogLayout.createParallelGroup(Alignment.LEADING)
+        msgDialogLayout.setVerticalGroup(msgDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(Alignment.TRAILING, msgDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(msgScrollPane, GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
@@ -2438,8 +2412,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout profileDialogLayout = new GroupLayout(profileDialog.getContentPane());
         profileDialog.getContentPane().setLayout(profileDialogLayout);
-        profileDialogLayout.setHorizontalGroup(
-            profileDialogLayout.createParallelGroup(Alignment.LEADING)
+        profileDialogLayout.setHorizontalGroup(profileDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(profileDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(profileComboBox, 0, 218, Short.MAX_VALUE)
@@ -2455,8 +2428,7 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(profileOKButton)
                 .addContainerGap())
         );
-        profileDialogLayout.setVerticalGroup(
-            profileDialogLayout.createParallelGroup(Alignment.LEADING)
+        profileDialogLayout.setVerticalGroup(profileDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(profileDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(profileDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -2500,8 +2472,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout profileNameChangeDialogLayout = new GroupLayout(profileNameChangeDialog.getContentPane());
         profileNameChangeDialog.getContentPane().setLayout(profileNameChangeDialogLayout);
-        profileNameChangeDialogLayout.setHorizontalGroup(
-            profileNameChangeDialogLayout.createParallelGroup(Alignment.LEADING)
+        profileNameChangeDialogLayout.setHorizontalGroup(profileNameChangeDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(profileNameChangeDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(profileNameChangeLabel)
@@ -2513,8 +2484,7 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(profileNameChangeCancelButton)
                 .addContainerGap())
         );
-        profileNameChangeDialogLayout.setVerticalGroup(
-            profileNameChangeDialogLayout.createParallelGroup(Alignment.LEADING)
+        profileNameChangeDialogLayout.setVerticalGroup(profileNameChangeDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(profileNameChangeDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(profileNameChangeDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -2537,12 +2507,10 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout commentsDialogLayout = new GroupLayout(commentsDialog.getContentPane());
         commentsDialog.getContentPane().setLayout(commentsDialogLayout);
-        commentsDialogLayout.setHorizontalGroup(
-            commentsDialogLayout.createParallelGroup(Alignment.LEADING)
+        commentsDialogLayout.setHorizontalGroup(commentsDialogLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(commentsScrollPane, GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE)
         );
-        commentsDialogLayout.setVerticalGroup(
-            commentsDialogLayout.createParallelGroup(Alignment.LEADING)
+        commentsDialogLayout.setVerticalGroup(commentsDialogLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(commentsScrollPane, GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE)
         );
 
@@ -2578,8 +2546,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout portDialogLayout = new GroupLayout(portDialog.getContentPane());
         portDialog.getContentPane().setLayout(portDialogLayout);
-        portDialogLayout.setHorizontalGroup(
-            portDialogLayout.createParallelGroup(Alignment.LEADING)
+        portDialogLayout.setHorizontalGroup(portDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(portDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(portLabel)
@@ -2591,8 +2558,7 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(portOkButton)
                 .addContainerGap())
         );
-        portDialogLayout.setVerticalGroup(
-            portDialogLayout.createParallelGroup(Alignment.LEADING)
+        portDialogLayout.setVerticalGroup(portDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(portDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(portDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -2622,8 +2588,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout optionalMsgPanelLayout = new GroupLayout(optionalMsgPanel);
         optionalMsgPanel.setLayout(optionalMsgPanelLayout);
-        optionalMsgPanelLayout.setHorizontalGroup(
-            optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING)
+        optionalMsgPanelLayout.setHorizontalGroup(optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(optionalMsgPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING, false)
@@ -2631,8 +2596,7 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(optionalMsgTextArea, GroupLayout.PREFERRED_SIZE, 354, GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
-        optionalMsgPanelLayout.setVerticalGroup(
-            optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING)
+        optionalMsgPanelLayout.setVerticalGroup(optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(Alignment.TRAILING, optionalMsgPanelLayout.createSequentialGroup()
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(optionalMsgTextArea, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
@@ -2702,8 +2666,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout tvSubtitleDialogLayout = new GroupLayout(tvSubtitleDialog.getContentPane());
         tvSubtitleDialog.getContentPane().setLayout(tvSubtitleDialogLayout);
-        tvSubtitleDialogLayout.setHorizontalGroup(
-            tvSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
+        tvSubtitleDialogLayout.setHorizontalGroup(tvSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(Alignment.TRAILING, tvSubtitleDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(tvSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -2736,8 +2699,7 @@ public class GUI extends JFrame implements GuiListener {
 
         tvSubtitleDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {tvSubtitleEpisodeComboBox, tvSubtitleSeasonComboBox});
 
-        tvSubtitleDialogLayout.setVerticalGroup(
-            tvSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
+        tvSubtitleDialogLayout.setVerticalGroup(tvSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(tvSubtitleDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(tvSubtitleDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -2813,8 +2775,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout movieSubtitleDialogLayout = new GroupLayout(movieSubtitleDialog.getContentPane());
         movieSubtitleDialog.getContentPane().setLayout(movieSubtitleDialogLayout);
-        movieSubtitleDialogLayout.setHorizontalGroup(
-            movieSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
+        movieSubtitleDialogLayout.setHorizontalGroup(movieSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(movieSubtitleDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(movieSubtitleDialogLayout.createParallelGroup(Alignment.TRAILING)
@@ -2836,8 +2797,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(movieSubtitleLoadingLabel)))
                 .addContainerGap())
         );
-        movieSubtitleDialogLayout.setVerticalGroup(
-            movieSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
+        movieSubtitleDialogLayout.setVerticalGroup(movieSubtitleDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(Alignment.TRAILING, movieSubtitleDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(movieSubtitleDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -2868,15 +2828,13 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout timedMsgDialogLayout = new GroupLayout(timedMsgDialog.getContentPane());
         timedMsgDialog.getContentPane().setLayout(timedMsgDialogLayout);
-        timedMsgDialogLayout.setHorizontalGroup(
-            timedMsgDialogLayout.createParallelGroup(Alignment.LEADING)
+        timedMsgDialogLayout.setHorizontalGroup(timedMsgDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timedMsgDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(timedMsgLabel, GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
                 .addContainerGap())
         );
-        timedMsgDialogLayout.setVerticalGroup(
-            timedMsgDialogLayout.createParallelGroup(Alignment.LEADING)
+        timedMsgDialogLayout.setVerticalGroup(timedMsgDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timedMsgDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(timedMsgLabel, GroupLayout.PREFERRED_SIZE, 14, GroupLayout.PREFERRED_SIZE)
@@ -2897,12 +2855,12 @@ public class GUI extends JFrame implements GuiListener {
 
         authenticationUsernameTextField.setText(null);
         authenticationUsernameTextField.addAncestorListener(new AncestorListener() {
+            public void ancestorMoved(AncestorEvent evt) {
+            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationUsernameTextFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
-            }
-            public void ancestorMoved(AncestorEvent evt) {
             }
         });
 
@@ -2911,19 +2869,18 @@ public class GUI extends JFrame implements GuiListener {
         authenticationPasswordField.setText(null);
         authenticationPasswordField.setEchoChar('\u2022');
         authenticationPasswordField.addAncestorListener(new AncestorListener() {
+            public void ancestorMoved(AncestorEvent evt) {
+            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationPasswordFieldAncestorAdded(evt);
             }
             public void ancestorRemoved(AncestorEvent evt) {
             }
-            public void ancestorMoved(AncestorEvent evt) {
-            }
         });
 
         GroupLayout authenticationPanelLayout = new GroupLayout(authenticationPanel);
         authenticationPanel.setLayout(authenticationPanelLayout);
-        authenticationPanelLayout.setHorizontalGroup(
-            authenticationPanelLayout.createParallelGroup(Alignment.LEADING)
+        authenticationPanelLayout.setHorizontalGroup(authenticationPanelLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(authenticationPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(authenticationPanelLayout.createParallelGroup(Alignment.TRAILING)
@@ -2941,8 +2898,7 @@ public class GUI extends JFrame implements GuiListener {
 
         authenticationPanelLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {authenticationPasswordLabel, authenticationUsernameLabel});
 
-        authenticationPanelLayout.setVerticalGroup(
-            authenticationPanelLayout.createParallelGroup(Alignment.LEADING)
+        authenticationPanelLayout.setVerticalGroup(authenticationPanelLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(authenticationPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(authenticationMessageLabel)
@@ -3135,6 +3091,11 @@ public class GUI extends JFrame implements GuiListener {
         playlistTable.setName("Playlist"); // NOI18N
         playlistTable.setOpaque(false);
         playlistTable.setPreferredSize(null);
+        playlistTable.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistTableKeyPressed(evt);
+            }
+        });
         playlistScrollPane.setViewportView(playlistTable);
         if (playlistTable.getColumnModel().getColumnCount() > 0) {
             playlistTable.getColumnModel().getColumn(0).setPreferredWidth(709);
@@ -3162,6 +3123,11 @@ public class GUI extends JFrame implements GuiListener {
                 playlistPlayButtonActionPerformed(evt);
             }
         });
+        playlistPlayButton.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistPlayButtonKeyPressed(evt);
+            }
+        });
 
         playlistMoveUpButton.setText(null);
         playlistMoveUpButton.setToolTipText("move up");
@@ -3170,6 +3136,11 @@ public class GUI extends JFrame implements GuiListener {
         playlistMoveUpButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 playlistMoveUpButtonActionPerformed(evt);
+            }
+        });
+        playlistMoveUpButton.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistMoveUpButtonKeyPressed(evt);
             }
         });
 
@@ -3182,6 +3153,11 @@ public class GUI extends JFrame implements GuiListener {
                 playlistMoveDownButtonActionPerformed(evt);
             }
         });
+        playlistMoveDownButton.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistMoveDownButtonKeyPressed(evt);
+            }
+        });
 
         playlistRemoveButton.setText(null);
         playlistRemoveButton.setToolTipText("remove");
@@ -3192,11 +3168,15 @@ public class GUI extends JFrame implements GuiListener {
                 playlistRemoveButtonActionPerformed(evt);
             }
         });
+        playlistRemoveButton.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistRemoveButtonKeyPressed(evt);
+            }
+        });
 
         GroupLayout playlistFrameLayout = new GroupLayout(playlistFrame.getContentPane());
         playlistFrame.getContentPane().setLayout(playlistFrameLayout);
-        playlistFrameLayout.setHorizontalGroup(
-            playlistFrameLayout.createParallelGroup(Alignment.LEADING)
+        playlistFrameLayout.setHorizontalGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(playlistFrameLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
@@ -3211,8 +3191,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(playlistRemoveButton)))
                 .addContainerGap())
         );
-        playlistFrameLayout.setVerticalGroup(
-            playlistFrameLayout.createParallelGroup(Alignment.LEADING)
+        playlistFrameLayout.setVerticalGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(playlistFrameLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
@@ -3331,8 +3310,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout activationDialogLayout = new GroupLayout(activationDialog.getContentPane());
         activationDialog.getContentPane().setLayout(activationDialogLayout);
-        activationDialogLayout.setHorizontalGroup(
-            activationDialogLayout.createParallelGroup(Alignment.LEADING)
+        activationDialogLayout.setHorizontalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(activationDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -3356,8 +3334,7 @@ public class GUI extends JFrame implements GuiListener {
 
         activationDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {activationCodeLabel, activationUpgradeButton});
 
-        activationDialogLayout.setVerticalGroup(
-            activationDialogLayout.createParallelGroup(Alignment.LEADING)
+        activationDialogLayout.setVerticalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(activationDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
@@ -4180,8 +4157,7 @@ public class GUI extends JFrame implements GuiListener {
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(Alignment.LEADING)
+        layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addComponent(statusBarTextField, GroupLayout.DEFAULT_SIZE, 1329, Short.MAX_VALUE)
             .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
@@ -4278,8 +4254,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {ratingComboBox, typeComboBox});
 
-        layout.setVerticalGroup(
-            layout.createParallelGroup(Alignment.LEADING)
+        layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(Alignment.TRAILING)
@@ -4387,6 +4362,63 @@ public class GUI extends JFrame implements GuiListener {
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
+            }
+        }
+    }
+
+    public void savePlaylist() {
+        StringBuilder playlist = new StringBuilder(1024);
+        synchronized (playlistSyncTable.lock) {
+            for (int row = 0, numRows = playlistSyncTable.tableModel.getRowCount(); row < numRows; row++) {
+                PlaylistItem playlistItem = (PlaylistItem) playlistSyncTable.tableModel.getValueAt(row, playlistItemCol);
+                File groupFile = playlistItem.groupFile();
+                if (groupFile != null) {
+                    playlist.append((String) playlistSyncTable.tableModel.getValueAt(row, playlistNameCol)).append(Constant.NEWLINE)
+                            .append(((FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistSizeCol)).val().longValue()).append(Constant.NEWLINE)
+                            .append(((FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol)).val().doubleValue())
+                            .append(Constant.NEWLINE).append(playlistItem.groupID()).append(Constant.NEWLINE).append(playlistItem.groupName())
+                            .append(Constant.NEWLINE).append(groupFile).append(Constant.NEWLINE).append(playlistItem.groupIndex()).append(Constant.NEWLINE)
+                            .append(playlistItem.name()).append(Constant.NEWLINE);
+                }
+            }
+        }
+
+        try {
+            IO.write(Constant.APP_DIR + Constant.PLAYLIST, playlist.toString().trim());
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
+    }
+
+    private void restorePlaylist(boolean initPlaylist) {
+        synchronized (playlistRestorationLock) {
+            if (isPlaylistRestored.get()) {
+                return;
+            }
+            File playlist = new File(Constant.APP_DIR + Constant.PLAYLIST);
+            String[] playlistEntries;
+
+            try {
+                if (!playlist.exists() || (playlistEntries = Regex.split(IO.read(playlist), Constant.NEWLINE)).length % 8 != 0) {
+                    return;
+                }
+
+                if (initPlaylist) {
+                    workerListener.initPlaylist();
+                }
+                for (int i = 0; i < playlistEntries.length; i += 8) {
+                    newPlaylistItem(makePlaylistRow(playlistEntries[i], workerListener.playlistItemSize(Long.parseLong(playlistEntries[i + 1])),
+                            workerListener.playlistItemProgress(Double.parseDouble(playlistEntries[i + 2])), workerListener.playlistItem(playlistEntries[i + 3],
+                                    playlistEntries[i + 4], new File(playlistEntries[i + 5]), Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7])));
+                }
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            } finally {
+                isPlaylistRestored.set(true);
             }
         }
     }
@@ -5860,7 +5892,7 @@ public class GUI extends JFrame implements GuiListener {
         if (!isPlaylistActive) {
             System.exit(0);
         }
-        playlistFrame.setVisible(true);
+        UI.show(playlistFrame);
     }//GEN-LAST:event_formWindowClosing
 
     private void textComponentPopupMenuPopupMenuWillBecomeInvisible(PopupMenuEvent evt) {//GEN-FIRST:event_textComponentPopupMenuPopupMenuWillBecomeInvisible
@@ -6268,7 +6300,16 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_playMenuItemMousePressed
 
     private void playlistMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMenuItemActionPerformed
-        playlistFrame.setVisible(true);
+        UI.show(playlistFrame);
+        if (!isPlaylistRestored.get()) {
+            (new SwingWorker<Object, Object>() {
+                @Override
+                protected Object doInBackground() {
+                    restorePlaylist(true);
+                    return null;
+                }
+            }).execute();
+        }
     }//GEN-LAST:event_playlistMenuItemActionPerformed
 
     private PlaylistItem selectedPlaylistItem() {
@@ -6349,21 +6390,27 @@ public class GUI extends JFrame implements GuiListener {
             }
             Arrays.sort(modelRows);
 
+            List<?> rows = playlistSyncTable.tableModel.getDataVector();
             for (int i = modelRows.length - 1; i > -1; i--) {
                 ((PlaylistItem) playlistSyncTable.tableModel.getValueAt(modelRows[i], playlistItemCol)).stop();
-                playlistSyncTable.tableModel.removeRow(modelRows[i]);
+                rows.remove(modelRows[i]);
             }
+            playlistSyncTable.tableModel.fireTableDataChanged();
 
-            Arrays.sort(viewRows);
-            int numRows = playlistSyncTable.tableModel.getRowCount(), viewRow = viewRows[0];
-            while (viewRow >= numRows) {
-                viewRow--;
-            }
-            if (viewRow != -1) {
-                playlistSyncTable.table.changeSelection(viewRow, 0, false, false);
-            }
+            selectFirstRow(viewRows);
         }
     }//GEN-LAST:event_playlistRemoveButtonActionPerformed
+
+    private void selectFirstRow(int[] viewRows) {
+        Arrays.sort(viewRows);
+        int numRows = playlistSyncTable.tableModel.getRowCount(), viewRow = viewRows[0];
+        while (viewRow >= numRows) {
+            viewRow--;
+        }
+        if (viewRow != -1) {
+            playlistSyncTable.table.changeSelection(viewRow, 0, false, false);
+        }
+    }
 
     private void playlistRemoveMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistRemoveMenuItemActionPerformed
         playlistRemoveButtonActionPerformed(null);
@@ -6430,6 +6477,32 @@ public class GUI extends JFrame implements GuiListener {
     private void downloadLink1ButtonMouseReleased(MouseEvent evt) {//GEN-FIRST:event_downloadLink1ButtonMouseReleased
         exitBackupMode = false;
     }//GEN-LAST:event_downloadLink1ButtonMouseReleased
+
+    private void playlistTableKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistTableKeyPressed
+        restoreMainFrame(evt);
+    }//GEN-LAST:event_playlistTableKeyPressed
+
+    private void playlistPlayButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistPlayButtonKeyPressed
+        restoreMainFrame(evt);
+    }//GEN-LAST:event_playlistPlayButtonKeyPressed
+
+    private void playlistMoveUpButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistMoveUpButtonKeyPressed
+        restoreMainFrame(evt);
+    }//GEN-LAST:event_playlistMoveUpButtonKeyPressed
+
+    private void playlistMoveDownButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistMoveDownButtonKeyPressed
+        restoreMainFrame(evt);
+    }//GEN-LAST:event_playlistMoveDownButtonKeyPressed
+
+    private void playlistRemoveButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistRemoveButtonKeyPressed
+        restoreMainFrame(evt);
+    }//GEN-LAST:event_playlistRemoveButtonKeyPressed
+
+    private void restoreMainFrame(KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_W && evt.isControlDown() && !isVisible()) {
+            UI.show(this);
+        }
+    }
 
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
@@ -6595,7 +6668,7 @@ public class GUI extends JFrame implements GuiListener {
     private void setSafetyDialog(String statistic, String link, String name) {
         safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + "This download link (" + name
                 + ") is from an untrustworthy source." + (statistic == null || link == null ? "" : " " + statistic + " of the <a href=\"" + link
-                + "\">comments</a> on the video indicate that it may be fake.")
+                        + "\">comments</a> on the video indicate that it may be fake.")
                 + "<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
     }
 
@@ -7323,11 +7396,17 @@ public class GUI extends JFrame implements GuiListener {
                     throw e;
                 }
             }
-            List<String> cmd = new ArrayList<String>(8);
-            Collections.addAll(cmd, Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR,
-                    Constant.APP_DIR + Constant.PEER_BLOCK_VERSION + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE, Constant.APP_TITLE,
-                    Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit");
-            (new ProcessBuilder(cmd)).start();
+            String peerBlockProgram = Constant.APP_DIR + Constant.PEER_BLOCK_VERSION + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE;
+            try {
+                (new ProcessBuilder("reg", "add", "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "/v", peerBlockProgram, "/t",
+                        "REG_SZ", "/d", "RUNASADMIN", "/f")).start().waitFor();
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
+            (new ProcessBuilder(Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR, peerBlockProgram,
+                    Constant.APP_TITLE, Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).start();
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -7560,7 +7639,11 @@ public class GUI extends JFrame implements GuiListener {
         synchronized (playlistSyncTable.lock) {
             for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
                 if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
+                    int[] viewRows = playlistSyncTable.table.getSelectedRows();
                     playlistSyncTable.tableModel.removeRow(row);
+                    if (viewRows.length != 0) {
+                        selectFirstRow(viewRows);
+                    }
                     return;
                 }
             }
@@ -7583,8 +7666,8 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void showPlaylist(PlaylistItem selectedPlaylistItem) {
-        playlistFrame.setVisible(true);
-        playlistFrame.setExtendedState(playlistFrame.getExtendedState() & ~Frame.ICONIFIED);
+        UI.show(playlistFrame);
+        restorePlaylist(false);
         synchronized (playlistSyncTable.lock) {
             for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
                 if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(selectedPlaylistItem)) {
@@ -7608,8 +7691,8 @@ public class GUI extends JFrame implements GuiListener {
     public void playlistError(String msg) {
         synchronized (optionDialogLock) {
             resultsToBackground();
-            playlistFrame.setExtendedState(playlistFrame.getExtendedState() & ~Frame.ICONIFIED);
-            JOptionPane.showMessageDialog(playlistFrame.isShowing() ? playlistFrame : this, getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG);
+            JOptionPane.showMessageDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this, getTextArea(msg), Constant.APP_TITLE,
+                    Constant.ERROR_MSG);
             resultsToForeground();
         }
     }
@@ -8033,8 +8116,7 @@ public class GUI extends JFrame implements GuiListener {
             activationUpgradeComboBox.addItem(upgradeOption);
         }
         activationDialog.pack();
-        playlistFrame.setExtendedState(playlistFrame.getExtendedState() & ~Frame.ICONIFIED);
-        activationDialog.setLocationRelativeTo(playlistFrame.isShowing() ? playlistFrame : this);
+        activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this);
         resultsToBackground(true);
         activationDialog.setVisible(true);
     }

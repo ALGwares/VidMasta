@@ -137,7 +137,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
     protected abstract void initialSearch() throws Exception;
 
-    protected abstract boolean hasNextPage(int nextPage);
+    protected abstract int anotherPageRegexIndex();
 
     protected abstract String getUrl(int page) throws Exception;
 
@@ -165,15 +165,15 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         currSourceCode = prevSourceCode;
     }
 
+    private boolean hasAnotherPage() {
+        return !Regex.firstMatch(currSourceCode, Str.get(anotherPageRegexIndex())).isEmpty();
+    }
+
     private boolean hasNextSearchPage() {
-        return isNewSearch() || !videoBuffer.isEmpty() || hasNextPage(currSearchPage);
+        return isNewSearch() || !videoBuffer.isEmpty() || hasAnotherPage();
     }
 
     private void searchNextPage() throws Exception {
-        if (!hasNextSearchPage()) {
-            return;
-        }
-
         if (videoBuffer.isEmpty()) {
             initCurrVideos();
             if (isCancelled()) {
@@ -243,8 +243,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     }
 
     private void startPrefetcher() {
-        final int nextPage = currSearchPage + 1;
-        if (!hasNextPage(nextPage)) {
+        if (!hasAnotherPage()) {
             return;
         }
 
@@ -252,10 +251,10 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             @Override
             protected Object doInBackground() throws Exception {
                 if (Debug.DEBUG) {
-                    Debug.println("prefetching search page " + (nextPage + 1));
+                    Debug.println("prefetching search page " + (currSearchPage + 2));
                 }
                 try {
-                    Connection.getSourceCode(getUrl(nextPage), domainType(), false);
+                    Connection.getSourceCode(getUrl(currSearchPage + 1), domainType(), false);
                 } catch (Exception e) {
                     if (Debug.DEBUG) {
                         Debug.print(e);

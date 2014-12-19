@@ -1,5 +1,6 @@
 package listener;
 
+import java.io.File;
 import java.util.Calendar;
 
 public interface WorkerListener {
@@ -56,6 +57,14 @@ public interface WorkerListener {
     void updateStarted(boolean isStartUp);
 
     void portChanged(int port);
+
+    void initPlaylist() throws Exception;
+
+    FormattedNum playlistItemSize(long size);
+
+    FormattedNum playlistItemProgress(double progress);
+
+    PlaylistItem playlistItem(String groupID, String groupName, File groupFile, int groupIndex, String name);
 
     void license(String activationCode, boolean check);
 }

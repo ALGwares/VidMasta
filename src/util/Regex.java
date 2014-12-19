@@ -56,8 +56,8 @@ public class Regex {
         }
     }
 
-    public static String[] split(int inputRegex, String regex) {
-        return split(Str.get(inputRegex), regex);
+    public static String[] split(int inputIndex, String regex) {
+        return split(Str.get(inputIndex), regex);
     }
 
     public static String[] split(String input, int regexIndex) {
@@ -107,6 +107,19 @@ public class Regex {
 
     public static String replaceAll(String input, String regex, String replacement) {
         return matcher(regex, input).replaceAll(replacement);
+    }
+
+    public static String replaceAllRepeatedly(String input, int regexesIndex) {
+        String[] regexes = split(regexesIndex, Constant.SEPARATOR1), replacements = split(regexesIndex + 1, Constant.SEPARATOR1);
+        if (regexes.length != replacements.length) {
+            return input;
+        }
+
+        String result = input;
+        for (int i = 0; i < regexes.length; i++) {
+            result = replaceAll(result, regexes[i], replacements[i]);
+        }
+        return result;
     }
 
     public static String htmlToPlainText(String htmlText) {

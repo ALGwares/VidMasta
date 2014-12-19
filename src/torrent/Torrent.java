@@ -8,24 +8,25 @@ import util.Regex;
 
 public class Torrent implements Comparable<Torrent> {
 
-    public final String ID, MAGNET_LINK, NAME, EXTENSIONS;
+    public final String ID, MAGNET_LINK, NAME, EXTENSIONS, COMMENTS_LINK;
     public final File FILE;
     public final boolean IS_SAFE;
     public final int NUM_SOURCES, SIZE_IN_GIB;
 
-    public Torrent(String id, String magnetLink, String name, File file, String extensions, boolean isSafe, int numSources, int sizeInGiB) {
+    public Torrent(String id, String magnetLink, String name, File file, String extensions, String commentsLink, boolean isSafe, int numSources, int sizeInGiB) {
         ID = id;
         MAGNET_LINK = magnetLink;
         NAME = name;
         FILE = file;
         EXTENSIONS = extensions;
+        COMMENTS_LINK = commentsLink;
         IS_SAFE = isSafe;
         NUM_SOURCES = numSources;
         SIZE_IN_GIB = sizeInGiB;
     }
 
     public String saveName(boolean fileName) {
-        return (fileName ? Regex.toFileName(NAME) : Regex.replaceAll(NAME, 609)) + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_" + SIZE_IN_GIB + "GB" : "")
+        return (fileName ? Regex.toFileName(NAME) : Regex.replaceAll(NAME, 679)) + (IS_SAFE ? "" : "_unsafe") + (SIZE_IN_GIB > 0 ? "_" + SIZE_IN_GIB + "GB" : "")
                 + "_" + MAGNET_LINK.hashCode() + EXTENSIONS + Constant.TORRENT;
     }
 
@@ -36,7 +37,7 @@ public class Torrent implements Comparable<Torrent> {
     @Override
     public String toString() {
         return "{'" + NAME + "' " + IS_SAFE + " " + NUM_SOURCES + " " + SIZE_IN_GIB + "GB '" + EXTENSIONS + "'\n'" + MAGNET_LINK + "'\n'" + FILE + "' '" + ID
-                + "'}\n";
+                + "' '" + COMMENTS_LINK + "'}\n";
     }
 
     @Override

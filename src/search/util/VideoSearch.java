@@ -389,7 +389,7 @@ public class VideoSearch {
             title += Constant.aka(video.oldTitle);
         }
         if (video.IS_TV_SHOW && !video.season.isEmpty()) {
-            title += Constant.latestEpisode(video.season, video.episode);
+            title += Constant.popularEpisode(video.season, video.episode);
         }
 
         String year, rating, startHtml = "<html>", endHtml = "</html>";
@@ -424,6 +424,19 @@ public class VideoSearch {
     public static String imagePath(Video video) {
         long imageName = Str.hashCode(video.ID);
         return (imageName % Constant.MAX_SUBDIRECTORIES) + Constant.FILE_SEPARATOR + imageName;
+    }
+
+    public static boolean isUploadYearTooOld(String sourceCode, int maxYearsOld, int baseYear) {
+        String uploadTime = Regex.match(sourceCode, 668);
+        if (uploadTime.isEmpty()) {
+            return false;
+        }
+
+        int uploadYear = Integer.parseInt(uploadTime), currYear = Calendar.getInstance().get(Calendar.YEAR);
+        if (Boolean.parseBoolean(Str.get(670))) {
+            uploadYear = currYear - uploadYear;
+        }
+        return (uploadYear + maxYearsOld) < (baseYear == -1 ? currYear : baseYear);
     }
 
     private VideoSearch() {

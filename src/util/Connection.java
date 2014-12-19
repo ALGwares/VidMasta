@@ -8,6 +8,7 @@ import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,7 +108,7 @@ public class Connection {
             return "";
         }
 
-        Long urlHashCode = Str.hashCode(url.endsWith("/") ? url.substring(0, url.length() - 1) : url);
+        Long urlHashCode = Str.hashCode(url);
         String sourceCode, sourceCodePath = Constant.CACHE_DIR + urlHashCode + Constant.HTML;
         if (cache.contains(urlHashCode)) {
             if (Debug.DEBUG) {
@@ -130,7 +131,7 @@ public class Connection {
     }
 
     public static String getSourceCode(final String url, final DomainType domainType, final boolean showStatus, final boolean emptyOK, final boolean compress,
-            final boolean throwException) throws Exception {
+            final boolean throwIOException) throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);
         }
@@ -171,15 +172,18 @@ public class Connection {
                     }
 
                     checkConnectionResponse(connection, url);
+                    if (!emptyOK && source.length() == 0) {
+                        throw new IOException("empty source code");
+                    }
                 } catch (IOException e) {
                     IO.consumeErrorStream(connection);
-                    if (throwException) {
+                    if (throwIOException) {
                         throw e;
                     }
                     if (Debug.DEBUG) {
                         Debug.print(e);
                     }
-                    if (showStatus) {
+                    if (domainType == DomainType.DOWNLOAD_LINK_INFO && showStatus && !isIgnorable(e)) {
                         String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(url);
                         if (downloadLinkInfoUrl != null) {
                             selectNextDownloadLinkInfoProxy();
@@ -188,7 +192,7 @@ public class Connection {
                             downloadLinkInfoFail.set(true);
                         }
                     }
-                    throw new ConnectionException(error("", "", url), connection == null ? null : connection.getURL().toString());
+                    throw new ConnectionException(error("", "", url), e, connection == null ? null : connection.getURL().toString());
                 } finally {
                     if (showStatus) {
                         unsetStatusBar();
@@ -196,13 +200,13 @@ public class Connection {
                     IO.close(connection, br);
                 }
 
-                if (!emptyOK && source.length() == 0) {
-                    throw new ConnectionException(error("", "", url));
-                }
-
                 return source.toString();
             }
         }).runAndWaitFor();
+    }
+
+    public static boolean isIgnorable(Throwable t) {
+        return t instanceof FileNotFoundException && Regex.isMatch(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND), 599);
     }
 
     public static String error(String problem, String solution, String url) {
@@ -257,7 +261,7 @@ public class Connection {
         downloadLinkInfoFailUrl = strs[518];
         int downloadLinkInfoFailUrlLen = downloadLinkInfoFailUrl.length();
 
-        for (String indexToUpdate : Regex.split(strs[517], ",")) {
+        for (String indexToUpdate : Regex.split(strs[671], ",")) {
             int indexToUpdateNum = Integer.parseInt(indexToUpdate);
             strs[indexToUpdateNum] = nextProxy + strs[indexToUpdateNum].substring(downloadLinkInfoFailUrlLen);
         }

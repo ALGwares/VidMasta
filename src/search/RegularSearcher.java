@@ -134,8 +134,8 @@ public class RegularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected boolean hasNextPage(int nextPage) {
-        return currSourceCode.contains(Str.get(5));
+    protected int anotherPageRegexIndex() {
+        return 648;
     }
 
     @Override

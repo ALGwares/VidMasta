@@ -1,5 +1,7 @@
 package listener;
 
+import java.io.File;
+
 public interface PlaylistItem {
 
     boolean canPlay();
@@ -13,4 +15,14 @@ public interface PlaylistItem {
     boolean canOpen();
 
     void open();
+
+    String groupID();
+
+    String groupName();
+
+    File groupFile();
+
+    int groupIndex();
+
+    String name();
 }

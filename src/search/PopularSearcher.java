@@ -76,13 +76,13 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected boolean hasNextPage(int nextPage) {
-        return currSourceCode.contains(Str.get(112) + (isTVShow ? Str.get(113) : Str.get(114)) + Str.get(115) + nextPage + Str.get(116));
+    protected int anotherPageRegexIndex() {
+        return 649;
     }
 
     @Override
     protected String getUrl(int page) {
-        return Str.get(117) + (isTVShow ? Str.get(118) : Str.get(119)) + Str.get(120) + page + Str.get(121);
+        return Str.get(650) + Str.get(isTVShow ? 651 : 652) + (page == 0 ? Str.get(653) : Str.get(654) + (page + Integer.parseInt(Str.get(655)))) + Str.get(656);
     }
 
     @Override
@@ -226,9 +226,7 @@ public class PopularSearcher extends AbstractSearcher {
         if (!size.isEmpty() && (int) Math.ceil(Double.parseDouble(size)) > Integer.parseInt(Str.get(567))) {
             return false; // Size too large
         }
-        String uploadYear = Regex.firstMatch(video, 60);
-        if (!uploadYear.isEmpty() && Integer.parseInt(uploadYear.substring(uploadYear.length() - Integer.parseInt(Str.get(61)))) + Integer.parseInt(Str.get(568))
-                < Calendar.getInstance().get(Calendar.YEAR)) {
+        if (VideoSearch.isUploadYearTooOld(video, Integer.parseInt(Str.get(568)), -1)) {
             return false; // Upload year too old
         }
         String numSeeders = Regex.match(video, 72);

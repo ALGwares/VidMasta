@@ -14,7 +14,7 @@ public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 18.3;
+    public static final double APP_VERSION = 18.4;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -40,7 +40,7 @@ public class Constant implements IOConstant {
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
     public static final String PROFILES = "profiles" + TXT;
-    public static final int UPDATE_FILE_VERSION = 57;
+    public static final int UPDATE_FILE_VERSION = 58;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 67;
@@ -57,6 +57,7 @@ public class Constant implements IOConstant {
     public static final String NO_IMAGE = "" + Character.MAX_VALUE + Character.MAX_VALUE + Character.MAX_VALUE;
     public static final String ZIP = ".zip";
     public static final String PROXY_VERSION = "proxyVersion" + TXT;
+    public static final String PLAYLIST = "playlist" + Constant.TXT;
     public static final String PROXIES = "proxies" + TXT;
     public static final String ERROR_LOG = "errorLog" + TXT;
     public static final String NO_PROXY = "NO PROXY";
@@ -114,7 +115,7 @@ public class Constant implements IOConstant {
         TV_PREV_EPISODE_HTML_ID = "prevEpisode";
         TV_PREV_EPISODE_HTML = "<b id=\"" + TV_PREV_EPISODE_HTML_ID + "\">Prev Episode: </b>";
         TV_PREV_EPISODE_HTML_AND_PLACEHOLDER = TV_PREV_EPISODE_HTML + TV_EPISODE_PLACEHOLDER;
-        TV_EPISODE_REGEX = latestEpisode("", "");
+        TV_EPISODE_REGEX = popularEpisode("", "");
     }
 
     private static String initProgramDir() {
@@ -212,13 +213,13 @@ public class Constant implements IOConstant {
         }
     }
 
-    public static String latestEpisode(String season, String episode) {
-        String latestEpisode = " (Latest Episode: ";
+    public static String popularEpisode(String season, String episode) {
+        String popularEpisode = " (Popular Episode: ";
         String rightParenthesis = ")";
         String seasonStr;
         String episodeStr;
         if (season.isEmpty()) {
-            latestEpisode = Pattern.quote(latestEpisode);
+            popularEpisode = Pattern.quote(popularEpisode);
             rightParenthesis = Pattern.quote(rightParenthesis);
             seasonStr = "\\d{2}+";
             episodeStr = seasonStr;
@@ -226,7 +227,7 @@ public class Constant implements IOConstant {
             seasonStr = season;
             episodeStr = episode;
         }
-        return latestEpisode + 'S' + seasonStr + 'E' + episodeStr + rightParenthesis;
+        return popularEpisode + 'S' + seasonStr + 'E' + episodeStr + rightParenthesis;
     }
 
     public static String aka(String str) {

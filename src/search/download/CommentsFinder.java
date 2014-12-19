@@ -37,7 +37,8 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
             if (numComments != 0) {
                 int number = 0;
                 for (String comment : commentsArr) {
-                    commentsBuf.append(++number).append(". ").append(Regex.replaceAll(Regex.replaceAll(comment, 296), 298)).append(Constant.STD_NEWLINE2);
+                    commentsBuf.append(++number).append(". ").append(Regex.htmlToPlainText(Regex.replaceAllRepeatedly(comment, 672))).append(
+                            Constant.STD_NEWLINE2);
                     if (!Regex.firstMatch(comment, 153).isEmpty()) {
                         numFakeComments++;
                     }

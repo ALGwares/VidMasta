@@ -6,15 +6,15 @@ public class ConnectionException extends Exception {
     public final String URL;
 
     public ConnectionException() {
-        this("", null);
+        this("");
     }
 
     public ConnectionException(String msg) {
-        this(msg, null);
+        this(msg, null, null);
     }
 
-    public ConnectionException(String msg, String url) {
-        super(msg);
+    public ConnectionException(String msg, Throwable cause, String url) {
+        super(msg, cause);
         URL = url;
     }
 
