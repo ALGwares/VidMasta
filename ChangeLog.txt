@@ -1,6 +1,21 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.01.06   | VidMasta 18.5
+
+CHANGE: CORE | Fixed bug that sometimes prevents restoring playlist between restarts of VidMasta
+CHANGE: CORE | Remembered playlist auto-open preference
+CHANGE: UI   | Improved progress reporting when stopping a playlist item
+CHANGE: UI   | Added keyboard shortcuts for playlist item remove and play/stop actions
+CHANGE: UI   | Added ability to double-click a playlist item to play/stop it
+CHANGE: UI   | Showed tip about watching/streaming playlist items to a television or other device
+CHANGE: UI   | Improved message shown when a download link or watch source is not found for a video
+CHANGE: UI   | Improved format of date shown when downloading proxies
+CHANGE: UI   | Fixed hyperlinks for Mac
+
+
+
+
 2014.12.18   | VidMasta 18.4
 
 CHANGE: UI   | Saved and restored playlist between restarts of VidMasta

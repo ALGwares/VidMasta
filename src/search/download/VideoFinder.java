@@ -200,6 +200,24 @@ public class VideoFinder extends AbstractSwingWorker {
         linkProgressDone();
     }
 
+    private String streamContent() {
+        String name = "video";
+        return strExportListener == null || !strExportListener.exportSecondaryContent() ? name : content(!isStream2.get(), name);
+    }
+
+    private String downloadContent(ContentType contentType) {
+        String name = "download link";
+        if (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent())) {
+            return name;
+        }
+        String content = content(isDownload1 || contentType == ContentType.DOWNLOAD3, name);
+        return PLAY ? content + " to play" : content;
+    }
+
+    private static String content(boolean first, String name) {
+        return (first ? "first" : "second") + ' ' + name;
+    }
+
     private void msg(String msg, boolean isTorrentSearch) {
         if (isTorrentSearch) {
             guiListener.enableTorrentSearchStop(false);
@@ -323,7 +341,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (torrent == null) {
-                    msg(PLAY ? (isDownload1 || contentType == ContentType.DOWNLOAD3 ? "first" : "second") + " download link to play" : "download link", true);
+                    msg(downloadContent(contentType), true);
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
@@ -530,7 +548,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void findOldTitleStream() throws Exception {
         if (findOldTitleStream.get()) {
-            msg("video", false);
+            msg(streamContent(), false);
             return;
         }
 
@@ -541,7 +559,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         if (oldTitle == null) {
-            msg("video", false);
+            msg(streamContent(), false);
         } else {
             findStream();
         }

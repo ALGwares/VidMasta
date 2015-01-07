@@ -542,27 +542,6 @@ public class Connection {
         return Regex.replaceAll(ip + port, 251);
     }
 
-    public static boolean isPeerBlockRunning() {
-        BufferedReader br = null;
-        try {
-            Process tasklist = (new ProcessBuilder("tasklist")).start();
-            br = new BufferedReader(new InputStreamReader(tasklist.getInputStream(), Constant.UTF8));
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.startsWith(Constant.PEER_BLOCK + Constant.EXE)) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        } finally {
-            IO.close(br);
-        }
-        return false;
-    }
-
     public static void startStatusBar() {
         statusBar.setPriority(Thread.MIN_PRIORITY);
         statusBar.start();

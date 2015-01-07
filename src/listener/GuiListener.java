@@ -117,11 +117,13 @@ public interface GuiListener {
 
     String getPlaylistSaveDir();
 
-    void playlistError(String msg);
+    void playlistError(String msg, boolean html);
 
     void refreshPlaylistControls();
 
     void setPlaylistPlayHint(String msg);
+
+    boolean useMediaServer();
 
     boolean isConfirmed(String msg);
 

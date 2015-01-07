@@ -241,9 +241,9 @@
                   <Connection code="null" type="code"/>
                 </Property>
               </Properties>
-              <Events>
-                <EventHandler event="hyperlinkUpdate" listener="javax.swing.event.HyperlinkListener" parameters="javax.swing.event.HyperlinkEvent" handler="faqEditorPaneHyperlinkUpdate"/>
-              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_AddingCodePre" type="java.lang.String" value="UI.addHyperlinkListener(faqEditorPane, new HyperlinkListener() {&#xd;&#xa;&#x9;public void hyperlinkUpdate(HyperlinkEvent evt) {&#xd;&#xa;&#x9;&#x9;faqEditorPaneHyperlinkUpdate(evt);&#xd;&#xa;&#x9;}&#xd;&#xa;});"/>
+              </AuxValues>
             </Component>
           </SubComponents>
         </Container>
@@ -3895,14 +3895,14 @@
                       <Editor/>
                       <Renderer/>
                     </Column>
-                    <Column maxWidth="-1" minWidth="-1" prefWidth="65" resizable="true">
+                    <Column maxWidth="-1" minWidth="-1" prefWidth="70" resizable="true">
                       <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                         <Connection code="Constant.PLAYLIST_SIZE_COL" type="code"/>
                       </Title>
                       <Editor/>
                       <Renderer/>
                     </Column>
-                    <Column maxWidth="-1" minWidth="-1" prefWidth="158" resizable="true">
+                    <Column maxWidth="-1" minWidth="-1" prefWidth="153" resizable="true">
                       <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                         <Connection code="Constant.PLAYLIST_PROGRESS_COL" type="code"/>
                       </Title>
@@ -3938,6 +3938,7 @@
                 </Property>
               </Properties>
               <Events>
+                <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="playlistTableMouseClicked"/>
                 <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistTableKeyPressed"/>
               </Events>
             </Component>
@@ -4209,6 +4210,11 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JMenuItem" name="mediaServerMenuItem">
+      <Properties>
+        <Property name="selected" type="boolean" value="true"/>
+      </Properties>
+    </Component>
     <Menu class="javax.swing.JMenuBar" name="menuBar">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>

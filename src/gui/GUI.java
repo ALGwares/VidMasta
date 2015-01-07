@@ -146,12 +146,14 @@ import util.Constant;
 import util.ExceptionUtil;
 import util.IO;
 import util.Regex;
+import util.WindowsUtil;
 
 public class GUI extends JFrame implements GuiListener {
 
     private static final long serialVersionUID = 1L;
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode, forcePlay;
+    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode, forcePlay,
+            useMediaServer;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
@@ -417,19 +419,19 @@ public class GUI extends JFrame implements GuiListener {
         UI.registerCutCopyPasteKeyboardActions(playlistTable, playlistTableCopyListener);
 
         DefaultRowSorter<TableModel, Integer> rowSorter = UI.setRowSorter(resultsSyncTable, yearCol, ratingCol);
-        rowSorter.setComparator(titleCol, new ColumnComparator<String>() {
+        rowSorter.setComparator(titleCol, new AbstractColumnComparator<String>() {
             @Override
             protected String convert(String title) {
                 return Regex.htmlToPlainText(UI.innerHTML(title, Constant.TITLE_INDENT_LEN)).toLowerCase(Locale.ENGLISH);
             }
         });
-        rowSorter.setComparator(yearCol, new ColumnComparator<Short>() {
+        rowSorter.setComparator(yearCol, new AbstractColumnComparator<Short>() {
             @Override
             protected Short convert(String year) {
                 return Short.valueOf(UI.innerHTML(year));
             }
         });
-        rowSorter.setComparator(ratingCol, new ColumnComparator<Float>() {
+        rowSorter.setComparator(ratingCol, new AbstractColumnComparator<Float>() {
             @Override
             protected Float convert(String rating) {
                 String tempRating = UI.innerHTML(rating);
@@ -570,9 +572,11 @@ public class GUI extends JFrame implements GuiListener {
             InputMap inputMap = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             ActionMap actionMap = root.getActionMap();
             inputMap.put(escapeKey, escapeKeyWindowClosingActionMapKey);
-            inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
             actionMap.put(escapeKeyWindowClosingActionMapKey, windowClosingAction);
-            actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
+            if (window != playlistFrame) {
+                inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
+                actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
+            }
         }
 
         splashScreen.progress();
@@ -892,6 +896,7 @@ public class GUI extends JFrame implements GuiListener {
         activationTextField = new JTextField();
         activationButton = new JButton();
         activationLoadingLabel = new JLabel();
+        mediaServerMenuItem = new JMenuItem();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -1155,7 +1160,7 @@ public class GUI extends JFrame implements GuiListener {
         faqEditorPane.setEditable(false);
         faqEditorPane.setContentType("text/html"); // NOI18N
         faqEditorPane.setText(null);
-        faqEditorPane.addHyperlinkListener(new HyperlinkListener() {
+        UI.addHyperlinkListener(faqEditorPane, new HyperlinkListener() {
             public void hyperlinkUpdate(HyperlinkEvent evt) {
                 faqEditorPaneHyperlinkUpdate(evt);
             }
@@ -3091,6 +3096,11 @@ public class GUI extends JFrame implements GuiListener {
         playlistTable.setName("Playlist"); // NOI18N
         playlistTable.setOpaque(false);
         playlistTable.setPreferredSize(null);
+        playlistTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                playlistTableMouseClicked(evt);
+            }
+        });
         playlistTable.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 playlistTableKeyPressed(evt);
@@ -3100,9 +3110,9 @@ public class GUI extends JFrame implements GuiListener {
         if (playlistTable.getColumnModel().getColumnCount() > 0) {
             playlistTable.getColumnModel().getColumn(0).setPreferredWidth(709);
             playlistTable.getColumnModel().getColumn(0).setHeaderValue(Constant.PLAYLIST_NAME_COL);
-            playlistTable.getColumnModel().getColumn(1).setPreferredWidth(65);
+            playlistTable.getColumnModel().getColumn(1).setPreferredWidth(70);
             playlistTable.getColumnModel().getColumn(1).setHeaderValue(Constant.PLAYLIST_SIZE_COL);
-            playlistTable.getColumnModel().getColumn(2).setPreferredWidth(158);
+            playlistTable.getColumnModel().getColumn(2).setPreferredWidth(153);
             playlistTable.getColumnModel().getColumn(2).setHeaderValue(Constant.PLAYLIST_PROGRESS_COL);
             playlistTable.getColumnModel().getColumn(3).setPreferredWidth(0);
             playlistTable.getColumnModel().getColumn(3).setHeaderValue(Constant.PLAYLIST_ITEM_COL);
@@ -3351,6 +3361,8 @@ public class GUI extends JFrame implements GuiListener {
         );
 
         activationDialog.pack();
+
+        mediaServerMenuItem.setSelected(true);
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(Constant.APP_TITLE);
@@ -4367,6 +4379,10 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     public void savePlaylist() {
+        if (!isPlaylistRestored.get()) {
+            return;
+        }
+
         StringBuilder playlist = new StringBuilder(1024);
         synchronized (playlistSyncTable.lock) {
             for (int row = 0, numRows = playlistSyncTable.tableModel.getRowCount(); row < numRows; row++) {
@@ -4621,7 +4637,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.updateAnyList(genreList, Constant.ANY_GENRE);
     }//GEN-LAST:event_genreListValueChanged
 
-    void faqEditorPaneHyperlinkUpdate(HyperlinkEvent evt) {//GEN-FIRST:event_faqEditorPaneHyperlinkUpdate
+    void faqEditorPaneHyperlinkUpdate(HyperlinkEvent evt) {
         try {
             hyperlinkHandler(evt);
         } catch (Exception e) {
@@ -4629,7 +4645,7 @@ public class GUI extends JFrame implements GuiListener {
             showException(e);
             faqFrame.setAlwaysOnTop(true);
         }
-    }//GEN-LAST:event_faqEditorPaneHyperlinkUpdate
+    }
 
     private static void hyperlinkHandler(HyperlinkEvent evt) throws IOException {
         if (evt.getEventType().equals(EventType.ACTIVATED)) {
@@ -6479,7 +6495,14 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_downloadLink1ButtonMouseReleased
 
     private void playlistTableKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistTableKeyPressed
-        restoreMainFrame(evt);
+        int key = evt.getKeyCode();
+        if (key == KeyEvent.VK_DELETE) {
+            playlistRemoveButtonActionPerformed(null);
+        } else if (key == KeyEvent.VK_ENTER) {
+            playlistPlayButtonActionPerformed(null);
+        } else {
+            restoreMainFrame(evt);
+        }
     }//GEN-LAST:event_playlistTableKeyPressed
 
     private void playlistPlayButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistPlayButtonKeyPressed
@@ -6497,6 +6520,12 @@ public class GUI extends JFrame implements GuiListener {
     private void playlistRemoveButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistRemoveButtonKeyPressed
         restoreMainFrame(evt);
     }//GEN-LAST:event_playlistRemoveButtonKeyPressed
+
+    private void playlistTableMouseClicked(MouseEvent evt) {//GEN-FIRST:event_playlistTableMouseClicked
+        if (evt.getClickCount() == 2) {
+            playlistPlayButtonActionPerformed(null);
+        }
+    }//GEN-LAST:event_playlistTableMouseClicked
 
     private void restoreMainFrame(KeyEvent evt) {
         if (evt.getKeyCode() == KeyEvent.VK_W && evt.isControlDown() && !isVisible()) {
@@ -6578,13 +6607,41 @@ public class GUI extends JFrame implements GuiListener {
         return textArea;
     }
 
+    private JEditorPane getEditorPane(String msg) {
+        JEditorPane editorPane = new JEditorPane("text/html", msg);
+        editorPane.setOpaque(false);
+        editorPane.setEditable(false);
+        editorPane.setMaximumSize(null);
+        editorPane.setMinimumSize(null);
+        UI.addHyperlinkListener(editorPane, new HyperlinkListener() {
+            @Override
+            public void hyperlinkUpdate(HyperlinkEvent evt) {
+                try {
+                    hyperlinkHandler(evt);
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                    JOptionPane.showMessageDialog(GUI.this, getTextArea(ExceptionUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
+                    IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+                }
+            }
+        });
+        editorPane.addMouseListener(textComponentPopupListener);
+        return editorPane;
+    }
+
     int showOptionDialog(Object msg, String title, int type, boolean confirm) {
+        return showOptionDialog(this, msg, title, type, confirm);
+    }
+
+    private int showOptionDialog(Component parent, Object msg, String title, int type, boolean confirm) {
         resultsToBackground();
         int result;
         if (confirm) {
-            result = JOptionPane.showConfirmDialog(this, msg, title, type);
+            result = JOptionPane.showConfirmDialog(parent, msg, title, type);
         } else {
-            JOptionPane.showMessageDialog(this, msg, title, type);
+            JOptionPane.showMessageDialog(parent, msg, title, type);
             result = -1;
         }
         resultsToForeground();
@@ -6649,11 +6706,11 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private int showOptionalConfirm(String msg, JMenuItem menuItem) {
+    private int showOptionalConfirm(Component parent, String msg, JMenuItem menuItem) {
         synchronized (optionDialogLock) {
             optionalMsgTextArea.setSize(300, 200);
             optionalMsgTextArea.setText(msg);
-            int result = showOptionDialog(optionalMsgPanel, Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
+            int result = showOptionDialog(parent, optionalMsgPanel, Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
             updateOptionalMsgCheckBox(menuItem);
             return result;
         }
@@ -6736,6 +6793,7 @@ public class GUI extends JFrame implements GuiListener {
 
                 playlistDir = getPath(settings, ++i);
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
+                restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, mediaServerMenuItem);
 
                 if (!updateSettings) {
                     return;
@@ -6780,7 +6838,8 @@ public class GUI extends JFrame implements GuiListener {
             saveButtons(settings, emailWithDefaultAppCheckBoxMenuItem);
             settings.append(savePosition(playlistFrame));
             savePaths(settings, playlistDir);
-            settings.append(usePeerBlock);
+            settings.append(usePeerBlock).append(Constant.NEWLINE);
+            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, mediaServerMenuItem);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -7373,13 +7432,13 @@ public class GUI extends JFrame implements GuiListener {
         if (!Constant.CAN_PEER_BLOCK || (!usePeerBlock && !canShowPeerBlock) || (new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Running")).exists()) {
             return;
         }
-        if ((new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).exists() || Connection.isPeerBlockRunning()) {
+        if ((new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).exists() || WindowsUtil.isProcessRunning(Constant.PEER_BLOCK)) {
             usePeerBlock = false;
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
             IO.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
         }
-        if (canShowPeerBlock && (showOptionalConfirm("Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
+        if (canShowPeerBlock && (showOptionalConfirm(this, "Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
                 peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION)) {
             usePeerBlock = false;
             return;
@@ -7397,14 +7456,7 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
             String peerBlockProgram = Constant.APP_DIR + Constant.PEER_BLOCK_VERSION + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE;
-            try {
-                (new ProcessBuilder("reg", "add", "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "/v", peerBlockProgram, "/t",
-                        "REG_SZ", "/d", "RUNASADMIN", "/f")).start().waitFor();
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
-                }
-            }
+            WindowsUtil.addMicrosoftRegistryEntry("Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "SZ", peerBlockProgram, "RUNASADMIN");
             (new ProcessBuilder(Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR, peerBlockProgram,
                     Constant.APP_TITLE, Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).start();
         } catch (Exception e) {
@@ -7688,12 +7740,10 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void playlistError(String msg) {
+    public void playlistError(String msg, boolean html) {
         synchronized (optionDialogLock) {
-            resultsToBackground();
-            JOptionPane.showMessageDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this, getTextArea(msg), Constant.APP_TITLE,
-                    Constant.ERROR_MSG);
-            resultsToForeground();
+            showOptionDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this, html ? getEditorPane(msg) : getTextArea(msg), Constant.APP_TITLE,
+                    Constant.ERROR_MSG, false);
         }
     }
 
@@ -7720,6 +7770,16 @@ public class GUI extends JFrame implements GuiListener {
     public void setPlaylistPlayHint(String msg) {
         playlistPlayButton.setToolTipText(playlistPlayButton.getToolTipText() + msg);
         playlistPlayMenuItem.setToolTipText(playlistPlayMenuItem.getToolTipText() + msg);
+    }
+
+    @Override
+    public boolean useMediaServer() {
+        if (!useMediaServer) {
+            useMediaServer = true;
+            return mediaServerMenuItem.isSelected() && showOptionalConfirm(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this,
+                    "Watch on television or other device?", mediaServerMenuItem) == JOptionPane.YES_OPTION;
+        }
+        return false;
     }
 
     @Override
@@ -7982,27 +8042,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void updateMsg(String msg) {
         synchronized (optionDialogLock) {
-            JEditorPane editorPane = new JEditorPane("text/html", msg);
-            editorPane.setOpaque(false);
-            editorPane.setEditable(false);
-            editorPane.setMaximumSize(null);
-            editorPane.setMinimumSize(null);
-            editorPane.addHyperlinkListener(new HyperlinkListener() {
-                @Override
-                public void hyperlinkUpdate(HyperlinkEvent evt) {
-                    try {
-                        hyperlinkHandler(evt);
-                    } catch (Exception e) {
-                        if (Debug.DEBUG) {
-                            Debug.print(e);
-                        }
-                        JOptionPane.showMessageDialog(GUI.this, getTextArea(ExceptionUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
-                        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
-                    }
-                }
-            });
-            editorPane.addMouseListener(textComponentPopupListener);
-            showOptionDialog(editorPane, Constant.APP_TITLE, Constant.INFO_MSG, false);
+            showOptionDialog(getEditorPane(msg), Constant.APP_TITLE, Constant.INFO_MSG, false);
         }
     }
 
@@ -8309,6 +8349,7 @@ public class GUI extends JFrame implements GuiListener {
     JButton loadMoreResultsButton;
     JLabel loadingLabel;
     JComboBox maxDownloadSizeComboBox;
+    JMenuItem mediaServerMenuItem;
     JMenuBar menuBar;
     JComboBox minDownloadSizeComboBox;
     JButton movieSubtitleCancelButton;

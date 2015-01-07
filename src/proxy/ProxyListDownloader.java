@@ -3,6 +3,7 @@ package proxy;
 import debug.Debug;
 import gui.AbstractSwingWorker;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,8 +68,14 @@ public class ProxyListDownloader extends AbstractSwingWorker {
 
         String msg2 = " Do you want to download them";
         if (currVersion < latestVersion) {
-            if (guiListener.proxyListDownloadConfirm("There are more up-to-date" + (latestDate == null ? "" : " (" + latestDate + ')') + " proxies." + msg2
-                    + '?')) {
+            try {
+                latestDate = (new SimpleDateFormat("EEE, MMM d, yyyy h:m a zzz")).format((new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")).parse(latestDate));
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
+            if (guiListener.proxyListDownloadConfirm("There are more up-to-date (" + latestDate + ") proxies." + msg2 + '?')) {
                 addProxies(latestVersion);
             }
         } else if (!hasLatestProxies() || guiListener.proxyListDownloadConfirm("You have downloaded the most up-to-date proxies before." + msg2 + " again?")) {

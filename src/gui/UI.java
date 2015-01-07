@@ -21,9 +21,11 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -35,14 +37,23 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.SortOrder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkEvent.EventType;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
+import javax.swing.text.ElementIterator;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.html.HTML.Attribute;
+import javax.swing.text.html.HTML.Tag;
 import str.Str;
 import util.Constant;
 
@@ -369,6 +380,43 @@ public class UI {
 
     public static void deiconify(Frame frame) {
         frame.setExtendedState(frame.getExtendedState() & ~Frame.ICONIFIED);
+    }
+
+    public static void addHyperlinkListener(final JEditorPane editorPane, final HyperlinkListener hyperlinkListener) {
+        if (!Constant.MAC) {
+            editorPane.addHyperlinkListener(hyperlinkListener);
+            return;
+        }
+
+        editorPane.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent evt) {
+                Object source;
+                if (evt.getButton() != MouseEvent.BUTTON1 || (source = evt.getSource()) != editorPane) {
+                    return;
+                }
+
+                int position = editorPane.getCaretPosition();
+                ElementIterator elementIt = new ElementIterator(editorPane.getDocument());
+                Element element;
+
+                while ((element = elementIt.next()) != null) {
+                    Object anchor, url;
+                    if (element.isLeaf() && position >= element.getStartOffset() && position <= element.getEndOffset() && (anchor
+                            = element.getAttributes().getAttribute(Tag.A)) instanceof AttributeSet && (url = ((AttributeSet) anchor).getAttribute(
+                                    Attribute.HREF)) instanceof String) {
+                        try {
+                            hyperlinkListener.hyperlinkUpdate(new HyperlinkEvent(source, EventType.ACTIVATED, new URL((String) url)));
+                        } catch (Exception e) {
+                            if (Debug.DEBUG) {
+                                Debug.print(e);
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
+        });
     }
 
     private UI() {
