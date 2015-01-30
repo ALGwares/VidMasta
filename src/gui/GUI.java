@@ -15,6 +15,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -101,6 +102,8 @@ import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListModel;
 import javax.swing.RootPaneContainer;
+import javax.swing.RowFilter;
+import javax.swing.RowFilter.Entry;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
@@ -130,6 +133,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.html.CSS.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLDocument;
+import javax.xml.bind.DatatypeConverter;
 import listener.ContentType;
 import listener.DomainType;
 import listener.FormattedNum;
@@ -573,7 +577,7 @@ public class GUI extends JFrame implements GuiListener {
             ActionMap actionMap = root.getActionMap();
             inputMap.put(escapeKey, escapeKeyWindowClosingActionMapKey);
             actionMap.put(escapeKeyWindowClosingActionMapKey, windowClosingAction);
-            if (window != playlistFrame) {
+            if (window != playlistFrame && window != activationDialog) {
                 inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
                 actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
             }
@@ -591,6 +595,7 @@ public class GUI extends JFrame implements GuiListener {
             usePeerBlock = false;
         }
         settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS);
+        playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
 
         splashScreen.progress();
     }
@@ -881,7 +886,6 @@ public class GUI extends JFrame implements GuiListener {
         playlistTablePopupMenu = new JPopupMenu();
         playlistPlayMenuItem = new JMenuItem();
         playlistOpenMenuItem = new JMenuItem();
-        playlistAutoOpenCheckBoxMenuItem = new JCheckBoxMenuItem();
         playlistMoveUpMenuItem = new JMenuItem();
         playlistMoveDownMenuItem = new JMenuItem();
         playlistTablePopupMenuSeparator1 = new Separator();
@@ -891,12 +895,10 @@ public class GUI extends JFrame implements GuiListener {
         activationDialog = new JDialog();
         activationUpgradeButton = new JButton();
         activationUpgradeLabel = new JLabel();
-        activationUpgradeComboBox = new JComboBox();
         activationCodeLabel = new JLabel();
         activationTextField = new JTextField();
         activationButton = new JButton();
         activationLoadingLabel = new JLabel();
-        mediaServerMenuItem = new JMenuItem();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -956,10 +958,8 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenuSeparator1 = new Separator();
         editProfilesMenuItem = new JMenuItem();
         fileMenuSeparator2 = new Separator();
-        playlistSaveFolderMenuItem = new JMenuItem();
-        fileMenuSeparator3 = new Separator();
         printMenuItem = new JMenuItem();
-        fileMenuSeparator4 = new Separator();
+        fileMenuSeparator3 = new Separator();
         exitMenuItem = new JMenuItem();
         editMenu = new JMenu();
         cutMenuItem = new JMenuItem();
@@ -972,7 +972,6 @@ public class GUI extends JFrame implements GuiListener {
         findMenuItem = new JMenuItem();
         viewMenu = new JMenu();
         resetWindowMenuItem = new JMenuItem();
-        playlistMenuItem = new JMenuItem();
         searchMenu = new JMenu();
         resultsPerSearchMenuItem = new JMenuItem();
         searchMenuSeparator1 = new Separator();
@@ -985,6 +984,13 @@ public class GUI extends JFrame implements GuiListener {
         browserNotificationCheckBoxMenuItem = new JCheckBoxMenuItem();
         searchMenuSeparator5 = new Separator();
         emailWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
+        playlistMenu = new JMenu();
+        playlistMenuItem = new JMenuItem();
+        playlistMenuSeparator1 = new Separator();
+        playlistSaveFolderMenuItem = new JMenuItem();
+        playlistAutoOpenCheckBoxMenuItem = new JCheckBoxMenuItem();
+        playlistShowNonVideoItemsCheckBoxMenuItem = new JCheckBoxMenuItem();
+        playlistTipsCheckBoxMenuItem = new JCheckBoxMenuItem();
         downloadMenu = new JMenu();
         downloadSizeMenuItem = new JMenuItem();
         downloadMenuSeparator1 = new Separator();
@@ -3108,11 +3114,11 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistScrollPane.setViewportView(playlistTable);
         if (playlistTable.getColumnModel().getColumnCount() > 0) {
-            playlistTable.getColumnModel().getColumn(0).setPreferredWidth(709);
+            playlistTable.getColumnModel().getColumn(0).setPreferredWidth(703);
             playlistTable.getColumnModel().getColumn(0).setHeaderValue(Constant.PLAYLIST_NAME_COL);
             playlistTable.getColumnModel().getColumn(1).setPreferredWidth(70);
             playlistTable.getColumnModel().getColumn(1).setHeaderValue(Constant.PLAYLIST_SIZE_COL);
-            playlistTable.getColumnModel().getColumn(2).setPreferredWidth(153);
+            playlistTable.getColumnModel().getColumn(2).setPreferredWidth(158);
             playlistTable.getColumnModel().getColumn(2).setHeaderValue(Constant.PLAYLIST_PROGRESS_COL);
             playlistTable.getColumnModel().getColumn(3).setPreferredWidth(0);
             playlistTable.getColumnModel().getColumn(3).setHeaderValue(Constant.PLAYLIST_ITEM_COL);
@@ -3237,11 +3243,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistTablePopupMenu.add(playlistOpenMenuItem);
 
-        playlistAutoOpenCheckBoxMenuItem.setSelected(true);
-        playlistAutoOpenCheckBoxMenuItem.setText("Auto-Open");
-        playlistAutoOpenCheckBoxMenuItem.setEnabled(false);
-        playlistTablePopupMenu.add(playlistAutoOpenCheckBoxMenuItem);
-
         playlistMoveUpMenuItem.setText("Move Up");
         playlistMoveUpMenuItem.setEnabled(false);
         playlistMoveUpMenuItem.addActionListener(new ActionListener() {
@@ -3297,14 +3298,16 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        activationUpgradeLabel.setText("to unlimited playback of movies and TV shows for");
-
-        activationUpgradeComboBox.setModel(new DefaultComboBoxModel(new String[] { "XXXXXXXXXXXXXXXXXXXXX" }));
-        activationUpgradeComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                activationUpgradeComboBoxActionPerformed(evt);
+        String upgradeOption;
+        try {
+            upgradeOption = new String(DatatypeConverter.parseHexBinary(Str.get(685)), Constant.UTF8);
+        } catch (Exception e) {
+            upgradeOption = "";
+            if (Debug.DEBUG) {
+                Debug.print(e);
             }
-        });
+        }
+        activationUpgradeLabel.setText("<html>to unlimited quick play of movies and TV shows" + upgradeOption + ".</html>");
 
         activationCodeLabel.setText("Activation Code:");
 
@@ -3333,12 +3336,9 @@ public class GUI extends JFrame implements GuiListener {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(activationUpgradeLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING, false)
-                    .addGroup(activationDialogLayout.createSequentialGroup()
-                        .addComponent(activationButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(activationLoadingLabel))
-                    .addComponent(activationUpgradeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(activationButton)
+                    .addComponent(activationLoadingLabel))
                 .addContainerGap())
         );
 
@@ -3347,22 +3347,20 @@ public class GUI extends JFrame implements GuiListener {
         activationDialogLayout.setVerticalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(activationDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(activationUpgradeButton)
-                    .addComponent(activationUpgradeLabel)
-                    .addComponent(activationUpgradeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(activationUpgradeButton)
+                        .addComponent(activationUpgradeLabel))
+                    .addComponent(activationLoadingLabel, Alignment.TRAILING))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
                 .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(activationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(activationCodeLabel)
-                    .addComponent(activationButton)
-                    .addComponent(activationLoadingLabel))
+                    .addComponent(activationButton))
                 .addContainerGap())
         );
 
         activationDialog.pack();
-
-        mediaServerMenuItem.setSelected(true);
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(Constant.APP_TITLE);
@@ -3878,15 +3876,6 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.add(useProfileMenu);
         fileMenu.add(fileMenuSeparator2);
 
-        playlistSaveFolderMenuItem.setText("Set Playlist Save Folder");
-        playlistSaveFolderMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistSaveFolderMenuItemActionPerformed(evt);
-            }
-        });
-        fileMenu.add(playlistSaveFolderMenuItem);
-        fileMenu.add(fileMenuSeparator3);
-
         printMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         printMenuItem.setText("Print");
         printMenuItem.addActionListener(new ActionListener() {
@@ -3895,7 +3884,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         fileMenu.add(printMenuItem);
-        fileMenu.add(fileMenuSeparator4);
+        fileMenu.add(fileMenuSeparator3);
 
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new ActionListener() {
@@ -3987,15 +3976,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         viewMenu.add(resetWindowMenuItem);
 
-        playlistMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_MASK));
-        playlistMenuItem.setText("Playlist");
-        playlistMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistMenuItemActionPerformed(evt);
-            }
-        });
-        viewMenu.add(playlistMenuItem);
-
         menuBar.add(viewMenu);
 
         searchMenu.setText("Search");
@@ -4045,6 +4025,47 @@ public class GUI extends JFrame implements GuiListener {
         searchMenu.add(emailWithDefaultAppCheckBoxMenuItem);
 
         menuBar.add(searchMenu);
+
+        playlistMenu.setText("Playlist");
+
+        playlistMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_MASK));
+        playlistMenuItem.setText("Show Playlist");
+        playlistMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMenuItemActionPerformed(evt);
+            }
+        });
+        playlistMenu.add(playlistMenuItem);
+        playlistMenu.add(playlistMenuSeparator1);
+
+        playlistSaveFolderMenuItem.setText("Set Save Folder");
+        playlistSaveFolderMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistSaveFolderMenuItemActionPerformed(evt);
+            }
+        });
+        playlistMenu.add(playlistSaveFolderMenuItem);
+
+        playlistAutoOpenCheckBoxMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
+        playlistAutoOpenCheckBoxMenuItem.setSelected(true);
+        playlistAutoOpenCheckBoxMenuItem.setText("Auto-Open Items");
+        playlistMenu.add(playlistAutoOpenCheckBoxMenuItem);
+
+        playlistShowNonVideoItemsCheckBoxMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
+        playlistShowNonVideoItemsCheckBoxMenuItem.setText("Show Non-Video Items");
+        playlistShowNonVideoItemsCheckBoxMenuItem.setToolTipText("show non-video items (" + Str.get(684)+ ")");
+        playlistShowNonVideoItemsCheckBoxMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(evt);
+            }
+        });
+        playlistMenu.add(playlistShowNonVideoItemsCheckBoxMenuItem);
+
+        playlistTipsCheckBoxMenuItem.setSelected(true);
+        playlistTipsCheckBoxMenuItem.setText("Show Tips");
+        playlistMenu.add(playlistTipsCheckBoxMenuItem);
+
+        menuBar.add(playlistMenu);
 
         downloadMenu.setText("Download");
 
@@ -4641,9 +4662,7 @@ public class GUI extends JFrame implements GuiListener {
         try {
             hyperlinkHandler(evt);
         } catch (Exception e) {
-            faqFrame.setAlwaysOnTop(false);
             showException(e);
-            faqFrame.setAlwaysOnTop(true);
         }
     }
 
@@ -4720,9 +4739,7 @@ public class GUI extends JFrame implements GuiListener {
                     toListModel.addElement(customExt);
                 }
             } else {
-                extensionsDialog.setAlwaysOnTop(false);
                 showMsg("Custom extensions must be 1-20 letters, digits, or hyphens.", Constant.ERROR_MSG);
-                extensionsDialog.setAlwaysOnTop(true);
             }
         }
 
@@ -4820,13 +4837,12 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         Component[] components = {playlistRemoveButton, playlistRemoveMenuItem, playlistCopyMenuItem, playlistMoveDownButton, playlistMoveDownMenuItem,
-            playlistMoveUpButton, playlistMoveUpMenuItem, playlistAutoOpenCheckBoxMenuItem};
+            playlistMoveUpButton, playlistMoveUpMenuItem};
         UI.enable(false, components);
         int[] selectedRows;
         if (evt.getFirstIndex() >= 0 && (selectedRows = playlistSyncTable.getSelectedRows()).length >= 1) {
-            UI.enable(true, selectedRows.length == 1 ? (playlistSyncTable.getRowCount() == 1 ? new Component[]{playlistRemoveButton, playlistRemoveMenuItem,
-                playlistCopyMenuItem, playlistAutoOpenCheckBoxMenuItem} : components) : new Component[]{playlistRemoveButton, playlistRemoveMenuItem,
-                playlistCopyMenuItem, playlistAutoOpenCheckBoxMenuItem});
+            UI.enable(true, selectedRows.length == 1 ? (UI.getUnfilteredRowCount(playlistSyncTable) == 1 ? new Component[]{playlistRemoveButton,
+                playlistRemoveMenuItem, playlistCopyMenuItem} : components) : new Component[]{playlistRemoveButton, playlistRemoveMenuItem, playlistCopyMenuItem});
         }
         refreshPlaylistControls();
     }
@@ -4837,12 +4853,12 @@ public class GUI extends JFrame implements GuiListener {
 
     void safetyEditorPaneHyperlinkUpdate(HyperlinkEvent evt) {//GEN-FIRST:event_safetyEditorPaneHyperlinkUpdate
         if (evt.getEventType().equals(EventType.ACTIVATED)) {
-            safetyDialog.setAlwaysOnTop(false);
+            Window alwaysOnTopFocus = resultsToBackground();
             commentsTextPane.setText(workerListener.getSafetyComments());
             commentsTextPane.setSelectionStart(0);
             commentsTextPane.setSelectionEnd(0);
             commentsDialog.setVisible(true);
-            safetyDialog.setAlwaysOnTop(true);
+            resultsToForeground(alwaysOnTopFocus);
         }
     }//GEN-LAST:event_safetyEditorPaneHyperlinkUpdate
 
@@ -5168,9 +5184,7 @@ public class GUI extends JFrame implements GuiListener {
 
         int numProxies = proxyComboBox.getItemCount();
         if (numProxies == 1) {
-            proxyDialog.setAlwaysOnTop(false);
             showMsg("There are no proxies to " + type + ".", Constant.INFO_MSG);
-            proxyDialog.setAlwaysOnTop(true);
             enableProxyButtons(true);
             return numProxies;
         }
@@ -5210,9 +5224,7 @@ public class GUI extends JFrame implements GuiListener {
 
         Object[] selectedProxies = removeProxiesList.getSelectedValues();
         if (selectedProxies.length == 0) {
-            removeProxiesDialog.setAlwaysOnTop(false);
             showMsg("0 proxies have been removed.", Constant.INFO_MSG);
-            removeProxiesDialog.setAlwaysOnTop(true);
             restoreProxyDialog(false);
             return;
         }
@@ -5221,9 +5233,7 @@ public class GUI extends JFrame implements GuiListener {
             proxyComboBox.removeItem(proxy);
         }
 
-        removeProxiesDialog.setAlwaysOnTop(false);
         showMsg(selectedProxies.length + (selectedProxies.length == 1 ? " proxy has " : " proxies have ") + "been removed.", Constant.INFO_MSG);
-        removeProxiesDialog.setAlwaysOnTop(true);
 
         StringBuilder proxiesBuf = new StringBuilder(2048);
         int numProxies = proxyComboBox.getItemCount();
@@ -5234,9 +5244,7 @@ public class GUI extends JFrame implements GuiListener {
         try {
             IO.write(Constant.APP_DIR + Constant.PROXIES, proxiesBuf.toString().trim());
         } catch (Exception e) {
-            removeProxiesDialog.setAlwaysOnTop(false);
             showException(e);
-            removeProxiesDialog.setAlwaysOnTop(true);
         }
 
         restoreProxyDialog(false);
@@ -5251,12 +5259,8 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_removeProxiesDialogWindowClosing
 
     private void noAddedProxies(boolean addButtonPressed) {
-        if (addButtonPressed) {
-            addProxiesDialog.setAlwaysOnTop(false);
-        }
         showMsg("0 new proxies have been added.", Constant.INFO_MSG);
         if (addButtonPressed) {
-            addProxiesDialog.setAlwaysOnTop(true);
             restoreProxyDialog(true);
         }
     }
@@ -5287,12 +5291,8 @@ public class GUI extends JFrame implements GuiListener {
             }
 
             if ((newProxy = Connection.getProxy(newProxy)) == null) {
-                if (addButtonPressed) {
-                    addProxiesDialog.setAlwaysOnTop(true);
-                }
                 showMsg("\'" + proxy + "' is invalid.", Constant.ERROR_MSG);
                 if (addButtonPressed) {
-                    addProxiesDialog.setAlwaysOnTop(false);
                     addProxiesAddButton.setEnabled(true);
                 }
                 return;
@@ -5321,25 +5321,13 @@ public class GUI extends JFrame implements GuiListener {
         }
         proxyComboBox.setSelectedItem(Constant.NO_PROXY);
 
-        if (addButtonPressed) {
-            addProxiesDialog.setAlwaysOnTop(false);
-        }
         int numNewProxies = validProxies.size();
         showMsg(numNewProxies + " new" + (numNewProxies == 1 ? " proxy has " : " proxies have ") + "been added.", Constant.INFO_MSG);
-        if (addButtonPressed) {
-            addProxiesDialog.setAlwaysOnTop(true);
-        }
 
         try {
             IO.write(Constant.APP_DIR + Constant.PROXIES, proxiesBuf.toString().trim());
         } catch (Exception e) {
-            if (addButtonPressed) {
-                addProxiesDialog.setAlwaysOnTop(false);
-            }
             showException(e);
-            if (addButtonPressed) {
-                addProxiesDialog.setAlwaysOnTop(true);
-            }
         }
 
         if (addButtonPressed) {
@@ -5552,13 +5540,9 @@ public class GUI extends JFrame implements GuiListener {
         try {
             settings.saveSettings(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT);
             updateProfileGUIitems(profile);
-            profileDialog.setAlwaysOnTop(false);
             showMsg("The profile has been set to the application's current settings.", Constant.INFO_MSG);
-            profileDialog.setAlwaysOnTop(true);
         } catch (Exception e) {
-            profileDialog.setAlwaysOnTop(false);
             showException(e);
-            profileDialog.setAlwaysOnTop(true);
         }
     }//GEN-LAST:event_profileSetButtonActionPerformed
 
@@ -5584,16 +5568,12 @@ public class GUI extends JFrame implements GuiListener {
     void profileNameChangeOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileNameChangeOKButtonActionPerformed
         String newProfileName = profileNameChangeTextField.getText().trim();
         if (!Regex.isMatch(newProfileName, "(\\p{Alpha}|\\d|-| ){1,20}+")) {
-            profileNameChangeDialog.setAlwaysOnTop(false);
             showMsg("Profile names must be 1-20 letters, digits, hyphens, or spaces.", Constant.ERROR_MSG);
-            profileNameChangeDialog.setAlwaysOnTop(true);
             return;
         }
 
         if (newProfileName.equals(Constant.DEFAULT_PROFILE)) {
-            profileNameChangeDialog.setAlwaysOnTop(false);
             showMsg("The name is already in use by another profile. Choose a different name.", Constant.ERROR_MSG);
-            profileNameChangeDialog.setAlwaysOnTop(true);
             return;
         }
 
@@ -5605,9 +5585,7 @@ public class GUI extends JFrame implements GuiListener {
             } else {
                 String profileName = (String) profileComboBox.getItemAt(i);
                 if (newProfileName.equals(profileName)) {
-                    profileNameChangeDialog.setAlwaysOnTop(false);
                     showMsg("The name is already in use by another profile. Choose a different name.", Constant.ERROR_MSG);
-                    profileNameChangeDialog.setAlwaysOnTop(true);
                     return;
                 }
                 profileNames[i - 1] = profileName;
@@ -5908,7 +5886,6 @@ public class GUI extends JFrame implements GuiListener {
         if (!isPlaylistActive) {
             System.exit(0);
         }
-        UI.show(playlistFrame);
     }//GEN-LAST:event_formWindowClosing
 
     private void textComponentPopupMenuPopupMenuWillBecomeInvisible(PopupMenuEvent evt) {//GEN-FIRST:event_textComponentPopupMenuPopupMenuWillBecomeInvisible
@@ -6368,14 +6345,17 @@ public class GUI extends JFrame implements GuiListener {
 
     private void playlistMove(boolean up) {
         synchronized (playlistSyncTable.lock) {
-            int numRows = playlistSyncTable.tableModel.getRowCount();
+            int numRows = UI.getUnfilteredRowCount(playlistSyncTable.table);
             int[] rows;
             if (numRows > 1 && (rows = playlistSyncTable.table.getSelectedRows()).length == 1) {
                 playlistSyncTable.table.getRowSorter().setSortKeys(null);
                 int row = playlistSyncTable.table.getSelectedRow();
                 if (row == rows[0] && row != (up ? 0 : numRows - 1)) {
-                    playlistSyncTable.tableModel.moveRow(row, row, up ? --row : ++row);
-                    playlistSyncTable.table.changeSelection(row, 0, false, false);
+                    int modelRow = playlistSyncTable.table.convertRowIndexToModel(row);
+                    int newViewRow = (up ? --row : ++row);
+                    playlistSyncTable.tableModel.moveRow(modelRow, modelRow, playlistSyncTable.table.convertRowIndexToModel(newViewRow));
+                    playlistSyncTable.table.getRowSorter().allRowsChanged();
+                    playlistSyncTable.table.changeSelection(newViewRow, 0, false, false);
                 }
             }
         }
@@ -6419,8 +6399,8 @@ public class GUI extends JFrame implements GuiListener {
 
     private void selectFirstRow(int[] viewRows) {
         Arrays.sort(viewRows);
-        int numRows = playlistSyncTable.tableModel.getRowCount(), viewRow = viewRows[0];
-        while (viewRow >= numRows) {
+        int viewRow = viewRows[0];
+        while (viewRow >= UI.getUnfilteredRowCount(playlistSyncTable.table)) {
             viewRow--;
         }
         if (viewRow != -1) {
@@ -6465,11 +6445,6 @@ public class GUI extends JFrame implements GuiListener {
         workerListener.license(null, false);
     }//GEN-LAST:event_activationUpgradeButtonActionPerformed
 
-    private void activationUpgradeComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationUpgradeComboBoxActionPerformed
-        Object item = activationUpgradeComboBox.getSelectedItem();
-        activationUpgradeButton.setToolTipText("upgrade to unlimited playback of movies and TV shows" + (item == null ? "" : " for " + item));
-    }//GEN-LAST:event_activationUpgradeComboBoxActionPerformed
-
     private void activationDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_activationDialogWindowClosing
         if (!isVisible()) {
             setVisible(true);
@@ -6501,24 +6476,24 @@ public class GUI extends JFrame implements GuiListener {
         } else if (key == KeyEvent.VK_ENTER) {
             playlistPlayButtonActionPerformed(null);
         } else {
-            restoreMainFrame(evt);
+            playlistKeyPressed(evt);
         }
     }//GEN-LAST:event_playlistTableKeyPressed
 
     private void playlistPlayButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistPlayButtonKeyPressed
-        restoreMainFrame(evt);
+        playlistKeyPressed(evt);
     }//GEN-LAST:event_playlistPlayButtonKeyPressed
 
     private void playlistMoveUpButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistMoveUpButtonKeyPressed
-        restoreMainFrame(evt);
+        playlistKeyPressed(evt);
     }//GEN-LAST:event_playlistMoveUpButtonKeyPressed
 
     private void playlistMoveDownButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistMoveDownButtonKeyPressed
-        restoreMainFrame(evt);
+        playlistKeyPressed(evt);
     }//GEN-LAST:event_playlistMoveDownButtonKeyPressed
 
     private void playlistRemoveButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistRemoveButtonKeyPressed
-        restoreMainFrame(evt);
+        playlistKeyPressed(evt);
     }//GEN-LAST:event_playlistRemoveButtonKeyPressed
 
     private void playlistTableMouseClicked(MouseEvent evt) {//GEN-FIRST:event_playlistTableMouseClicked
@@ -6527,8 +6502,31 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_playlistTableMouseClicked
 
-    private void restoreMainFrame(KeyEvent evt) {
-        if (evt.getKeyCode() == KeyEvent.VK_W && evt.isControlDown() && !isVisible()) {
+    @SuppressWarnings("unchecked")
+    private void playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed
+        synchronized (playlistSyncTable.lock) {
+            ((DefaultRowSorter<TableModel, Integer>) playlistSyncTable.table.getRowSorter()).setRowFilter(playlistShowNonVideoItemsCheckBoxMenuItem.isSelected()
+                    ? null : new RowFilter<TableModel, Integer>() {
+                        @Override
+                        public boolean include(Entry<? extends TableModel, ? extends Integer> row) {
+                            return !Regex.isMatch(row.getStringValue(playlistNameCol), 683);
+                        }
+                    });
+        }
+    }//GEN-LAST:event_playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed
+
+    private void playlistKeyPressed(KeyEvent evt) {
+        if (!evt.isControlDown()) {
+            return;
+        }
+
+        int key = evt.getKeyCode();
+        if (key == KeyEvent.VK_O) {
+            playlistAutoOpenCheckBoxMenuItem.setSelected(!playlistAutoOpenCheckBoxMenuItem.isSelected());
+        } else if (key == KeyEvent.VK_N) {
+            playlistShowNonVideoItemsCheckBoxMenuItem.setSelected(!playlistShowNonVideoItemsCheckBoxMenuItem.isSelected());
+            playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
+        } else if (key == KeyEvent.VK_W) {
             UI.show(this);
         }
     }
@@ -6622,7 +6620,9 @@ public class GUI extends JFrame implements GuiListener {
                     if (Debug.DEBUG) {
                         Debug.print(e);
                     }
+                    Window alwaysOnTopFocus = resultsToBackground();
                     JOptionPane.showMessageDialog(GUI.this, getTextArea(ExceptionUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
+                    resultsToForeground(alwaysOnTopFocus);
                     IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
                 }
             }
@@ -6636,7 +6636,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private int showOptionDialog(Component parent, Object msg, String title, int type, boolean confirm) {
-        resultsToBackground();
+        Window alwaysOnTopFocus = resultsToBackground();
         int result;
         if (confirm) {
             result = JOptionPane.showConfirmDialog(parent, msg, title, type);
@@ -6644,7 +6644,7 @@ public class GUI extends JFrame implements GuiListener {
             JOptionPane.showMessageDialog(parent, msg, title, type);
             result = -1;
         }
-        resultsToForeground();
+        resultsToForeground(alwaysOnTopFocus);
         return result;
     }
 
@@ -6669,7 +6669,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    void showMsg(String msg, int msgType) {
+    private void showMsg(String msg, int msgType) {
         synchronized (optionDialogLock) {
             showOptionDialog(getTextArea(msg), Constant.APP_TITLE, msgType, false);
         }
@@ -6793,7 +6793,7 @@ public class GUI extends JFrame implements GuiListener {
 
                 playlistDir = getPath(settings, ++i);
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
-                restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, mediaServerMenuItem);
+                restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, playlistTipsCheckBoxMenuItem, playlistShowNonVideoItemsCheckBoxMenuItem);
 
                 if (!updateSettings) {
                     return;
@@ -6839,7 +6839,7 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(savePosition(playlistFrame));
             savePaths(settings, playlistDir);
             settings.append(usePeerBlock).append(Constant.NEWLINE);
-            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, mediaServerMenuItem);
+            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, playlistTipsCheckBoxMenuItem, playlistShowNonVideoItemsCheckBoxMenuItem);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -7251,8 +7251,17 @@ public class GUI extends JFrame implements GuiListener {
         setSafetyDialog(statistic, link, name);
     }
 
-    private void resultsToBackground() {
+    Window resultsToBackground() {
+        Window alwaysOnTopFocus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
         resultsToBackground(false);
+        if (alwaysOnTopFocus != null) {
+            if (alwaysOnTopFocus.isAlwaysOnTop()) {
+                alwaysOnTopFocus.setAlwaysOnTop(false);
+            } else {
+                return null;
+            }
+        }
+        return alwaysOnTopFocus;
     }
 
     private void resultsToBackground(boolean permanent) {
@@ -7271,16 +7280,19 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private void resultsToForeground() {
+    void resultsToForeground(Window alwaysOnTopFocus) {
         summaryDialog.setAlwaysOnTop(true);
         playlistFrame.setAlwaysOnTop(true);
+        if (alwaysOnTopFocus != null) {
+            alwaysOnTopFocus.setAlwaysOnTop(true);
+        }
     }
 
     @Override
     public void showSafetyDialog() {
-        resultsToBackground();
+        Window alwaysOnTopFocus = resultsToBackground();
         safetyDialog.setVisible(true);
-        resultsToForeground();
+        resultsToForeground(alwaysOnTopFocus);
     }
 
     @Override
@@ -7468,9 +7480,9 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private boolean save(JFileChooser fileChooser) {
-        resultsToBackground();
+        Window alwaysOnTopFocus = resultsToBackground();
         boolean result = (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION);
-        resultsToForeground();
+        resultsToForeground(alwaysOnTopFocus);
         return result;
     }
 
@@ -7703,11 +7715,17 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem) {
+    public void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem, boolean updateValOnly) {
         synchronized (playlistSyncTable.lock) {
             for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
                 if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
-                    if (!progress.equals(playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol))) {
+                    FormattedNum oldProgress = (FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol);
+                    if (updateValOnly) {
+                        Number newProgressVal = progress.val();
+                        if (!newProgressVal.equals(oldProgress.val())) {
+                            playlistSyncTable.tableModel.setValueAt(oldProgress.copy(newProgressVal), row, playlistProgressCol);
+                        }
+                    } else if (!progress.equals(oldProgress)) {
                         playlistSyncTable.tableModel.setValueAt(progress, row, playlistProgressCol);
                     }
                     return;
@@ -7717,21 +7735,26 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void showPlaylist(PlaylistItem selectedPlaylistItem) {
+    public boolean showPlaylist(PlaylistItem selectedPlaylistItem) {
         UI.show(playlistFrame);
         restorePlaylist(false);
+        boolean selected = false;
         synchronized (playlistSyncTable.lock) {
             for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
                 if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(selectedPlaylistItem)) {
                     int viewRow = playlistSyncTable.table.convertRowIndexToView(row);
-                    playlistSyncTable.table.setRowSelectionInterval(viewRow, viewRow);
-                    JViewport viewport = (JViewport) playlistSyncTable.table.getParent();
-                    viewport.scrollRectToVisible(rectangle(viewport, playlistSyncTable.table.getCellRect(viewRow, 0, true)));
+                    if (viewRow != -1) {
+                        playlistSyncTable.table.setRowSelectionInterval(viewRow, viewRow);
+                        JViewport viewport = (JViewport) playlistSyncTable.table.getParent();
+                        viewport.scrollRectToVisible(rectangle(viewport, playlistSyncTable.table.getCellRect(viewRow, 0, true)));
+                        selected = true;
+                    }
                     break;
                 }
             }
         }
         refreshPlaylistControls();
+        return selected;
     }
 
     @Override
@@ -7776,8 +7799,8 @@ public class GUI extends JFrame implements GuiListener {
     public boolean useMediaServer() {
         if (!useMediaServer) {
             useMediaServer = true;
-            return mediaServerMenuItem.isSelected() && showOptionalConfirm(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this,
-                    "Watch on television or other device?", mediaServerMenuItem) == JOptionPane.YES_OPTION;
+            return playlistTipsCheckBoxMenuItem.isSelected() && showOptionalConfirm(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this,
+                    "Watch on television or other device?", playlistTipsCheckBoxMenuItem) == JOptionPane.YES_OPTION;
         }
         return false;
     }
@@ -7817,28 +7840,6 @@ public class GUI extends JFrame implements GuiListener {
     public void proxyListDownloadStopped() {
         enableProxyButtons(true);
         proxyLoadingLabel.setIcon(notLoadingIcon);
-    }
-
-    @Override
-    public void proxyListDownloadError(Exception e) {
-        proxyDialog.setAlwaysOnTop(false);
-        showException(e);
-        proxyDialog.setAlwaysOnTop(true);
-    }
-
-    @Override
-    public void proxyListDownloadMsg(String msg, int msgType) {
-        proxyDialog.setAlwaysOnTop(false);
-        showMsg(msg, msgType);
-        proxyDialog.setAlwaysOnTop(true);
-    }
-
-    @Override
-    public boolean proxyListDownloadConfirm(String msg) {
-        proxyDialog.setAlwaysOnTop(false);
-        boolean result = isConfirmed(msg);
-        proxyDialog.setAlwaysOnTop(true);
-        return result;
     }
 
     @Override
@@ -7988,13 +7989,6 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void commentsFinderStopped() {
         safetyLoadingLabel.setIcon(notLoadingIcon);
-    }
-
-    @Override
-    public void commentsFinderError(Exception e) {
-        safetyDialog.setAlwaysOnTop(false);
-        error(e);
-        safetyDialog.setAlwaysOnTop(true);
     }
 
     @Override
@@ -8150,27 +8144,10 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void showLicenseActivation(Iterable<String> upgradeOptions) {
-        activationUpgradeComboBox.removeAllItems();
-        for (String upgradeOption : upgradeOptions) {
-            activationUpgradeComboBox.addItem(upgradeOption);
-        }
-        activationDialog.pack();
+    public void showLicenseActivation() {
         activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this);
         resultsToBackground(true);
         activationDialog.setVisible(true);
-    }
-
-    @Override
-    public String licenseUpgradeOption() {
-        return (String) activationUpgradeComboBox.getSelectedItem();
-    }
-
-    @Override
-    public void licenseActivationError(String msg) {
-        activationDialog.setAlwaysOnTop(false);
-        showMsg(msg, Constant.ERROR_MSG);
-        activationDialog.setAlwaysOnTop(true);
     }
 
     @Override
@@ -8187,9 +8164,7 @@ public class GUI extends JFrame implements GuiListener {
     public void licenseDeactivated(boolean alert) {
         activationTextField.setForeground(Color.BLACK);
         if (alert) {
-            activationDialog.setAlwaysOnTop(false);
             showMsg("Activation Failed.", Constant.ERROR_MSG);
-            activationDialog.setAlwaysOnTop(true);
         }
     }
 
@@ -8216,7 +8191,6 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem activationMenuItem;
     JTextField activationTextField;
     JButton activationUpgradeButton;
-    JComboBox activationUpgradeComboBox;
     JLabel activationUpgradeLabel;
     JButton addProxiesAddButton;
     JButton addProxiesCancelButton;
@@ -8318,7 +8292,6 @@ public class GUI extends JFrame implements GuiListener {
     Separator fileMenuSeparator1;
     Separator fileMenuSeparator2;
     Separator fileMenuSeparator3;
-    Separator fileMenuSeparator4;
     JMenuItem findMenuItem;
     JMenuItem findSubtitleMenuItem;
     JTextField findTextField;
@@ -8349,7 +8322,6 @@ public class GUI extends JFrame implements GuiListener {
     JButton loadMoreResultsButton;
     JLabel loadingLabel;
     JComboBox maxDownloadSizeComboBox;
-    JMenuItem mediaServerMenuItem;
     JMenuBar menuBar;
     JComboBox minDownloadSizeComboBox;
     JButton movieSubtitleCancelButton;
@@ -8377,7 +8349,9 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem playlistCopyMenuItem;
     JFileChooser playlistFileChooser;
     JFrame playlistFrame;
+    JMenu playlistMenu;
     JMenuItem playlistMenuItem;
+    Separator playlistMenuSeparator1;
     JButton playlistMoveDownButton;
     JMenuItem playlistMoveDownMenuItem;
     JButton playlistMoveUpButton;
@@ -8389,10 +8363,12 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem playlistRemoveMenuItem;
     JMenuItem playlistSaveFolderMenuItem;
     JScrollPane playlistScrollPane;
+    JCheckBoxMenuItem playlistShowNonVideoItemsCheckBoxMenuItem;
     JTable playlistTable;
     JPopupMenu playlistTablePopupMenu;
     Separator playlistTablePopupMenuSeparator1;
     Separator playlistTablePopupMenuSeparator2;
+    JCheckBoxMenuItem playlistTipsCheckBoxMenuItem;
     JButton popularMoviesButton;
     JPopupMenu popularMoviesButtonPopupMenu;
     JComboBox popularMoviesResultsPerSearchComboBox;

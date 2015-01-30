@@ -29,7 +29,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
         try {
             download();
         } catch (Exception e) {
-            guiListener.proxyListDownloadError(e);
+            guiListener.error(e);
         }
         guiListener.proxyListDownloadStopped();
         workDone();
@@ -48,7 +48,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            guiListener.proxyListDownloadMsg("There was an error downloading the proxies.", Constant.ERROR_MSG);
+            guiListener.msg("There was an error downloading the proxies.", Constant.ERROR_MSG);
             return;
         }
 
@@ -69,16 +69,17 @@ public class ProxyListDownloader extends AbstractSwingWorker {
         String msg2 = " Do you want to download them";
         if (currVersion < latestVersion) {
             try {
-                latestDate = (new SimpleDateFormat("EEE, MMM d, yyyy h:m a zzz")).format((new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")).parse(latestDate));
+                latestDate = (new SimpleDateFormat("EEE, MMM d, yyyy h:mm a zzz")).format((new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")).parse(
+                        latestDate));
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
             }
-            if (guiListener.proxyListDownloadConfirm("There are more up-to-date (" + latestDate + ") proxies." + msg2 + '?')) {
+            if (guiListener.isConfirmed("There are more up-to-date (" + latestDate + ") proxies." + msg2 + '?')) {
                 addProxies(latestVersion);
             }
-        } else if (!hasLatestProxies() || guiListener.proxyListDownloadConfirm("You have downloaded the most up-to-date proxies before." + msg2 + " again?")) {
+        } else if (!hasLatestProxies() || guiListener.isConfirmed("You have downloaded the most up-to-date proxies before." + msg2 + " again?")) {
             addProxies(latestVersion);
         }
     }
@@ -132,6 +133,6 @@ public class ProxyListDownloader extends AbstractSwingWorker {
         guiListener.newProxies(proxies);
 
         int numNewProxies = proxies.size() - numOldProxies;
-        guiListener.proxyListDownloadMsg(numNewProxies + " new" + (numNewProxies == 1 ? " proxy has " : " proxies have ") + "been added.", Constant.INFO_MSG);
+        guiListener.msg(numNewProxies + " new" + (numNewProxies == 1 ? " proxy has " : " proxies have ") + "been added.", Constant.INFO_MSG);
     }
 }

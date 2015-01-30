@@ -28,6 +28,12 @@
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
         </Menu>
+        <Menu class="javax.swing.JMenu" name="playlistMenu">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Playlist"/>
+            <Property name="enabled" type="boolean" value="false"/>
+          </Properties>
+        </Menu>
         <Menu class="javax.swing.JMenu" name="downloadMenu">
           <Properties>
             <Property name="text" type="java.lang.String" value="Download"/>

@@ -110,6 +110,7 @@ public class SplashScreen extends JFrame {
         editMenu = new JMenu();
         viewMenu = new JMenu();
         searchMenu = new JMenu();
+        playlistMenu = new JMenu();
         downloadMenu = new JMenu();
         helpMenu = new JMenu();
 
@@ -316,6 +317,10 @@ public class SplashScreen extends JFrame {
         searchMenu.setEnabled(false);
         menuBar.add(searchMenu);
 
+        playlistMenu.setText("Playlist");
+        playlistMenu.setEnabled(false);
+        menuBar.add(playlistMenu);
+
         downloadMenu.setText("Download");
         downloadMenu.setEnabled(false);
         menuBar.add(downloadMenu);
@@ -328,8 +333,7 @@ public class SplashScreen extends JFrame {
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(Alignment.LEADING)
+        layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addComponent(statusBarTextField, GroupLayout.DEFAULT_SIZE, 1329, Short.MAX_VALUE)
             .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
@@ -426,8 +430,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {ratingComboBox, typeComboBox});
 
-        layout.setVerticalGroup(
-            layout.createParallelGroup(Alignment.LEADING)
+        layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(Alignment.TRAILING)
@@ -506,7 +509,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
 
-        setSize(new Dimension(1022, 680));
+        setSize(new Dimension(1337, 773));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -533,6 +536,7 @@ public class SplashScreen extends JFrame {
     JLabel loadingLabel;
     JMenuBar menuBar;
     JButton playButton;
+    JMenu playlistMenu;
     JButton popularMoviesButton;
     JButton popularTVShowsButton;
     JProgressBar progressBar;

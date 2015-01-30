@@ -1,6 +1,20 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.??.??   | VidMasta 18.6
+
+CHANGE: UI   | Added new playlist setting to show/hide non-video items (e.g. images) that hides by default
+CHANGE: UI   | Improved progress reporting when playing a playlist item
+CHANGE: UI   | Moved all playlist settings to new playlist menu
+CHANGE: UI   | Improved opening, closing, and positioning of windows
+CHANGE: UI   | Refocused VidMasta's main window when there is an attempt to re-open VidMasta while already open
+CHANGE: UI   | Zero-padded minute of date shown when downloading proxies
+CHANGE: UI   | Improved save filename for torrents
+CHANGE: UI   | Added uninstaller to Programs/Uninstall window for Windows
+
+
+
+
 2015.01.06   | VidMasta 18.5
 
 CHANGE: CORE | Fixed bug that sometimes prevents restoring playlist between restarts of VidMasta
@@ -29,7 +43,7 @@ CHANGE: CORE | Improved accuracy of TV show episode download link searches
 CHANGE: CORE | Started PeerBlock after enabling Administrator permissions
 CHANGE: CORE | Stopped trying to automatically play download link 2 when download link 1 fails because of a connection issue
 CHANGE: CORE | Stopped trying to email download link 2 when download link 1 fails because of a connection issue
-CHANGE: CORE | Fixed a few issues resulting from a critical and silent update, in-between the release of VidMasta 18.3 and VidMasta 18.4, of download link sources. The issues fixed are upload year check disabled, comments provider for untrusty download links temporarily un-proxied and sometimes only returns partial results, second set of results for popular searches not prefetched, and a very rare unhandled HTTP 404 error when trying to find a download link that does not exist.
+CHANGE: CORE | Fixed a few issues resulting from a critical and silent update, in-between the release of VidMasta 18.3 and VidMasta 18.4, of download link sources. The issues fixed are upload year check disabled, comments provider for untrusty download links temporarily un-proxied and sometimes only returns partial results, second set of results for popular searches not prefetched, and an unhandled HTTP 404 error that sometimes occurs when trying to find a download link that does not exist.
 
 
 

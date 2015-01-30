@@ -40,6 +40,7 @@ import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.SortOrder;
@@ -96,7 +97,7 @@ public class UI {
     }
 
     public static void addPopupMenu(final JPopupMenu popupMenu, final SyncTable syncTable, final boolean oneSelectedRowMode) {
-        UI.addMouseListener(new AbstractPopupListener() {
+        addMouseListener(new AbstractPopupListener() {
             @Override
             protected void showPopup(MouseEvent evt) {
                 int row, col;
@@ -417,6 +418,16 @@ public class UI {
                 }
             }
         });
+    }
+
+    public static int getUnfilteredRowCount(SyncTable syncTable) {
+        synchronized (syncTable.lock) {
+            return getUnfilteredRowCount(syncTable.table);
+        }
+    }
+
+    public static int getUnfilteredRowCount(JTable table) {
+        return ((DefaultRowSorter<?, ?>) table.getRowSorter()).getRowFilter() == null ? table.getModel().getRowCount() : table.getRowCount();
     }
 
     private UI() {

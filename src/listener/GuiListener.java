@@ -111,9 +111,9 @@ public interface GuiListener {
 
     void removePlaylistItem(PlaylistItem playlistItem);
 
-    void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem);
+    void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem, boolean updateValOnly);
 
-    void showPlaylist(PlaylistItem selectedPlaylistItem);
+    boolean showPlaylist(PlaylistItem selectedPlaylistItem);
 
     String getPlaylistSaveDir();
 
@@ -136,12 +136,6 @@ public interface GuiListener {
     void proxyListDownloadStarted();
 
     void proxyListDownloadStopped();
-
-    void proxyListDownloadError(Exception e);
-
-    void proxyListDownloadMsg(String msg, int msgType);
-
-    boolean proxyListDownloadConfirm(String msg);
 
     void newProxies(Iterable<String> proxies);
 
@@ -197,8 +191,6 @@ public interface GuiListener {
 
     void commentsFinderStopped();
 
-    void commentsFinderError(Exception e);
-
     Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
             String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode);
 
@@ -228,11 +220,7 @@ public interface GuiListener {
 
     void licenseActivation();
 
-    void showLicenseActivation(Iterable<String> upgradeOptions);
-
-    String licenseUpgradeOption();
-
-    void licenseActivationError(String msg);
+    void showLicenseActivation();
 
     void licenseActivated(boolean alert, String activationCode);
 

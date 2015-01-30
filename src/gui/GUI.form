@@ -3888,7 +3888,7 @@
                 </Property>
                 <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
                   <TableColumnModel selectionModel="0">
-                    <Column maxWidth="-1" minWidth="-1" prefWidth="709" resizable="true">
+                    <Column maxWidth="-1" minWidth="-1" prefWidth="703" resizable="true">
                       <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                         <Connection code="Constant.PLAYLIST_NAME_COL" type="code"/>
                       </Title>
@@ -3902,7 +3902,7 @@
                       <Editor/>
                       <Renderer/>
                     </Column>
-                    <Column maxWidth="-1" minWidth="-1" prefWidth="153" resizable="true">
+                    <Column maxWidth="-1" minWidth="-1" prefWidth="158" resizable="true">
                       <Title editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                         <Connection code="Constant.PLAYLIST_PROGRESS_COL" type="code"/>
                       </Title>
@@ -4043,13 +4043,6 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistOpenMenuItemActionPerformed"/>
           </Events>
         </MenuItem>
-        <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistAutoOpenCheckBoxMenuItem">
-          <Properties>
-            <Property name="selected" type="boolean" value="true"/>
-            <Property name="text" type="java.lang.String" value="Auto-Open"/>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-        </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="playlistMoveUpMenuItem">
           <Properties>
             <Property name="text" type="java.lang.String" value="Move Up"/>
@@ -4114,25 +4107,21 @@
               <Group type="102" attributes="0">
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
+                      <Group type="102" attributes="0">
                           <Component id="activationCodeLabel" linkSize="176" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Component id="activationTextField" max="32767" attributes="0"/>
                       </Group>
-                      <Group type="102" alignment="0" attributes="0">
+                      <Group type="102" attributes="0">
                           <Component id="activationUpgradeButton" linkSize="176" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Component id="activationUpgradeLabel" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Group type="102" attributes="0">
-                          <Component id="activationButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="32767" attributes="0"/>
-                          <Component id="activationLoadingLabel" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Component id="activationUpgradeComboBox" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="activationButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="activationLoadingLabel" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
@@ -4142,17 +4131,18 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="activationUpgradeButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="activationUpgradeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="activationUpgradeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="activationUpgradeButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="activationUpgradeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <Component id="activationLoadingLabel" alignment="1" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="activationTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="activationCodeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="activationButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="activationLoadingLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -4170,20 +4160,13 @@
         </Component>
         <Component class="javax.swing.JLabel" name="activationUpgradeLabel">
           <Properties>
-            <Property name="text" type="java.lang.String" value="to unlimited playback of movies and TV shows for"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JComboBox" name="activationUpgradeComboBox">
-          <Properties>
-            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="1">
-                <StringItem index="0" value="XXXXXXXXXXXXXXXXXXXXX"/>
-              </StringArray>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;&lt;html&gt;to unlimited quick play of movies and TV shows&quot; + upgradeOption + &quot;.&lt;/html&gt;&quot;" type="code"/>
             </Property>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="activationUpgradeComboBoxActionPerformed"/>
-          </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_InitCodePre" type="java.lang.String" value="        String upgradeOption;&#xa;&#x9;&#x9;try {&#xa;            upgradeOption = new String(DatatypeConverter.parseHexBinary(Str.get(685)), Constant.UTF8);&#xa;        } catch (Exception e) {&#xa;            upgradeOption = &quot;&quot;;&#xa;            if (Debug.DEBUG) {&#xa;                Debug.print(e);&#xa;            }&#xa;        }"/>
+          </AuxValues>
         </Component>
         <Component class="javax.swing.JLabel" name="activationCodeLabel">
           <Properties>
@@ -4210,11 +4193,6 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JMenuItem" name="mediaServerMenuItem">
-      <Properties>
-        <Property name="selected" type="boolean" value="true"/>
-      </Properties>
-    </Component>
     <Menu class="javax.swing.JMenuBar" name="menuBar">
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
@@ -4376,16 +4354,6 @@
             </Menu>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator2">
             </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="playlistSaveFolderMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Set Playlist Save Folder"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistSaveFolderMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator3">
-            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="printMenuItem">
               <Properties>
                 <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
@@ -4397,7 +4365,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="printMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator4">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator3">
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="exitMenuItem">
               <Properties>
@@ -4505,17 +4473,6 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="resetWindowMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="playlistMenuItem">
-              <Properties>
-                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
-                  <KeyStroke key="Ctrl+M"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="Playlist"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
           </SubComponents>
         </Menu>
         <Menu class="javax.swing.JMenu" name="searchMenu">
@@ -4584,6 +4541,63 @@
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="Email with Default Application"/>
+              </Properties>
+            </MenuItem>
+          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="playlistMenu">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Playlist"/>
+          </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="playlistMenuItem">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+M"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Show Playlist"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="playlistMenuSeparator1">
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="playlistSaveFolderMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Set Save Folder"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistSaveFolderMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistAutoOpenCheckBoxMenuItem">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+O"/>
+                </Property>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Auto-Open Items"/>
+              </Properties>
+            </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistShowNonVideoItemsCheckBoxMenuItem">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+N"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Show Non-Video Items"/>
+                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                  <Connection code="&quot;show non-video items (&quot; + Str.get(684)+ &quot;)&quot;" type="code"/>
+                </Property>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistTipsCheckBoxMenuItem">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Show Tips"/>
               </Properties>
             </MenuItem>
           </SubComponents>

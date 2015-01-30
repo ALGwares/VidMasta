@@ -5,6 +5,7 @@ import debug.Debug;
 import gui.AbstractSwingWorker;
 import gui.GUI;
 import gui.SplashScreen;
+import gui.UI;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Rectangle;
@@ -14,6 +15,11 @@ import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.rmi.Naming;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -150,6 +156,7 @@ public class Main implements WorkerListener {
                 gui.startPosterCacher();
                 gui.showFeed(true);
                 splashScreen.dispose();
+                bindRemoteSingleInstance(gui);
             }
         });
 
@@ -176,6 +183,9 @@ public class Main implements WorkerListener {
 
     private static void singleInstance() {
         try {
+            if (showMainFrame()) {
+                System.exit(-1);
+            }
             appLockFile = new File(Constant.APP_DIR + "lock");
             if (appLockFile.exists()) {
                 IO.fileOp(appLockFile, IO.RM_FILE);
@@ -184,15 +194,36 @@ public class Main implements WorkerListener {
             appLockFileLock = appLockFileChannel.tryLock();
             if (appLockFileLock == null) {
                 IO.close(appLockFileChannel);
-                if (Debug.DEBUG) {
-                    Debug.println("Only 1 instance of " + Constant.APP_TITLE + " can run.");
-                }
+                showMainFrame();
                 System.exit(-1);
             }
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
+        }
+    }
+
+    private static void bindRemoteSingleInstance(Frame mainFrame) {
+        try {
+            LocateRegistry.createRegistry(1099);
+            Naming.rebind(RemoteSingleInstance.NAME, new RemoteSingleInstance(mainFrame));
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
+    }
+
+    private static boolean showMainFrame() {
+        try {
+            ((RemoteInstance) Naming.lookup(RemoteSingleInstance.NAME)).showMainFrame();
+            if (Debug.DEBUG) {
+                Debug.println("Only 1 instance of " + Constant.APP_TITLE + " can run.");
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -500,5 +531,28 @@ public class Main implements WorkerListener {
                 }
             }
         }
+    }
+
+    private static class RemoteSingleInstance extends UnicastRemoteObject implements RemoteInstance {
+
+        private static final long serialVersionUID = 1L;
+        static final String NAME = "//localhost/" + Constant.APP_TITLE;
+
+        private Frame mainFrame;
+
+        RemoteSingleInstance(Frame mainFrame) throws RemoteException {
+            super(0);
+            this.mainFrame = mainFrame;
+        }
+
+        @Override
+        public void showMainFrame() {
+            UI.show(mainFrame);
+        }
+    }
+
+    private interface RemoteInstance extends Remote {
+
+        void showMainFrame() throws RemoteException;
     }
 }
