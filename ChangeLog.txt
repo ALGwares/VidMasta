@@ -1,7 +1,7 @@
 VIDMASTA CHANGELOG
 ------------------
 
-2015.??.??   | VidMasta 18.6
+2015.01.29   | VidMasta 18.6
 
 CHANGE: UI   | Added new playlist setting to show/hide non-video items (e.g. images) that hides by default
 CHANGE: UI   | Improved progress reporting when playing a playlist item
