@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XML_DIZ_INFO>
+  <MASTER_PAD_VERSION_INFO>
+    <MASTER_PAD_VERSION>4.0</MASTER_PAD_VERSION>
+    <MASTER_PAD_EDITOR>RoboSoft 4.0.788</MASTER_PAD_EDITOR>
+    <MASTER_PAD_EDITOR_URL>http://robosoft.rudenko.com</MASTER_PAD_EDITOR_URL>
+    <MASTER_PAD_INFO>Portable Application Description, or PAD for short, is a data set that is used by shareware authors to disseminate information to anyone interested in their software products. To find out more go to http://www.asp-shareware.org/pad</MASTER_PAD_INFO>
+  </MASTER_PAD_VERSION_INFO>
+  <RoboSoft>
+    <Company_UIN>CMP-00F11F34E8B</Company_UIN>
+    <Company_Description></Company_Description>
+    <Product_UIN>APP-00F11FD8D97</Product_UIN>
+    <Publish_on_CD>FALSE</Publish_on_CD>
+    <Search_String>VidMasta</Search_String>
+    <RSProductType></RSProductType>
+    <Press_Release_Search_String></Press_Release_Search_String>
+    <NewsFeed_Search_String></NewsFeed_Search_String>
+    <Search_Engine_Search_String></Search_Engine_Search_String>
+    <Web_Directories_Search_String></Web_Directories_Search_String>
+    <Search_String_Unique></Search_String_Unique>
+    <Comments_For_Reviewer></Comments_For_Reviewer>
+    <Backlink></Backlink>
+  </RoboSoft>
+  <Company_Info>
+    <Company_Name>Anthony Gray</Company_Name>
+    <Address_1>P. O. Box</Address_1>
+    <Address_2></Address_2>
+    <City_Town>Los Angeles</City_Town>
+    <State_Province>California</State_Province>
+    <Zip_Postal_Code>90001</Zip_Postal_Code>
+    <Country>United States of America</Country>
+    <Company_WebSite_URL>http://sites.google.com/site/algwares</Company_WebSite_URL>
+    <Contact_Info>
+      <Contact_First_Name>Anthony</Contact_First_Name>
+      <Contact_Last_Name>Gray</Contact_Last_Name>
+      <Contact_Email>algwares@inbox.com</Contact_Email>
+      <Author_Email>algwares@inbox.com</Author_Email>
+      <Author_First_Name>Anthony</Author_First_Name>
+      <Author_Last_Name>Gray</Author_Last_Name>
+    </Contact_Info>
+    <Support_Info>
+      <Sales_Email>algwares@inbox.com</Sales_Email>
+      <Support_Email>algwares@inbox.com</Support_Email>
+      <General_Email>algwares@inbox.com</General_Email>
+      <Sales_Phone></Sales_Phone>
+      <Support_Phone></Support_Phone>
+      <General_Phone></General_Phone>
+      <Fax_Phone></Fax_Phone>
+    </Support_Info>
+    <GooglePlusPage></GooglePlusPage>
+    <LinkedinPage></LinkedinPage>
+    <TwitterCompanyPage></TwitterCompanyPage>
+    <FacebookCompanyPage></FacebookCompanyPage>
+    <CompanyStorePage></CompanyStorePage>
+  </Company_Info>
+  <NewsFeed>
+    <NewsFeed_FORM>Y</NewsFeed_FORM>
+    <NewsFeed_VERSION>1.0</NewsFeed_VERSION>
+    <NewsFeed_URL>http://Submit-Everywhere.com/extensions/NewsFeed.htm</NewsFeed_URL>
+    <NewsFeed_DESCRIPTION>This PAD extension allows you to add your RSS and Atom news feeds info into your PAD file. This info can be used by RSS feed submission software or by feed directories themselves.</NewsFeed_DESCRIPTION>
+    <NewsFeed_Type>RSS 0.90</NewsFeed_Type>
+    <NewsFeed_Language>English</NewsFeed_Language>
+    <NewsFeed_Purpose>News</NewsFeed_Purpose>
+    <NewsFeed_Author_Email>algwares@inbox.com</NewsFeed_Author_Email>
+    <NewsFeed_Author_First_Name>Anthony</NewsFeed_Author_First_Name>
+    <NewsFeed_Author_Last_Name>Gray</NewsFeed_Author_Last_Name>
+    <NewsFeed_Feed_URL></NewsFeed_Feed_URL>
+    <NewsFeed_Site_Name></NewsFeed_Site_Name>
+    <NewsFeed_Site_URL></NewsFeed_Site_URL>
+    <NewsFeed_Title></NewsFeed_Title>
+    <NewsFeed_Description_70></NewsFeed_Description_70>
+    <NewsFeed_Description_250></NewsFeed_Description_250>
+  </NewsFeed>
+  <Site>
+    <Site_FORM>Y</Site_FORM>
+    <Site_VERSION>1.0</Site_VERSION>
+    <Site_URL>http://Submit-Everywhere.com/extensions/Site.htm</Site_URL>
+    <Site_DESCRIPTION>This PAD extension allows you to add your site info into your PAD file. This info can be used by site submission software or by web directories themselves.</Site_DESCRIPTION>
+    <Site_Contact_Email>algwares@inbox.com</Site_Contact_Email>
+    <Site_Contact_First_Name>Anthony</Site_Contact_First_Name>
+    <Site_Contact_Last_Name>Gray</Site_Contact_Last_Name>
+    <Site_Site_Title>VidMasta</Site_Site_Title>
+    <Site_Site_URL>http://sites.google.com/site/algwares/vidmasta</Site_Site_URL>
+    <Site_Description_100>VidMasta</Site_Description_100>
+    <Site_Description_250>VidMasta</Site_Description_250>
+    <Site_Description_450>VidMasta</Site_Description_450>
+    <Site_Keywords>VidMasta,ALGwares,Anthony Gray</Site_Keywords>
+  </Site>
+  <PAD_Certification_Promotion>
+    <Apply_For_Certification>N</Apply_For_Certification>
+  </PAD_Certification_Promotion>
+  <Dynamic_PAD>
+    <Dynamic_Distributive>N</Dynamic_Distributive>
+  </Dynamic_PAD>
+  <Program_Info>
+    <Program_Name>VidMasta</Program_Name>
+    <Program_Version>18.6</Program_Version>
+    <Program_Release_Month>01</Program_Release_Month>
+    <Program_Release_Day>29</Program_Release_Day>
+    <Program_Release_Year>2015</Program_Release_Year>
+    <Program_Cost_Dollars>0</Program_Cost_Dollars>
+    <Program_Type>Freeware</Program_Type>
+    <Program_Release_Status>Major Update</Program_Release_Status>
+    <Program_Install_Support>Install and Uninstall</Program_Install_Support>
+    <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64,Win2000,WinOther,Windows2000,Windows2003,WinServer,Windows Vista Ultimate,Windows Vista Ultimate x64,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows 8,Windows Server 2012</Program_OS_Support>
+    <Program_Language>English</Program_Language>
+    <Program_Change_Info>* Added new playlist setting to show/hide non-video items (e.g. images) that hides by default
+* Improved progress reporting when playing a playlist item
+* Moved all playlist settings to new playlist menu
+* Improved opening, closing, and positioning of windows</Program_Change_Info>
+    <Program_Category_Class>Network &amp; Internet::Search/Lookup Tools</Program_Category_Class>
+    <Expire_Info>
+      <Has_Expire_Info>N</Has_Expire_Info>
+      <Expire_Based_On>Days</Expire_Based_On>
+      <Expire_Count></Expire_Count>
+      <Expire_Other_Info></Expire_Other_Info>
+      <Expire_Month></Expire_Month>
+      <Expire_Day></Expire_Day>
+      <Expire_Year></Expire_Year>
+    </Expire_Info>
+    <File_Info>
+      <File_Size_Bytes>23989812</File_Size_Bytes>
+      <File_Size_K>23427</File_Size_K>
+      <File_Size_MB>22.88</File_Size_MB>
+      <Filename_Versioned></Filename_Versioned>
+      <Filename_Previous></Filename_Previous>
+      <Filename_Generic></Filename_Generic>
+      <Filename_Long></Filename_Long>
+    </File_Info>
+    <Program_System_Requirements>None</Program_System_Requirements>
+    <Limitations>No limitations</Limitations>
+    <Program_Categories>Search/Lookup,Tools,Internet,Network</Program_Categories>
+    <Program_Cost_Other_Code></Program_Cost_Other_Code>
+    <Program_Cost_Other></Program_Cost_Other>
+    <Awards></Awards>
+    <Program_Specific_Category></Program_Specific_Category>
+    <Includes_JAVA_VM></Includes_JAVA_VM>
+    <Includes_VB_Runtime></Includes_VB_Runtime>
+    <Includes_DirectX></Includes_DirectX>
+    <FacebookProductPage></FacebookProductPage>
+    <GooglePlusProductPage></GooglePlusProductPage>
+  </Program_Info>
+  <Web_Info>
+    <Application_URLs>
+      <Application_Info_URL>http://sites.google.com/site/algwares/vidmasta</Application_Info_URL>
+      <Application_Screenshot_URL>http://sites.google.com/site/algwares/files/VidMastaScreenshot.png</Application_Screenshot_URL>
+      <Application_Icon_URL>http://sites.google.com/site/algwares/files/VidMastaIcon32x32.gif</Application_Icon_URL>
+      <Application_Order_URL>http://sites.google.com/site/algwares/vidmasta</Application_Order_URL>
+      <Application_XML_File_URL></Application_XML_File_URL>
+    </Application_URLs>
+    <Download_URLs>
+      <Primary_Download_URL>https://docs.google.com/uc?id=0B3i91lMM4fZIOTQ4ZjE4MjEtNzVjYS00ZGE4LTg2NDctNmMzODVlOTY4M2U2&amp;export=download&amp;hl=en_US</Primary_Download_URL>
+      <Secondary_Download_URL></Secondary_Download_URL>
+      <Additional_Download_URL_1></Additional_Download_URL_1>
+      <Additional_Download_URL_2></Additional_Download_URL_2>
+    </Download_URLs>
+  </Web_Info>
+  <Press_Release>
+    <Headline>VidMasta 18.6 Released</Headline>
+    <Summary>VidMasta 18.6 Released</Summary>
+    <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
+    <Press_Release_Plain>VidMasta 18.6 Released</Press_Release_Plain>
+    <Press_Release>VidMasta 18.6 Released</Press_Release>
+    <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
+  </Press_Release>
+  <Permissions>
+    <Distribution_Permissions>GPLv2</Distribution_Permissions>
+    <EULA>GPLv2</EULA>
+  </Permissions>
+  <AppStore>
+    <AppStore_AppID></AppStore_AppID>
+    <AppStore_Category></AppStore_Category>
+    <AppStore_Info_URL></AppStore_Info_URL>
+    <AppStore_Download_URL></AppStore_Download_URL>
+    <AppStore_Promo_Code_1></AppStore_Promo_Code_1>
+    <AppStore_Promo_Code_2></AppStore_Promo_Code_2>
+    <AppStore_Promo_Code_3></AppStore_Promo_Code_3>
+    <AppStore_Supported_Devices></AppStore_Supported_Devices>
+    <AppStore_Other_Applications></AppStore_Other_Applications>
+    <AppStore_Advantages_And_Unique_Features></AppStore_Advantages_And_Unique_Features>
+    <AppStore_Awards_And_Ratings></AppStore_Awards_And_Ratings>
+  </AppStore>
+  <Program_Descriptions>
+    <English>
+      <Char_Desc_45>Watch and download any movies and TV shows.</Char_Desc_45>
+      <Char_Desc_80>Watch and download any movie and television titles that are being shared online.</Char_Desc_80>
+      <Char_Desc_250>Watch or download movie and television titles in any format (TV, DVD, 720p, 1080i/p) with as few as two clicks of the mouse. The first click is to hit the search button. The second click is to hit the play or download button.</Char_Desc_250>
+      <Char_Desc_450>Watch or download movie and television titles in any format (TV, DVD, 720p, 1080i/p) with as few as two clicks of the mouse. The first click is to hit the search button. The second click is to hit the play or download button. Features include: anonymity via automatic filtering of untrusty IPs, the use of proxies, and encryption, download video subtitles, and more.</Char_Desc_450>
+      <Char_Desc_2000>Search for, read about, preview, watch, and download any movie and television titles that are being shared online.
+
+Features
+* Watch or download movie and television titles in any format (TV, DVD, 720p, 1080i/p) with as few as two clicks of the mouse. The first click is to hit the search button. The second click is to hit the play or download button.
+* Anonymity via automatic filtering of untrusty IPs, the use of proxies, and encryption
+* "Deep Search, Best Source" algorithm for superior video download links. The algorithm aggregates all potential download links based on variations of the search query and then selects the best link based on factors that include trustworthiness, number of downloaders and uploaders, and video file size.
+* "Popular Movies" option to display recent movies that have been downloaded the most
+* "Popular TV Shows" option to display recent TV shows that have been downloaded the most
+* Download video subtitles
+* Set the number of results per search
+* Set the minimum and maximum size of a video file that can be downloaded
+* Set the video file extensions that can be downloaded
+* Search for movie and television titles by name, release date, genre, rating, country, and language
+* Automatic ordering of search results by popularity
+* Hear and read small summaries of titles
+* View trailers of titles
+* View release dates and ratings of titles
+* Email download links, stream links, and trailer links
+* Detection of video box sets
+* PeerBlock integration (only available for Windows XP and higher)</Char_Desc_2000>
+      <Keywords>watch,stream,movies,tv,television,torrent,magnet link</Keywords>
+    </English>
+  </Program_Descriptions>
+</XML_DIZ_INFO>
