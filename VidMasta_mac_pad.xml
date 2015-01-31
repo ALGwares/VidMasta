@@ -80,8 +80,23 @@
     <NewsFeed_Description_70></NewsFeed_Description_70>
     <NewsFeed_Description_250></NewsFeed_Description_250>
   </NewsFeed>
+  <Site>
+    <Site_FORM>Y</Site_FORM>
+    <Site_VERSION>1.0</Site_VERSION>
+    <Site_URL>http://Submit-Everywhere.com/extensions/Site.htm</Site_URL>
+    <Site_DESCRIPTION>This PAD extension allows you to add your site info into your PAD file. This info can be used by site submission software or by web directories themselves.</Site_DESCRIPTION>
+    <Site_Contact_Email>algwares@inbox.com</Site_Contact_Email>
+    <Site_Contact_First_Name>Anthony</Site_Contact_First_Name>
+    <Site_Contact_Last_Name>Gray</Site_Contact_Last_Name>
+    <Site_Site_Title>VidMasta</Site_Site_Title>
+    <Site_Site_URL>http://sites.google.com/site/algwares/vidmasta</Site_Site_URL>
+    <Site_Description_100>VidMasta</Site_Description_100>
+    <Site_Description_250>VidMasta</Site_Description_250>
+    <Site_Description_450>VidMasta</Site_Description_450>
+    <Site_Keywords>VidMasta,ALGwares,Anthony Gray</Site_Keywords>
+  </Site>
   <Program_Info>
-    <Program_Name>VidMasta(1)</Program_Name>
+    <Program_Name>VidMasta</Program_Name>
     <Program_Version>18.6</Program_Version>
     <Program_Release_Month>01</Program_Release_Month>
     <Program_Release_Day>29</Program_Release_Day>
@@ -147,6 +162,14 @@
     <Distribution_Permissions>GPLv2</Distribution_Permissions>
     <EULA>GPLv2</EULA>
   </Permissions>
+  <Press_Release>
+    <Press_Release>VidMasta 18.6 Released</Press_Release>
+    <Press_Release_Plain>VidMasta 18.6 Released</Press_Release_Plain>
+    <Headline>VidMasta 18.6 Released</Headline>
+    <Summary>VidMasta 18.6 Released</Summary>
+    <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
+    <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
+  </Press_Release>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
     <AppStore_Category></AppStore_Category>
