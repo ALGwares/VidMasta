@@ -142,11 +142,11 @@
   </Program_Info>
   <Web_Info>
     <Application_URLs>
-      <Application_Info_URL>http://sites.google.com/site/algwares/vidmasta</Application_Info_URL>
-      <Application_Screenshot_URL>http://sites.google.com/site/algwares/files/VidMastaScreenshot.png</Application_Screenshot_URL>
-      <Application_Icon_URL>http://sites.google.com/site/algwares/files/VidMastaIcon32x32.gif</Application_Icon_URL>
-      <Application_Order_URL>http://sites.google.com/site/algwares/vidmasta</Application_Order_URL>
-      <Application_XML_File_URL></Application_XML_File_URL>
+      <Application_Info_URL>http://sourceforge.net/projects/vidmasta</Application_Info_URL>
+      <Application_Screenshot_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMastaScreenshot.png?format=raw</Application_Screenshot_URL>
+      <Application_Icon_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMastaIcon32x32.gif?format=raw</Application_Icon_URL>
+      <Application_Order_URL>http://sourceforge.net/projects/vidmasta</Application_Order_URL>
+      <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
       <Primary_Download_URL>https://docs.google.com/uc?id=0B3i91lMM4fZIOTQ4ZjE4MjEtNzVjYS00ZGE4LTg2NDctNmMzODVlOTY4M2U2&amp;export=download&amp;hl=en_US</Primary_Download_URL>
