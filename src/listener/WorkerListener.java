@@ -60,11 +60,13 @@ public interface WorkerListener {
 
     void initPlaylist() throws Exception;
 
+    void stream(String magnetLink, String name);
+
     FormattedNum playlistItemSize(long size);
 
     FormattedNum playlistItemProgress(double progress);
 
-    PlaylistItem playlistItem(String groupID, String groupName, File groupFile, int groupIndex, String name);
+    PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion);
 
     void license(String activationCode, boolean check);
 }

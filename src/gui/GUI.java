@@ -89,7 +89,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JPopupMenu.Separator;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JRootPane;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -133,7 +132,6 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.html.CSS.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLDocument;
-import javax.xml.bind.DatatypeConverter;
 import listener.ContentType;
 import listener.DomainType;
 import listener.FormattedNum;
@@ -572,7 +570,7 @@ public class GUI extends JFrame implements GuiListener {
                     window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
                 }
             };
-            JRootPane root = ((RootPaneContainer) window).getRootPane();
+            JComponent root = ((RootPaneContainer) window).getRootPane();
             InputMap inputMap = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             ActionMap actionMap = root.getActionMap();
             inputMap.put(escapeKey, escapeKeyWindowClosingActionMapKey);
@@ -580,6 +578,15 @@ public class GUI extends JFrame implements GuiListener {
             if (window != playlistFrame && window != activationDialog) {
                 inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
                 actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
+            }
+        }
+
+        try {
+            UI.addMinimizeToTraySupport(this);
+            UI.addMinimizeToTraySupport(playlistFrame);
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
             }
         }
 
@@ -942,8 +949,6 @@ public class GUI extends JFrame implements GuiListener {
         findTextField = new JTextField();
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
-        proxyMenuItem = new JMenuItem();
-        fileMenuSeparator1 = new Separator();
         useProfileMenu = new JMenu();
         profile0MenuItem = new JMenuItem();
         profile1MenuItem = new JMenuItem();
@@ -957,9 +962,9 @@ public class GUI extends JFrame implements GuiListener {
         profile9MenuItem = new JMenuItem();
         useProfileMenuSeparator1 = new Separator();
         editProfilesMenuItem = new JMenuItem();
-        fileMenuSeparator2 = new Separator();
+        fileMenuSeparator1 = new Separator();
         printMenuItem = new JMenuItem();
-        fileMenuSeparator3 = new Separator();
+        fileMenuSeparator2 = new Separator();
         exitMenuItem = new JMenuItem();
         editMenu = new JMenu();
         cutMenuItem = new JMenuItem();
@@ -977,12 +982,14 @@ public class GUI extends JFrame implements GuiListener {
         searchMenuSeparator1 = new Separator();
         timeoutMenuItem = new JMenuItem();
         searchMenuSeparator2 = new Separator();
-        languageCountryMenuItem = new JMenuItem();
+        proxyMenuItem = new JMenuItem();
         searchMenuSeparator3 = new Separator();
-        feedCheckBoxMenuItem = new JCheckBoxMenuItem();
+        languageCountryMenuItem = new JMenuItem();
         searchMenuSeparator4 = new Separator();
-        browserNotificationCheckBoxMenuItem = new JCheckBoxMenuItem();
+        feedCheckBoxMenuItem = new JCheckBoxMenuItem();
         searchMenuSeparator5 = new Separator();
+        browserNotificationCheckBoxMenuItem = new JCheckBoxMenuItem();
+        searchMenuSeparator6 = new Separator();
         emailWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
         playlistMenu = new JMenu();
         playlistMenuItem = new JMenuItem();
@@ -3291,23 +3298,16 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
+        String upgrade = "to unlimited easy play of movies and TV shows";
         activationUpgradeButton.setText("Upgrade");
+        activationUpgradeButton.setToolTipText("upgrade " + upgrade);
         activationUpgradeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 activationUpgradeButtonActionPerformed(evt);
             }
         });
 
-        String upgradeOption;
-        try {
-            upgradeOption = new String(DatatypeConverter.parseHexBinary(Str.get(685)), Constant.UTF8);
-        } catch (Exception e) {
-            upgradeOption = "";
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        }
-        activationUpgradeLabel.setText("<html>to unlimited quick play of movies and TV shows" + upgradeOption + ".</html>");
+        activationUpgradeLabel.setText(upgrade + ".");
 
         activationCodeLabel.setText("Activation Code:");
 
@@ -3752,16 +3752,6 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.setText("File");
         splashScreen.progress();
 
-        proxyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK));
-        proxyMenuItem.setText("Manage Proxies");
-        proxyMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                proxyMenuItemActionPerformed(evt);
-            }
-        });
-        fileMenu.add(proxyMenuItem);
-        fileMenu.add(fileMenuSeparator1);
-
         useProfileMenu.setText("Use Profile");
         useProfileMenu.addMenuListener(new MenuListener() {
             public void menuCanceled(MenuEvent evt) {
@@ -3874,7 +3864,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(editProfilesMenuItem);
 
         fileMenu.add(useProfileMenu);
-        fileMenu.add(fileMenuSeparator2);
+        fileMenu.add(fileMenuSeparator1);
 
         printMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         printMenuItem.setText("Print");
@@ -3884,7 +3874,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         fileMenu.add(printMenuItem);
-        fileMenu.add(fileMenuSeparator3);
+        fileMenu.add(fileMenuSeparator2);
 
         exitMenuItem.setText("Exit");
         exitMenuItem.addActionListener(new ActionListener() {
@@ -4000,6 +3990,16 @@ public class GUI extends JFrame implements GuiListener {
         searchMenu.add(timeoutMenuItem);
         searchMenu.add(searchMenuSeparator2);
 
+        proxyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK));
+        proxyMenuItem.setText("Manage Proxies");
+        proxyMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                proxyMenuItemActionPerformed(evt);
+            }
+        });
+        searchMenu.add(proxyMenuItem);
+        searchMenu.add(searchMenuSeparator3);
+
         languageCountryMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK));
         languageCountryMenuItem.setText("Set Language/Country");
         languageCountryMenuItem.addActionListener(new ActionListener() {
@@ -4008,17 +4008,17 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         searchMenu.add(languageCountryMenuItem);
-        searchMenu.add(searchMenuSeparator3);
+        searchMenu.add(searchMenuSeparator4);
 
         feedCheckBoxMenuItem.setText("Show New HQ Movies on Startup");
         feedCheckBoxMenuItem.setToolTipText("show new " + HQ_FORMAT + "movies on startup");
         searchMenu.add(feedCheckBoxMenuItem);
-        searchMenu.add(searchMenuSeparator4);
+        searchMenu.add(searchMenuSeparator5);
 
         browserNotificationCheckBoxMenuItem.setSelected(true);
         browserNotificationCheckBoxMenuItem.setText("Show Web Browser Start Notification");
         searchMenu.add(browserNotificationCheckBoxMenuItem);
-        searchMenu.add(searchMenuSeparator5);
+        searchMenu.add(searchMenuSeparator6);
 
         emailWithDefaultAppCheckBoxMenuItem.setSelected(true);
         emailWithDefaultAppCheckBoxMenuItem.setText("Email with Default Application");
@@ -4408,15 +4408,12 @@ public class GUI extends JFrame implements GuiListener {
         synchronized (playlistSyncTable.lock) {
             for (int row = 0, numRows = playlistSyncTable.tableModel.getRowCount(); row < numRows; row++) {
                 PlaylistItem playlistItem = (PlaylistItem) playlistSyncTable.tableModel.getValueAt(row, playlistItemCol);
-                File groupFile = playlistItem.groupFile();
-                if (groupFile != null) {
-                    playlist.append((String) playlistSyncTable.tableModel.getValueAt(row, playlistNameCol)).append(Constant.NEWLINE)
-                            .append(((FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistSizeCol)).val().longValue()).append(Constant.NEWLINE)
-                            .append(((FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol)).val().doubleValue())
-                            .append(Constant.NEWLINE).append(playlistItem.groupID()).append(Constant.NEWLINE).append(playlistItem.groupName())
-                            .append(Constant.NEWLINE).append(groupFile).append(Constant.NEWLINE).append(playlistItem.groupIndex()).append(Constant.NEWLINE)
-                            .append(playlistItem.name()).append(Constant.NEWLINE);
-                }
+                playlist.append((String) playlistSyncTable.tableModel.getValueAt(row, playlistNameCol)).append(Constant.NEWLINE)
+                        .append(((FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistSizeCol)).val().longValue()).append(Constant.NEWLINE)
+                        .append(((FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol)).val().doubleValue()).append(Constant.NEWLINE)
+                        .append(playlistItem.groupID()).append(Constant.NEWLINE).append(playlistItem.uri()).append(Constant.NEWLINE)
+                        .append(playlistItem.groupFile()).append(Constant.NEWLINE).append(playlistItem.groupIndex()).append(Constant.NEWLINE)
+                        .append(playlistItem.name()).append(Constant.NEWLINE);
             }
         }
 
@@ -4435,10 +4432,14 @@ public class GUI extends JFrame implements GuiListener {
                 return;
             }
             File playlist = new File(Constant.APP_DIR + Constant.PLAYLIST);
+            boolean isFirstVersion = !playlist.exists();
+            if (isFirstVersion) { // Backward compatibility
+                playlist = new File(Constant.APP_DIR + "playlist" + Constant.TXT);
+            }
             String[] playlistEntries;
 
             try {
-                if (!playlist.exists() || (playlistEntries = Regex.split(IO.read(playlist), Constant.NEWLINE)).length % 8 != 0) {
+                if ((isFirstVersion && !playlist.exists()) || (playlistEntries = Regex.split(IO.read(playlist), Constant.NEWLINE)).length % 8 != 0) {
                     return;
                 }
 
@@ -4446,9 +4447,18 @@ public class GUI extends JFrame implements GuiListener {
                     workerListener.initPlaylist();
                 }
                 for (int i = 0; i < playlistEntries.length; i += 8) {
-                    newPlaylistItem(makePlaylistRow(playlistEntries[i], workerListener.playlistItemSize(Long.parseLong(playlistEntries[i + 1])),
-                            workerListener.playlistItemProgress(Double.parseDouble(playlistEntries[i + 2])), workerListener.playlistItem(playlistEntries[i + 3],
-                                    playlistEntries[i + 4], new File(playlistEntries[i + 5]), Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7])));
+                    String groupFileName = playlistEntries[i + 5];
+                    if (groupFileName.equals(Constant.NULL)) {
+                        workerListener.stream(playlistEntries[i + 4], playlistEntries[i]);
+                        continue;
+                    }
+                    File groupFile = new File(groupFileName);
+                    if (groupFile.exists()) {
+                        newPlaylistItem(makePlaylistRow(playlistEntries[i], workerListener.playlistItemSize(Long.parseLong(playlistEntries[i + 1])),
+                                workerListener.playlistItemProgress(Double.parseDouble(playlistEntries[i + 2])), workerListener.playlistItem(playlistEntries[i
+                                        + 3], playlistEntries[i + 4], groupFile, Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7],
+                                        isFirstVersion)));
+                    }
                 }
             } catch (Exception e) {
                 if (Debug.DEBUG) {
@@ -4456,6 +4466,9 @@ public class GUI extends JFrame implements GuiListener {
                 }
             } finally {
                 isPlaylistRestored.set(true);
+                if (isFirstVersion) {
+                    IO.fileOp(playlist, IO.RM_FILE);
+                }
             }
         }
     }
@@ -5438,7 +5451,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     public void maximize() {
-        RootPaneUI rootPaneUI = getRootPane().getUI();
+        RootPaneUI rootPaneUI = rootPane.getUI();
         if (UI.isMaxSize(getSize()) && rootPaneUI instanceof SyntheticaRootPaneUI) {
             ((SyntheticaRootPaneUI) rootPaneUI).setMaximizedBounds(this);
             setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
@@ -5869,6 +5882,9 @@ public class GUI extends JFrame implements GuiListener {
 
     private void formWindowClosing(WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         setVisible(false);
+        if (UI.trayIcon(playlistFrame) != null) {
+            return;
+        }
         if (!playlistFrame.isShowing()) {
             System.exit(0);
         }
@@ -6426,9 +6442,8 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_playlistOpenMenuItemActionPerformed
 
     private void playlistFrameWindowClosing(WindowEvent evt) {//GEN-FIRST:event_playlistFrameWindowClosing
-        if (isVisible()) {
-            playlistFrame.setVisible(false);
-        } else {
+        playlistFrame.setVisible(false);
+        if (UI.trayIcon(this) == null && !isVisible()) {
             System.exit(0);
         }
     }//GEN-LAST:event_playlistFrameWindowClosing
@@ -8085,41 +8100,6 @@ public class GUI extends JFrame implements GuiListener {
         summaryLoadingLabel.setIcon(notLoadingIcon);
     }
 
-    @Override
-    public void restrictedWebsite() {
-        resultsToBackground(true);
-        proxyDialog.setVisible(true);
-    }
-
-    @Override
-    public void setCanProxy(DomainType domainType) {
-        switch (domainType) {
-            case DOWNLOAD_LINK_INFO:
-                proxyDownloadLinkInfoCheckBox.setSelected(true);
-                break;
-            case VIDEO_INFO:
-                proxyVideoInfoCheckBox.setSelected(true);
-                break;
-            case SEARCH_ENGINE:
-                proxySearchEnginesCheckBox.setSelected(true);
-                break;
-            case TRAILER:
-                proxyTrailersCheckBox.setSelected(true);
-                break;
-            case VIDEO_STREAMER:
-                proxyVideoStreamersCheckBox.setSelected(true);
-                break;
-            case UPDATE:
-                proxyUpdatesCheckBox.setSelected(true);
-                break;
-            case SUBTITLE:
-                proxySubtitlesCheckBox.setSelected(true);
-                break;
-            default:
-                break;
-        }
-    }
-
     private static int portNum(String port) {
         int portNum;
         return Regex.isMatch(port, "\\d{1,5}+") && (portNum = Integer.parseInt(port)) <= 65535 ? portNum : -1;
@@ -8136,6 +8116,16 @@ public class GUI extends JFrame implements GuiListener {
         String port = portTextField.getText().trim();
         int portNum;
         return port.isEmpty() || (portNum = portNum(port)) == -1 ? setRandomPort() : portNum;
+    }
+
+    @Override
+    public String wideSpace() {
+        return UI.displayableStr(progressBar, "\u2004", " ");
+    }
+
+    @Override
+    public String invisibleSeparator() {
+        return UI.displayableStr(playlistSyncTable.table, "\u200B\u200B\u200B", "\u0009\u0009\u0009");
     }
 
     @Override
@@ -8291,7 +8281,6 @@ public class GUI extends JFrame implements GuiListener {
     JMenu fileMenu;
     Separator fileMenuSeparator1;
     Separator fileMenuSeparator2;
-    Separator fileMenuSeparator3;
     JMenuItem findMenuItem;
     JMenuItem findSubtitleMenuItem;
     JTextField findTextField;
@@ -8461,6 +8450,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator searchMenuSeparator3;
     Separator searchMenuSeparator4;
     Separator searchMenuSeparator5;
+    Separator searchMenuSeparator6;
     JLabel seasonLabel;
     JMenuItem selectAllMenuItem;
     JDateChooser startDateChooser;

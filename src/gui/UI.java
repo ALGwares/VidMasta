@@ -2,16 +2,22 @@ package gui;
 
 import debug.Debug;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.MenuItem;
 import java.awt.Point;
+import java.awt.PopupMenu;
 import java.awt.Rectangle;
+import java.awt.SystemTray;
 import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -24,12 +30,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import javax.swing.AbstractButton;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultRowSorter;
@@ -38,6 +46,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -370,6 +380,16 @@ public class UI {
     }
 
     public static void show(Frame frame) {
+        TrayIcon trayIcon = trayIcon(frame);
+        if (trayIcon != null) {
+            try {
+                SystemTray.getSystemTray().remove(trayIcon);
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
+        }
         frame.setVisible(true);
         deiconify(frame);
     }
@@ -428,6 +448,111 @@ public class UI {
 
     public static int getUnfilteredRowCount(JTable table) {
         return ((DefaultRowSorter<?, ?>) table.getRowSorter()).getRowFilter() == null ? table.getModel().getRowCount() : table.getRowCount();
+    }
+
+    private static Component getIconifyComponent(JFrame frame) {
+        for (Component contentPaneComponent : frame.getRootPane().getLayeredPane().getComponentsInLayer(JLayeredPane.FRAME_CONTENT_LAYER)) {
+            if (contentPaneComponent instanceof Container && "RootPane.titlePane".equals(contentPaneComponent.getName())) {
+                for (Component titlePaneComponent : ((Container) contentPaneComponent).getComponents()) {
+                    if ("RootPane.titlePane.iconifyButton".equals(titlePaneComponent.getName())) {
+                        return titlePaneComponent;
+                    }
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public static void addMinimizeToTraySupport(final JFrame frame) {
+        Component iconify;
+        if (!SystemTray.isSupported() || (iconify = getIconifyComponent(frame)) == null) {
+            return;
+        }
+
+        String title = trayIconTitle(frame);
+        final TrayIcon trayIcon = new TrayIcon(frame.getIconImage(), title);
+        final ActionListener openActionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                show(frame);
+            }
+        };
+        trayIcon.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent evt) {
+                if (evt.getButton() == MouseEvent.BUTTON1) {
+                    openActionListener.actionPerformed(null);
+                }
+            }
+        });
+
+        MenuItem menuItem = new MenuItem("Open " + title);
+        menuItem.addActionListener(openActionListener);
+        PopupMenu trayPopupMenu = new PopupMenu();
+        trayPopupMenu.add(menuItem);
+        trayPopupMenu.addSeparator();
+        (menuItem = new MenuItem("Exit")).addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    SystemTray.getSystemTray().remove(trayIcon);
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                }
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+            }
+        });
+        trayPopupMenu.add(menuItem);
+        trayIcon.setPopupMenu(trayPopupMenu);
+
+        iconify.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent evt) {
+                if (evt.getButton() == MouseEvent.BUTTON3) {
+                    try {
+                        SystemTray.getSystemTray().add(trayIcon);
+                        frame.setVisible(false);
+                    } catch (Exception e) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private static String trayIconTitle(Frame frame) {
+        String title = frame.getTitle();
+        return Constant.APP_TITLE.equals(title) ? title : Constant.APP_TITLE + ' ' + title.toLowerCase(Locale.ENGLISH);
+    }
+
+    public static TrayIcon trayIcon(Frame frame) {
+        try {
+            if (!SystemTray.isSupported()) {
+                return null;
+            }
+
+            String title = trayIconTitle(frame);
+            for (TrayIcon trayIcon : SystemTray.getSystemTray().getTrayIcons()) {
+                if (title.equals(trayIcon.getToolTip())) {
+                    return trayIcon;
+                }
+            }
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
+        return null;
+    }
+
+    public static String displayableStr(Component component, String str, String defaultStr) {
+        Font font = component.getFont();
+        return font != null && font.canDisplayUpTo(str) == -1 ? str : defaultStr;
     }
 
     private UI() {

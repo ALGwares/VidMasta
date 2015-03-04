@@ -1,6 +1,19 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.03.04   | VidMasta 18.7
+
+CHANGE: UI   | Improved progress reporting when playing a playlist item
+CHANGE: UI   | Improved naming of playlist items
+CHANGE: UI   | Added minimize to system tray support to VidMasta's main window and playlist window by right-clicking the minimize button
+CHANGE: UI   | Moved Manage Proxies menu item from File menu to Search menu
+CHANGE: CORE | Saved and restored initializing playlist items between restarts of VidMasta
+CHANGE: CORE | Improved accuracy of TV show episode download link searches
+CHANGE: CORE | Disabled starting of PeerBlock when automatically playing second download link
+
+
+
+
 2015.01.29   | VidMasta 18.6
 
 CHANGE: UI   | Added new playlist setting to show/hide non-video items (e.g. images) that hides by default

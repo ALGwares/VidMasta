@@ -45,7 +45,7 @@ public class VideoFinder extends AbstractSwingWorker {
     public final String TITLE;
     volatile String streamLink;
     final AtomicBoolean isStream2 = new AtomicBoolean(), findOldTitleStream = new AtomicBoolean(), isLinkProgressDone = new AtomicBoolean();
-    private boolean isDownload1, cancelTVSelection, playAutoStart = true;
+    private boolean isDownload1, cancelTVSelection, playAutoStart = true, startPeerblock = true;
     private String oldTitle, export;
     private static volatile SwingWorker<?, ?> episodeFinder;
     private Collection<Torrent> torrents;
@@ -139,6 +139,7 @@ public class VideoFinder extends AbstractSwingWorker {
         } else {
             torrentFinders.clear();
         }
+        startPeerblock = false;
     }
 
     public boolean isLinkProgressDone() {
@@ -179,11 +180,13 @@ public class VideoFinder extends AbstractSwingWorker {
     private void startPeerBlock() {
         guiListener.enableTorrentSearchStop(false);
         linkProgressDone();
-        try {
-            guiListener.startPeerBlock();
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
+        if (startPeerblock) {
+            try {
+                guiListener.startPeerBlock();
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
             }
         }
     }

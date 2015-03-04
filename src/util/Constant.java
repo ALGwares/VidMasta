@@ -14,7 +14,7 @@ public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 18.6;
+    public static final double APP_VERSION = 18.7;
     public static final boolean CAN_PEER_BLOCK;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
@@ -40,7 +40,7 @@ public class Constant implements IOConstant {
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
     public static final String PROFILES = "profiles" + TXT;
-    public static final int UPDATE_FILE_VERSION = 60;
+    public static final int UPDATE_FILE_VERSION = 61;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 70;
@@ -57,7 +57,7 @@ public class Constant implements IOConstant {
     public static final String NO_IMAGE = "" + Character.MAX_VALUE + Character.MAX_VALUE + Character.MAX_VALUE;
     public static final String ZIP = ".zip";
     public static final String PROXY_VERSION = "proxyVersion" + TXT;
-    public static final String PLAYLIST = "playlist" + Constant.TXT;
+    public static final String PLAYLIST = "playlist2" + Constant.TXT;
     public static final String PROXIES = "proxies" + TXT;
     public static final String ERROR_LOG = "errorLog" + TXT;
     public static final String NO_PROXY = "NO PROXY";

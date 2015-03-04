@@ -177,7 +177,11 @@ public class VideoSearch {
             }
         }
 
-        return new String[]{titleName.substring(0, Collections.min(indexes)).trim(), year, season, episode};
+        String[] titleParts = {titleName.substring(0, Collections.min(indexes)).trim(), year, season, episode};
+        if (Debug.DEBUG) {
+            Debug.println('\'' + titleParts[0] + "' '" + titleParts[1] + "' '" + titleParts[2] + "' '" + titleParts[3] + "' '" + titleName + '\'');
+        }
+        return titleParts;
     }
 
     public static boolean isRightFormat(String titleName, String format) {

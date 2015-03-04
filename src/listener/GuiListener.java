@@ -212,11 +212,11 @@ public interface GuiListener {
 
     void summaryReadStopped();
 
-    void restrictedWebsite();
-
-    void setCanProxy(DomainType domainType);
-
     int getPort();
+
+    String wideSpace();
+
+    String invisibleSeparator();
 
     void licenseActivation();
 

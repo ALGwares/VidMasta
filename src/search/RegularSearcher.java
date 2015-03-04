@@ -161,7 +161,7 @@ public class RegularSearcher extends AbstractSearcher {
 
     @Override
     protected boolean connectionException(String url, ConnectionException e) {
-        guiListener.msg(e.getClass().equals(ProxyException.class) ? e.getMessage() : Connection.error("", "", url), Constant.ERROR_MSG);
+        guiListener.msg(e instanceof ProxyException ? e.getMessage() : Connection.error("", "", url), Constant.ERROR_MSG);
         return false;
     }
 

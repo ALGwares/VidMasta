@@ -18,7 +18,7 @@ public interface PlaylistItem {
 
     String groupID();
 
-    String groupName();
+    String uri();
 
     File groupFile();
 

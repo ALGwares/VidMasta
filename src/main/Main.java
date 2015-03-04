@@ -56,6 +56,7 @@ public class Main implements WorkerListener {
     private static FileChannel appLockFileChannel;
     private static FileLock appLockFileLock;
     private static Thread releaseSingleInstanceShutdownHook;
+    private static volatile Frame mainFrame;
     private final GuiListener gui;
     private Updater updater;
     private RegularSearcher regularSearcher;
@@ -156,7 +157,7 @@ public class Main implements WorkerListener {
                 gui.startPosterCacher();
                 gui.showFeed(true);
                 splashScreen.dispose();
-                bindRemoteSingleInstance(gui);
+                mainFrame = gui;
             }
         });
 
@@ -173,10 +174,6 @@ public class Main implements WorkerListener {
                 }
             }
         }).start();
-
-        if (!(new File(Constant.APP_DIR + Constant.CONNECTIVITY)).exists()) {
-            (new ConnectionTester(gui)).execute();
-        }
 
         Magnet.initIpFilter();
     }
@@ -202,12 +199,15 @@ public class Main implements WorkerListener {
                 Debug.print(e);
             }
         }
-    }
-
-    private static void bindRemoteSingleInstance(Frame mainFrame) {
         try {
             LocateRegistry.createRegistry(1099);
-            Naming.rebind(RemoteSingleInstance.NAME, new RemoteSingleInstance(mainFrame));
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
+        try {
+            Naming.rebind(RemoteSingleInstance.NAME, new RemoteSingleInstance());
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -440,8 +440,10 @@ public class Main implements WorkerListener {
 
     @Override
     public void initPlaylist() throws Exception {
-        Magnet.startAzureus(gui);
-        Magnet.waitForAzureusToStart();
+    }
+
+    @Override
+    public void stream(String magnetLink, String name) {
     }
 
     @Override
@@ -455,7 +457,7 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public PlaylistItem playlistItem(String groupID, String groupName, File groupFile, int groupIndex, String name) {
+    public PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion) {
         return null;
     }
 
@@ -538,16 +540,15 @@ public class Main implements WorkerListener {
         private static final long serialVersionUID = 1L;
         static final String NAME = "//localhost/" + Constant.APP_TITLE;
 
-        private Frame mainFrame;
-
-        RemoteSingleInstance(Frame mainFrame) throws RemoteException {
+        RemoteSingleInstance() throws RemoteException {
             super(0);
-            this.mainFrame = mainFrame;
         }
 
         @Override
         public void showMainFrame() {
-            UI.show(mainFrame);
+            if (mainFrame != null) {
+                UI.show(mainFrame);
+            }
         }
     }
 

@@ -665,7 +665,7 @@ public class Connection {
     }
 
     public static void updateError(final Exception e) {
-        if (e.getClass().equals(UpdateException.class)) {
+        if (e instanceof UpdateException) {
             return;
         }
 

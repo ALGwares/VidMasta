@@ -4153,20 +4153,23 @@
         <Component class="javax.swing.JButton" name="activationUpgradeButton">
           <Properties>
             <Property name="text" type="java.lang.String" value="Upgrade"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="&quot;upgrade &quot; + upgrade" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="activationUpgradeButtonActionPerformed"/>
           </Events>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_InitCodePre" type="java.lang.String" value="String upgrade = &quot;to unlimited easy play of movies and TV shows&quot;;"/>
+          </AuxValues>
         </Component>
         <Component class="javax.swing.JLabel" name="activationUpgradeLabel">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="&quot;&lt;html&gt;to unlimited quick play of movies and TV shows&quot; + upgradeOption + &quot;.&lt;/html&gt;&quot;" type="code"/>
+              <Connection code="upgrade + &quot;.&quot;" type="code"/>
             </Property>
           </Properties>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_InitCodePre" type="java.lang.String" value="        String upgradeOption;&#xa;&#x9;&#x9;try {&#xa;            upgradeOption = new String(DatatypeConverter.parseHexBinary(Str.get(685)), Constant.UTF8);&#xa;        } catch (Exception e) {&#xa;            upgradeOption = &quot;&quot;;&#xa;            if (Debug.DEBUG) {&#xa;                Debug.print(e);&#xa;            }&#xa;        }"/>
-          </AuxValues>
         </Component>
         <Component class="javax.swing.JLabel" name="activationCodeLabel">
           <Properties>
@@ -4206,19 +4209,6 @@
             <AuxValue name="JavaCodeGenerator_LayoutCodePre" type="java.lang.String" value="splashScreen.progress();"/>
           </AuxValues>
           <SubComponents>
-            <MenuItem class="javax.swing.JMenuItem" name="proxyMenuItem">
-              <Properties>
-                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
-                  <KeyStroke key="Ctrl+P"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="Manage Proxies"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="proxyMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator1">
-            </MenuItem>
             <Menu class="javax.swing.JMenu" name="useProfileMenu">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Use Profile"/>
@@ -4352,7 +4342,7 @@
                 </MenuItem>
               </SubComponents>
             </Menu>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator2">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator1">
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="printMenuItem">
               <Properties>
@@ -4365,7 +4355,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="printMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator3">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="fileMenuSeparator2">
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="exitMenuItem">
               <Properties>
@@ -4506,6 +4496,19 @@
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator2">
             </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="proxyMenuItem">
+              <Properties>
+                <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
+                  <KeyStroke key="Ctrl+P"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Manage Proxies"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="proxyMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator3">
+            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="languageCountryMenuItem">
               <Properties>
                 <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
@@ -4517,7 +4520,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="languageCountryMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator3">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator4">
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="feedCheckBoxMenuItem">
               <Properties>
@@ -4527,7 +4530,7 @@
                 </Property>
               </Properties>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator4">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator5">
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="browserNotificationCheckBoxMenuItem">
               <Properties>
@@ -4535,7 +4538,7 @@
                 <Property name="text" type="java.lang.String" value="Show Web Browser Start Notification"/>
               </Properties>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator5">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator6">
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="emailWithDefaultAppCheckBoxMenuItem">
               <Properties>
