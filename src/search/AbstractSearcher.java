@@ -107,7 +107,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 break;
             }
 
-            if (SLEEP != 0 && videoBuffer.isEmpty() && hasNextSearchPage()) {
+            if (SLEEP > 0 && videoBuffer.isEmpty() && hasNextSearchPage()) {
                 try {
                     Thread.sleep(SLEEP);
                 } catch (InterruptedException e) {
@@ -138,6 +138,8 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected abstract void initialSearch() throws Exception;
 
     protected abstract int anotherPageRegexIndex();
+
+    protected abstract boolean addCurrVideos();
 
     protected abstract String getUrl(int page) throws Exception;
 
@@ -206,6 +208,10 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     }
 
     private void initCurrVideos() throws Exception {
+        if (addCurrVideos()) {
+            return;
+        }
+
         prevSourceCode = currSourceCode;
         String url = getUrl(currSearchPage);
 

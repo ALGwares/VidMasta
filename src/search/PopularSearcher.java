@@ -1,12 +1,16 @@
 package search;
 
 import debug.Debug;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
+import search.util.TitleParts;
 import search.util.VideoSearch;
 import str.Str;
 import util.Connection;
@@ -19,15 +23,17 @@ public class PopularSearcher extends AbstractSearcher {
 
     private String[] languages, countries;
     private boolean isFeed, startAsap;
+    private final List<String[]> titleNames;
     private static final int SLEEP = Integer.parseInt(Str.get(571));
 
     public PopularSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed,
             boolean startAsap) {
         super(guiListener, numResultsPerSearch, isTVShow);
-        this.languages = locales(languages, Constant.ANY_LANGUAGE, Regex.languages);
-        this.countries = locales(countries, Constant.ANY_COUNTRY, Regex.countries);
+        this.languages = locales(languages, Regex.languages);
+        this.countries = locales(countries, Regex.countries);
         this.isFeed = isFeed;
         this.startAsap = startAsap;
+        titleNames = new ArrayList<String[]>(50);
     }
 
     public PopularSearcher(PopularSearcher searcher) {
@@ -36,12 +42,13 @@ public class PopularSearcher extends AbstractSearcher {
         countries = searcher.countries;
         isFeed = searcher.isFeed;
         startAsap = searcher.startAsap;
+        titleNames = searcher.titleNames;
     }
 
-    private static String[] locales(String[] locales, String anyLocale, Map<String, String> localeCodes) {
+    private static String[] locales(String[] locales, Map<String, String> localeCodes) {
         String[] newLocales = new String[locales.length];
         for (int i = 0; i < locales.length; i++) {
-            if (locales[i].equals(anyLocale)) {
+            if (locales[i].equals(Constant.ANY)) {
                 return Constant.EMPTY_STRS;
             }
             newLocales[i] = localeCodes.get(locales[i]);
@@ -63,12 +70,22 @@ public class PopularSearcher extends AbstractSearcher {
 
     @Override
     protected void initialSearch() {
-        if (SLEEP != 0 && (!isFeed || startAsap)) {
-            return;
+        if (SLEEP > 0 && isFeed && !startAsap) {
+            try {
+                Thread.sleep(SLEEP);
+            } catch (InterruptedException e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
         }
+
         try {
-            Thread.sleep(SLEEP);
-        } catch (InterruptedException e) {
+            for (String page : Regex.split(Regex.replaceAll(Connection.getSourceCode(Str.get(isTVShow ? 688 : 689), DomainType.DOWNLOAD_LINK_INFO), Pattern.quote(
+                    Constant.NEWLINE), Constant.STD_NEWLINE), Str.get(690))) {
+                titleNames.add(page.trim().split(Str.get(691)));
+            }
+        } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
@@ -78,6 +95,20 @@ public class PopularSearcher extends AbstractSearcher {
     @Override
     protected int anotherPageRegexIndex() {
         return 649;
+    }
+
+    @Override
+    protected boolean addCurrVideos() {
+        if (currSearchPage >= titleNames.size()) {
+            return false;
+        }
+
+        videoBuffer.clear();
+        for (String titleName : titleNames.get(currSearchPage)) {
+            addCurrVideo(titleName);
+        }
+
+        return true;
     }
 
     @Override
@@ -134,11 +165,11 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     private void addCurrVideo(String titleName) {
-        String[] titleParts = VideoSearch.getTitleParts(titleName, isTVShow);
-        Video video = new Video(titleParts[0].toLowerCase(Locale.ENGLISH) + titleParts[1], titleParts[0], titleParts[1], isTVShow, false);
+        TitleParts titleParts = VideoSearch.getTitleParts(titleName, isTVShow);
+        Video video = new Video(titleParts.title.toLowerCase(Locale.ENGLISH) + titleParts.year, titleParts.title, titleParts.year, isTVShow, false);
         if (allBufferVideos.add(video.ID)) {
-            video.season = titleParts[2];
-            video.episode = titleParts[3];
+            video.season = titleParts.season;
+            video.episode = titleParts.episode;
             videoBuffer.add(video);
         }
     }
@@ -153,7 +184,7 @@ public class PopularSearcher extends AbstractSearcher {
     private boolean backupMode() {
         try {
             currSourceCode = Connection.getSourceCode(Str.get(isTVShow ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO);
-            String[] results = Regex.split(currSourceCode, Constant.STD_NEWLINE);
+            String[] results = Regex.split(Regex.replaceAll(currSourceCode, Pattern.quote(Constant.NEWLINE), Constant.STD_NEWLINE), Constant.STD_NEWLINE);
             for (int i = 0; i < results.length; i += 5) {
                 if (!isFeed || isTitleValid(results[i + 2], results[i + 3], results[i + 1])) {
                     addCurrVideo(results[i + 2].trim());
@@ -186,14 +217,14 @@ public class PopularSearcher extends AbstractSearcher {
         }
 
         String sourceCode = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO);
-        String[] titleParts = VideoSearch.getImdbTitleParts(sourceCode);
-        if (titleParts[0].isEmpty() || titleParts[1].isEmpty() || (isFeed && !isTitleYearValid(titleParts[1]))) {
+        TitleParts titleParts = VideoSearch.getImdbTitleParts(sourceCode);
+        if (titleParts.title.isEmpty() || titleParts.year.isEmpty() || (isFeed && !isTitleYearValid(titleParts.year))) {
             return null;
         }
 
         if (!VideoSearch.isImdbVideoType(sourceCode, isTVShow)) {
             if (Debug.DEBUG) {
-                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + titleParts[0] + "' '" + titleParts[1] + '\'');
+                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
             }
             return null;
         }
@@ -202,7 +233,7 @@ public class PopularSearcher extends AbstractSearcher {
             return null;
         }
 
-        Video vid = new Video(titleID, titleParts[0], titleParts[1], video.IS_TV_SHOW, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
+        Video vid = new Video(titleID, titleParts.title, titleParts.year, video.IS_TV_SHOW, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
         vid.rating = VideoSearch.rating(Regex.match(sourceCode, 127));
         vid.season = video.season;
         vid.episode = video.episode;

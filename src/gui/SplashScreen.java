@@ -43,7 +43,7 @@ public class SplashScreen extends JFrame {
         UI.setIcon(connectionIssueButton, "noWarning");
 
         Color bgColor = getBackground();
-        genreList.setListData(new String[]{Constant.ANY_GENRE});
+        genreList.setListData(new String[]{Constant.ANY});
         genreList.setBackground(bgColor);
         ratingComboBox.addItem(Constant.ANY);
 

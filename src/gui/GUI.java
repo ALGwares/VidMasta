@@ -488,10 +488,10 @@ public class GUI extends JFrame implements GuiListener {
         splashScreen.progress();
 
         List<String> genreArr = new ArrayList<String>(32);
-        genreArr.add(Constant.ANY_GENRE);
+        genreArr.add(Constant.ANY);
         Collections.addAll(genreArr, Regex.split(359, Constant.SEPARATOR1));
         genreList.setListData(genreArr.toArray());
-        genreList.setSelectedValue(Constant.ANY_GENRE, true);
+        genreList.setSelectedValue(Constant.ANY, true);
 
         ratingComboBox.addItem(Constant.ANY);
         for (String rating : Regex.split(360, Constant.SEPARATOR1)) {
@@ -654,7 +654,7 @@ public class GUI extends JFrame implements GuiListener {
         isTVShowSearch = false;
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) popularMoviesResultsPerSearchComboBox.getSelectedItem());
-        String[] languages = UI.copy(languageList, Constant.ANY_LANGUAGE), countries = UI.copy(countryList, Constant.ANY_COUNTRY);
+        String[] languages = UI.copy(languageList), countries = UI.copy(countryList);
         workerListener.popularSearchStarted(numResultsPerSearch, isTVShowSearch, languages, countries, true, !isStartUp);
     }
 
@@ -1370,7 +1370,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        resultsPerSearchDialog.setTitle("Results Per Search");
+        resultsPerSearchDialog.setTitle("Number of Results Per Search");
         resultsPerSearchDialog.setAlwaysOnTop(true);
         resultsPerSearchDialog.setModal(true);
 
@@ -3971,7 +3971,7 @@ public class GUI extends JFrame implements GuiListener {
         searchMenu.setText("Search");
 
         resultsPerSearchMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
-        resultsPerSearchMenuItem.setText("Set Results Per Search");
+        resultsPerSearchMenuItem.setText("Set Number of Results Per Search");
         resultsPerSearchMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 resultsPerSearchMenuItemActionPerformed(evt);
@@ -4457,7 +4457,7 @@ public class GUI extends JFrame implements GuiListener {
                         newPlaylistItem(makePlaylistRow(playlistEntries[i], workerListener.playlistItemSize(Long.parseLong(playlistEntries[i + 1])),
                                 workerListener.playlistItemProgress(Double.parseDouble(playlistEntries[i + 2])), workerListener.playlistItem(playlistEntries[i
                                         + 3], playlistEntries[i + 4], groupFile, Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7],
-                                        isFirstVersion)));
+                                        isFirstVersion)), -1);
                     }
                 }
             } catch (Exception e) {
@@ -4494,8 +4494,7 @@ public class GUI extends JFrame implements GuiListener {
             title = "";
         }
 
-        String[] genres = UI.copy(genreList, Constant.ANY_GENRE), languages = UI.copy(languageList, Constant.ANY_LANGUAGE), countries = UI.copy(countryList,
-                Constant.ANY_COUNTRY);
+        String[] genres = UI.copy(genreList), languages = UI.copy(languageList), countries = UI.copy(countryList);
         String minRating = (String) ratingComboBox.getSelectedItem();
 
         UI.enable(false, loadMoreResultsButton, searchButton, popularTVShowsButton, popularMoviesButton, viewNewHighQualityMoviesMenuItem);
@@ -4668,7 +4667,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_resultsPerSearchMenuItemActionPerformed
 
     void genreListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_genreListValueChanged
-        UI.updateAnyList(genreList, Constant.ANY_GENRE);
+        UI.updateList(genreList);
     }//GEN-LAST:event_genreListValueChanged
 
     void faqEditorPaneHyperlinkUpdate(HyperlinkEvent evt) {
@@ -4704,7 +4703,7 @@ public class GUI extends JFrame implements GuiListener {
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) (isPopularTVShows ? popularTVShowsResultsPerSearchComboBox.getSelectedItem()
                 : popularMoviesResultsPerSearchComboBox.getSelectedItem()));
-        String[] languages = UI.copy(languageList, Constant.ANY_LANGUAGE), countries = UI.copy(countryList, Constant.ANY_COUNTRY);
+        String[] languages = UI.copy(languageList), countries = UI.copy(countryList);
         workerListener.popularSearchStarted(numResultsPerSearch, isPopularTVShows, languages, countries, false, true);
     }
 
@@ -4938,11 +4937,11 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_languageCountryMenuItemActionPerformed
 
     void languageListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_languageListValueChanged
-        UI.updateAnyList(languageList, Constant.ANY_LANGUAGE);
+        UI.updateList(languageList);
     }//GEN-LAST:event_languageListValueChanged
 
     void countryListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_countryListValueChanged
-        UI.updateAnyList(countryList, Constant.ANY_COUNTRY);
+        UI.updateList(countryList);
     }//GEN-LAST:event_countryListValueChanged
 
     void langaugeCountryOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_langaugeCountryOkButtonActionPerformed
@@ -5363,7 +5362,7 @@ public class GUI extends JFrame implements GuiListener {
             proxyFileChooser.setSelectedFile(new File(proxyImportFile));
         }
 
-        if (proxyFileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        if (proxyFileChooser.showOpenDialog(showing()) == JFileChooser.APPROVE_OPTION) {
             try {
                 File proxyFile = proxyFileChooser.getSelectedFile();
                 proxyImportFile = proxyFile.getPath();
@@ -5392,7 +5391,7 @@ public class GUI extends JFrame implements GuiListener {
         proxyFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         proxyFileChooser.setSelectedFile(new File(proxyExportFile.isEmpty() ? Constant.PROXIES : proxyExportFile));
 
-        if (proxyFileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+        if (proxyFileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION) {
             try {
                 Collection<String> proxies = new ArrayList<String>(numProxies - 1);
                 StringBuilder proxiesBuf = new StringBuilder(2048);
@@ -6636,7 +6635,7 @@ public class GUI extends JFrame implements GuiListener {
                         Debug.print(e);
                     }
                     Window alwaysOnTopFocus = resultsToBackground();
-                    JOptionPane.showMessageDialog(GUI.this, getTextArea(ExceptionUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
+                    JOptionPane.showMessageDialog(showing(), getTextArea(ExceptionUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
                     resultsToForeground(alwaysOnTopFocus);
                     IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
                 }
@@ -6647,7 +6646,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     int showOptionDialog(Object msg, String title, int type, boolean confirm) {
-        return showOptionDialog(this, msg, title, type, confirm);
+        return showOptionDialog(showing(), msg, title, type, confirm);
     }
 
     private int showOptionDialog(Component parent, Object msg, String title, int type, boolean confirm) {
@@ -6735,6 +6734,10 @@ public class GUI extends JFrame implements GuiListener {
         synchronized (optionDialogLock) {
             return showOptionDialog(getTextArea(msg), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
         }
+    }
+
+    private Component showing() {
+        return isShowing() ? this : null;
     }
 
     private void setSafetyDialog(String statistic, String link, String name) {
@@ -7465,7 +7468,7 @@ public class GUI extends JFrame implements GuiListener {
             IO.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
         }
-        if (canShowPeerBlock && (showOptionalConfirm(this, "Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
+        if (canShowPeerBlock && (showOptionalConfirm(showing(), "Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
                 peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION)) {
             usePeerBlock = false;
             return;
@@ -7496,7 +7499,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private boolean save(JFileChooser fileChooser) {
         Window alwaysOnTopFocus = resultsToBackground();
-        boolean result = (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION);
+        boolean result = (fileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION);
         resultsToForeground(alwaysOnTopFocus);
         return result;
     }
@@ -7701,15 +7704,41 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public boolean newPlaylistItem(Object[] item) {
+    public boolean newPlaylistItems(List<Object[]> items, int insertRow, int primaryItemIndex) {
+        boolean isPrimaryItemNew = true;
         synchronized (playlistSyncTable.lock) {
-            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+            for (int i = 0, numItems = items.size(), currInsertRow = insertRow, prevInsertRow; i < numItems; i++) {
+                if ((prevInsertRow = newPlaylistItem(items.get(i), currInsertRow)) >= 0) {
+                    currInsertRow = prevInsertRow + 1;
+                } else if (i == primaryItemIndex) {
+                    isPrimaryItemNew = false;
+                }
+            }
+        }
+        return isPrimaryItemNew;
+    }
+
+    @Override
+    public int newPlaylistItem(Object[] item, int insertRow) {
+        synchronized (playlistSyncTable.lock) {
+            int numRows = playlistSyncTable.tableModel.getRowCount();
+            for (int row = numRows - 1; row > -1; row--) {
                 if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(item[playlistItemCol])) {
-                    return false;
+                    return -1;
+                }
+            }
+            if (insertRow >= 0 && insertRow < numRows) {
+                try {
+                    playlistSyncTable.tableModel.insertRow(insertRow, item);
+                    return insertRow;
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
                 }
             }
             playlistSyncTable.tableModel.addRow(item);
-            return true;
+            return numRows;
         }
     }
 
@@ -7780,8 +7809,8 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void playlistError(String msg, boolean html) {
         synchronized (optionDialogLock) {
-            showOptionDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this, html ? getEditorPane(msg) : getTextArea(msg), Constant.APP_TITLE,
-                    Constant.ERROR_MSG, false);
+            showOptionDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing(), html ? getEditorPane(msg) : getTextArea(msg),
+                    Constant.APP_TITLE, Constant.ERROR_MSG, false);
         }
     }
 
@@ -7814,7 +7843,7 @@ public class GUI extends JFrame implements GuiListener {
     public boolean useMediaServer() {
         if (!useMediaServer) {
             useMediaServer = true;
-            return playlistTipsCheckBoxMenuItem.isSelected() && showOptionalConfirm(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this,
+            return playlistTipsCheckBoxMenuItem.isSelected() && showOptionalConfirm(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing(),
                     "Watch on television or other device?", playlistTipsCheckBoxMenuItem) == JOptionPane.YES_OPTION;
         }
         return false;

@@ -21,6 +21,7 @@ import listener.GuiListener;
 import listener.Video;
 import listener.VideoStrExportListener;
 import search.BoxSetVideo;
+import search.util.TitleParts;
 import search.util.VideoSearch;
 import str.Str;
 import torrent.FileTypeChecker;
@@ -536,8 +537,7 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
-        link = Str.get(isStream2.get() ? 284 : 376) + link;
-        boolean isValidStream = isValidateStream(link);
+        boolean isValidStream = isValidateStream(link = Str.get(isStream2.get() ? 284 : 376) + link);
         if (isCancelled()) {
             return;
         }
@@ -573,12 +573,12 @@ public class VideoFinder extends AbstractSwingWorker {
         if (isStream2.get()) {
             return isValidateStreamHelper(Regex.firstMatch(source, 285));
         } else {
-            String newYear = Regex.firstMatch(Regex.match(source, 377), 368);
-            if (!video.IS_TV_SHOW && newYear.isEmpty()) {
+            String year = Regex.firstMatch(Regex.match(source, 377), 368);
+            if (!video.IS_TV_SHOW && year.isEmpty()) {
                 return false;
             }
-            String newTitle = Regex.match(source, 373);
-            return isValidateStream(newTitle, newYear);
+            String title = Regex.match(source, 373);
+            return isValidateStream(title, year);
         }
     }
 
@@ -592,25 +592,23 @@ public class VideoFinder extends AbstractSwingWorker {
         }
         String source = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO);
         updateOldTitleAndSummary();
-        String[] titleParts = VideoSearch.getImdbTitleParts(source);
-        String newTitle = titleParts[0];
-        if (findOldTitleStream.get() && (newTitle = Regex.match(source, 174)).isEmpty()) {
+        TitleParts titleParts = VideoSearch.getImdbTitleParts(source);
+        if (findOldTitleStream.get() && (titleParts.title = Regex.match(source, 174)).isEmpty()) {
             return false;
         }
-        newTitle = Regex.clean(newTitle);
-        String newYear = titleParts[1];
+        titleParts.title = Regex.clean(titleParts.title);
 
         if (!VideoSearch.isImdbVideoType(source, video.IS_TV_SHOW)) {
             if (Debug.DEBUG) {
-                Debug.println("Wrong video type (NOT a " + (video.IS_TV_SHOW ? "TV show" : "movie") + "): '" + newTitle + "' '" + newYear + '\'');
+                Debug.println("Wrong video type (NOT a " + (video.IS_TV_SHOW ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
             }
             return false;
         }
 
         if (Debug.DEBUG) {
-            Debug.println("Stream result: '" + newTitle + "' '" + newYear + "'");
+            Debug.println("Stream result: '" + titleParts.title + "' '" + titleParts.year + "'");
         }
-        return newTitle.equals(findOldTitleStream.get() ? oldTitle : TITLE) && newYear.equals(video.year);
+        return titleParts.title.equals(findOldTitleStream.get() ? oldTitle : TITLE) && titleParts.year.equals(video.year);
     }
 
     private void directStreamSearch() throws Exception {
@@ -715,9 +713,8 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private String getTrailerLink(String seasonStr) throws Exception {
-        String urlForm = Str.get(86);
         String urlFormOptions = URLEncoder.encode(TITLE + seasonStr + (video.IS_TV_SHOW ? "" : (' ' + video.year)) + Str.get(87), Constant.UTF8);
-        String source = Connection.getSourceCode(urlForm + urlFormOptions, DomainType.TRAILER, !PREFETCH);
+        String source = Connection.getSourceCode(Str.get(86) + urlFormOptions, DomainType.TRAILER, !PREFETCH);
         if (PREFETCH || isCancelled()) {
             return null;
         }
@@ -1008,17 +1005,16 @@ public class VideoFinder extends AbstractSwingWorker {
 
         private String search() throws Exception {
             if (isStream2.get()) {
-                String newTitle = Regex.match(result, 276);
-                String newYear = Regex.firstMatch(result, 264);
-                if (!newYear.isEmpty()) {
-                    newYear = newYear.substring(0, 4);
+                String title = Regex.match(result, 276), year = Regex.firstMatch(result, 264);
+                if (!year.isEmpty()) {
+                    year = year.substring(0, 4);
                 }
-                if (!Regex.isMatch(newYear, 289) && isValidateStream(newTitle, newYear)) {
+                if (!Regex.isMatch(year, 289) && isValidateStream(title, year)) {
                     return Regex.match(result, 287);
                 }
             } else {
-                String[] titleParts = VideoSearch.getImdbTitleParts(result, 406);
-                if (isValidateStream(titleParts[0], titleParts[1])) {
+                TitleParts titleParts = VideoSearch.getImdbTitleParts(result, 406);
+                if (isValidateStream(titleParts.title, titleParts.year)) {
                     return Regex.match(result, 408);
                 }
             }

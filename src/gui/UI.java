@@ -144,9 +144,9 @@ public class UI {
         return Arrays.copyOf(array, array.length, String[].class);
     }
 
-    public static String[] copy(JList list, String anyStr) {
+    public static String[] copy(JList list) {
         if (list.isSelectionEmpty()) {
-            list.setSelectedValue(anyStr, true);
+            list.setSelectedValue(Constant.ANY, true);
         }
         return copy(list.getSelectedValues());
     }
@@ -197,7 +197,7 @@ public class UI {
         return Constant.ANY;
     }
 
-    public static void updateAnyList(JList list, String anyStr) {
+    public static void updateList(JList list) {
         int[] selection = list.getSelectedIndices();
         if (selection.length < 2) {
             return;
@@ -206,7 +206,7 @@ public class UI {
         ListModel listModel = list.getModel();
         for (int i = 0; i < selection.length; i++) {
             String currStr = (String) listModel.getElementAt(selection[i]);
-            if (currStr.equals(anyStr)) {
+            if (currStr.equals(Constant.ANY)) {
                 int[] newSelection = new int[selection.length - 1];
 
                 int k = 0, j = 0;

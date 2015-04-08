@@ -56,11 +56,8 @@ public class VideoSearch {
             String searchEngine = engines.get(rand.nextInt(i));
             try {
                 String result = Regex.firstMatch(Connection.getSourceCode(searchEngine + encodedQuery, DomainType.SEARCH_ENGINE), regexIndex);
-                if (!result.isEmpty()) {
-                    result = URLDecoder.decode(result, Constant.UTF8);
-                    if (!result.isEmpty()) {
-                        return result;
-                    }
+                if (!result.isEmpty() && !(result = URLDecoder.decode(result, Constant.UTF8)).isEmpty()) {
+                    return result;
                 }
             } catch (ConnectionException e) {
                 if (i == 1) {
@@ -78,25 +75,24 @@ public class VideoSearch {
 
     public static String getTitleLink(String title, String year) throws Exception {
         String link = searchEngineQuery(Regex.clean(title) + (year.isEmpty() ? "" : ' ' + year) + Str.get(76), 619);
-        return link == null ? link : Str.get(96) + link;
+        return link == null ? null : Str.get(96) + link;
     }
 
-    public static String[] getImdbTitleParts(String sourceCode) {
+    public static TitleParts getImdbTitleParts(String sourceCode) {
         return getImdbTitleParts(sourceCode, 98);
     }
 
-    public static String[] getImdbTitleParts(String sourceCode, int startRegexIndex) {
-        String title = Regex.match(sourceCode, startRegexIndex);
+    public static TitleParts getImdbTitleParts(String sourceCode, int startRegexIndex) {
+        TitleParts titleParts = new TitleParts();
+        titleParts.title = Regex.match(sourceCode, startRegexIndex);
         Pattern yearPattern = Regex.pattern(100);
-        String[] result = new String[2];
-        result[1] = "";
         int titleEndIndex = -1;
 
-        for (int i = title.length() - 1; i > -1 && titleEndIndex == -1; i--) {
-            Matcher yearMatcher = yearPattern.matcher(title.substring(i));
+        for (int i = titleParts.title.length() - 1; i > -1 && titleEndIndex == -1; i--) {
+            Matcher yearMatcher = yearPattern.matcher(titleParts.title.substring(i));
             while (!yearMatcher.hitEnd()) {
                 if (yearMatcher.find()) {
-                    result[1] = yearMatcher.group();
+                    titleParts.year = yearMatcher.group();
                     titleEndIndex = yearMatcher.start() + i;
                     break;
                 }
@@ -104,18 +100,18 @@ public class VideoSearch {
         }
 
         if (titleEndIndex == -1) {
-            title = Regex.replaceAll(title, 101);
-            titleEndIndex = title.length();
+            titleParts.title = Regex.replaceAll(titleParts.title, 101);
+            titleEndIndex = titleParts.title.length();
         }
+        titleParts.title = titleParts.title.substring(0, titleEndIndex).trim();
+        titleParts.year = Regex.firstMatch(titleParts.year, 135);
 
-        result[0] = title.substring(0, titleEndIndex).trim();
-        result[1] = Regex.firstMatch(result[1], 135);
-
-        return result;
+        return titleParts;
     }
 
-    public static String[] getTitleParts(String title, boolean isTVShow) {
-        String titleName = Regex.replaceAll(title, 103), year = "", season = "", episode = "";
+    public static TitleParts getTitleParts(String title, boolean isTVShow) {
+        TitleParts titleParts = new TitleParts();
+        String titleName = Regex.replaceAll(title, 103);
         Collection<Integer> indexes = new ArrayList<Integer>(5);
         indexes.add(titleName.length());
 
@@ -134,7 +130,7 @@ public class VideoSearch {
         while (!yearMatcher.hitEnd()) {
             if (yearMatcher.find()) {
                 indexes.add(yearMatcher.start());
-                year = yearMatcher.group().trim();
+                titleParts.year = yearMatcher.group().trim();
                 break;
             }
         }
@@ -154,11 +150,11 @@ public class VideoSearch {
                     String[] seasonAndEpisode = Regex.split(Regex.replaceFirst(tvBoxSetAndEpisode.trim(), 109), 111);
                     int seasonNum = Integer.parseInt(seasonAndEpisode[0]);
                     if (seasonNum >= 1 && seasonNum <= 100) {
-                        season = String.format(Constant.TV_EPISODE_FORMAT, seasonNum);
+                        titleParts.season = String.format(Constant.TV_EPISODE_FORMAT, seasonNum);
                     }
                     int episodeNum = Integer.parseInt(seasonAndEpisode[1]);
                     if (episodeNum >= 0 && episodeNum <= 300) {
-                        episode = String.format(Constant.TV_EPISODE_FORMAT, episodeNum);
+                        titleParts.episode = String.format(Constant.TV_EPISODE_FORMAT, episodeNum);
                     }
                 }
                 indexes.add(tvBoxSetAndEpisodeMatcher.start());
@@ -177,9 +173,9 @@ public class VideoSearch {
             }
         }
 
-        String[] titleParts = {titleName.substring(0, Collections.min(indexes)).trim(), year, season, episode};
+        titleParts.title = titleName.substring(0, Collections.min(indexes)).trim();
         if (Debug.DEBUG) {
-            Debug.println('\'' + titleParts[0] + "' '" + titleParts[1] + "' '" + titleParts[2] + "' '" + titleParts[3] + "' '" + titleName + '\'');
+            Debug.println('\'' + titleParts.title + "' '" + titleParts.year + "' '" + titleParts.season + "' '" + titleParts.episode + "' '" + titleName + '\'');
         }
         return titleParts;
     }
@@ -277,7 +273,7 @@ public class VideoSearch {
             } else if (Regex.isMatch(releaseDate, 548)) {
                 releaseDate = dateToString(new SimpleDateFormat(Str.get(549), Locale.ENGLISH), releaseDate, Boolean.parseBoolean(Str.get(557)));
             } else if (releaseDate.isEmpty() || Regex.isMatch(releaseDate, 545)) {
-                releaseDate = getImdbTitleParts(sourceCode)[1];
+                releaseDate = getImdbTitleParts(sourceCode).year;
             }
             summary.append("<b>Release Date: </b>").append(releaseDate.isEmpty() ? "unknown" : releaseDate);
         }

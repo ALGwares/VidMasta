@@ -1,6 +1,7 @@
 package listener;
 
 import java.io.File;
+import java.util.List;
 import javax.swing.text.Element;
 
 public interface GuiListener {
@@ -107,7 +108,9 @@ public interface GuiListener {
 
     void searchProgressIncrement();
 
-    boolean newPlaylistItem(Object[] item);
+    boolean newPlaylistItems(List<Object[]> items, int insertRow, int primaryItemIndex);
+
+    int newPlaylistItem(Object[] item, int insertRow);
 
     void removePlaylistItem(PlaylistItem playlistItem);
 

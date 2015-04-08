@@ -22,27 +22,36 @@ import str.Str;
 public class Regex {
 
     private static final Map<String, Pattern> cache;
-    public static final Map<String, String> weirdChars, badStrs, languages, countries, subtitleLanguages;
+    public static final Map<String, String> languages, countries, subtitleLanguages;
+    private static volatile Map<String, String> weirdCharReplacements, badStrReplacements;
     public static final FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
 
     static {
         int initialCapacity = Integer.parseInt(Str.get(164));
         cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, 0.75f, initialCapacity);
-        init(weirdChars = new TreeMap<String, String>(), 552);
-        (badStrs = new TreeMap<String, String>()).put("&(?i)tilde;", "~");
-        badStrs.put("&(?i)nbsp;", " ");
-        badStrs.put(":", " ");
-        badStrs.put(Str.get(224), Str.get(225));
-        badStrs.put(Str.get(226), Str.get(227));
-        init(badStrs, 228);
-        (languages = new TreeMap<String, String>()).put(Constant.ANY_LANGUAGE, Constant.ANY_LANGUAGE);
+        initReplacements();
+        (languages = new TreeMap<String, String>()).put(Constant.ANY, Constant.ANY);
         init(languages, 234);
-        (countries = new TreeMap<String, String>()).put(Constant.ANY_COUNTRY, Constant.ANY_COUNTRY);
+        (countries = new TreeMap<String, String>()).put(Constant.ANY, Constant.ANY);
         init(countries, 231);
         init(subtitleLanguages = new TreeMap<String, String>(), 420, Constant.SEPARATOR2, Constant.SEPARATOR1);
         torrentFileFilter = new FileNameExtensionFilter("Torrents (*.torrent)", "torrent");
         proxyListFileFilter = new FileNameExtensionFilter("Proxy List (*" + Constant.TXT + ")", "txt");
         subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", split(452, ","));
+    }
+
+    public static void initReplacements() {
+        Map<String, String> tempWeirdCharReplacements = new TreeMap<String, String>();
+        init(tempWeirdCharReplacements, 552);
+        weirdCharReplacements = tempWeirdCharReplacements;
+        Map<String, String> tempBadStrReplacements = new TreeMap<String, String>();
+        tempBadStrReplacements.put("&(?i)tilde;", "~");
+        tempBadStrReplacements.put("&(?i)nbsp;", " ");
+        tempBadStrReplacements.put(":", " ");
+        tempBadStrReplacements.put(Str.get(224), Str.get(225));
+        tempBadStrReplacements.put(Str.get(226), Str.get(227));
+        init(tempBadStrReplacements, 228);
+        badStrReplacements = tempBadStrReplacements;
     }
 
     private static void init(Map<String, String> map, int strIndex) {
@@ -142,16 +151,23 @@ public class Regex {
     }
 
     public static String clean(String str) {
+        return clean(str, true);
+    }
+
+    public static String clean(String str, boolean useNonHtmlEntityBadStrs) {
         String result = str;
-        for (Entry<String, String> entry : badStrs.entrySet()) {
-            result = replaceAll(result, entry.getKey(), entry.getValue());
+        for (Entry<String, String> entry : badStrReplacements.entrySet()) {
+            String badStr = entry.getKey();
+            if (useNonHtmlEntityBadStrs || badStr.charAt(0) == '&') {
+                result = replaceAll(result, badStr, entry.getValue());
+            }
         }
         return replaceAll(replaceAll(htmlToPlainText(result), Str.get(136), Str.get(133)), 339).trim();
     }
 
     public static String cleanWeirdChars(String str) {
         String result = replaceAll(Normalizer.normalize(str, Form.NFD), "\\p{InCombiningDiacriticalMarks}+", "");
-        for (Entry<String, String> entry : weirdChars.entrySet()) {
+        for (Entry<String, String> entry : weirdCharReplacements.entrySet()) {
             result = replaceAll(result, entry.getKey(), entry.getValue());
         }
         return result.trim();

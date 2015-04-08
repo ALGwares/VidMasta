@@ -107,6 +107,7 @@ public class StrUpdater implements StrUpdateListener {
 
                 IO.write(Constant.APP_DIR + Constant.UPDATE_FILE, newUpdateTxt);
                 initStrs();
+                Regex.initReplacements();
                 if (showConfirmation) {
                     guiListener.msg("The application's search engine has been updated to version " + newVersion + ".", Constant.INFO_MSG);
                 }

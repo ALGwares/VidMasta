@@ -1,6 +1,17 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.04.08   | VidMasta 18.8
+
+CHANGE: CORE | Improved play and download performance
+CHANGE: CORE | Improved popular movies and popular TV shows search performance
+CHANGE: UI   | Improved initial ordering of playlist items in playlist
+CHANGE: UI   | Improved wording of some text
+CHANGE: UI   | Improved positioning of windows
+
+
+
+
 2015.03.04   | VidMasta 18.7
 
 CHANGE: UI   | Improved progress reporting when playing a playlist item

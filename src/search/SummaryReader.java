@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
@@ -80,16 +79,8 @@ public class SummaryReader extends AbstractSwingWorker {
             newSummary = Regex.match(newSummary, br1, "\\z");
         }
 
-        video.summary = Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470);
-        for (Entry<String, String> entry : Regex.badStrs.entrySet()) {
-            String hexCode = entry.getKey();
-            if (hexCode.charAt(0) == '&') {
-                video.summary = Regex.replaceAll(video.summary, hexCode, entry.getValue());
-            }
-        }
-        video.summary = Regex.replaceAll(Regex.replaceAll(Regex.htmlToPlainText(video.summary), 472), 339).trim();
-
-        List<String> summaryParts = Regex.split(video.summary, Str.get(477), Integer.parseInt(Str.get(478)));
+        List<String> summaryParts = Regex.split(Regex.clean(Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470), false), Str.get(477), Integer.parseInt(
+                Str.get(478)));
         Collection<MoviePartFinder> moviePartFinders = new ArrayList<MoviePartFinder>(8);
         int numSummaryParts = summaryParts.size();
 

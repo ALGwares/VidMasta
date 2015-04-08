@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
+import search.util.TitleParts;
 import search.util.VideoSearch;
 import str.Str;
 import util.Connection;
@@ -36,9 +37,9 @@ public class RegularSearcher extends AbstractSearcher {
         endDateStr = dateToStr(endDate);
         this.title = Regex.replaceAll(title, 3);
         this.genres = Arrays.copyOf(genres, genres.length);
-        genresStr = searchStr(genres, Constant.ANY_GENRE, null);
-        this.languages = searchStr(languages, Constant.ANY_LANGUAGE, Regex.languages);
-        this.countries = searchStr(countries, Constant.ANY_COUNTRY, Regex.countries);
+        genresStr = searchStr(genres, null);
+        this.languages = searchStr(languages, Regex.languages);
+        this.countries = searchStr(countries, Regex.countries);
         this.minRating = minRating;
     }
 
@@ -61,11 +62,11 @@ public class RegularSearcher extends AbstractSearcher {
                 date.get(Calendar.MONTH) + 1) + "-" + String.format(Locale.ENGLISH, "%02d", date.get(Calendar.DAY_OF_MONTH));
     }
 
-    private static String searchStr(String[] searchStrs, String anyStr, Map<String, String> searchStrCodes) {
+    private static String searchStr(String[] searchStrs, Map<String, String> searchStrCodes) {
         StringBuilder searchStr = new StringBuilder(512);
         for (int i = 0; i < searchStrs.length; i++) {
-            if (searchStrs[i].equals(anyStr)) {
-                return anyStr;
+            if (searchStrs[i].equals(Constant.ANY)) {
+                return Constant.ANY;
             }
             searchStr.append(searchStrCodes == null ? searchStrs[i] : searchStrCodes.get(searchStrs[i]));
             if (i != searchStrs.length - 1) {
@@ -105,19 +106,19 @@ public class RegularSearcher extends AbstractSearcher {
         }
 
         String sourceCode = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO);
-        String[] titleParts = VideoSearch.getImdbTitleParts(sourceCode);
-        if (titleParts[0].isEmpty() || titleParts[1].isEmpty()) {
+        TitleParts titleParts = VideoSearch.getImdbTitleParts(sourceCode);
+        if (titleParts.title.isEmpty() || titleParts.year.isEmpty()) {
             return;
         }
 
         if (!VideoSearch.isImdbVideoType(sourceCode, isTVShow)) {
             if (Debug.DEBUG) {
-                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + titleParts[0] + "' '" + titleParts[1] + '\'');
+                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
             }
             return;
         }
 
-        Video video = new Video(titleID, titleParts[0], titleParts[1], isTVShow, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
+        Video video = new Video(titleID, titleParts.title, titleParts.year, isTVShow, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
         video.oldTitle = VideoSearch.getOldTitle(sourceCode);
         video.rating = VideoSearch.rating(Regex.match(sourceCode, 127));
         video.summary = VideoSearch.getSummary(sourceCode, isTVShow);
@@ -139,12 +140,17 @@ public class RegularSearcher extends AbstractSearcher {
     }
 
     @Override
+    protected boolean addCurrVideos() {
+        return false;
+    }
+
+    @Override
     protected String getUrl(int page) throws Exception {
         int maxNumResultsPerSearch = Integer.parseInt(Str.get(503));
         int numResultsPerPage = (numResultsPerSearch > maxNumResultsPerSearch ? maxNumResultsPerSearch : numResultsPerSearch);
-        String urlCountries = (countries.equals(Constant.ANY_COUNTRY) ? Str.get(179) : Str.get(180) + countries);
-        String urlGenres = (genresStr.equals(Constant.ANY_GENRE) ? Str.get(141) : (Str.get(7) + Regex.replaceAll(genresStr.toLowerCase(Locale.ENGLISH), 8)));
-        String urlLanguages = (languages.equals(Constant.ANY_LANGUAGE) ? Str.get(181) : Str.get(182) + languages);
+        String urlCountries = (countries.equals(Constant.ANY) ? Str.get(179) : Str.get(180) + countries);
+        String urlGenres = (genresStr.equals(Constant.ANY) ? Str.get(141) : (Str.get(7) + Regex.replaceAll(genresStr.toLowerCase(Locale.ENGLISH), 8)));
+        String urlLanguages = (languages.equals(Constant.ANY) ? Str.get(181) : Str.get(182) + languages);
         String urlReleaseDates = (startDateStr.isEmpty() && endDateStr.isEmpty() ? Str.get(240) : Str.get(14) + startDateStr + Str.get(15) + endDateStr);
         String urlStart = (page == 0 ? Str.get(144) : Str.get(13) + ((page * numResultsPerPage) + 1));
         String urlTitle = (title.isEmpty() ? Str.get(142) : Str.get(10) + URLEncoder.encode(Regex.clean(title), Constant.UTF8));
@@ -234,7 +240,7 @@ public class RegularSearcher extends AbstractSearcher {
             return false;
         }
 
-        if (!genresStr.equals(Constant.ANY_GENRE)) {
+        if (!genresStr.equals(Constant.ANY)) {
             Collection<String> videoGenres = Regex.matches(Regex.match(source, 416), 418);
             if (videoGenres.isEmpty()) {
                 if (Debug.DEBUG) {
