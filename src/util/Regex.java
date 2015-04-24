@@ -174,7 +174,7 @@ public class Regex {
     }
 
     public static String toFileName(String str) {
-        return replaceAll(replaceAll(clean(str), "[^\\p{Alnum}]", " ").trim(), " ++", "+");
+        return replaceAll(replaceAll(clean(str), "[^\\p{Alnum}]", " ").trim(), " ++", "-");
     }
 
     public static boolean isMatch(String input, int regexIndex) {

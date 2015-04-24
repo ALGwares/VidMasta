@@ -143,7 +143,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
 
     private boolean resultMatches(String result) {
         if (isTVShow) {
-            return true; //TV show's episode imdb title IDs != TV show's general imdb title ID
+            return true; // TV show's episode imdb title IDs != TV show's general imdb title ID
         }
         String titleLink = Regex.firstMatch(result, 427);
         String resultID = Regex.replaceAll(Regex.replaceFirst(titleLink, 428), 423);

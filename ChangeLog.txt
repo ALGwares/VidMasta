@@ -1,6 +1,17 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.04.23   | VidMasta 18.9
+
+CHANGE: CORE | Refreshed playlist table when profile is reloaded
+CHANGE: UI   | Removed playlist tips
+CHANGE: UI   | Showed error message in summary when there is an issue while determining the previous or next episode
+CHANGE: UI   | Clarified some tooltips
+CHANGE: UI   | Improved management of multiple open file choosers at once
+
+
+
+
 2015.04.08   | VidMasta 18.8
 
 CHANGE: CORE | Improved play and download performance

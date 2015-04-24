@@ -126,8 +126,6 @@ public interface GuiListener {
 
     void setPlaylistPlayHint(String msg);
 
-    boolean useMediaServer();
-
     boolean isConfirmed(String msg);
 
     boolean isAuthorizationConfirmed(String msg);

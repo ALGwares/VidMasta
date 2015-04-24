@@ -82,14 +82,14 @@ class AppUpdater {
                 appUpdateStrs = Regex.split(Connection.getUpdateFile(Str.get(295), showConfirmation), Constant.NEWLINE);
             }
             if (!Regex.isMatch(appUpdateStrs[0], "\\d++\\.\\d++")) {
-                throw new UpdateException("invalid app update version file");
+                throw new UpdateException("invalid application update version file");
             }
             if (Constant.APP_VERSION < Double.parseDouble(appUpdateStrs[0])) {
                 guiListener.updateMsg("<html><head><title></title></head><body><font face=\"tahoma\" size=\"4\">A <a href=\"" + (Constant.WINDOWS
                         ? appUpdateStrs[1] : appUpdateStrs[2]) + "\">newer version</a> (" + appUpdateStrs[0]
                         + ") of the application is available.</font></body></html>");
             } else if (showConfirmation) {
-                guiListener.msg("The application is already up to date.", Constant.INFO_MSG);
+                guiListener.msg("The application (version " + Constant.APP_VERSION + ") is already up to date.", Constant.INFO_MSG);
             }
         } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -104,12 +104,12 @@ class AppUpdater {
     void update(GuiListener guiListener) {
         try {
             if ((new File(Constant.APP_DIR + APP_UPDATE_FAIL)).exists()) {
-                throw new UpdateException("app update installation failed");
+                throw new UpdateException("application update installation failed");
             }
 
             appUpdateStrs = Regex.split(Connection.getUpdateFile(Str.get(295), false), Constant.NEWLINE);
             if (!Regex.isMatch(appUpdateStrs[0], "\\d++\\.\\d++")) {
-                throw new UpdateException("invalid app update version file");
+                throw new UpdateException("invalid application update version file");
             }
 
             double newAppVersion = Double.parseDouble(appUpdateStrs[0]);

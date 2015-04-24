@@ -18,6 +18,7 @@ import listener.Video;
 import search.util.VideoSearch;
 import str.Str;
 import util.Connection;
+import util.ConnectionException;
 import util.Constant;
 import util.Regex;
 
@@ -39,16 +40,29 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
 
     @Override
     protected Object doInBackground() {
+        boolean updateSummary = true;
         try {
             findEpisodes();
+        } catch (ConnectionException e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+            updateSummary = false;
+            nextEpisodeText = "connection problem, reopen summary";
+            prevEpisodeText = nextEpisodeText;
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
         } finally {
             if (!isCancelled()) {
-                showEpisode(nextEpisodeElement, nextEpisodeText, Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_NEXT_EPISODE_HTML);
-                showEpisode(prevEpisodeElement, prevEpisodeText, Constant.TV_PREV_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_PREV_EPISODE_HTML);
+                String summary = showEpisode(prevEpisodeElement, prevEpisodeText, Constant.TV_PREV_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_PREV_EPISODE_HTML,
+                        showEpisode(nextEpisodeElement, nextEpisodeText, Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_NEXT_EPISODE_HTML,
+                                updateSummary ? video.summary : null));
+                if (summary != null) {
+                    guiListener.setSummary(summary, ROW, video.ID);
+                    video.summary = summary;
+                }
                 String season = guiListener.getSeason(ROW, video.ID);
                 if (season != null && season.isEmpty() && nextSeasonNum != null && nextEpisodeNum != null) {
                     guiListener.setSeason(nextSeasonNum, ROW, video.ID);
@@ -59,11 +73,9 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
         return null;
     }
 
-    private void showEpisode(Element element, String text, String placeholder, String label) {
+    private String showEpisode(Element element, String text, String placeholder, String label, String summary) {
         guiListener.insertAfterSummaryElement(element, text);
-        String newSummary = video.summary.replace(placeholder, label + text);
-        guiListener.setSummary(newSummary, ROW, video.ID);
-        video.summary = newSummary;
+        return summary == null ? null : summary.replace(placeholder, label + text);
     }
 
     private static List<String> sortedNumListSet(Collection<String> strs, boolean ascending) {

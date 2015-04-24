@@ -4597,12 +4597,6 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistTipsCheckBoxMenuItem">
-              <Properties>
-                <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Show Tips"/>
-              </Properties>
-            </MenuItem>
           </SubComponents>
         </Menu>
         <Menu class="javax.swing.JMenu" name="downloadMenu">
@@ -5003,7 +4997,7 @@
     <Component class="javax.swing.JLabel" name="releasedLabel">
       <Properties>
         <Property name="text" type="java.lang.String" value="Released:"/>
-        <Property name="toolTipText" type="java.lang.String" value="select release date"/>
+        <Property name="toolTipText" type="java.lang.String" value="select earliest release date in the world range"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="genreLabel">

@@ -154,8 +154,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private static final long serialVersionUID = 1L;
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode, forcePlay,
-            useMediaServer;
+    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode, forcePlay;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
@@ -196,7 +195,7 @@ public class GUI extends JFrame implements GuiListener {
     private int findTitleRow = -2;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
-    JMenuItem dummyMenuItem = new JMenuItem(), peerBlockMenuItem;
+    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), peerBlockMenuItem;
     JComboBox dummyComboBox = new JComboBox();
 
     public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
@@ -997,7 +996,6 @@ public class GUI extends JFrame implements GuiListener {
         playlistSaveFolderMenuItem = new JMenuItem();
         playlistAutoOpenCheckBoxMenuItem = new JCheckBoxMenuItem();
         playlistShowNonVideoItemsCheckBoxMenuItem = new JCheckBoxMenuItem();
-        playlistTipsCheckBoxMenuItem = new JCheckBoxMenuItem();
         downloadMenu = new JMenu();
         downloadSizeMenuItem = new JMenuItem();
         downloadMenuSeparator1 = new Separator();
@@ -3379,7 +3377,7 @@ public class GUI extends JFrame implements GuiListener {
         titleLabel.setToolTipText("enter title");
 
         releasedLabel.setText("Released:");
-        releasedLabel.setToolTipText("select release date");
+        releasedLabel.setToolTipText("select earliest release date in the world range");
 
         genreLabel.setLabelFor(genreScrollPane);
         genreLabel.setText("Genre:");
@@ -4061,10 +4059,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistMenu.add(playlistShowNonVideoItemsCheckBoxMenuItem);
 
-        playlistTipsCheckBoxMenuItem.setSelected(true);
-        playlistTipsCheckBoxMenuItem.setText("Show Tips");
-        playlistMenu.add(playlistTipsCheckBoxMenuItem);
-
         menuBar.add(playlistMenu);
 
         downloadMenu.setText("Download");
@@ -4486,8 +4480,8 @@ public class GUI extends JFrame implements GuiListener {
             endDate = (Calendar) endDate.clone();
         }
 
-        String title = titleTextField.getText();
-        if (anyTitleCheckBox.isSelected() || title == null || (title = title.trim()).isEmpty()) {
+        String title;
+        if (anyTitleCheckBox.isSelected() || (title = titleTextField.getText()) == null || (title = title.trim()).isEmpty()) {
             titleTextField.setText(null);
             titleTextField.setEnabled(false);
             anyTitleCheckBox.setSelected(true);
@@ -4496,8 +4490,6 @@ public class GUI extends JFrame implements GuiListener {
 
         String[] genres = UI.copy(genreList), languages = UI.copy(languageList), countries = UI.copy(countryList);
         String minRating = (String) ratingComboBox.getSelectedItem();
-
-        UI.enable(false, loadMoreResultsButton, searchButton, popularTVShowsButton, popularMoviesButton, viewNewHighQualityMoviesMenuItem);
 
         isRegularSearcher = true;
         workerListener.regularSearchStarted(numResultsPerSearch, isTVShowSearch, startDate, endDate, title, genres, languages, countries, minRating);
@@ -5351,17 +5343,11 @@ public class GUI extends JFrame implements GuiListener {
         enableProxyButtons(false);
         proxyDialog.setVisible(false);
 
-        if (torrentFileChooser.isShowing() || subtitleFileChooser.isShowing()) {
-            enableProxyButtons(true);
-            proxyDialog.setVisible(true);
-            return;
-        }
         proxyFileChooser.setFileFilter(Regex.proxyListFileFilter);
         proxyFileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         if (!proxyImportFile.isEmpty()) {
             proxyFileChooser.setSelectedFile(new File(proxyImportFile));
         }
-
         if (proxyFileChooser.showOpenDialog(showing()) == JFileChooser.APPROVE_OPTION) {
             try {
                 File proxyFile = proxyFileChooser.getSelectedFile();
@@ -5382,15 +5368,9 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        if (torrentFileChooser.isShowing() || subtitleFileChooser.isShowing()) {
-            enableProxyButtons(true);
-            proxyDialog.setVisible(true);
-            return;
-        }
         proxyFileChooser.setFileFilter(Regex.proxyListFileFilter);
         proxyFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         proxyFileChooser.setSelectedFile(new File(proxyExportFile.isEmpty() ? Constant.PROXIES : proxyExportFile));
-
         if (proxyFileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION) {
             try {
                 Collection<String> proxies = new ArrayList<String>(numProxies - 1);
@@ -5442,6 +5422,7 @@ public class GUI extends JFrame implements GuiListener {
                 settings.loadSettings(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT);
                 profileName = profileComboBox.getItemAt(profile) + "'s";
             }
+            playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
             maximize();
             timedMsg(profileName + " settings restored");
         } else {
@@ -6736,7 +6717,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private Component showing() {
+    Component showing() {
         return isShowing() ? this : null;
     }
 
@@ -6811,7 +6792,8 @@ public class GUI extends JFrame implements GuiListener {
 
                 playlistDir = getPath(settings, ++i);
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
-                restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, playlistTipsCheckBoxMenuItem, playlistShowNonVideoItemsCheckBoxMenuItem);
+                restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */,
+                        playlistShowNonVideoItemsCheckBoxMenuItem);
 
                 if (!updateSettings) {
                     return;
@@ -6857,7 +6839,7 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(savePosition(playlistFrame));
             savePaths(settings, playlistDir);
             settings.append(usePeerBlock).append(Constant.NEWLINE);
-            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, playlistTipsCheckBoxMenuItem, playlistShowNonVideoItemsCheckBoxMenuItem);
+            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */, playlistShowNonVideoItemsCheckBoxMenuItem);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -7506,15 +7488,9 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void saveTorrent(File torrentFile) throws Exception {
-        if (proxyFileChooser.isShowing()) {
-            return;
-        }
-
-        subtitleFileChooser.cancelSelection();
         torrentFileChooser.setFileFilter(Regex.torrentFileFilter);
         torrentFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         torrentFileChooser.setSelectedFile(new File(torrentDir + torrentFile.getName()));
-
         if (save(torrentFileChooser)) {
             File torrent = torrentFileChooser.getSelectedFile();
             torrentDir = IO.parentDir(torrent);
@@ -7524,14 +7500,9 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void saveSubtitle(String saveFileName, File subtitleFile) throws Exception {
-        if (proxyFileChooser.isShowing() || torrentFileChooser.isShowing()) {
-            return;
-        }
-
         subtitleFileChooser.setFileFilter(Regex.subtitleFileFilter);
         subtitleFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         subtitleFileChooser.setSelectedFile(new File(subtitleDir + saveFileName));
-
         if (save(subtitleFileChooser)) {
             File subtitle = subtitleFileChooser.getSelectedFile();
             subtitleDir = IO.parentDir(subtitle);
@@ -7837,16 +7808,6 @@ public class GUI extends JFrame implements GuiListener {
     public void setPlaylistPlayHint(String msg) {
         playlistPlayButton.setToolTipText(playlistPlayButton.getToolTipText() + msg);
         playlistPlayMenuItem.setToolTipText(playlistPlayMenuItem.getToolTipText() + msg);
-    }
-
-    @Override
-    public boolean useMediaServer() {
-        if (!useMediaServer) {
-            useMediaServer = true;
-            return playlistTipsCheckBoxMenuItem.isSelected() && showOptionalConfirm(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing(),
-                    "Watch on television or other device?", playlistTipsCheckBoxMenuItem) == JOptionPane.YES_OPTION;
-        }
-        return false;
     }
 
     @Override
@@ -8386,7 +8347,6 @@ public class GUI extends JFrame implements GuiListener {
     JPopupMenu playlistTablePopupMenu;
     Separator playlistTablePopupMenuSeparator1;
     Separator playlistTablePopupMenuSeparator2;
-    JCheckBoxMenuItem playlistTipsCheckBoxMenuItem;
     JButton popularMoviesButton;
     JPopupMenu popularMoviesButtonPopupMenu;
     JComboBox popularMoviesResultsPerSearchComboBox;
