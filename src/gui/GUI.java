@@ -638,8 +638,7 @@ public class GUI extends JFrame implements GuiListener {
     Icon getPoster(String imagePath) {
         Icon image = posters.get(imagePath);
         if (image == null) {
-            image = new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(60, 89, Image.SCALE_SMOOTH));
-            posters.put(imagePath, image); // Not a concurrency bug
+            posters.put(imagePath, image = new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(60, 89, Image.SCALE_SMOOTH))); // Not a concurrency bug
         }
         return image;
     }
@@ -4914,13 +4913,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void downloadLink1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink1ButtonActionPerformed
-        SelectedTableRow row = selectedRow();
-        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, null, false);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, selectedRow(), null, false);
     }//GEN-LAST:event_downloadLink1ButtonActionPerformed
 
     void downloadLink2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink2ButtonActionPerformed
-        SelectedTableRow row = selectedRow();
-        downloadLinkActionPerformed(ContentType.DOWNLOAD2, row, null, false);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD2, selectedRow(), null, false);
     }//GEN-LAST:event_downloadLink2ButtonActionPerformed
 
     void languageCountryMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryMenuItemActionPerformed
@@ -6272,8 +6269,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_portDialogComponentHidden
 
     private void playButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
-        SelectedTableRow row = selectedRow();
-        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, null, true);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, selectedRow(), null, true);
     }//GEN-LAST:event_playButtonActionPerformed
 
     private void playMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playMenuItemActionPerformed

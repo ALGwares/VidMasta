@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.04.29   | VidMasta 19.0
+
+CHANGE: CORE | Improved play and download performance
+
+
+
+
 2015.04.23   | VidMasta 18.9
 
 CHANGE: CORE | Refreshed playlist table when profile is reloaded

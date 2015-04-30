@@ -82,9 +82,8 @@ public class SummaryReader extends AbstractSwingWorker {
         List<String> summaryParts = Regex.split(Regex.clean(Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470), false), Str.get(477), Integer.parseInt(
                 Str.get(478)));
         Collection<MoviePartFinder> moviePartFinders = new ArrayList<MoviePartFinder>(8);
-        int numSummaryParts = summaryParts.size();
 
-        for (int i = 0; i < numSummaryParts; i++) {
+        for (int i = 0, numSummaryParts = summaryParts.size(); i < numSummaryParts; i++) {
             moviePartFinders.add(new MoviePartFinder(i, Str.get(474) + URLEncoder.encode(summaryParts.get(i), Constant.UTF8)));
         }
 
@@ -95,20 +94,16 @@ public class SummaryReader extends AbstractSwingWorker {
 
         convertMoviesToAudioClip().encodeToFile(swfSpeech);
 
-        String page = Str.get(479).replace(Str.get(480), swfSpeechPath).replace(Str.get(481), Regex.cleanWeirdChars(video.title) + " (" + video.year + ")"),
-                imagePath;
-        page = page.replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video))).exists() ? imagePath : Constant.PROGRAM_DIR
-                + "noPosterBig.jpg");
-
-        IO.write(swfPage, page);
+        String imagePath;
+        IO.write(swfPage, Str.get(479).replace(Str.get(480), swfSpeechPath).replace(Str.get(481), Regex.cleanWeirdChars(video.title) + " (" + video.year
+                + ')').replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video))).exists() ? imagePath : Constant.PROGRAM_DIR
+                                + "noPosterBig.jpg"));
         browse(swfPage);
     }
 
     private Movie convertMoviesToAudioClip() throws Exception {
         Movie audioClip = new Movie();
-        int numMovieParts = movieParts.size();
-
-        for (int i = 0; i < numMovieParts; i++) {
+        for (int i = 0, numMovieParts = movieParts.size(); i < numMovieParts; i++) {
             boolean add = false;
             MovieTag prevTag = null;
             Movie movie = new Movie();
