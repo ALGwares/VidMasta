@@ -24,7 +24,7 @@ public class PopularSearcher extends AbstractSearcher {
     private String[] languages, countries;
     private boolean isFeed, startAsap;
     private final List<String[]> titleNames;
-    private static final int SLEEP = Integer.parseInt(Str.get(571));
+    private final int SLEEP = Integer.parseInt(Str.get(571));
 
     public PopularSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed,
             boolean startAsap) {
@@ -82,8 +82,8 @@ public class PopularSearcher extends AbstractSearcher {
 
         try {
             for (String page : Regex.split(Regex.replaceAll(Connection.getSourceCode(Str.get(isTVShow ? 688 : 689), DomainType.DOWNLOAD_LINK_INFO), Pattern.quote(
-                    Constant.NEWLINE), Constant.STD_NEWLINE), Str.get(690))) {
-                titleNames.add(page.trim().split(Str.get(691)));
+                    Constant.NEWLINE), Constant.STD_NEWLINE), 690)) {
+                titleNames.add(Regex.split(page.trim(), 691));
             }
         } catch (Exception e) {
             if (Debug.DEBUG) {

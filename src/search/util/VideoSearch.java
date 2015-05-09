@@ -27,7 +27,6 @@ import util.Regex;
 
 public class VideoSearch {
 
-    private static final long MAX_IMAGE_AGE = Long.parseLong(Str.get(501));
     private static final Random rand = new Random();
     private static final int NUM_SEARCH_ENGINES;
     private static final List<String> searchEngines;
@@ -418,7 +417,7 @@ public class VideoSearch {
     public static String tooOldOrNonexistentImagePath(Video video) {
         String imagePath = Constant.CACHE_DIR + imagePath(video);
         File image = new File(imagePath);
-        return image.exists() ? (IO.isFileTooOld(image, MAX_IMAGE_AGE) ? imagePath : null) : imagePath;
+        return image.exists() ? (IO.isFileTooOld(image, Long.parseLong(Str.get(501))) ? imagePath : null) : imagePath;
     }
 
     public static String imagePath(Video video) {

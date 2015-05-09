@@ -195,7 +195,7 @@ public class GUI extends JFrame implements GuiListener {
     private int findTitleRow = -2;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
-    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), peerBlockMenuItem;
+    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
     JComboBox dummyComboBox = new JComboBox();
 
     public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
@@ -591,14 +591,20 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        if (Constant.CAN_PEER_BLOCK) {
+        if (Constant.WINDOWS_XP_AND_HIGHER) {
             peerBlockMenuItem = peerBlockNotificationCheckBoxMenuItem;
+            playDefaultAppMenuItem = playlistPlayWithDefaultAppCheckBoxMenuItem;
         } else {
+            String toolTip = "only available for Windows XP and higher";
             peerBlockMenuItem = new JMenuItem();
             peerBlockNotificationCheckBoxMenuItem.setEnabled(false);
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
-            peerBlockNotificationCheckBoxMenuItem.setToolTipText("only available for Windows XP or higher");
+            peerBlockNotificationCheckBoxMenuItem.setToolTipText(toolTip);
             usePeerBlock = false;
+            playDefaultAppMenuItem = new JMenuItem();
+            playlistPlayWithDefaultAppCheckBoxMenuItem.setEnabled(false);
+            playlistPlayWithDefaultAppCheckBoxMenuItem.setSelected(true);
+            playlistPlayWithDefaultAppCheckBoxMenuItem.setToolTipText(toolTip);
         }
         settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS);
         playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
@@ -743,20 +749,20 @@ public class GUI extends JFrame implements GuiListener {
         copyFullTitleAndYearMenuItem = new JMenuItem();
         copyPosterImageMenuItem = new JMenuItem();
         copyMenuSeparator1 = new Separator();
-        copySummaryLinkMenuItem = new JMenuItem();
-        copyTrailerLinkMenuItem = new JMenuItem();
         copyDownloadLink1MenuItem = new JMenuItem();
         copyDownloadLink2MenuItem = new JMenuItem();
         copyWatchLink1MenuItem = new JMenuItem();
         copyWatchLink2MenuItem = new JMenuItem();
+        copySummaryLinkMenuItem = new JMenuItem();
+        copyTrailerLinkMenuItem = new JMenuItem();
         copySubtitleLinkMenuItem = new JMenuItem();
         emailMenu = new JMenu();
-        emailSummaryLinkMenuItem = new JMenuItem();
-        emailTrailerLinkMenuItem = new JMenuItem();
         emailDownloadLink1MenuItem = new JMenuItem();
         emailDownloadLink2MenuItem = new JMenuItem();
         emailWatchLink1MenuItem = new JMenuItem();
         emailWatchLink2MenuItem = new JMenuItem();
+        emailSummaryLinkMenuItem = new JMenuItem();
+        emailTrailerLinkMenuItem = new JMenuItem();
         emailMenuSeparator1 = new Separator();
         emailEverythingMenuItem = new JMenuItem();
         tablePopupMenuSeparator2 = new Separator();
@@ -994,6 +1000,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistMenuSeparator1 = new Separator();
         playlistSaveFolderMenuItem = new JMenuItem();
         playlistAutoOpenCheckBoxMenuItem = new JCheckBoxMenuItem();
+        playlistPlayWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
         playlistShowNonVideoItemsCheckBoxMenuItem = new JCheckBoxMenuItem();
         downloadMenu = new JMenu();
         downloadSizeMenuItem = new JMenuItem();
@@ -1820,24 +1827,6 @@ public class GUI extends JFrame implements GuiListener {
         copyMenu.add(copyPosterImageMenuItem);
         copyMenu.add(copyMenuSeparator1);
 
-        copySummaryLinkMenuItem.setText("Summary Link");
-        copySummaryLinkMenuItem.setEnabled(false);
-        copySummaryLinkMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                copySummaryLinkMenuItemActionPerformed(evt);
-            }
-        });
-        copyMenu.add(copySummaryLinkMenuItem);
-
-        copyTrailerLinkMenuItem.setText("Trailer Link");
-        copyTrailerLinkMenuItem.setEnabled(false);
-        copyTrailerLinkMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                copyTrailerLinkMenuItemActionPerformed(evt);
-            }
-        });
-        copyMenu.add(copyTrailerLinkMenuItem);
-
         copyDownloadLink1MenuItem.setText("Download Link 1");
         copyDownloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
         copyDownloadLink1MenuItem.setEnabled(false);
@@ -1886,6 +1875,24 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyWatchLink2MenuItem);
 
+        copySummaryLinkMenuItem.setText("Summary Link");
+        copySummaryLinkMenuItem.setEnabled(false);
+        copySummaryLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copySummaryLinkMenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copySummaryLinkMenuItem);
+
+        copyTrailerLinkMenuItem.setText("Trailer Link");
+        copyTrailerLinkMenuItem.setEnabled(false);
+        copyTrailerLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                copyTrailerLinkMenuItemActionPerformed(evt);
+            }
+        });
+        copyMenu.add(copyTrailerLinkMenuItem);
+
         copySubtitleLinkMenuItem.setText("Subtitle Link");
         copySubtitleLinkMenuItem.setEnabled(false);
         copySubtitleLinkMenuItem.addActionListener(new ActionListener() {
@@ -1898,24 +1905,6 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(copyMenu);
 
         emailMenu.setText("Email");
-
-        emailSummaryLinkMenuItem.setText("Summary Link");
-        emailSummaryLinkMenuItem.setEnabled(false);
-        emailSummaryLinkMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                emailSummaryLinkMenuItemActionPerformed(evt);
-            }
-        });
-        emailMenu.add(emailSummaryLinkMenuItem);
-
-        emailTrailerLinkMenuItem.setText("Trailer Link");
-        emailTrailerLinkMenuItem.setEnabled(false);
-        emailTrailerLinkMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                emailTrailerLinkMenuItemActionPerformed(evt);
-            }
-        });
-        emailMenu.add(emailTrailerLinkMenuItem);
 
         emailDownloadLink1MenuItem.setText("Download Link 1");
         emailDownloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
@@ -1964,6 +1953,24 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         emailMenu.add(emailWatchLink2MenuItem);
+
+        emailSummaryLinkMenuItem.setText("Summary Link");
+        emailSummaryLinkMenuItem.setEnabled(false);
+        emailSummaryLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailSummaryLinkMenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailSummaryLinkMenuItem);
+
+        emailTrailerLinkMenuItem.setText("Trailer Link");
+        emailTrailerLinkMenuItem.setEnabled(false);
+        emailTrailerLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                emailTrailerLinkMenuItemActionPerformed(evt);
+            }
+        });
+        emailMenu.add(emailTrailerLinkMenuItem);
         emailMenu.add(emailMenuSeparator1);
 
         emailEverythingMenuItem.setText("Everything");
@@ -3657,7 +3664,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         playButton.setText("Play");
-        playButton.setToolTipText("play title in default media player (" + exitBackupModeToolTip + ")");
+        playButton.setToolTipText("play title in media player (" + exitBackupModeToolTip + ")");
         playButton.setEnabled(false);
         playButton.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -4047,6 +4054,9 @@ public class GUI extends JFrame implements GuiListener {
         playlistAutoOpenCheckBoxMenuItem.setSelected(true);
         playlistAutoOpenCheckBoxMenuItem.setText("Auto-Open Items");
         playlistMenu.add(playlistAutoOpenCheckBoxMenuItem);
+
+        playlistPlayWithDefaultAppCheckBoxMenuItem.setText("Open Items with Default Application");
+        playlistMenu.add(playlistPlayWithDefaultAppCheckBoxMenuItem);
 
         playlistShowNonVideoItemsCheckBoxMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
         playlistShowNonVideoItemsCheckBoxMenuItem.setText("Show Non-Video Items");
@@ -6789,7 +6799,7 @@ public class GUI extends JFrame implements GuiListener {
                 playlistDir = getPath(settings, ++i);
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
                 restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */,
-                        playlistShowNonVideoItemsCheckBoxMenuItem);
+                        playlistShowNonVideoItemsCheckBoxMenuItem, playDefaultAppMenuItem);
 
                 if (!updateSettings) {
                     return;
@@ -6835,7 +6845,8 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(savePosition(playlistFrame));
             savePaths(settings, playlistDir);
             settings.append(usePeerBlock).append(Constant.NEWLINE);
-            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */, playlistShowNonVideoItemsCheckBoxMenuItem);
+            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */, playlistShowNonVideoItemsCheckBoxMenuItem,
+                    playDefaultAppMenuItem);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -7437,7 +7448,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void startPeerBlock() {
         boolean canShowPeerBlock = peerBlockNotificationCheckBoxMenuItem.isSelected();
-        if (!Constant.CAN_PEER_BLOCK || (!usePeerBlock && !canShowPeerBlock) || (new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Running")).exists()) {
+        if (!Constant.WINDOWS_XP_AND_HIGHER || (!usePeerBlock && !canShowPeerBlock) || (new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Running")).exists()) {
             return;
         }
         if ((new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).exists() || WindowsUtil.isProcessRunning(Constant.PEER_BLOCK)) {
@@ -7978,6 +7989,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public boolean canPlayWithDefaultApp() {
+        return playlistPlayWithDefaultAppCheckBoxMenuItem.isSelected();
+    }
+
+    @Override
     public boolean canIgnoreDownloadSize() {
         return downloadSizeIgnoreCheckBox.isSelected();
     }
@@ -8334,6 +8350,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem playlistOpenMenuItem;
     JButton playlistPlayButton;
     JMenuItem playlistPlayMenuItem;
+    JCheckBoxMenuItem playlistPlayWithDefaultAppCheckBoxMenuItem;
     JButton playlistRemoveButton;
     JMenuItem playlistRemoveMenuItem;
     JMenuItem playlistSaveFolderMenuItem;

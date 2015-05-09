@@ -11,11 +11,15 @@ import util.Regex;
 
 public class BoxSetVideo {
 
-    String title;
-    private String year;
+    private static boolean isInitialized;
     public static final Collection<List<BoxSetVideo>> movieBoxSets = new ArrayList<List<BoxSetVideo>>(4096);
+    private String title, year;
 
-    static {
+    public static synchronized void initMovieBoxSets() {
+        if (isInitialized) {
+            return;
+        }
+        isInitialized = true;
         for (String boxSet : Regex.split(338, Constant.SEPARATOR3)) {
             List<BoxSetVideo> boxSetArr = new ArrayList<BoxSetVideo>(8);
             for (String title : Regex.split(boxSet, Constant.SEPARATOR1)) {

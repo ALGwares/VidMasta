@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.05.09   | VidMasta 19.1
+
+CHANGE: CORE | Improved playback by using VLC media player
+
+
+
+
 2015.04.29   | VidMasta 19.0
 
 CHANGE: CORE | Improved play and download performance

@@ -31,8 +31,8 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     private Video video;
     private String seasonAndEpisode;
     private boolean orderByLeechers, magnetLinkOnly, ignoreYear, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch;
-    private static final int MAX_NUM_ATTEMPTS = Integer.parseInt(Str.get(176)), COUNTER1_MAX = Integer.parseInt(Str.get(168));
-    private static final int COUNTER2_MAX1 = Integer.parseInt(Str.get(170)), COUNTER2_MAX2 = Integer.parseInt(Str.get(336));
+    private final int MAX_NUM_ATTEMPTS = Integer.parseInt(Str.get(176)), COUNTER1_MAX = Integer.parseInt(Str.get(168));
+    private final int COUNTER2_MAX1 = Integer.parseInt(Str.get(170)), COUNTER2_MAX2 = Integer.parseInt(Str.get(336));
     private int attemptNum, counter1, counter2, counter2Max;
     private String categorySearch, prevUrl;
     private TorrentSearchState searchState;

@@ -16,7 +16,6 @@ public class FileTypeChecker {
 
     private String[] whitelistedFileExts, blacklistedFileExts;
     private List<String> fileExts = new ArrayList<String>(4);
-    private static final int MAX_EXT_LEN = Integer.parseInt(Str.get(499)), MAX_EXTS_LEN = Integer.parseInt(Str.get(500));
 
     public FileTypeChecker(String[] whitelistedFileExts, String[] blacklistedFileExts) {
         this.whitelistedFileExts = Arrays.copyOf(whitelistedFileExts, whitelistedFileExts.length);
@@ -77,13 +76,14 @@ public class FileTypeChecker {
 
     public String getFileExts() {
         Collections.sort(fileExts);
-        StringBuilder extensions = new StringBuilder(MAX_EXTS_LEN);
+        int maxExtLen = Integer.parseInt(Str.get(499)), maxExtsLen = Integer.parseInt(Str.get(500));
+        StringBuilder extensions = new StringBuilder(maxExtsLen);
         for (String extension : fileExts) {
-            if (extension.length() > MAX_EXT_LEN) {
+            if (extension.length() > maxExtLen) {
                 continue;
             }
             extensions.append(extension);
-            if (extensions.length() >= MAX_EXTS_LEN) {
+            if (extensions.length() >= maxExtsLen) {
                 break;
             }
         }

@@ -848,6 +848,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         if ((Calendar.getInstance().get(Calendar.YEAR) - Integer.parseInt(video.year)) > Integer.parseInt(Str.get(337))) {
+            BoxSetVideo.initMovieBoxSets();
             outer:
             for (List<BoxSetVideo> boxSet : BoxSetVideo.movieBoxSets) {
                 int numTitles = boxSet.size();

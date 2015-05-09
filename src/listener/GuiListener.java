@@ -186,6 +186,8 @@ public interface GuiListener {
 
     boolean canEmailWithDefaultApp();
 
+    boolean canPlayWithDefaultApp();
+
     boolean canIgnoreDownloadSize();
 
     void commentsFinderStarted();

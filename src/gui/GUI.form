@@ -1717,24 +1717,6 @@
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="copyMenuSeparator1">
             </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="copySummaryLinkMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Summary Link"/>
-                <Property name="enabled" type="boolean" value="false"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copySummaryLinkMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="copyTrailerLinkMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Trailer Link"/>
-                <Property name="enabled" type="boolean" value="false"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyTrailerLinkMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="copyDownloadLink1MenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Download Link 1"/>
@@ -1779,6 +1761,24 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyWatchLink2MenuItemActionPerformed"/>
               </Events>
             </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copySummaryLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Summary Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copySummaryLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="copyTrailerLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Trailer Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="copyTrailerLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="copySubtitleLinkMenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Subtitle Link"/>
@@ -1795,24 +1795,6 @@
             <Property name="text" type="java.lang.String" value="Email"/>
           </Properties>
           <SubComponents>
-            <MenuItem class="javax.swing.JMenuItem" name="emailSummaryLinkMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Summary Link"/>
-                <Property name="enabled" type="boolean" value="false"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailSummaryLinkMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="emailTrailerLinkMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Trailer Link"/>
-                <Property name="enabled" type="boolean" value="false"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailTrailerLinkMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="emailDownloadLink1MenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Download Link 1"/>
@@ -1855,6 +1837,24 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailWatchLink2MenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailSummaryLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Summary Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailSummaryLinkMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="emailTrailerLinkMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Trailer Link"/>
+                <Property name="enabled" type="boolean" value="false"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="emailTrailerLinkMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="emailMenuSeparator1">
@@ -4583,6 +4583,11 @@
                 <Property name="text" type="java.lang.String" value="Auto-Open Items"/>
               </Properties>
             </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistPlayWithDefaultAppCheckBoxMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Open Items with Default Application"/>
+              </Properties>
+            </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistShowNonVideoItemsCheckBoxMenuItem">
               <Properties>
                 <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
@@ -5423,7 +5428,7 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Play"/>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="&quot;play title in default media player (&quot; + exitBackupModeToolTip + &quot;)&quot;" type="code"/>
+          <Connection code="&quot;play title in media player (&quot; + exitBackupModeToolTip + &quot;)&quot;" type="code"/>
         </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>

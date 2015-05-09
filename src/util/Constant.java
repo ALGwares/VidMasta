@@ -14,8 +14,8 @@ public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 19.0;
-    public static final boolean CAN_PEER_BLOCK;
+    public static final double APP_VERSION = 19.1;
+    public static final boolean WINDOWS_XP_AND_HIGHER;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
     public static final String TV_SHOW = "TV Show";
@@ -40,10 +40,10 @@ public class Constant implements IOConstant {
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
     public static final String PROFILES = "profiles" + TXT;
-    public static final int UPDATE_FILE_VERSION = 62;
+    public static final int UPDATE_FILE_VERSION = 63;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
-    public static final int SETTINGS_LEN = 70;
+    public static final int SETTINGS_LEN = 71;
     public static final int SETTINGS_VERSION = 11;
     public static final String PROFILE = "profile" + SETTINGS_VERSION + "_";
     public static final String USER_SETTINGS = "userSettings" + SETTINGS_VERSION + TXT;
@@ -91,10 +91,10 @@ public class Constant implements IOConstant {
                 }
                 osVersion = 0;
             }
-            PEER_BLOCK_VERSION = ((CAN_PEER_BLOCK = osVersion > 5) ? PEER_BLOCK + '_' + (osVersion < 6 ? "xp" : "vista") + (System.getenv("ProgramFiles(X86)")
-                    == null ? "" : "_64") : null);
+            PEER_BLOCK_VERSION = ((WINDOWS_XP_AND_HIGHER = osVersion > 5) ? PEER_BLOCK + '_' + (osVersion < 6 ? "xp" : "vista") + (System.getenv(
+                    "ProgramFiles(X86)") == null ? "" : "_64") : null);
         } else {
-            CAN_PEER_BLOCK = false;
+            WINDOWS_XP_AND_HIGHER = false;
             PEER_BLOCK_VERSION = null;
         }
 

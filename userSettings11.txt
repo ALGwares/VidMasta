@@ -51,8 +51,8 @@ null
 null
 .avi:.bin:.iso:.m2ts:.mkv:.mov:.mp4:.mpeg:.mpg:.rar:.vob:.wmv
 blacklist empty
-ANY LANGUAGE
-ANY COUNTRY
+ANY
+ANY
 false
 false
 EMPTY
@@ -67,4 +67,5 @@ EMPTY
 true
 true
 true
+false
 false

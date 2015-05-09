@@ -33,7 +33,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected String currSourceCode;
     private String prevSourceCode;
     private SwingWorker<?, ?> prefetcher;
-    private static final int SLEEP = Integer.parseInt(Str.get(166));
+    private final int SLEEP = Integer.parseInt(Str.get(166));
 
     protected AbstractSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow) {
         this.guiListener = guiListener;
