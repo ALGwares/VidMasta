@@ -24,9 +24,9 @@ public abstract class AbstractColumnComparator<T extends Comparable<T>> implemen
         }
     }
 
-    protected abstract T convert(String str);
+    protected abstract T convert(String str) throws Exception;
 
-    public T getConvertedStr(String str) {
+    public T getConvertedStr(String str) throws Exception {
         T obj = convertedStrs.get(str);
         if (obj == null) {
             convertedStrs.put(str, obj = convert(str));

@@ -1,16 +1,18 @@
 package util;
 
+import i18n.I18nStr;
+
 public class ExceptionUtil {
 
     public static String toString(Exception e) {
         String msg = e.getMessage();
 
         if (e instanceof IndexOutOfBoundsException && msg != null) {
-            String[] msgParts = Regex.split(msg, ":");
+            String[] msgParts = msg.split(":");
             if (msgParts.length > 0) {
                 String index = msgParts[msgParts.length - 1].trim();
                 if (index.matches("\\d++")) {
-                    return "Index " + index + " is out of bounds";
+                    return I18nStr.str("indexOutOfBounds", index);
                 }
             }
         }
@@ -31,6 +33,11 @@ public class ExceptionUtil {
             return (Exception) cause;
         }
         return new Exception(cause);
+    }
+
+    public static RuntimeException unwrap(Exception e) {
+        Exception cause = cause(e);
+        return new RuntimeException(cause.getMessage(), cause);
     }
 
     private ExceptionUtil() {

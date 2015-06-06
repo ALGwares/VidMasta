@@ -82,21 +82,21 @@ class AppUpdater {
                 appUpdateStrs = Regex.split(Connection.getUpdateFile(Str.get(295), showConfirmation), Constant.NEWLINE);
             }
             if (!Regex.isMatch(appUpdateStrs[0], "\\d++\\.\\d++")) {
-                throw new UpdateException("invalid application update version file");
+                throw new UpdateException(Str.str("invalidAppUpdateVersionFile"));
             }
-            if (Constant.APP_VERSION < Double.parseDouble(appUpdateStrs[0])) {
-                guiListener.updateMsg("<html><head><title></title></head><body><font face=\"tahoma\" size=\"4\">A <a href=\"" + (Constant.WINDOWS
-                        ? appUpdateStrs[1] : appUpdateStrs[2]) + "\">newer version</a> (" + appUpdateStrs[0]
-                        + ") of the application is available.</font></body></html>");
+            double version = Double.parseDouble(appUpdateStrs[0]);
+            if (Constant.APP_VERSION < version) {
+                guiListener.updateMsg("<html><head><title></title></head><body><font face=\"tahoma\" size=\"4\">" + Str.htmlLinkStr("newAppVersion",
+                        Constant.WINDOWS ? appUpdateStrs[1] : appUpdateStrs[2], Str.getNumFormat().format(version)) + "</font></body></html>");
             } else if (showConfirmation) {
-                guiListener.msg("The application (version " + Constant.APP_VERSION + ") is already up to date.", Constant.INFO_MSG);
+                guiListener.msg(Str.str("appUpToDate", Str.getNumFormat().format(Constant.APP_VERSION)), Constant.INFO_MSG);
             }
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
             if (showConfirmation) {
-                guiListener.msg("There was an error checking for the newest version of the application: " + ExceptionUtil.toString(e), Constant.ERROR_MSG);
+                guiListener.msg(Str.str("appUpdateError") + ' ' + ExceptionUtil.toString(e), Constant.ERROR_MSG);
             }
         }
     }

@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.06.06   | VidMasta 19.2
+
+CHANGE: UI   | Added support for Turkish, English (already supported), Spanish, Italian, French, Dutch, and Portuguese
+CHANGE: UI   | Fixed file chooser bug that sometimes prevents manually saving a torrent or subtitle file to a folder more than once with the same name.
+CHANGE: CORE | Fixed playlist file item open failure on Windows when path length of file to open is more than 260 characters long
+
+
+
+
 2015.05.09   | VidMasta 19.1
 
 CHANGE: CORE | Improved playback by using VLC media player

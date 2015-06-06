@@ -1,6 +1,7 @@
 package util;
 
 import debug.Debug;
+import i18n.I18nStr;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
 import java.io.BufferedInputStream;
@@ -387,8 +388,7 @@ public class IO {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            throw new IOException("Manually enter the following file location into a web browser:" + IOConstant.NEWLINE2 + "file://" + filePath
-                    + IOConstant.NEWLINE);
+            throw new IOException(I18nStr.str("manuallyOpen") + IOConstant.NEWLINE2 + "file://" + filePath + IOConstant.NEWLINE);
         }
     }
 

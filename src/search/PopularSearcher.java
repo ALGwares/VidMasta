@@ -129,7 +129,7 @@ public class PopularSearcher extends AbstractSearcher {
             if (Connection.downloadLinkInfoFail() && backupMode()) {
                 return true;
             }
-            guiListener.msg(Connection.error("", "", url), Constant.ERROR_MSG);
+            guiListener.msg(Connection.error(url), Constant.ERROR_MSG);
         }
         return false;
     }
@@ -150,7 +150,7 @@ public class PopularSearcher extends AbstractSearcher {
             if (backupMode()) {
                 return;
             }
-            guiListener.msg(Connection.error(url), Constant.ERROR_MSG);
+            guiListener.msg(Connection.serverError(url), Constant.ERROR_MSG);
         }
         throw new ConnectionException();
     }

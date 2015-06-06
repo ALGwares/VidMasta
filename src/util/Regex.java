@@ -13,8 +13,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.parser.ParserDelegator;
 import str.Str;
@@ -24,7 +22,6 @@ public class Regex {
     private static final Map<String, Pattern> cache;
     public static final Map<String, String> languages, countries, subtitleLanguages;
     private static volatile Map<String, String> weirdCharReplacements, badStrReplacements;
-    public static final FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
 
     static {
         int initialCapacity = Integer.parseInt(Str.get(164));
@@ -35,9 +32,6 @@ public class Regex {
         (countries = new TreeMap<String, String>()).put(Constant.ANY, Constant.ANY);
         init(countries, 231);
         init(subtitleLanguages = new TreeMap<String, String>(), 420, Constant.SEPARATOR2, Constant.SEPARATOR1);
-        torrentFileFilter = new FileNameExtensionFilter("Torrents (*.torrent)", "torrent");
-        proxyListFileFilter = new FileNameExtensionFilter("Proxy List (*" + Constant.TXT + ")", "txt");
-        subtitleFileFilter = new FileNameExtensionFilter("Subtitle (" + Str.get(451) + ")", split(452, ","));
     }
 
     public static void initReplacements() {

@@ -3,10 +3,12 @@ package proxy;
 import debug.Debug;
 import gui.AbstractSwingWorker;
 import java.io.File;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
 import listener.GuiListener;
 import str.Str;
 import util.Connection;
@@ -48,7 +50,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            guiListener.msg("There was an error downloading the proxies.", Constant.ERROR_MSG);
+            guiListener.msg(Str.str("proxyDownloadError"), Constant.ERROR_MSG);
             return;
         }
 
@@ -66,20 +68,19 @@ public class ProxyListDownloader extends AbstractSwingWorker {
             }
         }
 
-        String msg2 = " Do you want to download them";
         if (currVersion < latestVersion) {
             try {
-                latestDate = (new SimpleDateFormat("EEE, MMM d, yyyy h:mm a zzz")).format((new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy")).parse(
-                        latestDate));
+                latestDate = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT, Str.locale()).format((new SimpleDateFormat(
+                        "EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)).parse(latestDate));
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
             }
-            if (guiListener.isConfirmed("There are more up-to-date (" + latestDate + ") proxies." + msg2 + '?')) {
+            if (guiListener.isConfirmed(Str.str("newerProxies", latestDate) + ' ' + Str.str("downloadProxies"))) {
                 addProxies(latestVersion);
             }
-        } else if (!hasLatestProxies() || guiListener.isConfirmed("You have downloaded the most up-to-date proxies before." + msg2 + " again?")) {
+        } else if (!hasLatestProxies() || guiListener.isConfirmed(Str.str("proxiesUpToDate") + ' ' + Str.str("downloadProxiesAgain"))) {
             addProxies(latestVersion);
         }
     }
@@ -133,6 +134,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
         guiListener.newProxies(proxies);
 
         int numNewProxies = proxies.size() - numOldProxies;
-        guiListener.msg(numNewProxies + " new" + (numNewProxies == 1 ? " proxy has " : " proxies have ") + "been added.", Constant.INFO_MSG);
+        guiListener.msg(numNewProxies == 0 ? Str.str("noProxiesAdded") : (numNewProxies == 1 ? Str.str("proxyAdded") : Str.str("proxiesAdded", numNewProxies)),
+                Constant.INFO_MSG);
     }
 }

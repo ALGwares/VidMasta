@@ -4,6 +4,7 @@ import debug.Debug;
 import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -202,7 +203,7 @@ public class VideoSearch {
     }
 
     public static String rating(String rating) {
-        return rating.isEmpty() ? "-" : rating;
+        return rating.isEmpty() ? Constant.NO_RATING : rating;
     }
 
     public static String getSummary(String sourceCode, boolean isTVShow) {
@@ -221,7 +222,7 @@ public class VideoSearch {
         String br1 = "<br>", br2 = br1 + br1;
         StringBuilder summary = new StringBuilder(2048);
         if (numGenres != 0) {
-            summary.append("<b>Genre: </b>").append(genresStr).append(br2);
+            summary.append("<b id=\"").append(Constant.GENRE_HTML_ID).append("\">").append(Str.str("genre")).append(" </b>").append(genresStr).append(br2);
         }
 
         String summary1 = Regex.match(sourceCode, 129);
@@ -241,16 +242,16 @@ public class VideoSearch {
             summary.append(summary1);
         } else if (!isEmpty1) {
             summary.append(summary1);
-            storyline = br2 + "<font size=\"5\"><b>Storyline:</b></font>" + br1 + summary2;
+            storyline = br2 + "<font size=\"5\"><b id=\"" + Constant.STORYLINE_HTML_ID + "\">" + Str.str("storyline") + "</b></font>" + br1 + summary2;
         } else {
             summary.append(Str.get(159));
         }
 
         List<StringBuilder> nameLists = new ArrayList<StringBuilder>(4);
-        getNames(Regex.match(sourceCode, 560), "Creator", nameLists);
-        getNames(Regex.match(sourceCode, 192), "Director", nameLists);
-        getNames(Regex.match(sourceCode, 194), "Writer", nameLists);
-        getNames(Regex.match(sourceCode, 196), "Star", nameLists);
+        getNames(Regex.match(sourceCode, 560), "creator", nameLists);
+        getNames(Regex.match(sourceCode, 192), "director", nameLists);
+        getNames(Regex.match(sourceCode, 194), "writer", nameLists);
+        getNames(Regex.match(sourceCode, 196), "star", nameLists);
         int lastIndex = nameLists.size() - 1;
         for (int i = 0; i <= lastIndex; i++) {
             if (i == 0) {
@@ -264,7 +265,9 @@ public class VideoSearch {
 
         summary.append(br2);
         if (isTVShow) {
-            summary.append(Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER).append(br1).append(Constant.TV_PREV_EPISODE_HTML_AND_PLACEHOLDER);
+            summary.append("<b id=\"").append(Constant.TV_NEXT_EPISODE_HTML_ID).append("\">").append(Str.str("nextEpisode")).append(" </b>").append(
+                    Constant.TV_EPISODE_PLACEHOLDER).append(br1).append("<b id=\"").append(Constant.TV_PREV_EPISODE_HTML_ID).append("\">").append(Str.str(
+                                    "prevEpisode")).append(" </b>").append(Constant.TV_EPISODE_PLACEHOLDER);
         } else {
             String releaseDate = Regex.replaceAll(Regex.match(sourceCode, 539), 541);
             if (Regex.isMatch(releaseDate, 543)) {
@@ -274,7 +277,7 @@ public class VideoSearch {
             } else if (releaseDate.isEmpty() || Regex.isMatch(releaseDate, 545)) {
                 releaseDate = getImdbTitleParts(sourceCode).year;
             }
-            summary.append("<b>Release Date: </b>").append(releaseDate.isEmpty() ? "unknown" : releaseDate);
+            summary.append("<b>").append(Str.str("releaseDate")).append(" </b>").append(releaseDate);
         }
 
         if (storyline != null) {
@@ -285,9 +288,7 @@ public class VideoSearch {
     }
 
     private static void getNames(String names, String type, Collection<StringBuilder> nameLists) {
-        StringBuilder nameList = new StringBuilder("<b>" + type);
         List<String> namesArr = Regex.matches(names, 198);
-
         ListIterator<String> namesIt = namesArr.listIterator();
         while (namesIt.hasNext()) {
             if (Regex.isMatch(namesIt.next(), 200)) {
@@ -300,10 +301,8 @@ public class VideoSearch {
             return;
         }
 
-        if (numNames > 1) {
-            nameList.append('s');
-        }
-        nameList.append(":</b> ");
+        StringBuilder nameList = new StringBuilder(32);
+        nameList.append("<b>").append(Str.str(type + (numNames > 1 ? "s" : ""))).append("</b> ");
 
         for (int i = 0; i < numNames; i++) {
             if (i == numNames - 2) {
@@ -324,10 +323,8 @@ public class VideoSearch {
 
     public static String dateToString(SimpleDateFormat dateFormat, String date, boolean showDay) {
         try {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(dateFormat.parse(date));
-            return (showDay ? calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.ENGLISH) + ", " : "") + calendar.getDisplayName(Calendar.MONTH,
-                    Calendar.SHORT, Locale.ENGLISH) + ' ' + (showDay ? calendar.get(Calendar.DAY_OF_MONTH) + ", " : "") + calendar.get(Calendar.YEAR);
+            return (showDay ? DateFormat.getDateInstance(DateFormat.FULL, Str.locale()) : new SimpleDateFormat("MMMM yyyy", Str.locale())).format(dateFormat.parse(
+                    date));
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -385,21 +382,21 @@ public class VideoSearch {
     public static Object[] toTableRow(GuiListener guiListener, Video video, boolean isBold) {
         String title = video.title;
         if (!video.oldTitle.isEmpty()) {
-            title += Constant.aka(video.oldTitle);
+            title += aka(video.oldTitle);
         }
         if (video.IS_TV_SHOW && !video.season.isEmpty()) {
-            title += Constant.popularEpisode(video.season, video.episode);
+            title += popularEpisode(video.season, video.episode);
         }
 
-        String year, rating, startHtml = "<html>", endHtml = "</html>";
+        String year, rating = (video.rating.equals(Constant.NO_RATING) ? video.rating : Str.getNumFormat(Constant.RATING_FORMAT).format(Double.parseDouble(
+                video.rating))), startHtml = "<html>", endHtml = "</html>";
         if (isBold) {
             startHtml += "<b>";
             endHtml = "</b>" + endHtml;
             year = startHtml + video.year + endHtml;
-            rating = startHtml + video.rating + endHtml;
+            rating = startHtml + rating + endHtml;
         } else {
             year = video.year;
-            rating = video.rating;
         }
 
         String image = imagePath(video);
@@ -436,6 +433,31 @@ public class VideoSearch {
             uploadYear = currYear - uploadYear;
         }
         return (uploadYear + maxYearsOld) < (baseYear == -1 ? currYear : baseYear);
+    }
+
+    public static String popularEpisode(String season, String episode) {
+        String popularEpisode = " (" + Str.str("popularEpisode") + ' ';
+        String rightParenthesis = ")";
+        String seasonStr;
+        String episodeStr;
+        if (season.isEmpty()) {
+            popularEpisode = Pattern.quote(popularEpisode);
+            rightParenthesis = Pattern.quote(rightParenthesis);
+            seasonStr = "\\d{2}+";
+            episodeStr = seasonStr;
+        } else {
+            seasonStr = season;
+            episodeStr = episode;
+        }
+        return popularEpisode + 'S' + seasonStr + 'E' + episodeStr + rightParenthesis;
+    }
+
+    public static String aka(String str) {
+        return " (" + Str.str("aka") + ' ' + str + ')';
+    }
+
+    public static String summaryTagRegex(String id) {
+        return "\\<\\s*+b\\s++id\\s*+\\=\\s*+\"" + id + "\"\\s*+\\>(?s).+?\\<\\s*+/b\\s*+\\>";
     }
 
     private VideoSearch() {

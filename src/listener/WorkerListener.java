@@ -2,6 +2,7 @@ package listener;
 
 import java.io.File;
 import java.util.Calendar;
+import java.util.Locale;
 
 public interface WorkerListener {
 
@@ -67,6 +68,8 @@ public interface WorkerListener {
     FormattedNum playlistItemProgress(double progress);
 
     PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion);
+
+    void changeLocale(Locale locale);
 
     void license(String activationCode, boolean check);
 }

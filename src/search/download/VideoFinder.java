@@ -54,8 +54,6 @@ public class VideoFinder extends AbstractSwingWorker {
     private TorrentSearchState searchState;
     private static volatile CommentsFinder commentsFinder;
     private static final Object tvChoicesLock = new Object();
-    private static final String BROWSE_ACTION = "started";
-    private static final String NOT_FOUND = " could not be found.";
 
     public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play) {
         this(guiListener, contentType, row, video, strExportListener, play, false);
@@ -204,32 +202,16 @@ public class VideoFinder extends AbstractSwingWorker {
         linkProgressDone();
     }
 
-    private String streamContent() {
-        String name = "video";
-        return strExportListener == null || !strExportListener.exportSecondaryContent() ? name : content(!isStream2.get(), name);
-    }
-
-    private String downloadContent(ContentType contentType) {
-        String name = "download link";
-        if (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent())) {
-            return name;
-        }
-        String content = content(isDownload1 || contentType == ContentType.DOWNLOAD3, name);
-        return PLAY ? content + " to play" : content;
-    }
-
-    private static String content(boolean first, String name) {
-        return (first ? "first" : "second") + ' ' + name;
-    }
-
-    private void msg(String msg, boolean isTorrentSearch) {
-        if (isTorrentSearch) {
-            guiListener.enableTorrentSearchStop(false);
-        } else {
+    private void msg(ContentType contentType) {
+        if (contentType == null) {
             guiListener.enableStreamSearchStop(false);
+        } else {
+            guiListener.enableTorrentSearchStop(false);
         }
         linkProgressDone();
-        guiListener.msg("The " + msg + NOT_FOUND, Constant.INFO_MSG);
+        guiListener.msg(Str.str((contentType == null ? "watch" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? ""
+                : (!isStream2.get() ? "1" : "2")) : "download" + (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent()) ? ""
+                        : ((isDownload1 || contentType == ContentType.DOWNLOAD3 ? "1" : "2") + (PLAY ? "Play" : "")))) + "LinkNotFound"), Constant.INFO_MSG);
     }
 
     private void error(Exception e) {
@@ -245,7 +227,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
         guiListener.enableStreamSearchStop(false);
         linkProgressDone();
-        guiListener.browserNotification("video", BROWSE_ACTION, DomainType.VIDEO_STREAMER);
+        guiListener.browserNotification(DomainType.VIDEO_STREAMER);
         Connection.browse(url);
     }
 
@@ -345,7 +327,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (torrent == null) {
-                    msg(downloadContent(contentType), true);
+                    msg(contentType);
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
@@ -420,29 +402,29 @@ public class VideoFinder extends AbstractSwingWorker {
                         return;
                     }
                     imagePath = null;
-                    guiListener.msg("Error: cannot display video's poster image." + Constant.NEWLINE + ExceptionUtil.toString(e), Constant.ERROR_MSG);
+                    guiListener.msg(Str.str("posterDisplayError") + Constant.NEWLINE + ExceptionUtil.toString(e), Constant.ERROR_MSG);
                 }
             }
         }
 
         guiListener.summary(video.summary, imagePath);
-        if (video.IS_TV_SHOW && video.summary.contains(Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER)) {
+        if (video.IS_TV_SHOW && video.summary.contains("</b>" + Constant.TV_EPISODE_PLACEHOLDER)) {
             (episodeFinder = new EpisodeFinder(guiListener, ROW, video)).execute();
         }
     }
 
     private void browseDownloadURL(String url) throws IOException {
         startPeerBlock();
-        guiListener.browserNotification("download", BROWSE_ACTION, DomainType.DOWNLOAD_LINK_INFO);
+        guiListener.browserNotification(DomainType.DOWNLOAD_LINK_INFO);
         Connection.browse(url);
     }
 
     private static void browseMagnetLink(Torrent torrent) throws IOException {
-        Connection.browse(torrent.MAGNET_LINK, "a BitTorrent client", "magnet");
+        Connection.browse(torrent.MAGNET_LINK, "bitTorrentClient");
     }
 
     private void torrentDownloadError(Torrent torrent) {
-        guiListener.error(new ConnectionException(Connection.error("downloading " + torrent.saveName(false), "", null)));
+        guiListener.error(new ConnectionException(Str.str("downloadingProblem", torrent.saveName(false)) + ' ' + Str.str("connectionSolution")));
     }
 
     private void saveTorrent(Torrent torrent) throws Exception {
@@ -551,7 +533,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void findOldTitleStream() throws Exception {
         if (findOldTitleStream.get()) {
-            msg(streamContent(), false);
+            msg(null);
             return;
         }
 
@@ -562,7 +544,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         if (oldTitle == null) {
-            msg(streamContent(), false);
+            msg(null);
         } else {
             findStream();
         }
@@ -698,7 +680,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         if (link == null) {
-            guiListener.msg("A trailer" + NOT_FOUND, Constant.INFO_MSG);
+            guiListener.msg(Str.str("trailerNotFound"), Constant.INFO_MSG);
         } else {
             if (Debug.DEBUG) {
                 Debug.println("Trailer: '" + link + '\'');
@@ -707,7 +689,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 export = link;
                 return;
             }
-            guiListener.browserNotification("trailer", BROWSE_ACTION, DomainType.TRAILER);
+            guiListener.browserNotification(DomainType.TRAILER);
             Connection.browse(link);
         }
     }
@@ -944,9 +926,10 @@ public class VideoFinder extends AbstractSwingWorker {
                     endHtml = "</b>" + endHtml;
                 }
                 displayTitle = displayTitle.substring(beginIndex, displayTitle.length() - endOffSet);
-                String extraTitleInfo = Regex.firstMatch(displayTitle, Constant.TV_EPISODE_REGEX);
-                displayTitle = Regex.replaceFirst(displayTitle, Constant.TV_EPISODE_REGEX, "") + Constant.aka(video.oldTitle) + (extraTitleInfo.isEmpty() ? ""
-                        : ' ' + extraTitleInfo);
+                String popularEpisode = VideoSearch.popularEpisode("", "");
+                String extraTitleInfo = Regex.firstMatch(displayTitle, popularEpisode);
+                displayTitle = Regex.replaceFirst(displayTitle, popularEpisode, "") + VideoSearch.aka(video.oldTitle) + (extraTitleInfo.isEmpty() ? "" : ' '
+                        + extraTitleInfo);
                 guiListener.setTitle(startHtml + displayTitle + endHtml, ROW, video.ID);
             }
         }
@@ -1024,6 +1007,6 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     public static String getComments() {
-        return commentsFinder == null || commentsFinder.comments == null ? CommentsFinder.NO_COMMENTS : commentsFinder.comments;
+        return commentsFinder == null || commentsFinder.comments == null ? Str.str("noComments") + Constant.STD_NEWLINE2 : commentsFinder.comments;
     }
 }

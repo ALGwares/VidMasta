@@ -6,6 +6,8 @@ import gui.AbstractSwingWorker;
 import gui.GUI;
 import gui.SplashScreen;
 import gui.UI;
+import i18n.I18n;
+import i18n.I18nStr;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Rectangle;
@@ -21,6 +23,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Future;
@@ -38,7 +41,6 @@ import search.PopularSearcher;
 import search.RegularSearcher;
 import search.SubtitleFinder;
 import search.SummaryReader;
-import search.download.CommentsFinder;
 import search.download.Prefetcher;
 import search.download.VideoFinder;
 import str.Str;
@@ -49,6 +51,7 @@ import util.ExceptionUtil;
 import util.IO;
 import util.ModClass;
 import util.RunnableUtil.AbstractWorker;
+import util.VideoPlayer;
 
 public class Main implements WorkerListener {
 
@@ -70,6 +73,8 @@ public class Main implements WorkerListener {
 
     static {
         suppressStdOutput();
+        I18n.setLocale(new Locale("en", "US"));
+        I18nStr.localeChanged();
         Str.init(new StrUpdater());
         setLookAndFeel();
         singleInstance();
@@ -89,6 +94,9 @@ public class Main implements WorkerListener {
         try {
             initialize();
         } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
             JOptionPane.showMessageDialog(null, ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
             IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
             System.exit(-1);
@@ -176,6 +184,7 @@ public class Main implements WorkerListener {
         }).start();
 
         Magnet.initIpFilter();
+        VideoPlayer.install();
     }
 
     private static void singleInstance() {
@@ -349,7 +358,7 @@ public class Main implements WorkerListener {
 
     @Override
     public String getSafetyComments() {
-        return torrentFinder == null ? CommentsFinder.NO_COMMENTS : VideoFinder.getComments();
+        return VideoFinder.getComments();
     }
 
     @Override
@@ -440,8 +449,6 @@ public class Main implements WorkerListener {
 
     @Override
     public void initPlaylist() throws Exception {
-        Magnet.startAzureus(gui);
-        Magnet.waitForAzureusToStart();
     }
 
     @Override
@@ -461,6 +468,13 @@ public class Main implements WorkerListener {
     @Override
     public PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion) {
         return null;
+    }
+
+    @Override
+    public synchronized void changeLocale(Locale locale) {
+        I18n.setLocale(locale);
+        I18nStr.localeChanged();
+        Magnet.localeChanged();
     }
 
     @Override

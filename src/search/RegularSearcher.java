@@ -167,7 +167,7 @@ public class RegularSearcher extends AbstractSearcher {
 
     @Override
     protected boolean connectionException(String url, ConnectionException e) {
-        guiListener.msg(e instanceof ProxyException ? e.getMessage() : Connection.error("", "", url), Constant.ERROR_MSG);
+        guiListener.msg(e instanceof ProxyException ? e.getMessage() : Connection.error(url), Constant.ERROR_MSG);
         return false;
     }
 
@@ -177,9 +177,9 @@ public class RegularSearcher extends AbstractSearcher {
             Connection.removeFromCache(url);
             if (!isCancelled()) {
                 if (isInitialSearchSuccessful) {
-                    throw new ConnectionException(Connection.error(url));
+                    throw new ConnectionException(Connection.serverError(url));
                 } else {
-                    guiListener.msg(Connection.error(url), Constant.ERROR_MSG);
+                    guiListener.msg(Connection.serverError(url), Constant.ERROR_MSG);
                 }
             }
             throw new ConnectionException();
@@ -219,7 +219,7 @@ public class RegularSearcher extends AbstractSearcher {
             }
             return true;
         }
-        if (!minRating.equals(Constant.ANY) && (video.rating.equals("-") || Double.parseDouble(video.rating) < Double.parseDouble(minRating))) {
+        if (!minRating.equals(Constant.ANY) && (video.rating.equals(Constant.NO_RATING) || Double.parseDouble(video.rating) < Double.parseDouble(minRating))) {
             if (Debug.DEBUG) {
                 Debug.println("video (" + video.title + ", " + video.year + ") rating is bad!");
             }

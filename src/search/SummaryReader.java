@@ -70,11 +70,11 @@ public class SummaryReader extends AbstractSwingWorker {
             return;
         }
 
-        String br1 = "<br>", br2 = br1 + "\\s*+" + br1;
-        String newSummary = Regex.match(video.summary, "Storyline:", br2);
+        String br1 = "\\<br\\>", br2 = br1 + "\\s*+" + br1;
+        String newSummary = Regex.match(video.summary, VideoSearch.summaryTagRegex(Constant.STORYLINE_HTML_ID), br2);
         if (newSummary.isEmpty()) {
-            newSummary = Regex.firstMatch(video.summary, "Genre:").isEmpty() ? Regex.match(video.summary, "<font[^>]++>", br2) : Regex.match(video.summary, br2,
-                    br2);
+            newSummary = Regex.firstMatch(video.summary, VideoSearch.summaryTagRegex(Constant.GENRE_HTML_ID)).isEmpty() ? Regex.match(video.summary,
+                    "\\<font[^\\>]++\\>", br2) : Regex.match(video.summary, br2, br2);
         } else {
             newSummary = Regex.match(newSummary, br1, "\\z");
         }
@@ -133,7 +133,7 @@ public class SummaryReader extends AbstractSwingWorker {
     }
 
     private void browse(File swfPage) throws Exception {
-        guiListener.browserNotification("summary", "read to you", DomainType.VIDEO_INFO);
+        guiListener.browserNotification(DomainType.VIDEO_INFO);
         IO.browse(swfPage);
     }
 
@@ -157,7 +157,7 @@ public class SummaryReader extends AbstractSwingWorker {
 
                 if (!Regex.firstMatch(source, 485).isEmpty()) {
                     Connection.removeFromCache(url);
-                    throw new ConnectionException(Connection.error(url));
+                    throw new ConnectionException(Connection.serverError(url));
                 }
 
                 if (failure.get()) {

@@ -58,7 +58,7 @@ public interface GuiListener {
 
     void insertAfterSummaryElement(Element element, String text);
 
-    void browserNotification(String item, String action, DomainType domainType);
+    void browserNotification(DomainType domainType);
 
     void startPeerBlock();
 
@@ -120,7 +120,7 @@ public interface GuiListener {
 
     String getPlaylistSaveDir();
 
-    void playlistError(String msg, boolean html);
+    void playlistError(String msg);
 
     void refreshPlaylistControls();
 

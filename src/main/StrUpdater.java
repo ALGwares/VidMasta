@@ -1,6 +1,7 @@
 package main;
 
 import debug.Debug;
+import i18n.I18nStr;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -109,17 +110,17 @@ public class StrUpdater implements StrUpdateListener {
                 initStrs();
                 Regex.initReplacements();
                 if (showConfirmation) {
-                    guiListener.msg("The application's search engine has been updated to version " + newVersion + ".", Constant.INFO_MSG);
+                    guiListener.msg(I18nStr.str("searchEngineUpdated", newVersion), Constant.INFO_MSG);
                 }
             } else if (showConfirmation) {
-                guiListener.msg("The application's search engine (version " + currVersion + ") is already up to date.", Constant.INFO_MSG);
+                guiListener.msg(I18nStr.str("searchEngineUpToDate", currVersion), Constant.INFO_MSG);
             }
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
             if (showConfirmation) {
-                guiListener.msg("There was an error updating the application's search engine: " + ExceptionUtil.toString(e), Constant.ERROR_MSG);
+                guiListener.msg(I18nStr.str("searchEngineUpdateError") + ' ' + ExceptionUtil.toString(e), Constant.ERROR_MSG);
             } else {
                 Connection.updateError(e);
             }

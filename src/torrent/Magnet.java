@@ -10,10 +10,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
@@ -24,11 +24,13 @@ import java.util.regex.Pattern;
 import javax.swing.SwingWorker;
 import listener.GuiListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.impl.IpFilterImpl;
 import org.gudy.azureus2.core3.ipfilter.impl.IpRangeImpl;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -46,7 +48,7 @@ public class Magnet extends Thread {
 
     private static final Object saveTorrentLock = new Object(), azureusConfigLock = new Object();
     private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
-    private static boolean isAzureusConfigured;
+    private static final AtomicBoolean isAzureusConfigured = new AtomicBoolean();
     private static volatile AzureusCore core;
     public final String MAGNET_LINK;
     public final File TORRENT;
@@ -76,11 +78,9 @@ public class Magnet extends Thread {
         for (int i = guiListener.getDownloadLinkTimeout(); i > 0; i--) {
             try {
                 if (isDHTConnecting()) {
-                    Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file...it may take many seconds"
-                            + ipBlockMsg);
+                    Connection.setStatusBar(Str.str("connecting2") + Str.str("connecting3") + ipBlockMsg);
                 } else {
-                    Connection.setStatusBar(Constant.TRANSFERRING + "torrent network to convert magnet link to torrent file...it may take a few seconds"
-                            + ipBlockMsg);
+                    Connection.setStatusBar(Str.str("transferring2") + Str.str("connecting3") + ipBlockMsg);
                 }
                 join(1000);
                 if ((!isDoneDownloading.get() && torrentExists()) || isDoneSaving.get() || !isAlive() || parent.isCancelled()) {
@@ -174,7 +174,7 @@ public class Magnet extends Thread {
 
     private static void configAzureus() {
         synchronized (azureusConfigLock) {
-            if (isAzureusConfigured) {
+            if (isAzureusConfigured.get()) {
                 return;
             }
 
@@ -209,7 +209,9 @@ public class Magnet extends Thread {
             COConfigurationManager.setParameter("network.transport.encrypted.fallback.incoming", true);
             COConfigurationManager.setParameter("network.transport.encrypted.use.crypto.port", false);
 
-            isAzureusConfigured = true;
+            changeLocale();
+
+            isAzureusConfigured.set(true);
         }
     }
 
@@ -218,7 +220,7 @@ public class Magnet extends Thread {
             return;
         }
 
-        Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file");
+        Connection.setStatusBar(Str.str("connecting4"));
 
         try {
             configAzureus();
@@ -240,7 +242,7 @@ public class Magnet extends Thread {
                 }
             }
 
-            Connection.setStatusBar(Constant.CONNECTING + "torrent network to convert magnet link to torrent file" + ipBlockMsg);
+            Connection.setStatusBar(Str.str("connecting4") + ipBlockMsg);
 
             if (Debug.DEBUG) {
                 AZInstance instance = core.getInstanceManager().getMyInstance();
@@ -338,6 +340,28 @@ public class Magnet extends Thread {
         COConfigurationManager.setParameter("UDP.NonData.Listen.Port.Same", true);
     }
 
+    public static void localeChanged() {
+        if (isAzureusConfigured.get()) {
+            changeLocale();
+        }
+    }
+
+    private static void changeLocale() {
+        Locale defaultLocale = Locale.getDefault();
+        try {
+            COConfigurationManager.setParameter("locale", ("en".equals(defaultLocale.getLanguage()) ? Locale.ENGLISH : defaultLocale).toString());
+            MessageText.loadBundle();
+            DisplayFormatters.setUnits();
+            DisplayFormatters.loadMessages();
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        } finally {
+            Locale.setDefault(defaultLocale);
+        }
+    }
+
     private static synchronized boolean isDHTConnecting() {
         if (core == null) {
             return false;
@@ -370,8 +394,8 @@ public class Magnet extends Thread {
 
     private static void setIpBlockMsg(IpFilter ipFilter) {
         long numBlockedIps;
-        ipBlockMsg = (ipFilter != null && (numBlockedIps = ipFilter.getTotalAddressesInRange()) > 0 ? " (blocking "
-                + (new DecimalFormat("#,###")).format(numBlockedIps) + " untrusty IPs with " + Constant.IP_FILTER + ")" : "");
+        ipBlockMsg = (ipFilter != null && (numBlockedIps = ipFilter.getTotalAddressesInRange()) > 0 ? ' ' + Str.str("ipFiltering", Str.getNumFormat(
+                "#,###").format(numBlockedIps)) : "");
     }
 
     private static class IpFilterInitializer extends Thread {

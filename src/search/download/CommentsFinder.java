@@ -1,6 +1,5 @@
 package search.download;
 
-import java.text.DecimalFormat;
 import java.util.Collection;
 import javax.swing.SwingWorker;
 import listener.DomainType;
@@ -14,7 +13,6 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
 
     private GuiListener guiListener;
     private String link, name;
-    public static final String NO_COMMENTS = "There are no comments." + Constant.STD_NEWLINE2;
     volatile String comments;
 
     CommentsFinder(GuiListener guiListener, String link, String name) {
@@ -32,7 +30,7 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
             Collection<String> commentsArr = Regex.matches(commentsStr, 151);
             int numComments = commentsArr.size();
             int numFakeComments = 0;
-            String percentage = Str.get(160);
+            double fakeCommentsRatio = 0;
 
             if (numComments != 0) {
                 int number = 0;
@@ -43,12 +41,12 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
                         numFakeComments++;
                     }
                 }
-                percentage = (new DecimalFormat(Str.get(154))).format((numFakeComments / (double) numComments) * 100);
+                fakeCommentsRatio = numFakeComments / (double) numComments;
             }
 
             if (!isCancelled() && numComments != 0) {
                 comments = commentsBuf.toString();
-                guiListener.safetyDialogMsg(numFakeComments + Str.get(155) + numComments + Str.get(156) + percentage + Str.get(157), link, name);
+                guiListener.safetyDialogMsg(numFakeComments + "/" + numComments + " (" + Str.percent(fakeCommentsRatio, 1) + ')', link, name);
             }
         } catch (Exception e) {
             if (!isCancelled()) {

@@ -2,8 +2,8 @@ package listener;
 
 public enum ContentType {
 
-    SUMMARY(""), DOWNLOAD1("Download"), DOWNLOAD2("Download"), DOWNLOAD3("Download"), STREAM1("Stream"), STREAM2("Stream"), TRAILER("Trailer"), TITLE("Summary"),
-    SUBTITLE("Subtitle"), IMAGE("Image");
+    SUMMARY(""), DOWNLOAD1("download"), DOWNLOAD2("download"), DOWNLOAD3("download"), STREAM1("stream"), STREAM2("stream"), TRAILER("trailer"), TITLE("summary"),
+    SUBTITLE("subtitle"), IMAGE("image");
     private String name;
 
     ContentType(String name) {

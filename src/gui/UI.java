@@ -4,6 +4,7 @@ import debug.Debug;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -32,13 +33,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultRowSorter;
 import javax.swing.Icon;
@@ -50,6 +56,7 @@ import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
@@ -67,6 +74,7 @@ import javax.swing.text.html.HTML.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import str.Str;
 import util.Constant;
+import util.ExceptionUtil;
 
 public class UI {
 
@@ -140,11 +148,11 @@ public class UI {
         return true;
     }
 
-    public static String[] copy(Object[] array) {
-        return Arrays.copyOf(array, array.length, String[].class);
+    public static String[] copy(Object[] objs) {
+        return Arrays.copyOf(objs, objs.length, String[].class);
     }
 
-    public static String[] copy(JList list) {
+    public static String[] selectAnyIfNoSelectionAndCopy(JList list) {
         if (list.isSelectionEmpty()) {
             list.setSelectedValue(Constant.ANY, true);
         }
@@ -205,8 +213,7 @@ public class UI {
 
         ListModel listModel = list.getModel();
         for (int i = 0; i < selection.length; i++) {
-            String currStr = (String) listModel.getElementAt(selection[i]);
-            if (currStr.equals(Constant.ANY)) {
+            if (Constant.ANY.equals(listModel.getElementAt(selection[i]))) {
                 int[] newSelection = new int[selection.length - 1];
 
                 int k = 0, j = 0;
@@ -464,14 +471,13 @@ public class UI {
         return null;
     }
 
-    public static void addMinimizeToTraySupport(final JFrame frame) {
+    public static TrayIcon addMinimizeToTraySupport(final JFrame frame) {
         Component iconify;
         if (!SystemTray.isSupported() || (iconify = getIconifyComponent(frame)) == null) {
-            return;
+            return null;
         }
 
-        String title = trayIconTitle(frame);
-        final TrayIcon trayIcon = new TrayIcon(frame.getIconImage(), title);
+        final TrayIcon trayIcon = new TrayIcon(frame.getIconImage());
         final ActionListener openActionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
@@ -487,12 +493,12 @@ public class UI {
             }
         });
 
-        MenuItem menuItem = new MenuItem("Open " + title);
+        MenuItem menuItem = new MenuItem();
         menuItem.addActionListener(openActionListener);
         PopupMenu trayPopupMenu = new PopupMenu();
         trayPopupMenu.add(menuItem);
         trayPopupMenu.addSeparator();
-        (menuItem = new MenuItem("Exit")).addActionListener(new ActionListener() {
+        (menuItem = new MenuItem()).addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
                 try {
@@ -507,6 +513,7 @@ public class UI {
         });
         trayPopupMenu.add(menuItem);
         trayIcon.setPopupMenu(trayPopupMenu);
+        updateTrayIconLabels(trayIcon, frame);
 
         iconify.addMouseListener(new MouseAdapter() {
             @Override
@@ -523,11 +530,21 @@ public class UI {
                 }
             }
         });
+
+        return trayIcon;
     }
 
     private static String trayIconTitle(Frame frame) {
         String title = frame.getTitle();
-        return Constant.APP_TITLE.equals(title) ? title : Constant.APP_TITLE + ' ' + title.toLowerCase(Locale.ENGLISH);
+        return Constant.APP_TITLE.equals(title) ? title : Constant.APP_TITLE + ' ' + title.toLowerCase(Str.locale());
+    }
+
+    public static void updateTrayIconLabels(TrayIcon trayIcon, Frame frame) {
+        String title = trayIconTitle(frame);
+        trayIcon.setToolTip(title);
+        PopupMenu popupMenu = trayIcon.getPopupMenu();
+        popupMenu.getItem(0).setLabel(Str.str("openWindow", title));
+        popupMenu.getItem(2).setLabel(Str.str("GUI.exitMenuItem.text"));
     }
 
     public static TrayIcon trayIcon(Frame frame) {
@@ -553,6 +570,116 @@ public class UI {
     public static String displayableStr(Component component, String str, String defaultStr) {
         Font font = component.getFont();
         return font != null && font.canDisplayUpTo(str) == -1 ? str : defaultStr;
+    }
+
+    public static void select(JList list, Object[] vals) {
+        int[] selection = new int[vals.length];
+        ListModel listModel = list.getModel();
+
+        for (int i = 0, j = 0, size = listModel.getSize(); i < size; i++) {
+            Object element = listModel.getElementAt(i);
+            for (Object val : vals) {
+                if (val.equals(element)) {
+                    selection[j++] = i;
+                    break;
+                }
+            }
+        }
+
+        list.setSelectedIndices(selection);
+        list.ensureIndexIsVisible(list.getSelectedIndex());
+        list.repaint();
+    }
+
+    public static void add(ButtonGroup buttonGroup, AbstractButton... buttons) {
+        for (AbstractButton button : buttons) {
+            buttonGroup.add(button);
+        }
+    }
+
+    public static void setVal(JProgressBar progressBar, int val) {
+        progressBar.setValue(val);
+        progressBar.setString(Str.percent(val / (double) progressBar.getMaximum(), 0));
+    }
+
+    public static String[] items(int min, int max, int increment, boolean pad, String head, String tail) {
+        List<String> items = new ArrayList<String>(102);
+        if (head != null) {
+            items.add(head);
+        }
+        for (int i = min; i <= max; i += increment) {
+            items.add(pad && i < 10 ? "0" + i : String.valueOf(i));
+        }
+        if (tail != null) {
+            items.add(tail);
+        }
+        return items.toArray(Constant.EMPTY_STRS);
+    }
+
+    public static void init(JComboBox comboBox, String... model) {
+        comboBox.setRenderer(new Renderer(comboBox.getRenderer(), model));
+        comboBox.setModel(new DefaultComboBoxModel(model));
+    }
+
+    public static void init(JList list, String... model) {
+        list.setCellRenderer(new Renderer(list.getCellRenderer(), model));
+        list.setListData(model);
+    }
+
+    public static void update(JComboBox comboBox, boolean sort, String... view) {
+        Object item = comboBox.getSelectedItem();
+        comboBox.setModel(new DefaultComboBoxModel(((Renderer) comboBox.getRenderer()).setView(sort, view)));
+        comboBox.setSelectedItem(item);
+    }
+
+    public static void update(JList list, boolean sort, String... view) {
+        Object[] vals = list.getSelectedValues();
+        list.setListData(((Renderer) list.getCellRenderer()).setView(sort, view));
+        select(list, vals);
+    }
+
+    public static String about() {
+        return "<html><head></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Constant.APP_TITLE + "<br><br>" + Str.str("version") + ' '
+                + Str.getNumFormat().format(Constant.APP_VERSION) + "<br><br>" + Str.str("createdBy") + "</font></td></tr></table></body></html>";
+    }
+
+    public static void run(boolean wait, Runnable runnable) {
+        try {
+            if (EventQueue.isDispatchThread()) {
+                runnable.run();
+            } else if (wait) {
+                EventQueue.invokeAndWait(runnable);
+            } else {
+                EventQueue.invokeLater(runnable);
+            }
+        } catch (InvocationTargetException e) {
+            throw ExceptionUtil.unwrap(e);
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
+    }
+
+    public static <T> T run(Callable<T> callable) {
+        try {
+            if (EventQueue.isDispatchThread()) {
+                return callable.call();
+            } else {
+                FutureTask<T> task = new FutureTask<T>(callable);
+                EventQueue.invokeAndWait(task);
+                return task.get();
+            }
+        } catch (ExecutionException e) {
+            throw ExceptionUtil.unwrap(e);
+        } catch (InvocationTargetException e) {
+            throw ExceptionUtil.unwrap(e);
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+            return null;
+        }
     }
 
     private UI() {

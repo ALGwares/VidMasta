@@ -121,7 +121,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
             if (!prefetch && !isCancelled2()) {
                 Connection.failDownloadLinkInfo();
             }
-            throw new ConnectionException(Connection.error(urlForm));
+            throw new ConnectionException(Connection.serverError(urlForm));
         }
 
         if (isCancelled()) {

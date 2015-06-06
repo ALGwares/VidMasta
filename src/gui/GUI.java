@@ -19,6 +19,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,6 +36,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -47,12 +49,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.prefs.Preferences;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -99,7 +105,6 @@ import javax.swing.JTextPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ListModel;
 import javax.swing.RootPaneContainer;
 import javax.swing.RowFilter;
 import javax.swing.RowFilter.Entry;
@@ -119,6 +124,8 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.RootPaneUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -153,10 +160,13 @@ import util.WindowsUtil;
 public class GUI extends JFrame implements GuiListener {
 
     private static final long serialVersionUID = 1L;
+    private static final Preferences preferences = Preferences.userNodeForPackage(GUI.class);
+
     private WorkerListener workerListener;
     private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, exitBackupMode, forcePlay;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
+    private FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
     DefaultListModel blacklistListModel, whitelistListModel;
     private DefaultListModel removeProxiesListModel;
@@ -165,8 +175,6 @@ public class GUI extends JFrame implements GuiListener {
             seasonCol, episodeCol;
     int playlistNameCol, playlistSizeCol, playlistProgressCol, playlistItemCol;
     String randomPort;
-    private static final String HQ_FORMAT = "high/TV+ quality ";
-    private static final String CTRL_CLICK = KeyEvent.getKeyModifiersText(KeyEvent.CTRL_MASK).toLowerCase(Locale.ENGLISH) + "+click to ";
     private String subtitleFormat;
     private Video subtitleVideo;
     private VideoStrExportListener subtitleStrExportListener;
@@ -185,9 +193,8 @@ public class GUI extends JFrame implements GuiListener {
     final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
     final BlockingQueue<String> posterImagePaths = new LinkedBlockingQueue<String>();
     private Thread posterCacher;
-    private final JCalendar startCalendar = new JCalendar(null, Locale.ENGLISH, true, true);
-    private final JCalendar endCalendar = new JCalendar(null, Locale.ENGLISH, true, true);
     private JTextFieldDateEditor startDateTextField, endDateTextField;
+    private TrayIcon trayIcon, playlistTrayIcon;
     boolean usePeerBlock;
     private volatile Thread timedMsgThread;
     final Object timedMsgLock = new Object();
@@ -205,6 +212,7 @@ public class GUI extends JFrame implements GuiListener {
         splashScreen.progress();
 
         initComponents();
+        initFileNameExtensionFilters();
 
         dummyComboBox.setEditable(true);
 
@@ -234,7 +242,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistScrollBar.setUnitIncrement(increment);
         playlistScrollBar.setBlockIncrement(increment);
 
-        for (JCalendar calendar : new JCalendar[]{startCalendar, endCalendar}) {
+        for (JCalendar calendar : new JCalendar[]{startDateChooser.getJCalendar(), endDateChooser.getJCalendar()}) {
             calendar.setTodayButtonVisible(true);
             calendar.setNullDateButtonVisible(true);
         }
@@ -336,9 +344,9 @@ public class GUI extends JFrame implements GuiListener {
 
         TableColumnModel colModel = resultsTable.getColumnModel();
         imageCol = colModel.getColumnIndex(Constant.IMAGE_COL);
-        titleCol = colModel.getColumnIndex(Constant.TITLE_COL);
-        yearCol = colModel.getColumnIndex(Constant.YEAR_COL);
-        ratingCol = colModel.getColumnIndex(Constant.RATING_COL);
+        titleCol = colModel.getColumnIndex(Str.str("GUI.resultsTable.columnModel.title1"));
+        yearCol = colModel.getColumnIndex(Str.str("GUI.resultsTable.columnModel.title2"));
+        ratingCol = colModel.getColumnIndex(Str.str("GUI.resultsTable.columnModel.title3"));
         idCol = colModel.getColumnIndex(Constant.ID_COL);
         currTitleCol = colModel.getColumnIndex(Constant.CURR_TITLE_COL);
         oldTitleCol = colModel.getColumnIndex(Constant.OLD_TITLE_COL);
@@ -355,9 +363,9 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         TableColumnModel playlistColModel = playlistTable.getColumnModel();
-        playlistNameCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_NAME_COL);
-        playlistSizeCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_SIZE_COL);
-        playlistProgressCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_PROGRESS_COL);
+        playlistNameCol = playlistColModel.getColumnIndex(Str.str("GUI.playlistTable.columnModel.title0"));
+        playlistSizeCol = playlistColModel.getColumnIndex(Str.str("GUI.playlistTable.columnModel.title1"));
+        playlistProgressCol = playlistColModel.getColumnIndex(Str.str("GUI.playlistTable.columnModel.title2"));
         playlistItemCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_ITEM_COL);
         playlistTable.removeColumn(playlistTable.getColumn(Constant.PLAYLIST_ITEM_COL));
 
@@ -434,9 +442,9 @@ public class GUI extends JFrame implements GuiListener {
         });
         rowSorter.setComparator(ratingCol, new AbstractColumnComparator<Float>() {
             @Override
-            protected Float convert(String rating) {
+            protected Float convert(String rating) throws Exception {
                 String tempRating = UI.innerHTML(rating);
-                return tempRating.equals("-") ? 0.0f : Float.parseFloat(tempRating);
+                return tempRating.equals(Constant.NO_RATING) ? 0.0f : Str.getNumFormat().parse(tempRating).floatValue();
             }
         });
 
@@ -462,8 +470,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        autoDownloadersButtonGroup.add(defaultRadioButtonMenuItem);
-        autoDownloadersButtonGroup.add(customRadioButtonMenuItem);
+        UI.add(autoDownloadersButtonGroup, defaultRadioButtonMenuItem, customRadioButtonMenuItem);
 
         loadingIcon = UI.icon("loading.gif");
         notLoadingIcon = UI.icon("notLoading.gif");
@@ -483,47 +490,30 @@ public class GUI extends JFrame implements GuiListener {
         UI.setIcon(playlistMoveUpButton, "up");
         UI.setIcon(playlistMoveDownButton, "down");
         UI.setIcon(playlistRemoveButton, "remove");
+        UI.setIcon(whitelistedToBlacklistedButton, "rightArrow");
+        UI.setIcon(blacklistedToWhitelistedButton, "leftArrow");
 
         splashScreen.progress();
 
-        List<String> genreArr = new ArrayList<String>(32);
-        genreArr.add(Constant.ANY);
-        Collections.addAll(genreArr, Regex.split(359, Constant.SEPARATOR1));
-        genreList.setListData(genreArr.toArray());
-        genreList.setSelectedValue(Constant.ANY, true);
-
-        ratingComboBox.addItem(Constant.ANY);
-        for (String rating : Regex.split(360, Constant.SEPARATOR1)) {
-            ratingComboBox.addItem(rating);
-        }
-        ratingComboBox.setSelectedItem(Constant.ANY);
-
-        splashScreen.progress();
-
-        if (new File(Constant.APP_DIR + Constant.PROXIES).exists()) {
-            proxyComboBox.removeAllItems();
-            proxyComboBox.addItem(Constant.NO_PROXY);
-            for (String proxy : Regex.split(IO.read(Constant.APP_DIR + Constant.PROXIES), Constant.NEWLINE)) {
+        File proxies = new File(Constant.APP_DIR + Constant.PROXIES);
+        if (proxies.exists()) {
+            for (String proxy : Regex.split(IO.read(proxies), Constant.NEWLINE)) {
                 String newProxy = proxy.trim();
                 if (!newProxy.isEmpty()) {
                     proxyComboBox.addItem(newProxy);
                 }
             }
-            proxyComboBox.setSelectedItem(Constant.NO_PROXY);
         }
 
         splashScreen.progress();
 
-        profileComboBox.addItem(Constant.DEFAULT_PROFILE);
-        String[] profiles = Regex.split(IO.read(Constant.APP_DIR + Constant.PROFILES), Constant.NEWLINE);
-        if (profiles.length != 9) {
-            profiles = Regex.split(IO.read(Constant.PROGRAM_DIR + Constant.PROFILES), Constant.NEWLINE);
+        for (int i = 0; i < 10; i++) {
+            String profile = "GUI.profile" + i + "MenuItem.text";
+            profileComboBox.addItem(i == 0 ? Str.str(profile) : preferences.get(profile, Str.str(profile)));
+            updateProfileGUIitems(i);
         }
-        for (int i = 0; i < profiles.length; i++) {
-            profileComboBox.addItem(profiles[i]);
-            updateProfileGUIitems(i + 1);
-        }
-        profileComboBox.setSelectedItem(Constant.DEFAULT_PROFILE);
+        profileComboBox.setSelectedIndex(0);
+
         faqEditorPane.setText(Regex.replaceFirst(IO.read(Constant.PROGRAM_DIR + "FAQ" + Constant.HTML), "<br><br><br>", Str.get(555) + "<br><br><br>"));
 
         splashScreen.progress();
@@ -533,18 +523,21 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        updatedTVComboBoxes();
-
-        for (String language : Regex.subtitleLanguages.keySet()) {
-            tvSubtitleLanguageComboBox.addItem(language);
-            movieSubtitleLanguageComboBox.addItem(language);
-        }
-
-        languageList.setListData(Regex.languages.keySet().toArray());
-        countryList.setListData(Regex.countries.keySet().toArray());
-
         UI.initCountComboBoxes(414, 502, regularResultsPerSearchComboBox);
         UI.initCountComboBoxes(412, 413, popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox);
+
+        splashScreen.progress();
+
+        AbstractButton[] languageButtons = languageButtons();
+        UI.add(languageButtonGroup, languageButtons);
+        for (final AbstractButton languageButton : languageButtons) {
+            languageButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent evt) {
+                    changeLocale(languageButton.getName());
+                }
+            });
+        }
 
         splashScreen.progress();
 
@@ -581,8 +574,8 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         try {
-            UI.addMinimizeToTraySupport(this);
-            UI.addMinimizeToTraySupport(playlistFrame);
+            trayIcon = UI.addMinimizeToTraySupport(this);
+            playlistTrayIcon = UI.addMinimizeToTraySupport(playlistFrame);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -595,16 +588,15 @@ public class GUI extends JFrame implements GuiListener {
             peerBlockMenuItem = peerBlockNotificationCheckBoxMenuItem;
             playDefaultAppMenuItem = playlistPlayWithDefaultAppCheckBoxMenuItem;
         } else {
-            String toolTip = "only available for Windows XP and higher";
             peerBlockMenuItem = new JMenuItem();
             peerBlockNotificationCheckBoxMenuItem.setEnabled(false);
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
-            peerBlockNotificationCheckBoxMenuItem.setToolTipText(toolTip);
+            peerBlockNotificationCheckBoxMenuItem.setToolTipText(Str.str("windowsXPOrHigherNeeded"));
             usePeerBlock = false;
             playDefaultAppMenuItem = new JMenuItem();
             playlistPlayWithDefaultAppCheckBoxMenuItem.setEnabled(false);
             playlistPlayWithDefaultAppCheckBoxMenuItem.setSelected(true);
-            playlistPlayWithDefaultAppCheckBoxMenuItem.setToolTipText(toolTip);
+            playlistPlayWithDefaultAppCheckBoxMenuItem.setToolTipText(Str.str("windowsXPOrHigherNeeded"));
         }
         settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS);
         playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
@@ -658,8 +650,14 @@ public class GUI extends JFrame implements GuiListener {
         isTVShowSearch = false;
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) popularMoviesResultsPerSearchComboBox.getSelectedItem());
-        String[] languages = UI.copy(languageList), countries = UI.copy(countryList);
+        String[] languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries = UI.selectAnyIfNoSelectionAndCopy(countryList);
         workerListener.popularSearchStarted(numResultsPerSearch, isTVShowSearch, languages, countries, true, !isStartUp);
+    }
+
+    private void initFileNameExtensionFilters() {
+        torrentFileFilter = new FileNameExtensionFilter(Str.str("torrents") + " (*.torrent)", "torrent");
+        proxyListFileFilter = new FileNameExtensionFilter(Str.str("proxyList") + " (*" + Constant.TXT + ")", "txt");
+        subtitleFileFilter = new FileNameExtensionFilter(Str.str("subtitle2") + " (" + Str.get(451) + ")", Regex.split(452, ","));
     }
 
     @SuppressWarnings("unchecked")
@@ -729,12 +727,12 @@ public class GUI extends JFrame implements GuiListener {
         languageCountryDialog = new JDialog();
         countryLabel = new JLabel();
         languageLabel = new JLabel();
-        langaugeCountryOkButton = new JButton();
+        languageCountryOkButton = new JButton();
         languageScrollPane = new JScrollPane();
         languageList = new JList();
         countryScrollPane = new JScrollPane();
         countryList = new JList();
-        languageCountryWarningLabel = new JLabel();
+        languageCountryWarningTextArea = new JTextArea();
         tablePopupMenu = new JPopupMenu();
         readSummaryMenuItem = new JMenuItem();
         watchTrailerMenuItem = new JMenuItem();
@@ -910,6 +908,7 @@ public class GUI extends JFrame implements GuiListener {
         activationTextField = new JTextField();
         activationButton = new JButton();
         activationLoadingLabel = new JLabel();
+        languageButtonGroup = new ButtonGroup();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -948,8 +947,8 @@ public class GUI extends JFrame implements GuiListener {
         watchSource2Button = new JButton();
         statusBarTextField = new JTextField();
         connectionIssueButton = new JButton();
-        startDateChooser = new JDateChooser(startCalendar, null, null, null);
-        endDateChooser = new JDateChooser(endCalendar, null, null, null);
+        startDateChooser = new JDateChooser(new JCalendar(null, null, true, true), null, null, null);
+        endDateChooser = new JDateChooser(new JCalendar(null, null, true, true), null, null, null);
         findTextField = new JTextField();
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
@@ -980,6 +979,15 @@ public class GUI extends JFrame implements GuiListener {
         editMenuSeparator2 = new Separator();
         findMenuItem = new JMenuItem();
         viewMenu = new JMenu();
+        languageMenu = new JMenu();
+        englishRadioButtonMenuItem = new JRadioButtonMenuItem();
+        spanishRadioButtonMenuItem = new JRadioButtonMenuItem();
+        frenchRadioButtonMenuItem = new JRadioButtonMenuItem();
+        italianRadioButtonMenuItem = new JRadioButtonMenuItem();
+        dutchRadioButtonMenuItem = new JRadioButtonMenuItem();
+        portugueseRadioButtonMenuItem = new JRadioButtonMenuItem();
+        turkishRadioButtonMenuItem = new JRadioButtonMenuItem();
+        viewMenuSeparator1 = new Separator();
         resetWindowMenuItem = new JMenuItem();
         searchMenu = new JMenu();
         resultsPerSearchMenuItem = new JMenuItem();
@@ -1027,21 +1035,22 @@ public class GUI extends JFrame implements GuiListener {
         aboutMenuItem = new JMenuItem();
         splashScreen.progress();
 
-        safetyDialog.setTitle("Warning: Untrustworthy Source");
+        ResourceBundle bundle = ResourceBundle.getBundle("i18n/Bundle"); // NOI18N
+        safetyDialog.setTitle(bundle.getString("GUI.safetyDialog.title")); // NOI18N
         safetyDialog.setAlwaysOnTop(true);
         safetyDialog.setIconImage(null);
         safetyDialog.setModalityType(ModalityType.APPLICATION_MODAL);
 
-        yesButton.setText("Yes");
-        yesButton.setToolTipText("proceed");
+        yesButton.setText(bundle.getString("GUI.yesButton.text")); // NOI18N
+        yesButton.setToolTipText(bundle.getString("GUI.yesButton.toolTipText")); // NOI18N
         yesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 yesButtonActionPerformed(evt);
             }
         });
 
-        noButton.setText("No");
-        noButton.setToolTipText("do not proceed");
+        noButton.setText(bundle.getString("GUI.noButton.text")); // NOI18N
+        noButton.setToolTipText(bundle.getString("GUI.noButton.toolTipText")); // NOI18N
         noButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 noButtonActionPerformed(evt);
@@ -1096,7 +1105,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        summaryDialog.setTitle("Title Summary");
+        summaryDialog.setTitle(bundle.getString("GUI.summaryDialog.title")); // NOI18N
         summaryDialog.setAlwaysOnTop(true);
         summaryDialog.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent evt) {
@@ -1104,7 +1113,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        summaryCloseButton.setText("Close");
+        summaryCloseButton.setText(bundle.getString("GUI.summaryCloseButton.text")); // NOI18N
         summaryCloseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 summaryCloseButtonActionPerformed(evt);
@@ -1123,7 +1132,7 @@ public class GUI extends JFrame implements GuiListener {
         summaryScrollPane.setViewportView(summaryEditorPane);
 
         summaryTextToSpeechButton.setText(null);
-        summaryTextToSpeechButton.setToolTipText("hear summary");
+        summaryTextToSpeechButton.setToolTipText(bundle.getString("GUI.summaryTextToSpeechButton.toolTipText")); // NOI18N
         summaryTextToSpeechButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 summaryTextToSpeechButtonActionPerformed(evt);
@@ -1138,12 +1147,12 @@ public class GUI extends JFrame implements GuiListener {
             .addGroup(summaryDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(summaryDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(summaryScrollPane, GroupLayout.DEFAULT_SIZE, 589, Short.MAX_VALUE)
+                    .addComponent(summaryScrollPane, GroupLayout.DEFAULT_SIZE, 631, Short.MAX_VALUE)
                     .addGroup(summaryDialogLayout.createSequentialGroup()
                         .addComponent(summaryTextToSpeechButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 143, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.RELATED, 164, Short.MAX_VALUE)
                         .addComponent(summaryCloseButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 143, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.RELATED, 164, Short.MAX_VALUE)
                         .addComponent(summaryLoadingLabel)))
                 .addContainerGap())
         );
@@ -1167,7 +1176,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        faqFrame.setTitle("FAQ");
+        faqFrame.setTitle(bundle.getString("GUI.faqFrame.title")); // NOI18N
         faqFrame.setAlwaysOnTop(true);
         faqFrame.setIconImage(null);
 
@@ -1195,7 +1204,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        aboutDialog.setTitle("About");
+        aboutDialog.setTitle(bundle.getString("GUI.aboutDialog.title")); // NOI18N
         aboutDialog.setAlwaysOnTop(true);
 
         aboutScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -1203,7 +1212,7 @@ public class GUI extends JFrame implements GuiListener {
 
         aboutEditorPane.setEditable(false);
         aboutEditorPane.setContentType("text/html"); // NOI18N
-        aboutEditorPane.setText("<html><head></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Constant.APP_TITLE + "<br><br>Version " + Constant.APP_VERSION + "<br><br>Created by Anthony Gray</font></td></tr></table></body></html>");
+        aboutEditorPane.setText(UI.about());
         aboutScrollPane.setViewportView(aboutEditorPane);
 
         GroupLayout aboutDialogLayout = new GroupLayout(aboutDialog.getContentPane());
@@ -1217,31 +1226,27 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        timeoutDialog.setTitle("Connection Timeout");
+        timeoutDialog.setTitle(bundle.getString("GUI.timeoutDialog.title")); // NOI18N
         timeoutDialog.setAlwaysOnTop(true);
         timeoutDialog.setModal(true);
         timeoutDialog.setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
 
-        timeoutLabel.setText("Connection Timeout (Seconds):");
-        timeoutLabel.setToolTipText("set the connection timeout that the application uses when connecting to websites");
+        timeoutLabel.setText(bundle.getString("GUI.timeoutLabel.text")); // NOI18N
+        timeoutLabel.setToolTipText(bundle.getString("GUI.timeoutLabel.toolTipText")); // NOI18N
 
-        timeoutComboBox.setModel(new DefaultComboBoxModel(new String[] { "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95", "100", "105", "110", "115", "120", "125", "130", "135", "140", "145", "150", "155", "160", "165", "170", "175", "180" }));
-        timeoutComboBox.setSelectedIndex(2);
-        timeoutComboBox.setSelectedItem("15");
+        timeoutComboBox.setModel(new DefaultComboBoxModel(UI.items(5, 180, 5, false, null, null)));
 
-        timeoutButton.setText("OK");
+        timeoutButton.setText(bundle.getString("GUI.timeoutButton.text")); // NOI18N
         timeoutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 timeoutButtonActionPerformed(evt);
             }
         });
 
-        timeoutDownloadLinkLabel.setText("Download Link Timeout (Seconds):");
-        timeoutDownloadLinkLabel.setToolTipText("set the timeout that the application uses when downloading download links");
+        timeoutDownloadLinkLabel.setText(bundle.getString("GUI.timeoutDownloadLinkLabel.text")); // NOI18N
+        timeoutDownloadLinkLabel.setToolTipText(bundle.getString("GUI.timeoutDownloadLinkLabel.toolTipText")); // NOI18N
 
-        timeoutDownloadLinkComboBox.setModel(new DefaultComboBoxModel(new String[] { "0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95", "100", "105", "110", "115", "120", "125", "130", "135", "140", "145", "150", "155", "160", "165", "170", "175", "180" }));
-        timeoutDownloadLinkComboBox.setSelectedIndex(18);
-        timeoutDownloadLinkComboBox.setSelectedItem("90");
+        timeoutDownloadLinkComboBox.setModel(new DefaultComboBoxModel(UI.items(0, 180, 5, false, null, null)));
 
         GroupLayout timeoutDialogLayout = new GroupLayout(timeoutDialog.getContentPane());
         timeoutDialog.getContentPane().setLayout(timeoutDialogLayout);
@@ -1286,41 +1291,42 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        tvDialog.setTitle("Season and Episode");
+        tvDialog.setTitle(bundle.getString("GUI.tvDialog.title")); // NOI18N
         tvDialog.setModal(true);
 
-        tvSeasonComboBox.setModel(new DefaultComboBoxModel(new String[] { "ANY", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100" }));
+        UI.init(tvSeasonComboBox, UI.items(1, 100, 1, true, Str.str("any"), null));
         tvSeasonComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvSeasonComboBoxActionPerformed(evt);
             }
         });
 
-        tvEpisodeComboBox.setModel(new DefaultComboBoxModel(new String[] { "ANY", "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111", "112", "113", "114", "115", "116", "117", "118", "119", "120", "121", "122", "123", "124", "125", "126", "127", "128", "129", "130", "131", "132", "133", "134", "135", "136", "137", "138", "139", "140", "141", "142", "143", "144", "145", "146", "147", "148", "149", "150", "151", "152", "153", "154", "155", "156", "157", "158", "159", "160", "161", "162", "163", "164", "165", "166", "167", "168", "169", "170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184", "185", "186", "187", "188", "189", "190", "191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "220", "221", "222", "223", "224", "225", "226", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "239", "240", "241", "242", "243", "244", "245", "246", "247", "248", "249", "250", "251", "252", "253", "254", "255", "256", "257", "258", "259", "260", "261", "262", "263", "264", "265", "266", "267", "268", "269", "270", "271", "272", "273", "274", "275", "276", "277", "278", "279", "280", "281", "282", "283", "284", "285", "286", "287", "288", "289", "290", "291", "292", "293", "294", "295", "296", "297", "298", "299", "300" }));
+        UI.init(tvEpisodeComboBox, UI.items(0, 300, 1, true, Str.str("any"), null));
         tvEpisodeComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvEpisodeComboBoxActionPerformed(evt);
             }
         });
+        updateTVComboBoxes();
 
-        tvSubmitButton.setText("Submit");
-        tvSubmitButton.setToolTipText("submit");
+        tvSubmitButton.setText(bundle.getString("GUI.tvSubmitButton.text")); // NOI18N
+        tvSubmitButton.setToolTipText(bundle.getString("GUI.tvSubmitButton.toolTipText")); // NOI18N
         tvSubmitButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvSubmitButtonActionPerformed(evt);
             }
         });
 
-        tvSelectionLabel.setText("Enter the season and episode of the television show:");
+        tvSelectionLabel.setText(bundle.getString("GUI.tvSelectionLabel.text")); // NOI18N
 
-        seasonLabel.setText("Season:");
-        seasonLabel.setToolTipText("select a season");
+        seasonLabel.setText(bundle.getString("GUI.seasonLabel.text")); // NOI18N
+        seasonLabel.setToolTipText(bundle.getString("GUI.seasonLabel.toolTipText")); // NOI18N
 
-        episodeLabel.setText("Episode:");
-        episodeLabel.setToolTipText("select an episode");
+        episodeLabel.setText(bundle.getString("GUI.episodeLabel.text")); // NOI18N
+        episodeLabel.setToolTipText(bundle.getString("GUI.episodeLabel.toolTipText")); // NOI18N
 
-        tvCancelButton.setText("Cancel");
-        tvCancelButton.setToolTipText("cancel");
+        tvCancelButton.setText(bundle.getString("GUI.tvCancelButton.text")); // NOI18N
+        tvCancelButton.setToolTipText(bundle.getString("GUI.tvCancelButton.toolTipText")); // NOI18N
         tvCancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvCancelButtonActionPerformed(evt);
@@ -1374,25 +1380,25 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        resultsPerSearchDialog.setTitle("Number of Results Per Search");
+        resultsPerSearchDialog.setTitle(bundle.getString("GUI.resultsPerSearchDialog.title")); // NOI18N
         resultsPerSearchDialog.setAlwaysOnTop(true);
         resultsPerSearchDialog.setModal(true);
 
-        regularResultsPerSearchLabel.setText("Regular Search:");
-        regularResultsPerSearchLabel.setToolTipText("set the number of results to display per search");
+        regularResultsPerSearchLabel.setText(bundle.getString("GUI.regularResultsPerSearchLabel.text")); // NOI18N
+        regularResultsPerSearchLabel.setToolTipText(bundle.getString("GUI.regularResultsPerSearchLabel.toolTipText")); // NOI18N
 
-        resultsPerSearchButton.setText("OK");
+        resultsPerSearchButton.setText(bundle.getString("GUI.resultsPerSearchButton.text")); // NOI18N
         resultsPerSearchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 resultsPerSearchButtonActionPerformed(evt);
             }
         });
 
-        popularMoviesResultsPerSearchLabel.setText("Popular Movies Search:");
-        popularMoviesResultsPerSearchLabel.setToolTipText("set the number of results to display per search for \"Popular Movies\"");
+        popularMoviesResultsPerSearchLabel.setText(bundle.getString("GUI.popularMoviesResultsPerSearchLabel.text")); // NOI18N
+        popularMoviesResultsPerSearchLabel.setToolTipText(bundle.getString("GUI.popularMoviesResultsPerSearchLabel.toolTipText")); // NOI18N
 
-        popularTVShowsResultsPerSearchLabel.setText("Popular TV Shows Search:");
-        popularTVShowsResultsPerSearchLabel.setToolTipText("set the number of results to display per search for \"Popular TV Shows\"");
+        popularTVShowsResultsPerSearchLabel.setText(bundle.getString("GUI.popularTVShowsResultsPerSearchLabel.text")); // NOI18N
+        popularTVShowsResultsPerSearchLabel.setToolTipText(bundle.getString("GUI.popularTVShowsResultsPerSearchLabel.toolTipText")); // NOI18N
 
         GroupLayout resultsPerSearchDialogLayout = new GroupLayout(resultsPerSearchDialog.getContentPane());
         resultsPerSearchDialog.getContentPane().setLayout(resultsPerSearchDialogLayout);
@@ -1445,32 +1451,30 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        downloadSizeDialog.setTitle("Download Size");
+        downloadSizeDialog.setTitle(bundle.getString("GUI.downloadSizeDialog.title")); // NOI18N
         downloadSizeDialog.setAlwaysOnTop(true);
         downloadSizeDialog.setModal(true);
 
-        downloadSizeLabel.setText("Download Size (GB):");
-        downloadSizeLabel.setToolTipText("set the size of a video file that can be downloaded");
+        downloadSizeLabel.setText(bundle.getString("GUI.downloadSizeLabel.text")); // NOI18N
+        downloadSizeLabel.setToolTipText(bundle.getString("GUI.downloadSizeLabel.toolTipText")); // NOI18N
 
-        maxDownloadSizeComboBox.setModel(new DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100", Constant.INFINITY }));
-        maxDownloadSizeComboBox.setSelectedItem(Constant.INFINITY);
+        UI.init(maxDownloadSizeComboBox, UI.items(1, 100, 1, false, null, Str.str("infinity")));
         maxDownloadSizeComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 maxDownloadSizeComboBoxActionPerformed(evt);
             }
         });
 
-        downloadSizeToLabel.setText("to");
+        downloadSizeToLabel.setText(bundle.getString("GUI.downloadSizeToLabel.text")); // NOI18N
 
-        minDownloadSizeComboBox.setModel(new DefaultComboBoxModel(new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100" }));
-        minDownloadSizeComboBox.setSelectedItem("0");
+        minDownloadSizeComboBox.setModel(new DefaultComboBoxModel(UI.items(0, 100, 1, false, null, null)));
         minDownloadSizeComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 minDownloadSizeComboBoxActionPerformed(evt);
             }
         });
 
-        downloadSizeButton.setText("OK");
+        downloadSizeButton.setText(bundle.getString("GUI.downloadSizeButton.text")); // NOI18N
         downloadSizeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 downloadSizeButtonActionPerformed(evt);
@@ -1478,7 +1482,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         downloadSizeIgnoreCheckBox.setSelected(true);
-        downloadSizeIgnoreCheckBox.setText("Ignore size if a video is found within a video box set");
+        downloadSizeIgnoreCheckBox.setText(bundle.getString("GUI.downloadSizeIgnoreCheckBox.text")); // NOI18N
         downloadSizeIgnoreCheckBox.setBorder(null);
         downloadSizeIgnoreCheckBox.setFocusPainted(false);
         downloadSizeIgnoreCheckBox.setMargin(new Insets(2, 0, 2, 2));
@@ -1523,7 +1527,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        extensionsDialog.setTitle("Video File Extensions");
+        extensionsDialog.setTitle(bundle.getString("GUI.extensionsDialog.title")); // NOI18N
         extensionsDialog.setAlwaysOnTop(true);
         extensionsDialog.setModal(true);
 
@@ -1536,7 +1540,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         blacklistedScrollPane.setViewportView(blacklistedList);
 
-        blacklistedLabel.setText("Blacklisted Extensions");
+        blacklistedLabel.setText(bundle.getString("GUI.blacklistedLabel.text")); // NOI18N
 
         whitelistedScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -1547,27 +1551,29 @@ public class GUI extends JFrame implements GuiListener {
         });
         whitelistedScrollPane.setViewportView(whitelistedList);
 
-        whitelistedToBlacklistedButton.setText("->");
-        whitelistedToBlacklistedButton.setToolTipText("move from whitelist to blacklist");
+        whitelistedToBlacklistedButton.setText(null);
+        whitelistedToBlacklistedButton.setToolTipText(bundle.getString("GUI.whitelistedToBlacklistedButton.toolTipText")); // NOI18N
+        whitelistedToBlacklistedButton.setMargin(new Insets(0, 0, 0, 0));
         whitelistedToBlacklistedButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 whitelistedToBlacklistedButtonActionPerformed(evt);
             }
         });
 
-        blacklistedToWhitelistedButton.setText("<-");
-        blacklistedToWhitelistedButton.setToolTipText("move from blacklist to whitelist");
+        blacklistedToWhitelistedButton.setText(null);
+        blacklistedToWhitelistedButton.setToolTipText(bundle.getString("GUI.blacklistedToWhitelistedButton.toolTipText")); // NOI18N
+        blacklistedToWhitelistedButton.setMargin(new Insets(0, 0, 0, 0));
         blacklistedToWhitelistedButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 blacklistedToWhitelistedButtonActionPerformed(evt);
             }
         });
 
-        whitelistLabel.setText("Whitelisted Extensions");
+        whitelistLabel.setText(bundle.getString("GUI.whitelistLabel.text")); // NOI18N
 
-        fileExtensionsLabel.setText("Set the video file extensions to download.");
+        fileExtensionsLabel.setText(bundle.getString("GUI.fileExtensionsLabel.text")); // NOI18N
 
-        extensionsButton.setText("OK");
+        extensionsButton.setText(bundle.getString("GUI.extensionsButton.text")); // NOI18N
         extensionsButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 extensionsButtonActionPerformed(evt);
@@ -1607,7 +1613,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addGap(18, 18, 18)
                         .addGroup(extensionsDialogLayout.createParallelGroup(Alignment.TRAILING)
                             .addComponent(blacklistedLabel, Alignment.LEADING)
-                            .addComponent(blacklistedScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 108, Short.MAX_VALUE)
+                            .addComponent(blacklistedScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 110, Short.MAX_VALUE)
                             .addComponent(trashCanButton)))
                     .addComponent(fileExtensionsLabel))
                 .addContainerGap())
@@ -1645,21 +1651,22 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        languageCountryDialog.setTitle("Language/Country");
+        languageCountryDialog.setTitle(bundle.getString("GUI.languageCountryDialog.title")); // NOI18N
         languageCountryDialog.setAlwaysOnTop(true);
         languageCountryDialog.setModal(true);
 
-        countryLabel.setText("Country:");
+        countryLabel.setText(bundle.getString("GUI.countryLabel.text")); // NOI18N
 
-        languageLabel.setText("Language:");
+        languageLabel.setText(bundle.getString("GUI.languageLabel.text")); // NOI18N
 
-        langaugeCountryOkButton.setText("OK");
-        langaugeCountryOkButton.addActionListener(new ActionListener() {
+        languageCountryOkButton.setText(bundle.getString("GUI.languageCountryOkButton.text")); // NOI18N
+        languageCountryOkButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                langaugeCountryOkButtonActionPerformed(evt);
+                languageCountryOkButtonActionPerformed(evt);
             }
         });
 
+        UI.init(languageList, Regex.languages.keySet().toArray(Constant.EMPTY_STRS));
         languageList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
                 languageListValueChanged(evt);
@@ -1667,6 +1674,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         languageScrollPane.setViewportView(languageList);
 
+        UI.init(countryList, Regex.countries.keySet().toArray(Constant.EMPTY_STRS));
         countryList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
                 countryListValueChanged(evt);
@@ -1674,7 +1682,12 @@ public class GUI extends JFrame implements GuiListener {
         });
         countryScrollPane.setViewportView(countryList);
 
-        languageCountryWarningLabel.setText("<html>Changing these settings may cause a significant slowdown of<br>\"Popular Movies\" and \"Popular TV Shows\" searches.</html>");
+        languageCountryWarningTextArea.setEditable(false);
+        languageCountryWarningTextArea.setLineWrap(true);
+        languageCountryWarningTextArea.setText(bundle.getString("GUI.languageCountryWarningTextArea.text")); // NOI18N
+        languageCountryWarningTextArea.setWrapStyleWord(true);
+        languageCountryWarningTextArea.setMinimumSize(new Dimension(300, 0));
+        languageCountryWarningTextArea.setOpaque(false);
 
         GroupLayout languageCountryDialogLayout = new GroupLayout(languageCountryDialog.getContentPane());
         languageCountryDialog.getContentPane().setLayout(languageCountryDialogLayout);
@@ -1682,38 +1695,41 @@ public class GUI extends JFrame implements GuiListener {
             .addGroup(languageCountryDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(languageCountryWarningLabel)
-                    .addComponent(langaugeCountryOkButton, Alignment.CENTER)
+                    .addComponent(languageCountryOkButton, Alignment.CENTER)
+                    .addComponent(languageCountryWarningTextArea, Alignment.CENTER, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(Alignment.CENTER, languageCountryDialogLayout.createSequentialGroup()
                         .addGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
-                            .addComponent(languageScrollPane, GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
+                            .addComponent(languageScrollPane, GroupLayout.PREFERRED_SIZE, 145, GroupLayout.PREFERRED_SIZE)
                             .addComponent(languageLabel))
                         .addGap(18, 18, 18)
                         .addGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
                             .addComponent(countryLabel)
-                            .addComponent(countryScrollPane, GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))))
+                            .addComponent(countryScrollPane, GroupLayout.PREFERRED_SIZE, 137, GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
+
+        languageCountryDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {countryScrollPane, languageScrollPane});
+
         languageCountryDialogLayout.setVerticalGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(languageCountryDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(languageCountryWarningLabel)
-                .addPreferredGap(ComponentPlacement.UNRELATED)
+                .addComponent(languageCountryWarningTextArea, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(languageCountryDialogLayout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(countryLabel, GroupLayout.PREFERRED_SIZE, 14, GroupLayout.PREFERRED_SIZE)
                     .addComponent(languageLabel))
                 .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(languageCountryDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(countryScrollPane, GroupLayout.PREFERRED_SIZE, 159, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(languageScrollPane, GroupLayout.PREFERRED_SIZE, 159, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(countryScrollPane, GroupLayout.DEFAULT_SIZE, 303, Short.MAX_VALUE)
+                    .addComponent(languageScrollPane, GroupLayout.DEFAULT_SIZE, 303, Short.MAX_VALUE))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addComponent(langaugeCountryOkButton, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+                .addComponent(languageCountryOkButton, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
         splashScreen.progress();
 
-        readSummaryMenuItem.setText("Read Summary");
+        readSummaryMenuItem.setText(bundle.getString("GUI.readSummaryMenuItem.text")); // NOI18N
         readSummaryMenuItem.setEnabled(false);
         readSummaryMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1722,7 +1738,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(readSummaryMenuItem);
 
-        watchTrailerMenuItem.setText("Watch Trailer");
+        watchTrailerMenuItem.setText(bundle.getString("GUI.watchTrailerMenuItem.text")); // NOI18N
         watchTrailerMenuItem.setEnabled(false);
         watchTrailerMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1731,9 +1747,8 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(watchTrailerMenuItem);
 
-        String exitBackupModeToolTip = CTRL_CLICK + "exit backup mode";
-        playMenuItem.setText("Play");
-        playMenuItem.setToolTipText(exitBackupModeToolTip);
+        playMenuItem.setText(bundle.getString("GUI.playMenuItem.text")); // NOI18N
+        playMenuItem.setToolTipText(bundle.getString("GUI.playMenuItem.toolTipText")); // NOI18N
         playMenuItem.setEnabled(false);
         playMenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1747,8 +1762,8 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(playMenuItem);
 
-        downloadLink1MenuItem.setText("Download (Link 1)");
-        downloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
+        downloadLink1MenuItem.setText(bundle.getString("GUI.downloadLink1MenuItem.text")); // NOI18N
+        downloadLink1MenuItem.setToolTipText(bundle.getString("GUI.downloadLink1MenuItem.toolTipText")); // NOI18N
         downloadLink1MenuItem.setEnabled(false);
         downloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1762,8 +1777,8 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(downloadLink1MenuItem);
 
-        downloadLink2MenuItem.setText("Download (Link 2)");
-        downloadLink2MenuItem.setToolTipText(exitBackupModeToolTip);
+        downloadLink2MenuItem.setText(bundle.getString("GUI.downloadLink2MenuItem.text")); // NOI18N
+        downloadLink2MenuItem.setToolTipText(bundle.getString("GUI.downloadLink2MenuItem.toolTipText")); // NOI18N
         downloadLink2MenuItem.setEnabled(false);
         downloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1777,7 +1792,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(downloadLink2MenuItem);
 
-        watchSource1MenuItem.setText("Watch (Source 1)");
+        watchSource1MenuItem.setText(bundle.getString("GUI.watchSource1MenuItem.text")); // NOI18N
         watchSource1MenuItem.setEnabled(false);
         watchSource1MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1786,7 +1801,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(watchSource1MenuItem);
 
-        watchSource2MenuItem.setText("Watch (Source 2)");
+        watchSource2MenuItem.setText(bundle.getString("GUI.watchSource2MenuItem.text")); // NOI18N
         watchSource2MenuItem.setEnabled(false);
         watchSource2MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1796,9 +1811,9 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(watchSource2MenuItem);
         tablePopupMenu.add(tablePopupMenuSeparator1);
 
-        copyMenu.setText("Copy");
+        copyMenu.setText(bundle.getString("GUI.copyMenu.text")); // NOI18N
 
-        copySelectionMenuItem.setText("Selection");
+        copySelectionMenuItem.setText(bundle.getString("GUI.copySelectionMenuItem.text")); // NOI18N
         copySelectionMenuItem.setEnabled(false);
         copySelectionMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1807,8 +1822,8 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copySelectionMenuItem);
 
-        copyFullTitleAndYearMenuItem.setText("Title & Year");
-        copyFullTitleAndYearMenuItem.setToolTipText("includes title alias if found");
+        copyFullTitleAndYearMenuItem.setText(bundle.getString("GUI.copyFullTitleAndYearMenuItem.text")); // NOI18N
+        copyFullTitleAndYearMenuItem.setToolTipText(bundle.getString("GUI.copyFullTitleAndYearMenuItem.toolTipText")); // NOI18N
         copyFullTitleAndYearMenuItem.setEnabled(false);
         copyFullTitleAndYearMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1817,7 +1832,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyFullTitleAndYearMenuItem);
 
-        copyPosterImageMenuItem.setText("Image");
+        copyPosterImageMenuItem.setText(bundle.getString("GUI.copyPosterImageMenuItem.text")); // NOI18N
         copyPosterImageMenuItem.setEnabled(false);
         copyPosterImageMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1827,8 +1842,8 @@ public class GUI extends JFrame implements GuiListener {
         copyMenu.add(copyPosterImageMenuItem);
         copyMenu.add(copyMenuSeparator1);
 
-        copyDownloadLink1MenuItem.setText("Download Link 1");
-        copyDownloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
+        copyDownloadLink1MenuItem.setText(bundle.getString("GUI.copyDownloadLink1MenuItem.text")); // NOI18N
+        copyDownloadLink1MenuItem.setToolTipText(bundle.getString("GUI.copyDownloadLink1MenuItem.toolTipText")); // NOI18N
         copyDownloadLink1MenuItem.setEnabled(false);
         copyDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1842,8 +1857,8 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyDownloadLink1MenuItem);
 
-        copyDownloadLink2MenuItem.setText("Download Link 2");
-        copyDownloadLink2MenuItem.setToolTipText(exitBackupModeToolTip);
+        copyDownloadLink2MenuItem.setText(bundle.getString("GUI.copyDownloadLink2MenuItem.text")); // NOI18N
+        copyDownloadLink2MenuItem.setToolTipText(bundle.getString("GUI.copyDownloadLink2MenuItem.toolTipText")); // NOI18N
         copyDownloadLink2MenuItem.setEnabled(false);
         copyDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1857,7 +1872,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyDownloadLink2MenuItem);
 
-        copyWatchLink1MenuItem.setText("Watch Link 1");
+        copyWatchLink1MenuItem.setText(bundle.getString("GUI.copyWatchLink1MenuItem.text")); // NOI18N
         copyWatchLink1MenuItem.setEnabled(false);
         copyWatchLink1MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1866,7 +1881,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyWatchLink1MenuItem);
 
-        copyWatchLink2MenuItem.setText("Watch Link 2");
+        copyWatchLink2MenuItem.setText(bundle.getString("GUI.copyWatchLink2MenuItem.text")); // NOI18N
         copyWatchLink2MenuItem.setEnabled(false);
         copyWatchLink2MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1875,7 +1890,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyWatchLink2MenuItem);
 
-        copySummaryLinkMenuItem.setText("Summary Link");
+        copySummaryLinkMenuItem.setText(bundle.getString("GUI.copySummaryLinkMenuItem.text")); // NOI18N
         copySummaryLinkMenuItem.setEnabled(false);
         copySummaryLinkMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1884,7 +1899,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copySummaryLinkMenuItem);
 
-        copyTrailerLinkMenuItem.setText("Trailer Link");
+        copyTrailerLinkMenuItem.setText(bundle.getString("GUI.copyTrailerLinkMenuItem.text")); // NOI18N
         copyTrailerLinkMenuItem.setEnabled(false);
         copyTrailerLinkMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1893,7 +1908,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyTrailerLinkMenuItem);
 
-        copySubtitleLinkMenuItem.setText("Subtitle Link");
+        copySubtitleLinkMenuItem.setText(bundle.getString("GUI.copySubtitleLinkMenuItem.text")); // NOI18N
         copySubtitleLinkMenuItem.setEnabled(false);
         copySubtitleLinkMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1904,10 +1919,10 @@ public class GUI extends JFrame implements GuiListener {
 
         tablePopupMenu.add(copyMenu);
 
-        emailMenu.setText("Email");
+        emailMenu.setText(bundle.getString("GUI.emailMenu.text")); // NOI18N
 
-        emailDownloadLink1MenuItem.setText("Download Link 1");
-        emailDownloadLink1MenuItem.setToolTipText(exitBackupModeToolTip);
+        emailDownloadLink1MenuItem.setText(bundle.getString("GUI.emailDownloadLink1MenuItem.text")); // NOI18N
+        emailDownloadLink1MenuItem.setToolTipText(bundle.getString("GUI.emailDownloadLink1MenuItem.toolTipText")); // NOI18N
         emailDownloadLink1MenuItem.setEnabled(false);
         emailDownloadLink1MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1921,8 +1936,8 @@ public class GUI extends JFrame implements GuiListener {
         });
         emailMenu.add(emailDownloadLink1MenuItem);
 
-        emailDownloadLink2MenuItem.setText("Download Link 2");
-        emailDownloadLink2MenuItem.setToolTipText(exitBackupModeToolTip);
+        emailDownloadLink2MenuItem.setText(bundle.getString("GUI.emailDownloadLink2MenuItem.text")); // NOI18N
+        emailDownloadLink2MenuItem.setToolTipText(bundle.getString("GUI.emailDownloadLink2MenuItem.toolTipText")); // NOI18N
         emailDownloadLink2MenuItem.setEnabled(false);
         emailDownloadLink2MenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -1936,7 +1951,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         emailMenu.add(emailDownloadLink2MenuItem);
 
-        emailWatchLink1MenuItem.setText("Watch Link 1");
+        emailWatchLink1MenuItem.setText(bundle.getString("GUI.emailWatchLink1MenuItem.text")); // NOI18N
         emailWatchLink1MenuItem.setEnabled(false);
         emailWatchLink1MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1945,7 +1960,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         emailMenu.add(emailWatchLink1MenuItem);
 
-        emailWatchLink2MenuItem.setText("Watch Link 2");
+        emailWatchLink2MenuItem.setText(bundle.getString("GUI.emailWatchLink2MenuItem.text")); // NOI18N
         emailWatchLink2MenuItem.setEnabled(false);
         emailWatchLink2MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1954,7 +1969,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         emailMenu.add(emailWatchLink2MenuItem);
 
-        emailSummaryLinkMenuItem.setText("Summary Link");
+        emailSummaryLinkMenuItem.setText(bundle.getString("GUI.emailSummaryLinkMenuItem.text")); // NOI18N
         emailSummaryLinkMenuItem.setEnabled(false);
         emailSummaryLinkMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1963,7 +1978,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         emailMenu.add(emailSummaryLinkMenuItem);
 
-        emailTrailerLinkMenuItem.setText("Trailer Link");
+        emailTrailerLinkMenuItem.setText(bundle.getString("GUI.emailTrailerLinkMenuItem.text")); // NOI18N
         emailTrailerLinkMenuItem.setEnabled(false);
         emailTrailerLinkMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1973,7 +1988,7 @@ public class GUI extends JFrame implements GuiListener {
         emailMenu.add(emailTrailerLinkMenuItem);
         emailMenu.add(emailMenuSeparator1);
 
-        emailEverythingMenuItem.setText("Everything");
+        emailEverythingMenuItem.setText(bundle.getString("GUI.emailEverythingMenuItem.text")); // NOI18N
         emailEverythingMenuItem.setEnabled(false);
         emailEverythingMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -1985,7 +2000,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu.add(emailMenu);
         tablePopupMenu.add(tablePopupMenuSeparator2);
 
-        findSubtitleMenuItem.setText("Find Subtitle");
+        findSubtitleMenuItem.setText(bundle.getString("GUI.findSubtitleMenuItem.text")); // NOI18N
         findSubtitleMenuItem.setEnabled(false);
         findSubtitleMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2007,7 +2022,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        textComponentCutMenuItem.setText("Cut");
+        textComponentCutMenuItem.setText(bundle.getString("GUI.textComponentCutMenuItem.text")); // NOI18N
         textComponentCutMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 textComponentCutMenuItemActionPerformed(evt);
@@ -2015,7 +2030,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         textComponentPopupMenu.add(textComponentCutMenuItem);
 
-        textComponentCopyMenuItem.setText("Copy");
+        textComponentCopyMenuItem.setText(bundle.getString("GUI.textComponentCopyMenuItem.text")); // NOI18N
         textComponentCopyMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 textComponentCopyMenuItemActionPerformed(evt);
@@ -2023,7 +2038,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         textComponentPopupMenu.add(textComponentCopyMenuItem);
 
-        textComponentPasteMenuItem.setText("Paste");
+        textComponentPasteMenuItem.setText(bundle.getString("GUI.textComponentPasteMenuItem.text")); // NOI18N
         textComponentPasteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 textComponentPasteMenuItemActionPerformed(evt);
@@ -2031,7 +2046,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         textComponentPopupMenu.add(textComponentPasteMenuItem);
 
-        textComponentPasteSearchMenuItem.setText("Paste & Search");
+        textComponentPasteSearchMenuItem.setText(bundle.getString("GUI.textComponentPasteSearchMenuItem.text")); // NOI18N
         textComponentPasteSearchMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 textComponentPasteSearchMenuItemActionPerformed(evt);
@@ -2039,7 +2054,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         textComponentPopupMenu.add(textComponentPasteSearchMenuItem);
 
-        textComponentDeleteMenuItem.setText("Delete");
+        textComponentDeleteMenuItem.setText(bundle.getString("GUI.textComponentDeleteMenuItem.text")); // NOI18N
         textComponentDeleteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 textComponentDeleteMenuItemActionPerformed(evt);
@@ -2048,7 +2063,7 @@ public class GUI extends JFrame implements GuiListener {
         textComponentPopupMenu.add(textComponentDeleteMenuItem);
         textComponentPopupMenu.add(textComponentPopupMenuSeparator1);
 
-        textComponentSelectAllMenuItem.setText("Select All");
+        textComponentSelectAllMenuItem.setText(bundle.getString("GUI.textComponentSelectAllMenuItem.text")); // NOI18N
         textComponentSelectAllMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 textComponentSelectAllMenuItemActionPerformed(evt);
@@ -2065,79 +2080,78 @@ public class GUI extends JFrame implements GuiListener {
         playlistFileChooser.setCurrentDirectory(null);
         playlistFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        proxyDialog.setTitle("Proxy Settings");
+        proxyDialog.setTitle(bundle.getString("GUI.proxyDialog.title")); // NOI18N
         proxyDialog.setAlwaysOnTop(true);
         proxyDialog.setModal(true);
 
-        proxyAddButton.setText("Add");
+        proxyAddButton.setText(bundle.getString("GUI.proxyAddButton.text")); // NOI18N
         proxyAddButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 proxyAddButtonActionPerformed(evt);
             }
         });
 
-        proxyRemoveButton.setText("Remove");
+        proxyRemoveButton.setText(bundle.getString("GUI.proxyRemoveButton.text")); // NOI18N
         proxyRemoveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 proxyRemoveButtonActionPerformed(evt);
             }
         });
 
-        proxyComboBox.setModel(new DefaultComboBoxModel(new String[] { "NO PROXY" }));
+        UI.init(proxyComboBox, Str.str("noProxy"));
 
-        proxyDownloadLinkInfoCheckBox.setSelected(true);
-        proxyDownloadLinkInfoCheckBox.setText("Download Link Info");
-        proxyDownloadLinkInfoCheckBox.setToolTipText("e.g. " + Str.get(577));
+        proxyDownloadLinkInfoCheckBox.setText(bundle.getString("GUI.proxyDownloadLinkInfoCheckBox.text")); // NOI18N
+        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(577)));
 
-        proxyUseForLabel.setText("Use for:");
+        proxyUseForLabel.setText(bundle.getString("GUI.proxyUseForLabel.text")); // NOI18N
 
-        proxyVideoInfoCheckBox.setText("Video Info");
-        proxyVideoInfoCheckBox.setToolTipText("e.g. " + Str.get(578));
+        proxyVideoInfoCheckBox.setText(bundle.getString("GUI.proxyVideoInfoCheckBox.text")); // NOI18N
+        proxyVideoInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(578)));
 
-        proxySearchEnginesCheckBox.setText("Search Engines");
-        proxySearchEnginesCheckBox.setToolTipText("e.g. " + Str.get(579));
+        proxySearchEnginesCheckBox.setText(bundle.getString("GUI.proxySearchEnginesCheckBox.text")); // NOI18N
+        proxySearchEnginesCheckBox.setToolTipText(Str.str("forExample", Str.get(579)));
 
-        proxyOKButton.setText("OK");
+        proxyOKButton.setText(bundle.getString("GUI.proxyOKButton.text")); // NOI18N
         proxyOKButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 proxyOKButtonActionPerformed(evt);
             }
         });
 
-        proxyDownloadButton.setText("Download");
+        proxyDownloadButton.setText(bundle.getString("GUI.proxyDownloadButton.text")); // NOI18N
         proxyDownloadButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 proxyDownloadButtonActionPerformed(evt);
             }
         });
 
-        proxyTrailersCheckBox.setText("Trailers");
-        proxyTrailersCheckBox.setToolTipText("e.g. " + Str.get(580));
+        proxyTrailersCheckBox.setText(bundle.getString("GUI.proxyTrailersCheckBox.text")); // NOI18N
+        proxyTrailersCheckBox.setToolTipText(Str.str("forExample", Str.get(580)));
 
         proxyLoadingLabel.setText(null);
 
-        proxyImportButton.setText("Import");
+        proxyImportButton.setText(bundle.getString("GUI.proxyImportButton.text")); // NOI18N
         proxyImportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 proxyImportButtonActionPerformed(evt);
             }
         });
 
-        proxyExportButton.setText("Export");
+        proxyExportButton.setText(bundle.getString("GUI.proxyExportButton.text")); // NOI18N
         proxyExportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 proxyExportButtonActionPerformed(evt);
             }
         });
 
-        proxyVideoStreamersCheckBox.setText("Video Streamers");
-        proxyVideoStreamersCheckBox.setToolTipText("e.g. " + Str.get(581));
+        proxyVideoStreamersCheckBox.setText(bundle.getString("GUI.proxyVideoStreamersCheckBox.text")); // NOI18N
+        proxyVideoStreamersCheckBox.setToolTipText(Str.str("forExample", Str.get(581)));
 
-        proxyUpdatesCheckBox.setText("Updates");
-        proxyUpdatesCheckBox.setToolTipText("e.g. " + Str.get(582));
+        proxyUpdatesCheckBox.setText(bundle.getString("GUI.proxyUpdatesCheckBox.text")); // NOI18N
+        proxyUpdatesCheckBox.setToolTipText(Str.str("forExample", Str.get(582)));
 
-        proxySubtitlesCheckBox.setText("Subtitles");
-        proxySubtitlesCheckBox.setToolTipText("e.g. " + Str.get(583));
+        proxySubtitlesCheckBox.setText(bundle.getString("GUI.proxySubtitlesCheckBox.text")); // NOI18N
+        proxySubtitlesCheckBox.setToolTipText(Str.str("forExample", Str.get(583)));
 
         GroupLayout proxyDialogLayout = new GroupLayout(proxyDialog.getContentPane());
         proxyDialog.getContentPane().setLayout(proxyDialogLayout);
@@ -2210,7 +2224,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        addProxiesDialog.setTitle("Add Proxies");
+        addProxiesDialog.setTitle(bundle.getString("GUI.addProxiesDialog.title")); // NOI18N
         addProxiesDialog.setAlwaysOnTop(true);
         addProxiesDialog.setModal(true);
         addProxiesDialog.addWindowListener(new WindowAdapter() {
@@ -2219,20 +2233,20 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        addProxiesLabel.setText("Enter HTTP/HTTPS proxies, one per line, in the format of ip:port (e.g. 1.234.56.78:9999):");
+        addProxiesLabel.setText(bundle.getString("GUI.addProxiesLabel.text")); // NOI18N
 
         addProxiesTextArea.setColumns(20);
         addProxiesTextArea.setRows(5);
         addProxiesScrollPane.setViewportView(addProxiesTextArea);
 
-        addProxiesCancelButton.setText("Cancel");
+        addProxiesCancelButton.setText(bundle.getString("GUI.addProxiesCancelButton.text")); // NOI18N
         addProxiesCancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 addProxiesCancelButtonActionPerformed(evt);
             }
         });
 
-        addProxiesAddButton.setText("Add");
+        addProxiesAddButton.setText(bundle.getString("GUI.addProxiesAddButton.text")); // NOI18N
         addProxiesAddButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 addProxiesAddButtonActionPerformed(evt);
@@ -2273,7 +2287,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        removeProxiesDialog.setTitle("Remove Proxies");
+        removeProxiesDialog.setTitle(bundle.getString("GUI.removeProxiesDialog.title")); // NOI18N
         removeProxiesDialog.setAlwaysOnTop(true);
         removeProxiesDialog.setModal(true);
         removeProxiesDialog.addWindowListener(new WindowAdapter() {
@@ -2282,7 +2296,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        removeProxiesLabel.setText("Select proxies to remove:");
+        removeProxiesLabel.setText(bundle.getString("GUI.removeProxiesLabel.text")); // NOI18N
 
         removeProxiesList.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
@@ -2291,14 +2305,14 @@ public class GUI extends JFrame implements GuiListener {
         });
         removeProxiesScrollPane.setViewportView(removeProxiesList);
 
-        removeProxiesRemoveButton.setText("Remove");
+        removeProxiesRemoveButton.setText(bundle.getString("GUI.removeProxiesRemoveButton.text")); // NOI18N
         removeProxiesRemoveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 removeProxiesRemoveButtonActionPerformed(evt);
             }
         });
 
-        removeProxiesCancelButton.setText("Cancel");
+        removeProxiesCancelButton.setText(bundle.getString("GUI.removeProxiesCancelButton.text")); // NOI18N
         removeProxiesCancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 removeProxiesCancelButtonActionPerformed(evt);
@@ -2347,7 +2361,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        msgOKButton.setText("OK");
+        msgOKButton.setText(bundle.getString("GUI.msgOKButton.text")); // NOI18N
         msgOKButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 msgOKButtonActionPerformed(evt);
@@ -2383,11 +2397,11 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        profileDialog.setTitle("Profiles");
+        profileDialog.setTitle(bundle.getString("GUI.profileDialog.title")); // NOI18N
         profileDialog.setAlwaysOnTop(true);
         profileDialog.setModal(true);
 
-        profileSetButton.setText("Set");
+        profileSetButton.setText(bundle.getString("GUI.profileSetButton.text")); // NOI18N
         profileSetButton.setEnabled(false);
         profileSetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2395,7 +2409,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        profileClearButton.setText("Clear");
+        profileClearButton.setText(bundle.getString("GUI.profileClearButton.text")); // NOI18N
         profileClearButton.setEnabled(false);
         profileClearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2403,7 +2417,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        profileUseButton.setText("Use");
+        profileUseButton.setText(bundle.getString("GUI.profileUseButton.text")); // NOI18N
         profileUseButton.setEnabled(false);
         profileUseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2417,7 +2431,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        profileRenameButton.setText("Rename");
+        profileRenameButton.setText(bundle.getString("GUI.profileRenameButton.text")); // NOI18N
         profileRenameButton.setEnabled(false);
         profileRenameButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2425,7 +2439,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        profileOKButton.setText("OK");
+        profileOKButton.setText(bundle.getString("GUI.profileOKButton.text")); // NOI18N
         profileOKButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profileOKButtonActionPerformed(evt);
@@ -2467,7 +2481,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        profileNameChangeDialog.setTitle("Profile Name Change");
+        profileNameChangeDialog.setTitle(bundle.getString("GUI.profileNameChangeDialog.title")); // NOI18N
         profileNameChangeDialog.setAlwaysOnTop(true);
         profileNameChangeDialog.setModal(true);
         profileNameChangeDialog.addWindowListener(new WindowAdapter() {
@@ -2476,16 +2490,16 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        profileNameChangeLabel.setText("Enter a new name:");
+        profileNameChangeLabel.setText(bundle.getString("GUI.profileNameChangeLabel.text")); // NOI18N
 
-        profileNameChangeOKButton.setText("OK");
+        profileNameChangeOKButton.setText(bundle.getString("GUI.profileNameChangeOKButton.text")); // NOI18N
         profileNameChangeOKButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profileNameChangeOKButtonActionPerformed(evt);
             }
         });
 
-        profileNameChangeCancelButton.setText("Cancel");
+        profileNameChangeCancelButton.setText(bundle.getString("GUI.profileNameChangeCancelButton.text")); // NOI18N
         profileNameChangeCancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profileNameChangeCancelButtonActionPerformed(evt);
@@ -2519,7 +2533,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        commentsDialog.setTitle("Comments");
+        commentsDialog.setTitle(bundle.getString("GUI.commentsDialog.title")); // NOI18N
         commentsDialog.setModalityType(ModalityType.APPLICATION_MODAL);
 
         commentsTextPane.setEditable(false);
@@ -2538,7 +2552,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        portDialog.setTitle("Port Settings");
+        portDialog.setTitle(bundle.getString("GUI.portDialog.title")); // NOI18N
         portDialog.setAlwaysOnTop(true);
         portDialog.setModal(true);
         portDialog.addComponentListener(new ComponentAdapter() {
@@ -2547,19 +2561,19 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        portLabel.setText("Incoming Listen Port:");
-        portLabel.setToolTipText("recommended port range: 49161 to 65533");
+        portLabel.setText(bundle.getString("GUI.portLabel.text")); // NOI18N
+        portLabel.setToolTipText(bundle.getString("GUI.portLabel.toolTipText")); // NOI18N
 
-        portTextField.setToolTipText("recommended port range: 49161 to 65533");
+        portTextField.setToolTipText(bundle.getString("GUI.portTextField.toolTipText")); // NOI18N
 
         portRandomizeCheckBox.setSelected(true);
-        portRandomizeCheckBox.setText("Randomize port on startup");
-        portRandomizeCheckBox.setToolTipText("use a random port each time the application starts up");
+        portRandomizeCheckBox.setText(bundle.getString("GUI.portRandomizeCheckBox.text")); // NOI18N
+        portRandomizeCheckBox.setToolTipText(bundle.getString("GUI.portRandomizeCheckBox.toolTipText")); // NOI18N
         portRandomizeCheckBox.setBorder(null);
         portRandomizeCheckBox.setFocusPainted(false);
         portRandomizeCheckBox.setMargin(new Insets(2, 0, 2, 2));
 
-        portOkButton.setText("OK");
+        portOkButton.setText(bundle.getString("GUI.portOkButton.text")); // NOI18N
         portOkButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 portOkButtonActionPerformed(evt);
@@ -2595,7 +2609,7 @@ public class GUI extends JFrame implements GuiListener {
 
         optionalMsgPanel.setOpaque(false);
 
-        optionalMsgCheckBox.setText("Don't show again");
+        optionalMsgCheckBox.setText(bundle.getString("GUI.optionalMsgCheckBox.text")); // NOI18N
         optionalMsgCheckBox.setBorder(null);
         optionalMsgCheckBox.setFocusPainted(false);
         optionalMsgCheckBox.setMargin(new Insets(2, 0, 2, 2));
@@ -2629,54 +2643,57 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        tvSubtitleDialog.setTitle("TV Show Subtitle");
+        tvSubtitleDialog.setTitle(bundle.getString("GUI.tvSubtitleDialog.title")); // NOI18N
         tvSubtitleDialog.setAlwaysOnTop(true);
 
-        tvSubtitleLanguageLabel.setText("Language:");
+        tvSubtitleLanguageLabel.setText(bundle.getString("GUI.tvSubtitleLanguageLabel.text")); // NOI18N
 
+        String[] subtitleLanguages = Regex.subtitleLanguages.keySet().toArray(Constant.EMPTY_STRS);
+        UI.init(tvSubtitleLanguageComboBox, subtitleLanguages);
         tvSubtitleLanguageComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvSubtitleLanguageComboBoxActionPerformed(evt);
             }
         });
 
-        tvSubtitleFormatLabel.setText("Video Source:");
+        tvSubtitleFormatLabel.setText(bundle.getString("GUI.tvSubtitleFormatLabel.text")); // NOI18N
 
-        tvSubtitleFormatComboBox.setModel(new DefaultComboBoxModel(new String[]{Constant.ANY, Constant.HQ, Constant.DVD, Constant.HD720, Constant.HD1080}));
+        String[] subtitleFormats = {Str.str("any"), Constant.HQ, Constant.DVD, Constant.HD720, Constant.HD1080};
+        UI.init(tvSubtitleFormatComboBox, subtitleFormats);
         tvSubtitleFormatComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvSubtitleFormatComboBoxActionPerformed(evt);
             }
         });
 
-        tvSubtitleSeasonLabel.setText("Season:");
-        tvSubtitleSeasonLabel.setToolTipText("select a season");
+        tvSubtitleSeasonLabel.setText(bundle.getString("GUI.tvSubtitleSeasonLabel.text")); // NOI18N
+        tvSubtitleSeasonLabel.setToolTipText(bundle.getString("GUI.tvSubtitleSeasonLabel.toolTipText")); // NOI18N
 
-        tvSubtitleSeasonComboBox.setModel(new DefaultComboBoxModel(new String[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100" }));
+        tvSubtitleSeasonComboBox.setModel(new DefaultComboBoxModel(UI.items(1, 100, 1, true, null, null)));
 
-        tvSubtitleEpisodeLabel.setText("Episode:");
-        tvSubtitleEpisodeLabel.setToolTipText("select an episode");
+        tvSubtitleEpisodeLabel.setText(bundle.getString("GUI.tvSubtitleEpisodeLabel.text")); // NOI18N
+        tvSubtitleEpisodeLabel.setToolTipText(bundle.getString("GUI.tvSubtitleEpisodeLabel.toolTipText")); // NOI18N
 
-        tvSubtitleEpisodeComboBox.setModel(new DefaultComboBoxModel(new String[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111", "112", "113", "114", "115", "116", "117", "118", "119", "120", "121", "122", "123", "124", "125", "126", "127", "128", "129", "130", "131", "132", "133", "134", "135", "136", "137", "138", "139", "140", "141", "142", "143", "144", "145", "146", "147", "148", "149", "150", "151", "152", "153", "154", "155", "156", "157", "158", "159", "160", "161", "162", "163", "164", "165", "166", "167", "168", "169", "170", "171", "172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184", "185", "186", "187", "188", "189", "190", "191", "192", "193", "194", "195", "196", "197", "198", "199", "200", "201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212", "213", "214", "215", "216", "217", "218", "219", "220", "221", "222", "223", "224", "225", "226", "227", "228", "229", "230", "231", "232", "233", "234", "235", "236", "237", "238", "239", "240", "241", "242", "243", "244", "245", "246", "247", "248", "249", "250", "251", "252", "253", "254", "255", "256", "257", "258", "259", "260", "261", "262", "263", "264", "265", "266", "267", "268", "269", "270", "271", "272", "273", "274", "275", "276", "277", "278", "279", "280", "281", "282", "283", "284", "285", "286", "287", "288", "289", "290", "291", "292", "293", "294", "295", "296", "297", "298", "299", "300" }));
+        tvSubtitleEpisodeComboBox.setModel(new DefaultComboBoxModel(UI.items(1, 300, 1, true, null, null)));
 
-        tvSubtitleDownloadMatch1Button.setText("Download (Match 1)");
-        tvSubtitleDownloadMatch1Button.setToolTipText("download subtitle");
+        tvSubtitleDownloadMatch1Button.setText(bundle.getString("GUI.tvSubtitleDownloadMatch1Button.text")); // NOI18N
+        tvSubtitleDownloadMatch1Button.setToolTipText(bundle.getString("GUI.tvSubtitleDownloadMatch1Button.toolTipText")); // NOI18N
         tvSubtitleDownloadMatch1Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvSubtitleDownloadMatch1ButtonActionPerformed(evt);
             }
         });
 
-        tvSubtitleDownloadMatch2Button.setText("Download (Match 2)");
-        tvSubtitleDownloadMatch2Button.setToolTipText("download subtitle");
+        tvSubtitleDownloadMatch2Button.setText(bundle.getString("GUI.tvSubtitleDownloadMatch2Button.text")); // NOI18N
+        tvSubtitleDownloadMatch2Button.setToolTipText(bundle.getString("GUI.tvSubtitleDownloadMatch2Button.toolTipText")); // NOI18N
         tvSubtitleDownloadMatch2Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvSubtitleDownloadMatch2ButtonActionPerformed(evt);
             }
         });
 
-        tvSubtitleCancelButton.setText("Cancel");
-        tvSubtitleCancelButton.setToolTipText("cancel download");
+        tvSubtitleCancelButton.setText(bundle.getString("GUI.tvSubtitleCancelButton.text")); // NOI18N
+        tvSubtitleCancelButton.setToolTipText(bundle.getString("GUI.tvSubtitleCancelButton.toolTipText")); // NOI18N
         tvSubtitleCancelButton.setEnabled(false);
         tvSubtitleCancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2748,44 +2765,45 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        movieSubtitleDialog.setTitle("Movie Subtitle");
+        movieSubtitleDialog.setTitle(bundle.getString("GUI.movieSubtitleDialog.title")); // NOI18N
         movieSubtitleDialog.setAlwaysOnTop(true);
 
-        movieSubtitleLanguageLabel.setText("Language:");
+        movieSubtitleLanguageLabel.setText(bundle.getString("GUI.movieSubtitleLanguageLabel.text")); // NOI18N
 
+        UI.init(movieSubtitleLanguageComboBox, subtitleLanguages);
         movieSubtitleLanguageComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 movieSubtitleLanguageComboBoxActionPerformed(evt);
             }
         });
 
-        movieSubtitleFormatLabel.setText("Video Source:");
+        movieSubtitleFormatLabel.setText(bundle.getString("GUI.movieSubtitleFormatLabel.text")); // NOI18N
 
-        movieSubtitleFormatComboBox.setModel(new DefaultComboBoxModel(new String[]{Constant.ANY, Constant.HQ, Constant.DVD, Constant.HD720, Constant.HD1080}));
+        UI.init(movieSubtitleFormatComboBox, subtitleFormats);
         movieSubtitleFormatComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 movieSubtitleFormatComboBoxActionPerformed(evt);
             }
         });
 
-        movieSubtitleDownloadMatch1Button.setText("Download (Match 1)");
-        movieSubtitleDownloadMatch1Button.setToolTipText("download subtitle");
+        movieSubtitleDownloadMatch1Button.setText(bundle.getString("GUI.movieSubtitleDownloadMatch1Button.text")); // NOI18N
+        movieSubtitleDownloadMatch1Button.setToolTipText(bundle.getString("GUI.movieSubtitleDownloadMatch1Button.toolTipText")); // NOI18N
         movieSubtitleDownloadMatch1Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 movieSubtitleDownloadMatch1ButtonActionPerformed(evt);
             }
         });
 
-        movieSubtitleDownloadMatch2Button.setText("Download (Match 2)");
-        movieSubtitleDownloadMatch2Button.setToolTipText("download subtitle");
+        movieSubtitleDownloadMatch2Button.setText(bundle.getString("GUI.movieSubtitleDownloadMatch2Button.text")); // NOI18N
+        movieSubtitleDownloadMatch2Button.setToolTipText(bundle.getString("GUI.movieSubtitleDownloadMatch2Button.toolTipText")); // NOI18N
         movieSubtitleDownloadMatch2Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 movieSubtitleDownloadMatch2ButtonActionPerformed(evt);
             }
         });
 
-        movieSubtitleCancelButton.setText("Cancel");
-        movieSubtitleCancelButton.setToolTipText("cancel download");
+        movieSubtitleCancelButton.setText(bundle.getString("GUI.movieSubtitleCancelButton.text")); // NOI18N
+        movieSubtitleCancelButton.setToolTipText(bundle.getString("GUI.movieSubtitleCancelButton.toolTipText")); // NOI18N
         movieSubtitleCancelButton.setEnabled(false);
         movieSubtitleCancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2871,9 +2889,9 @@ public class GUI extends JFrame implements GuiListener {
         subtitleFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         subtitleFileChooser.setCurrentDirectory(null);
 
-        authenticationMessageLabel.setText("A username and password are being requested.");
+        authenticationMessageLabel.setText(bundle.getString("GUI.authenticationMessageLabel.text")); // NOI18N
 
-        authenticationUsernameLabel.setText("Username:");
+        authenticationUsernameLabel.setText(bundle.getString("GUI.authenticationUsernameLabel.text")); // NOI18N
 
         authenticationUsernameTextField.setText(null);
         authenticationUsernameTextField.addAncestorListener(new AncestorListener() {
@@ -2886,7 +2904,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        authenticationPasswordLabel.setText("Password:");
+        authenticationPasswordLabel.setText(bundle.getString("GUI.authenticationPasswordLabel.text")); // NOI18N
 
         authenticationPasswordField.setText(null);
         authenticationPasswordField.setEchoChar('\u2022');
@@ -2949,7 +2967,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        listCutMenuItem.setText("Cut");
+        listCutMenuItem.setText(bundle.getString("GUI.listCutMenuItem.text")); // NOI18N
         listCutMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 listCutMenuItemActionPerformed(evt);
@@ -2957,7 +2975,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         listPopupMenu.add(listCutMenuItem);
 
-        listCopyMenuItem.setText("Copy");
+        listCopyMenuItem.setText(bundle.getString("GUI.listCopyMenuItem.text")); // NOI18N
         listCopyMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 listCopyMenuItemActionPerformed(evt);
@@ -2965,7 +2983,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         listPopupMenu.add(listCopyMenuItem);
 
-        listDeleteMenuItem.setText("Delete");
+        listDeleteMenuItem.setText(bundle.getString("GUI.listDeleteMenuItem.text")); // NOI18N
         listDeleteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 listDeleteMenuItemActionPerformed(evt);
@@ -2974,7 +2992,7 @@ public class GUI extends JFrame implements GuiListener {
         listPopupMenu.add(listDeleteMenuItem);
         listPopupMenu.add(listPopupMenuSeparator1);
 
-        listSelectAllMenuItem.setText("Select All");
+        listSelectAllMenuItem.setText(bundle.getString("GUI.listSelectAllMenuItem.text")); // NOI18N
         listSelectAllMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 listSelectAllMenuItemActionPerformed(evt);
@@ -2984,7 +3002,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        hideMenuItem.setText("Hide");
+        hideMenuItem.setText(bundle.getString("GUI.hideMenuItem.text")); // NOI18N
         hideMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 hideMenuItemActionPerformed(evt);
@@ -2994,7 +3012,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        viewNewHighQualityMoviesMenuItem.setText("View New " + Str.capitalize(HQ_FORMAT) + "Movies");
+        viewNewHighQualityMoviesMenuItem.setText(bundle.getString("GUI.viewNewHighQualityMoviesMenuItem.text")); // NOI18N
         viewNewHighQualityMoviesMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 viewNewHighQualityMoviesMenuItemActionPerformed(evt);
@@ -3004,7 +3022,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        exitBackupModeMenuItem.setText("Exit Backup Mode");
+        exitBackupModeMenuItem.setText(bundle.getString("GUI.exitBackupModeMenuItem.text")); // NOI18N
         exitBackupModeMenuItem.setEnabled(false);
         exitBackupModeMenuItem.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent evt) {
@@ -3020,7 +3038,7 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        readSummaryCancelMenuItem.setText("Stop");
+        readSummaryCancelMenuItem.setText(bundle.getString("GUI.readSummaryCancelMenuItem.text")); // NOI18N
         readSummaryCancelMenuItem.setEnabled(false);
         readSummaryCancelMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3029,7 +3047,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         readSummaryButtonPopupMenu.add(readSummaryCancelMenuItem);
 
-        watchTrailerCancelMenuItem.setText("Stop");
+        watchTrailerCancelMenuItem.setText(bundle.getString("GUI.watchTrailerCancelMenuItem.text")); // NOI18N
         watchTrailerCancelMenuItem.setEnabled(false);
         watchTrailerCancelMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3038,7 +3056,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         watchTrailerButtonPopupMenu.add(watchTrailerCancelMenuItem);
 
-        downloadLinkCancelMenuItem.setText("Stop");
+        downloadLinkCancelMenuItem.setText(bundle.getString("GUI.downloadLinkCancelMenuItem.text")); // NOI18N
         downloadLinkCancelMenuItem.setEnabled(false);
         downloadLinkCancelMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3047,7 +3065,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadLinkButtonPopupMenu.add(downloadLinkCancelMenuItem);
 
-        downloadLinkExitBackupModeMenuItem.setText("Exit Backup Mode");
+        downloadLinkExitBackupModeMenuItem.setText(bundle.getString("GUI.downloadLinkExitBackupModeMenuItem.text")); // NOI18N
         downloadLinkExitBackupModeMenuItem.setEnabled(false);
         downloadLinkExitBackupModeMenuItem.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent evt) {
@@ -3061,7 +3079,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadLinkButtonPopupMenu.add(downloadLinkExitBackupModeMenuItem);
 
-        watchSourceCancelMenuItem.setText("Stop");
+        watchSourceCancelMenuItem.setText(bundle.getString("GUI.watchSourceCancelMenuItem.text")); // NOI18N
         watchSourceCancelMenuItem.setEnabled(false);
         watchSourceCancelMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3071,7 +3089,7 @@ public class GUI extends JFrame implements GuiListener {
         watchSourceButtonPopupMenu.add(watchSourceCancelMenuItem);
 
         playlistFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        playlistFrame.setTitle("Playlist");
+        playlistFrame.setTitle(bundle.getString("GUI.playlistFrame.title")); // NOI18N
         playlistFrame.setAlwaysOnTop(true);
         playlistFrame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent evt) {
@@ -3088,7 +3106,7 @@ public class GUI extends JFrame implements GuiListener {
 
             },
             new String [] {
-                "", "", "", ""
+                "Name", "Size", "Progress", ""
             }
         ) {
             Class[] types = new Class [] {
@@ -3126,18 +3144,17 @@ public class GUI extends JFrame implements GuiListener {
         playlistScrollPane.setViewportView(playlistTable);
         if (playlistTable.getColumnModel().getColumnCount() > 0) {
             playlistTable.getColumnModel().getColumn(0).setPreferredWidth(703);
-            playlistTable.getColumnModel().getColumn(0).setHeaderValue(Constant.PLAYLIST_NAME_COL);
+            playlistTable.getColumnModel().getColumn(0).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title0")); // NOI18N
             playlistTable.getColumnModel().getColumn(1).setPreferredWidth(70);
-            playlistTable.getColumnModel().getColumn(1).setHeaderValue(Constant.PLAYLIST_SIZE_COL);
+            playlistTable.getColumnModel().getColumn(1).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title1")); // NOI18N
             playlistTable.getColumnModel().getColumn(2).setPreferredWidth(158);
-            playlistTable.getColumnModel().getColumn(2).setHeaderValue(Constant.PLAYLIST_PROGRESS_COL);
+            playlistTable.getColumnModel().getColumn(2).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title2")); // NOI18N
             playlistTable.getColumnModel().getColumn(3).setPreferredWidth(0);
             playlistTable.getColumnModel().getColumn(3).setHeaderValue(Constant.PLAYLIST_ITEM_COL);
         }
 
-        String playlistPlayToolTip = "play/stop (" + CTRL_CLICK + "force play)";
         playlistPlayButton.setText(null);
-        playlistPlayButton.setToolTipText(playlistPlayToolTip);
+        playlistPlayButton.setToolTipText(bundle.getString("GUI.playlistPlayButton.toolTipText")); // NOI18N
         playlistPlayButton.setEnabled(false);
         playlistPlayButton.setMargin(new Insets(0, 0, 0, 0));
         playlistPlayButton.addMouseListener(new MouseAdapter() {
@@ -3157,7 +3174,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         playlistMoveUpButton.setText(null);
-        playlistMoveUpButton.setToolTipText("move up");
+        playlistMoveUpButton.setToolTipText(bundle.getString("GUI.playlistMoveUpButton.toolTipText")); // NOI18N
         playlistMoveUpButton.setEnabled(false);
         playlistMoveUpButton.setMargin(new Insets(0, 0, 0, 0));
         playlistMoveUpButton.addActionListener(new ActionListener() {
@@ -3172,7 +3189,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         playlistMoveDownButton.setText(null);
-        playlistMoveDownButton.setToolTipText("move down");
+        playlistMoveDownButton.setToolTipText(bundle.getString("GUI.playlistMoveDownButton.toolTipText")); // NOI18N
         playlistMoveDownButton.setEnabled(false);
         playlistMoveDownButton.setMargin(new Insets(0, 0, 0, 0));
         playlistMoveDownButton.addActionListener(new ActionListener() {
@@ -3187,7 +3204,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         playlistRemoveButton.setText(null);
-        playlistRemoveButton.setToolTipText("remove");
+        playlistRemoveButton.setToolTipText(bundle.getString("GUI.playlistRemoveButton.toolTipText")); // NOI18N
         playlistRemoveButton.setEnabled(false);
         playlistRemoveButton.setMargin(new Insets(0, 0, 0, 0));
         playlistRemoveButton.addActionListener(new ActionListener() {
@@ -3231,7 +3248,7 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap())
         );
 
-        playlistPlayMenuItem.setToolTipText(playlistPlayToolTip);
+        playlistPlayMenuItem.setToolTipText(bundle.getString("GUI.playlistPlayMenuItem.toolTipText")); // NOI18N
         playlistPlayMenuItem.setEnabled(false);
         playlistPlayMenuItem.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -3245,7 +3262,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistTablePopupMenu.add(playlistPlayMenuItem);
 
-        playlistOpenMenuItem.setText("Open");
+        playlistOpenMenuItem.setText(bundle.getString("GUI.playlistOpenMenuItem.text")); // NOI18N
         playlistOpenMenuItem.setEnabled(false);
         playlistOpenMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3254,7 +3271,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistTablePopupMenu.add(playlistOpenMenuItem);
 
-        playlistMoveUpMenuItem.setText("Move Up");
+        playlistMoveUpMenuItem.setText(bundle.getString("GUI.playlistMoveUpMenuItem.text")); // NOI18N
         playlistMoveUpMenuItem.setEnabled(false);
         playlistMoveUpMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3263,7 +3280,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistTablePopupMenu.add(playlistMoveUpMenuItem);
 
-        playlistMoveDownMenuItem.setText("Move Down");
+        playlistMoveDownMenuItem.setText(bundle.getString("GUI.playlistMoveDownMenuItem.text")); // NOI18N
         playlistMoveDownMenuItem.setEnabled(false);
         playlistMoveDownMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3273,7 +3290,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistTablePopupMenu.add(playlistMoveDownMenuItem);
         playlistTablePopupMenu.add(playlistTablePopupMenuSeparator1);
 
-        playlistCopyMenuItem.setText("Copy");
+        playlistCopyMenuItem.setText(bundle.getString("GUI.playlistCopyMenuItem.text")); // NOI18N
         playlistCopyMenuItem.setEnabled(false);
         playlistCopyMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3283,7 +3300,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistTablePopupMenu.add(playlistCopyMenuItem);
         playlistTablePopupMenu.add(playlistTablePopupMenuSeparator2);
 
-        playlistRemoveMenuItem.setText("Remove");
+        playlistRemoveMenuItem.setText(bundle.getString("GUI.playlistRemoveMenuItem.text")); // NOI18N
         playlistRemoveMenuItem.setEnabled(false);
         playlistRemoveMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3292,7 +3309,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistTablePopupMenu.add(playlistRemoveMenuItem);
 
-        activationDialog.setTitle("Activation");
+        activationDialog.setTitle(bundle.getString("GUI.activationDialog.title")); // NOI18N
         activationDialog.setAlwaysOnTop(true);
         activationDialog.setIconImage(null);
         activationDialog.setModal(true);
@@ -3302,21 +3319,20 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        String upgrade = "to unlimited easy play of movies and TV shows";
-        activationUpgradeButton.setText("Upgrade");
-        activationUpgradeButton.setToolTipText("upgrade " + upgrade);
+        activationUpgradeButton.setText(bundle.getString("GUI.activationUpgradeButton.text")); // NOI18N
+        activationUpgradeButton.setToolTipText(bundle.getString("GUI.activationUpgradeButton.toolTipText")); // NOI18N
         activationUpgradeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 activationUpgradeButtonActionPerformed(evt);
             }
         });
 
-        activationUpgradeLabel.setText(upgrade + ".");
+        activationUpgradeLabel.setText(bundle.getString("GUI.activationUpgradeLabel.text")); // NOI18N
 
-        activationCodeLabel.setText("Activation Code:");
+        activationCodeLabel.setText(bundle.getString("GUI.activationCodeLabel.text")); // NOI18N
 
-        activationButton.setText("OK");
-        activationButton.setToolTipText("check activation code");
+        activationButton.setText(bundle.getString("GUI.activationButton.text")); // NOI18N
+        activationButton.setToolTipText(bundle.getString("GUI.activationButton.toolTipText")); // NOI18N
         activationButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 activationButtonActionPerformed(evt);
@@ -3364,8 +3380,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap())
         );
 
-        activationDialog.pack();
-
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(Constant.APP_TITLE);
         setMinimumSize(null);
@@ -3376,25 +3390,28 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         titleTextField.setText(null);
-        titleTextField.setToolTipText(null);
 
         titleLabel.setLabelFor(titleTextField);
-        titleLabel.setText("Title:");
-        titleLabel.setToolTipText("enter title");
+        titleLabel.setText(bundle.getString("GUI.titleLabel.text")); // NOI18N
+        titleLabel.setToolTipText(bundle.getString("GUI.titleLabel.toolTipText")); // NOI18N
 
-        releasedLabel.setText("Released:");
-        releasedLabel.setToolTipText("select earliest release date in the world range");
+        releasedLabel.setLabelFor(startDateChooser);
+        releasedLabel.setText(bundle.getString("GUI.releasedLabel.text")); // NOI18N
+        releasedLabel.setToolTipText(bundle.getString("GUI.releasedLabel.toolTipText")); // NOI18N
 
-        genreLabel.setLabelFor(genreScrollPane);
-        genreLabel.setText("Genre:");
-        genreLabel.setToolTipText("select genre");
+        genreLabel.setLabelFor(genreList);
+        genreLabel.setText(bundle.getString("GUI.genreLabel.text")); // NOI18N
+        genreLabel.setToolTipText(bundle.getString("GUI.genreLabel.toolTipText")); // NOI18N
 
         ratingComboBox.setMaximumRowCount(11);
-        ratingComboBox.setToolTipText(null);
+        List<String> ratings = new ArrayList<String>(100);
+        ratings.add(Str.str("any"));
+        Collections.addAll(ratings, Regex.split(360, Constant.SEPARATOR1));
+        UI.init(ratingComboBox, ratings.toArray(Constant.EMPTY_STRS));
 
         ratingLabel.setLabelFor(ratingComboBox);
-        ratingLabel.setText("Rating (minimum):");
-        ratingLabel.setToolTipText("select minimum rating");
+        ratingLabel.setText(bundle.getString("GUI.ratingLabel.text")); // NOI18N
+        ratingLabel.setToolTipText(bundle.getString("GUI.ratingLabel.toolTipText")); // NOI18N
 
         resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         resultsScrollPane.setAutoscrolls(true);
@@ -3405,7 +3422,7 @@ public class GUI extends JFrame implements GuiListener {
 
             },
             new String [] {
-                "", "", "", "", "", "", "", "", "", "", "", "", ""
+                "", "Title", "Year", "Rating", "", "", "", "", "", "", "", "", ""
             }
         ) {
             Class[] types = new Class [] {
@@ -3448,15 +3465,15 @@ public class GUI extends JFrame implements GuiListener {
             resultsTable.getColumnModel().getColumn(0).setMaxWidth(61);
             resultsTable.getColumnModel().getColumn(0).setHeaderValue(Constant.IMAGE_COL);
             resultsTable.getColumnModel().getColumn(1).setPreferredWidth(798);
-            resultsTable.getColumnModel().getColumn(1).setHeaderValue(Constant.TITLE_COL);
+            resultsTable.getColumnModel().getColumn(1).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title1")); // NOI18N
             resultsTable.getColumnModel().getColumn(2).setMinWidth(65);
             resultsTable.getColumnModel().getColumn(2).setPreferredWidth(65);
-            resultsTable.getColumnModel().getColumn(2).setMaxWidth(65);
-            resultsTable.getColumnModel().getColumn(2).setHeaderValue(Constant.YEAR_COL);
+            resultsTable.getColumnModel().getColumn(2).setMaxWidth(100);
+            resultsTable.getColumnModel().getColumn(2).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title2")); // NOI18N
             resultsTable.getColumnModel().getColumn(3).setMinWidth(65);
             resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
-            resultsTable.getColumnModel().getColumn(3).setMaxWidth(65);
-            resultsTable.getColumnModel().getColumn(3).setHeaderValue(Constant.RATING_COL);
+            resultsTable.getColumnModel().getColumn(3).setMaxWidth(100);
+            resultsTable.getColumnModel().getColumn(3).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title3")); // NOI18N
             resultsTable.getColumnModel().getColumn(4).setMinWidth(0);
             resultsTable.getColumnModel().getColumn(4).setPreferredWidth(0);
             resultsTable.getColumnModel().getColumn(4).setMaxWidth(0);
@@ -3498,14 +3515,14 @@ public class GUI extends JFrame implements GuiListener {
         progressBar.setStringPainted(true);
 
         progressBarLabel.setLabelFor(progressBar);
-        progressBarLabel.setText("Search Progress:");
+        progressBarLabel.setText(bundle.getString("GUI.progressBarLabel.text")); // NOI18N
 
-        resultsLabel.setText("Results: 0");
-        resultsLabel.setToolTipText("number of titles found");
+        resultsLabel.setText(bundle.getString("results") + " " + 0);
+        resultsLabel.setToolTipText(bundle.getString("GUI.resultsLabel.toolTipText")); // NOI18N
 
         searchButton.setFont(new Font("Tahoma", 0, 12)); // NOI18N
-        searchButton.setText("Search");
-        searchButton.setToolTipText("start search");
+        searchButton.setText(bundle.getString("GUI.searchButton.text")); // NOI18N
+        searchButton.setToolTipText(bundle.getString("GUI.searchButton.toolTipText")); // NOI18N
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 searchButtonActionPerformed(evt);
@@ -3513,8 +3530,8 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         stopButton.setFont(new Font("Tahoma", 0, 12)); // NOI18N
-        stopButton.setText("Stop");
-        stopButton.setToolTipText("stop search");
+        stopButton.setText(bundle.getString("GUI.stopButton.text")); // NOI18N
+        stopButton.setToolTipText(bundle.getString("GUI.stopButton.toolTipText")); // NOI18N
         stopButton.setEnabled(false);
         stopButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3522,18 +3539,23 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        anyTitleCheckBox.setText("Any");
-        anyTitleCheckBox.setToolTipText("check to search for all titles");
+        anyTitleCheckBox.setText(bundle.getString("GUI.anyTitleCheckBox.text")); // NOI18N
+        anyTitleCheckBox.setToolTipText(bundle.getString("GUI.anyTitleCheckBox.toolTipText")); // NOI18N
         anyTitleCheckBox.setBorder(null);
         anyTitleCheckBox.setFocusPainted(false);
         anyTitleCheckBox.setMargin(new Insets(2, 0, 2, 2));
+        anyTitleCheckBox.setText(anyTitleCheckBox.getText() + " ");
         anyTitleCheckBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 anyTitleCheckBoxActionPerformed(evt);
             }
         });
 
-        genreList.setToolTipText(null);
+        List<String> genres = new ArrayList<String>(32);
+        genres.add(Str.str("any"));
+        Collections.addAll(genres, Regex.split(359, Constant.SEPARATOR1));
+        UI.init(genreList, genres.toArray(Constant.EMPTY_STRS));
+        genreList.setSelectedValue(Str.str("any"), true);
         genreList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent evt) {
                 genreListValueChanged(evt);
@@ -3541,8 +3563,8 @@ public class GUI extends JFrame implements GuiListener {
         });
         genreScrollPane.setViewportView(genreList);
 
-        loadMoreResultsButton.setText("Load More");
-        loadMoreResultsButton.setToolTipText("load more of the remaining search results");
+        loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text")); // NOI18N
+        loadMoreResultsButton.setToolTipText(bundle.getString("GUI.loadMoreResultsButton.toolTipText")); // NOI18N
         loadMoreResultsButton.setEnabled(false);
         loadMoreResultsButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3551,20 +3573,19 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         typeLabel.setLabelFor(typeComboBox);
-        typeLabel.setText("Type:");
-        typeLabel.setToolTipText("select title type");
+        typeLabel.setText(bundle.getString("GUI.typeLabel.text")); // NOI18N
+        typeLabel.setToolTipText(bundle.getString("GUI.typeLabel.toolTipText")); // NOI18N
 
-        typeComboBox.setModel(new DefaultComboBoxModel(new String[]{"Movie", Constant.TV_SHOW}));
+        UI.init(typeComboBox, Str.strs("GUI.typeComboBox.model"));
 
-        releasedToLabel.setText("to");
-        releasedToLabel.setToolTipText(null);
+        releasedToLabel.setLabelFor(endDateChooser);
+        releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text")); // NOI18N
 
-        linkProgressBar.setToolTipText(null);
         linkProgressBar.setRequestFocusEnabled(false);
-        linkProgressBar.setString("Searching");
+        linkProgressBar.setString(bundle.getString("GUI.linkProgressBar.string")); // NOI18N
 
         hqVideoTypeCheckBox.setText(Constant.HQ);
-        hqVideoTypeCheckBox.setToolTipText(HQ_FORMAT + "video formats for the download links");
+        hqVideoTypeCheckBox.setToolTipText(bundle.getString("GUI.hqVideoTypeCheckBox.toolTipText")); // NOI18N
         hqVideoTypeCheckBox.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 hqVideoTypeCheckBoxMousePressed(evt);
@@ -3577,7 +3598,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         dvdCheckBox.setText(Constant.DVD);
-        dvdCheckBox.setToolTipText("DVD video format for the download links");
+        dvdCheckBox.setToolTipText(bundle.getString("GUI.dvdCheckBox.toolTipText")); // NOI18N
         dvdCheckBox.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 dvdCheckBoxMousePressed(evt);
@@ -3590,7 +3611,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         hd720CheckBox.setText(Constant.HD720);
-        hd720CheckBox.setToolTipText("720p high-definition video format for the download links");
+        hd720CheckBox.setToolTipText(bundle.getString("GUI.hd720CheckBox.toolTipText")); // NOI18N
         hd720CheckBox.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 hd720CheckBoxMousePressed(evt);
@@ -3603,7 +3624,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         hd1080CheckBox.setText(Constant.HD1080);
-        hd1080CheckBox.setToolTipText("1080i/p high-definition video format for the download links");
+        hd1080CheckBox.setToolTipText(bundle.getString("GUI.hd1080CheckBox.toolTipText")); // NOI18N
         hd1080CheckBox.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 hd1080CheckBoxMousePressed(evt);
@@ -3616,8 +3637,8 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         popularMoviesButton.setFont(new Font("Tahoma", 0, 12)); // NOI18N
-        popularMoviesButton.setText("Popular Movies");
-        popularMoviesButton.setToolTipText("view most downloaded movies (" + CTRL_CLICK + "view new " + HQ_FORMAT + "movies)");
+        popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text")); // NOI18N
+        popularMoviesButton.setToolTipText(bundle.getString("GUI.popularMoviesButton.toolTipText")); // NOI18N
         popularMoviesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 popularMoviesButtonActionPerformed(evt);
@@ -3625,8 +3646,8 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         popularTVShowsButton.setFont(new Font("Tahoma", 0, 12)); // NOI18N
-        popularTVShowsButton.setText("Popular TV Shows");
-        popularTVShowsButton.setToolTipText("view most downloaded television shows");
+        popularTVShowsButton.setText(bundle.getString("GUI.popularTVShowsButton.text")); // NOI18N
+        popularTVShowsButton.setToolTipText(bundle.getString("GUI.popularTVShowsButton.toolTipText")); // NOI18N
         popularTVShowsButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 popularTVShowsButtonActionPerformed(evt);
@@ -3634,7 +3655,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         closeBoxButton.setText(null);
-        closeBoxButton.setToolTipText("stop play, download, and watch searches");
+        closeBoxButton.setToolTipText(bundle.getString("GUI.closeBoxButton.toolTipText")); // NOI18N
         closeBoxButton.setEnabled(false);
         closeBoxButton.setMargin(new Insets(0, 0, 0, 0));
         closeBoxButton.addActionListener(new ActionListener() {
@@ -3645,8 +3666,8 @@ public class GUI extends JFrame implements GuiListener {
 
         loadingLabel.setText(null);
 
-        readSummaryButton.setText("Read Summary");
-        readSummaryButton.setToolTipText("read summary of title");
+        readSummaryButton.setText(bundle.getString("GUI.readSummaryButton.text")); // NOI18N
+        readSummaryButton.setToolTipText(bundle.getString("GUI.readSummaryButton.toolTipText")); // NOI18N
         readSummaryButton.setEnabled(false);
         readSummaryButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3654,8 +3675,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        watchTrailerButton.setText("Watch Trailer");
-        watchTrailerButton.setToolTipText("watch trailer of title");
+        watchTrailerButton.setText(bundle.getString("GUI.watchTrailerButton.text")); // NOI18N
+        watchTrailerButton.setToolTipText(bundle.getString("GUI.watchTrailerButton.toolTipText")); // NOI18N
         watchTrailerButton.setEnabled(false);
         watchTrailerButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3663,8 +3684,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        playButton.setText("Play");
-        playButton.setToolTipText("play title in media player (" + exitBackupModeToolTip + ")");
+        playButton.setText(bundle.getString("GUI.playButton.text")); // NOI18N
+        playButton.setToolTipText(bundle.getString("GUI.playButton.toolTipText")); // NOI18N
         playButton.setEnabled(false);
         playButton.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -3680,8 +3701,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        downloadLink1Button.setText("Download (Link 1)");
-        downloadLink1Button.setToolTipText("download title (" + exitBackupModeToolTip + ")");
+        downloadLink1Button.setText(bundle.getString("GUI.downloadLink1Button.text")); // NOI18N
+        downloadLink1Button.setToolTipText(bundle.getString("GUI.downloadLink1Button.toolTipText")); // NOI18N
         downloadLink1Button.setEnabled(false);
         downloadLink1Button.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -3697,8 +3718,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        downloadLink2Button.setText("Download (Link 2)");
-        downloadLink2Button.setToolTipText("download title (" + exitBackupModeToolTip + ")");
+        downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text")); // NOI18N
+        downloadLink2Button.setToolTipText(bundle.getString("GUI.downloadLink2Button.toolTipText")); // NOI18N
         downloadLink2Button.setEnabled(false);
         downloadLink2Button.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
@@ -3714,8 +3735,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        watchSource1Button.setText("Watch (Source 1)");
-        watchSource1Button.setToolTipText("watch title");
+        watchSource1Button.setText(bundle.getString("GUI.watchSource1Button.text")); // NOI18N
+        watchSource1Button.setToolTipText(bundle.getString("GUI.watchSource1Button.toolTipText")); // NOI18N
         watchSource1Button.setEnabled(false);
         watchSource1Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3723,8 +3744,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        watchSource2Button.setText("Watch (Source 2)");
-        watchSource2Button.setToolTipText("watch title");
+        watchSource2Button.setText(bundle.getString("GUI.watchSource2Button.text")); // NOI18N
+        watchSource2Button.setToolTipText(bundle.getString("GUI.watchSource2Button.toolTipText")); // NOI18N
         watchSource2Button.setEnabled(false);
         watchSource2Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3753,10 +3774,10 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        fileMenu.setText("File");
+        fileMenu.setText(bundle.getString("GUI.fileMenu.text")); // NOI18N
         splashScreen.progress();
 
-        useProfileMenu.setText("Use Profile");
+        useProfileMenu.setText(bundle.getString("GUI.useProfileMenu.text")); // NOI18N
         useProfileMenu.addMenuListener(new MenuListener() {
             public void menuCanceled(MenuEvent evt) {
             }
@@ -3768,7 +3789,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         profile0MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.CTRL_MASK));
-        profile0MenuItem.setText("Default Profile");
+        profile0MenuItem.setText(bundle.getString("GUI.profile0MenuItem.text")); // NOI18N
         profile0MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile0MenuItemActionPerformed(evt);
@@ -3777,7 +3798,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile0MenuItem);
 
         profile1MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_MASK));
-        profile1MenuItem.setText("Profile 1");
+        profile1MenuItem.setText(bundle.getString("GUI.profile1MenuItem.text")); // NOI18N
         profile1MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile1MenuItemActionPerformed(evt);
@@ -3786,7 +3807,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile1MenuItem);
 
         profile2MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_MASK));
-        profile2MenuItem.setText("Profile 2");
+        profile2MenuItem.setText(bundle.getString("GUI.profile2MenuItem.text")); // NOI18N
         profile2MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile2MenuItemActionPerformed(evt);
@@ -3795,7 +3816,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile2MenuItem);
 
         profile3MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_MASK));
-        profile3MenuItem.setText("Profile 3");
+        profile3MenuItem.setText(bundle.getString("GUI.profile3MenuItem.text")); // NOI18N
         profile3MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile3MenuItemActionPerformed(evt);
@@ -3804,7 +3825,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile3MenuItem);
 
         profile4MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.CTRL_MASK));
-        profile4MenuItem.setText("Profile 4");
+        profile4MenuItem.setText(bundle.getString("GUI.profile4MenuItem.text")); // NOI18N
         profile4MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile4MenuItemActionPerformed(evt);
@@ -3813,7 +3834,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile4MenuItem);
 
         profile5MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5, InputEvent.CTRL_MASK));
-        profile5MenuItem.setText("Profile 5");
+        profile5MenuItem.setText(bundle.getString("GUI.profile5MenuItem.text")); // NOI18N
         profile5MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile5MenuItemActionPerformed(evt);
@@ -3822,7 +3843,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile5MenuItem);
 
         profile6MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_6, InputEvent.CTRL_MASK));
-        profile6MenuItem.setText("Profile 6");
+        profile6MenuItem.setText(bundle.getString("GUI.profile6MenuItem.text")); // NOI18N
         profile6MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile6MenuItemActionPerformed(evt);
@@ -3831,7 +3852,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile6MenuItem);
 
         profile7MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_7, InputEvent.CTRL_MASK));
-        profile7MenuItem.setText("Profile 7");
+        profile7MenuItem.setText(bundle.getString("GUI.profile7MenuItem.text")); // NOI18N
         profile7MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile7MenuItemActionPerformed(evt);
@@ -3840,7 +3861,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile7MenuItem);
 
         profile8MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_8, InputEvent.CTRL_MASK));
-        profile8MenuItem.setText("Profile 8");
+        profile8MenuItem.setText(bundle.getString("GUI.profile8MenuItem.text")); // NOI18N
         profile8MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile8MenuItemActionPerformed(evt);
@@ -3849,7 +3870,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(profile8MenuItem);
 
         profile9MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_9, InputEvent.CTRL_MASK));
-        profile9MenuItem.setText("Profile 9");
+        profile9MenuItem.setText(bundle.getString("GUI.profile9MenuItem.text")); // NOI18N
         profile9MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile9MenuItemActionPerformed(evt);
@@ -3859,7 +3880,7 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.add(useProfileMenuSeparator1);
 
         editProfilesMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.CTRL_MASK));
-        editProfilesMenuItem.setText("Edit Profiles");
+        editProfilesMenuItem.setText(bundle.getString("GUI.editProfilesMenuItem.text")); // NOI18N
         editProfilesMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 editProfilesMenuItemActionPerformed(evt);
@@ -3871,7 +3892,7 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.add(fileMenuSeparator1);
 
         printMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
-        printMenuItem.setText("Print");
+        printMenuItem.setText(bundle.getString("GUI.printMenuItem.text")); // NOI18N
         printMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 printMenuItemActionPerformed(evt);
@@ -3880,7 +3901,7 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.add(printMenuItem);
         fileMenu.add(fileMenuSeparator2);
 
-        exitMenuItem.setText("Exit");
+        exitMenuItem.setText(bundle.getString("GUI.exitMenuItem.text")); // NOI18N
         exitMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 exitMenuItemActionPerformed(evt);
@@ -3890,7 +3911,7 @@ public class GUI extends JFrame implements GuiListener {
 
         menuBar.add(fileMenu);
 
-        editMenu.setText("Edit");
+        editMenu.setText(bundle.getString("GUI.editMenu.text")); // NOI18N
         editMenu.addMenuListener(new MenuListener() {
             public void menuCanceled(MenuEvent evt) {
             }
@@ -3902,7 +3923,7 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         cutMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK));
-        cutMenuItem.setText("Cut");
+        cutMenuItem.setText(bundle.getString("GUI.cutMenuItem.text")); // NOI18N
         cutMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 cutMenuItemActionPerformed(evt);
@@ -3911,7 +3932,7 @@ public class GUI extends JFrame implements GuiListener {
         editMenu.add(cutMenuItem);
 
         copyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
-        copyMenuItem.setText("Copy");
+        copyMenuItem.setText(bundle.getString("GUI.copyMenuItem.text")); // NOI18N
         copyMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 copyMenuItemActionPerformed(evt);
@@ -3920,7 +3941,7 @@ public class GUI extends JFrame implements GuiListener {
         editMenu.add(copyMenuItem);
 
         pasteMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
-        pasteMenuItem.setText("Paste");
+        pasteMenuItem.setText(bundle.getString("GUI.pasteMenuItem.text")); // NOI18N
         pasteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 pasteMenuItemActionPerformed(evt);
@@ -3929,7 +3950,7 @@ public class GUI extends JFrame implements GuiListener {
         editMenu.add(pasteMenuItem);
 
         deleteMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
-        deleteMenuItem.setText("Delete");
+        deleteMenuItem.setText(bundle.getString("GUI.deleteMenuItem.text")); // NOI18N
         deleteMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 deleteMenuItemActionPerformed(evt);
@@ -3939,7 +3960,7 @@ public class GUI extends JFrame implements GuiListener {
         editMenu.add(editMenuSeparator1);
 
         selectAllMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_MASK));
-        selectAllMenuItem.setText("Select All");
+        selectAllMenuItem.setText(bundle.getString("GUI.selectAllMenuItem.text")); // NOI18N
         selectAllMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 selectAllMenuItemActionPerformed(evt);
@@ -3949,7 +3970,7 @@ public class GUI extends JFrame implements GuiListener {
         editMenu.add(editMenuSeparator2);
 
         findMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
-        findMenuItem.setText("Find");
+        findMenuItem.setText(bundle.getString("GUI.findMenuItem.text")); // NOI18N
         findMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 findMenuItemActionPerformed(evt);
@@ -3959,10 +3980,43 @@ public class GUI extends JFrame implements GuiListener {
 
         menuBar.add(editMenu);
 
-        viewMenu.setText("View");
+        viewMenu.setText(bundle.getString("GUI.viewMenu.text")); // NOI18N
+
+        languageMenu.setText(bundle.getString("GUI.languageMenu.text")); // NOI18N
+
+        englishRadioButtonMenuItem.setText("English");
+        englishRadioButtonMenuItem.setName("en_US"); // NOI18N
+        languageMenu.add(englishRadioButtonMenuItem);
+
+        spanishRadioButtonMenuItem.setText("espa\u00f1ol - Spanish");
+        spanishRadioButtonMenuItem.setName("es_ES"); // NOI18N
+        languageMenu.add(spanishRadioButtonMenuItem);
+
+        frenchRadioButtonMenuItem.setText("fran\u00e7ais - French");
+        frenchRadioButtonMenuItem.setName("fr_FR"); // NOI18N
+        languageMenu.add(frenchRadioButtonMenuItem);
+
+        italianRadioButtonMenuItem.setText("italiano - Italian");
+        italianRadioButtonMenuItem.setName("it_IT"); // NOI18N
+        languageMenu.add(italianRadioButtonMenuItem);
+
+        dutchRadioButtonMenuItem.setText("Nederlands - Dutch");
+        dutchRadioButtonMenuItem.setName("nl_NL"); // NOI18N
+        languageMenu.add(dutchRadioButtonMenuItem);
+
+        portugueseRadioButtonMenuItem.setText("portugu\u00eas - Portuguese");
+        portugueseRadioButtonMenuItem.setName("pt_PT"); // NOI18N
+        languageMenu.add(portugueseRadioButtonMenuItem);
+
+        turkishRadioButtonMenuItem.setText("T\u00fcrk\u00e7e - Turkish");
+        turkishRadioButtonMenuItem.setName("tr_TR"); // NOI18N
+        languageMenu.add(turkishRadioButtonMenuItem);
+
+        viewMenu.add(languageMenu);
+        viewMenu.add(viewMenuSeparator1);
 
         resetWindowMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_MASK));
-        resetWindowMenuItem.setText("Reset Window");
+        resetWindowMenuItem.setText(bundle.getString("GUI.resetWindowMenuItem.text")); // NOI18N
         resetWindowMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 resetWindowMenuItemActionPerformed(evt);
@@ -3972,10 +4026,10 @@ public class GUI extends JFrame implements GuiListener {
 
         menuBar.add(viewMenu);
 
-        searchMenu.setText("Search");
+        searchMenu.setText(bundle.getString("GUI.searchMenu.text")); // NOI18N
 
         resultsPerSearchMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
-        resultsPerSearchMenuItem.setText("Set Number of Results Per Search");
+        resultsPerSearchMenuItem.setText(bundle.getString("GUI.resultsPerSearchMenuItem.text")); // NOI18N
         resultsPerSearchMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 resultsPerSearchMenuItemActionPerformed(evt);
@@ -3985,7 +4039,7 @@ public class GUI extends JFrame implements GuiListener {
         searchMenu.add(searchMenuSeparator1);
 
         timeoutMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_MASK));
-        timeoutMenuItem.setText("Set Connection Timeout");
+        timeoutMenuItem.setText(bundle.getString("GUI.timeoutMenuItem.text")); // NOI18N
         timeoutMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 timeoutMenuItemActionPerformed(evt);
@@ -3995,7 +4049,7 @@ public class GUI extends JFrame implements GuiListener {
         searchMenu.add(searchMenuSeparator2);
 
         proxyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK));
-        proxyMenuItem.setText("Manage Proxies");
+        proxyMenuItem.setText(bundle.getString("GUI.proxyMenuItem.text")); // NOI18N
         proxyMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 proxyMenuItemActionPerformed(evt);
@@ -4005,7 +4059,7 @@ public class GUI extends JFrame implements GuiListener {
         searchMenu.add(searchMenuSeparator3);
 
         languageCountryMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK));
-        languageCountryMenuItem.setText("Set Language/Country");
+        languageCountryMenuItem.setText(bundle.getString("GUI.languageCountryMenuItem.text")); // NOI18N
         languageCountryMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 languageCountryMenuItemActionPerformed(evt);
@@ -4014,26 +4068,26 @@ public class GUI extends JFrame implements GuiListener {
         searchMenu.add(languageCountryMenuItem);
         searchMenu.add(searchMenuSeparator4);
 
-        feedCheckBoxMenuItem.setText("Show New HQ Movies on Startup");
-        feedCheckBoxMenuItem.setToolTipText("show new " + HQ_FORMAT + "movies on startup");
+        feedCheckBoxMenuItem.setText(bundle.getString("GUI.feedCheckBoxMenuItem.text")); // NOI18N
+        feedCheckBoxMenuItem.setToolTipText(bundle.getString("GUI.feedCheckBoxMenuItem.toolTipText")); // NOI18N
         searchMenu.add(feedCheckBoxMenuItem);
         searchMenu.add(searchMenuSeparator5);
 
         browserNotificationCheckBoxMenuItem.setSelected(true);
-        browserNotificationCheckBoxMenuItem.setText("Show Web Browser Start Notification");
+        browserNotificationCheckBoxMenuItem.setText(bundle.getString("GUI.browserNotificationCheckBoxMenuItem.text")); // NOI18N
         searchMenu.add(browserNotificationCheckBoxMenuItem);
         searchMenu.add(searchMenuSeparator6);
 
         emailWithDefaultAppCheckBoxMenuItem.setSelected(true);
-        emailWithDefaultAppCheckBoxMenuItem.setText("Email with Default Application");
+        emailWithDefaultAppCheckBoxMenuItem.setText(bundle.getString("GUI.emailWithDefaultAppCheckBoxMenuItem.text")); // NOI18N
         searchMenu.add(emailWithDefaultAppCheckBoxMenuItem);
 
         menuBar.add(searchMenu);
 
-        playlistMenu.setText("Playlist");
+        playlistMenu.setText(bundle.getString("GUI.playlistMenu.text")); // NOI18N
 
         playlistMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_MASK));
-        playlistMenuItem.setText("Show Playlist");
+        playlistMenuItem.setText(bundle.getString("GUI.playlistMenuItem.text")); // NOI18N
         playlistMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 playlistMenuItemActionPerformed(evt);
@@ -4042,7 +4096,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistMenu.add(playlistMenuItem);
         playlistMenu.add(playlistMenuSeparator1);
 
-        playlistSaveFolderMenuItem.setText("Set Save Folder");
+        playlistSaveFolderMenuItem.setText(bundle.getString("GUI.playlistSaveFolderMenuItem.text")); // NOI18N
         playlistSaveFolderMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 playlistSaveFolderMenuItemActionPerformed(evt);
@@ -4052,15 +4106,15 @@ public class GUI extends JFrame implements GuiListener {
 
         playlistAutoOpenCheckBoxMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
         playlistAutoOpenCheckBoxMenuItem.setSelected(true);
-        playlistAutoOpenCheckBoxMenuItem.setText("Auto-Open Items");
+        playlistAutoOpenCheckBoxMenuItem.setText(bundle.getString("GUI.playlistAutoOpenCheckBoxMenuItem.text")); // NOI18N
         playlistMenu.add(playlistAutoOpenCheckBoxMenuItem);
 
-        playlistPlayWithDefaultAppCheckBoxMenuItem.setText("Open Items with Default Application");
+        playlistPlayWithDefaultAppCheckBoxMenuItem.setText(bundle.getString("GUI.playlistPlayWithDefaultAppCheckBoxMenuItem.text")); // NOI18N
         playlistMenu.add(playlistPlayWithDefaultAppCheckBoxMenuItem);
 
         playlistShowNonVideoItemsCheckBoxMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
-        playlistShowNonVideoItemsCheckBoxMenuItem.setText("Show Non-Video Items");
-        playlistShowNonVideoItemsCheckBoxMenuItem.setToolTipText("show non-video items (" + Str.get(684)+ ")");
+        playlistShowNonVideoItemsCheckBoxMenuItem.setText(bundle.getString("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.text")); // NOI18N
+        playlistShowNonVideoItemsCheckBoxMenuItem.setToolTipText(bundle.getString("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.toolTipText")); // NOI18N
         playlistShowNonVideoItemsCheckBoxMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(evt);
@@ -4070,11 +4124,10 @@ public class GUI extends JFrame implements GuiListener {
 
         menuBar.add(playlistMenu);
 
-        downloadMenu.setText("Download");
+        downloadMenu.setText(bundle.getString("GUI.downloadMenu.text")); // NOI18N
 
         downloadSizeMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
-        downloadSizeMenuItem.setText("Set Download Size");
-        downloadSizeMenuItem.setToolTipText(null);
+        downloadSizeMenuItem.setText(bundle.getString("GUI.downloadSizeMenuItem.text")); // NOI18N
         downloadSizeMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 downloadSizeMenuItemActionPerformed(evt);
@@ -4084,8 +4137,7 @@ public class GUI extends JFrame implements GuiListener {
         downloadMenu.add(downloadMenuSeparator1);
 
         fileExtensionsMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
-        fileExtensionsMenuItem.setText("Set Video File Extensions");
-        fileExtensionsMenuItem.setToolTipText(null);
+        fileExtensionsMenuItem.setText(bundle.getString("GUI.fileExtensionsMenuItem.text")); // NOI18N
         fileExtensionsMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 fileExtensionsMenuItemActionPerformed(evt);
@@ -4095,16 +4147,16 @@ public class GUI extends JFrame implements GuiListener {
         downloadMenu.add(downloadMenuSeparator2);
 
         safetyCheckBoxMenuItem.setSelected(true);
-        safetyCheckBoxMenuItem.setText("Show Link Safety Warning");
-        safetyCheckBoxMenuItem.setToolTipText("warn before downloading from unsafe source");
+        safetyCheckBoxMenuItem.setText(bundle.getString("GUI.safetyCheckBoxMenuItem.text")); // NOI18N
+        safetyCheckBoxMenuItem.setToolTipText(bundle.getString("GUI.safetyCheckBoxMenuItem.toolTipText")); // NOI18N
         downloadMenu.add(safetyCheckBoxMenuItem);
 
         peerBlockNotificationCheckBoxMenuItem.setSelected(true);
-        peerBlockNotificationCheckBoxMenuItem.setText("Show " + Constant.PEER_BLOCK_APP_TITLE + " Notification");
+        peerBlockNotificationCheckBoxMenuItem.setText(bundle.getString("GUI.peerBlockNotificationCheckBoxMenuItem.text")); // NOI18N
         downloadMenu.add(peerBlockNotificationCheckBoxMenuItem);
         downloadMenu.add(downloadMenuSeparator3);
 
-        portMenuItem.setText("Set Incoming Listen Port");
+        portMenuItem.setText(bundle.getString("GUI.portMenuItem.text")); // NOI18N
         portMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 portMenuItemActionPerformed(evt);
@@ -4113,7 +4165,7 @@ public class GUI extends JFrame implements GuiListener {
         downloadMenu.add(portMenuItem);
         downloadMenu.add(downloadMenuSeparator4);
 
-        downloadWithDefaultAppCheckBoxMenuItem.setText("Download with Default Application");
+        downloadWithDefaultAppCheckBoxMenuItem.setText(bundle.getString("GUI.downloadWithDefaultAppCheckBoxMenuItem.text")); // NOI18N
         downloadWithDefaultAppCheckBoxMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 downloadWithDefaultAppCheckBoxMenuItemActionPerformed(evt);
@@ -4122,8 +4174,8 @@ public class GUI extends JFrame implements GuiListener {
         downloadMenu.add(downloadWithDefaultAppCheckBoxMenuItem);
 
         autoDownloadingCheckBoxMenuItem.setSelected(true);
-        autoDownloadingCheckBoxMenuItem.setText("Enable Auto-Downloading");
-        autoDownloadingCheckBoxMenuItem.setToolTipText("start downloads in web browser");
+        autoDownloadingCheckBoxMenuItem.setText(bundle.getString("GUI.autoDownloadingCheckBoxMenuItem.text")); // NOI18N
+        autoDownloadingCheckBoxMenuItem.setToolTipText(bundle.getString("GUI.autoDownloadingCheckBoxMenuItem.toolTipText")); // NOI18N
         autoDownloadingCheckBoxMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 autoDownloadingCheckBoxMenuItemActionPerformed(evt);
@@ -4131,23 +4183,23 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadMenu.add(autoDownloadingCheckBoxMenuItem);
 
-        downloaderMenu.setText("Select Auto-Downloader");
+        downloaderMenu.setText(bundle.getString("GUI.downloaderMenu.text")); // NOI18N
 
         defaultRadioButtonMenuItem.setSelected(true);
-        defaultRadioButtonMenuItem.setText("Default");
+        defaultRadioButtonMenuItem.setText(bundle.getString("GUI.defaultRadioButtonMenuItem.text")); // NOI18N
         downloaderMenu.add(defaultRadioButtonMenuItem);
 
-        customRadioButtonMenuItem.setText(Constant.APP_TITLE + "'s");
+        customRadioButtonMenuItem.setText(bundle.getString("GUI.customRadioButtonMenuItem.text")); // NOI18N
         downloaderMenu.add(customRadioButtonMenuItem);
 
         downloadMenu.add(downloaderMenu);
 
         menuBar.add(downloadMenu);
 
-        helpMenu.setText("Help");
+        helpMenu.setText(bundle.getString("GUI.helpMenu.text")); // NOI18N
 
         faqMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, InputEvent.CTRL_MASK));
-        faqMenuItem.setText("FAQ");
+        faqMenuItem.setText(bundle.getString("GUI.faqMenuItem.text")); // NOI18N
         faqMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 faqMenuItemActionPerformed(evt);
@@ -4156,7 +4208,7 @@ public class GUI extends JFrame implements GuiListener {
         helpMenu.add(faqMenuItem);
         helpMenu.add(helpMenuSeparator1);
 
-        activationMenuItem.setText("Activation");
+        activationMenuItem.setText(bundle.getString("GUI.activationMenuItem.text")); // NOI18N
         activationMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 activationMenuItemActionPerformed(evt);
@@ -4164,7 +4216,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         helpMenu.add(activationMenuItem);
 
-        updateMenuItem.setText("Check for Updates");
+        updateMenuItem.setText(bundle.getString("GUI.updateMenuItem.text")); // NOI18N
         updateMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 updateMenuItemActionPerformed(evt);
@@ -4173,12 +4225,11 @@ public class GUI extends JFrame implements GuiListener {
         helpMenu.add(updateMenuItem);
 
         updateCheckBoxMenuItem.setSelected(true);
-        updateCheckBoxMenuItem.setText("Show Update Notification");
-        updateCheckBoxMenuItem.setToolTipText(null);
+        updateCheckBoxMenuItem.setText(bundle.getString("GUI.updateCheckBoxMenuItem.text")); // NOI18N
         helpMenu.add(updateCheckBoxMenuItem);
         helpMenu.add(helpMenuSeparator2);
 
-        aboutMenuItem.setText("About");
+        aboutMenuItem.setText(bundle.getString("GUI.aboutMenuItem.text")); // NOI18N
         aboutMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 aboutMenuItemActionPerformed(evt);
@@ -4223,40 +4274,40 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(popularMoviesButton)
                         .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addComponent(popularTVShowsButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 963, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(loadingLabel))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(anyTitleCheckBox, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(anyTitleCheckBox)
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(titleLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 827, Short.MAX_VALUE))
+                                .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 775, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(typeLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(typeComboBox, GroupLayout.PREFERRED_SIZE, 77, GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 20, Short.MAX_VALUE)
+                                .addComponent(typeComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(18, 18, 18)
                                 .addComponent(ratingLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(ratingComboBox, GroupLayout.PREFERRED_SIZE, 59, GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 21, Short.MAX_VALUE)
+                                .addComponent(ratingComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(18, 18, 18)
                                 .addComponent(releasedLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(startDateChooser, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+                                .addComponent(startDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGap(7, 7, 7)
                                 .addComponent(releasedToLabel)
                                 .addGap(6, 6, 6)
-                                .addComponent(endDateChooser, GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)))
+                                .addComponent(endDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                         .addGap(18, 18, 18)
                         .addComponent(genreLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE)
+                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 322, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(Alignment.LEADING, false)
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addComponent(searchButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(stopButton, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(stopButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(readSummaryButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -4282,13 +4333,9 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {hd1080CheckBox, hd720CheckBox});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {searchButton, stopButton});
-
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
-
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {ratingComboBox, typeComboBox});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -4388,18 +4435,6 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
         }
-
-        StringBuilder profiles = new StringBuilder(128);
-        for (int i = 1, numProfiles = profileComboBox.getItemCount(); i < numProfiles; i++) {
-            profiles.append(profileComboBox.getItemAt(i)).append(Constant.NEWLINE);
-        }
-        try {
-            IO.write(Constant.APP_DIR + Constant.PROFILES, profiles.toString().trim());
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        }
     }
 
     public void savePlaylist() {
@@ -4497,7 +4532,8 @@ public class GUI extends JFrame implements GuiListener {
             title = "";
         }
 
-        String[] genres = UI.copy(genreList), languages = UI.copy(languageList), countries = UI.copy(countryList);
+        String[] genres = UI.selectAnyIfNoSelectionAndCopy(genreList), languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries
+                = UI.selectAnyIfNoSelectionAndCopy(countryList);
         String minRating = (String) ratingComboBox.getSelectedItem();
 
         isRegularSearcher = true;
@@ -4540,11 +4576,11 @@ public class GUI extends JFrame implements GuiListener {
 
     void printMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_printMenuItemActionPerformed
         if (resultsSyncTable.getRowCount() == 0) {
-            showMsg("There are no search results to print.", Constant.INFO_MSG);
+            showMsg(Str.str("noPrintResults"), Constant.INFO_MSG);
             return;
         }
         printMenuItem.setEnabled(false);
-        printMenuItem.setText("Preparing to Print...");
+        printMenuItem.setText(Str.str("printing"));
         (new SwingWorker<Object, Object>() {
             @Override
             protected Object doInBackground() {
@@ -4558,7 +4594,7 @@ public class GUI extends JFrame implements GuiListener {
                 }
                 rootPane.setCursor(defaultCursor);
                 resultsSyncTable.table.setCursor(defaultCursor);
-                printMenuItem.setText("Print");
+                printMenuItem.setText(Str.str("GUI.printMenuItem.text"));
                 printMenuItem.setEnabled(true);
                 return null;
             }
@@ -4651,11 +4687,11 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_tvSubmitButtonActionPerformed
 
     void tvEpisodeComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvEpisodeComboBoxActionPerformed
-        updatedTVComboBoxes();
+        updateTVComboBoxes();
     }//GEN-LAST:event_tvEpisodeComboBoxActionPerformed
 
     void tvSeasonComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSeasonComboBoxActionPerformed
-        updatedTVComboBoxes();
+        updateTVComboBoxes();
     }//GEN-LAST:event_tvSeasonComboBoxActionPerformed
 
     void tvCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvCancelButtonActionPerformed
@@ -4704,7 +4740,7 @@ public class GUI extends JFrame implements GuiListener {
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) (isPopularTVShows ? popularTVShowsResultsPerSearchComboBox.getSelectedItem()
                 : popularMoviesResultsPerSearchComboBox.getSelectedItem()));
-        String[] languages = UI.copy(languageList), countries = UI.copy(countryList);
+        String[] languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries = UI.selectAnyIfNoSelectionAndCopy(countryList);
         workerListener.popularSearchStarted(numResultsPerSearch, isPopularTVShows, languages, countries, false, true);
     }
 
@@ -4752,7 +4788,7 @@ public class GUI extends JFrame implements GuiListener {
                     toListModel.addElement(customExt);
                 }
             } else {
-                showMsg("Custom extensions must be 1-20 letters, digits, or hyphens.", Constant.ERROR_MSG);
+                showMsg(Str.str("extensionFormat"), Constant.ERROR_MSG);
             }
         }
 
@@ -4942,10 +4978,6 @@ public class GUI extends JFrame implements GuiListener {
     void countryListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_countryListValueChanged
         UI.updateList(countryList);
     }//GEN-LAST:event_countryListValueChanged
-
-    void langaugeCountryOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_langaugeCountryOkButtonActionPerformed
-        languageCountryDialog.setVisible(false);
-    }//GEN-LAST:event_langaugeCountryOkButtonActionPerformed
 
     void trashCanButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_trashCanButtonActionPerformed
         Object[] whitelistValues = whitelistedList.getSelectedValues(), blacklistValues = blacklistedList.getSelectedValues();
@@ -5195,7 +5227,7 @@ public class GUI extends JFrame implements GuiListener {
 
         int numProxies = proxyComboBox.getItemCount();
         if (numProxies == 1) {
-            showMsg("There are no proxies to " + type + ".", Constant.INFO_MSG);
+            showMsg(Str.str("noProxiesTo" + type), Constant.INFO_MSG);
             enableProxyButtons(true);
             return numProxies;
         }
@@ -5205,7 +5237,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void proxyRemoveButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyRemoveButtonActionPerformed
-        int numProxies = exportProxies("remove");
+        int numProxies = exportProxies("Remove");
         if (numProxies == 1) {
             return;
         }
@@ -5235,7 +5267,7 @@ public class GUI extends JFrame implements GuiListener {
 
         Object[] selectedProxies = removeProxiesList.getSelectedValues();
         if (selectedProxies.length == 0) {
-            showMsg("0 proxies have been removed.", Constant.INFO_MSG);
+            showMsg(Str.str("noProxiesRemoved"), Constant.INFO_MSG);
             restoreProxyDialog(false);
             return;
         }
@@ -5244,7 +5276,7 @@ public class GUI extends JFrame implements GuiListener {
             proxyComboBox.removeItem(proxy);
         }
 
-        showMsg(selectedProxies.length + (selectedProxies.length == 1 ? " proxy has " : " proxies have ") + "been removed.", Constant.INFO_MSG);
+        showMsg(selectedProxies.length == 1 ? Str.str("proxyRemoved") : Str.str("proxiesRemoved", selectedProxies.length), Constant.INFO_MSG);
 
         StringBuilder proxiesBuf = new StringBuilder(2048);
         int numProxies = proxyComboBox.getItemCount();
@@ -5270,7 +5302,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_removeProxiesDialogWindowClosing
 
     private void noAddedProxies(boolean addButtonPressed) {
-        showMsg("0 new proxies have been added.", Constant.INFO_MSG);
+        showMsg(Str.str("noProxiesAdded"), Constant.INFO_MSG);
         if (addButtonPressed) {
             restoreProxyDialog(true);
         }
@@ -5287,10 +5319,10 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        int numProxies = proxyComboBox.getItemCount() - 1;
+        int numProxies = proxyComboBox.getItemCount();
         Collection<String> oldProxies = new ArrayList<String>(numProxies);
-        for (int i = 0; i < numProxies; i++) {
-            oldProxies.add((String) proxyComboBox.getItemAt(i + 1));
+        for (int i = 1; i < numProxies; i++) {
+            oldProxies.add((String) proxyComboBox.getItemAt(i));
         }
 
         String[] proxyList = Regex.split(proxies, Constant.STD_NEWLINE);
@@ -5302,7 +5334,7 @@ public class GUI extends JFrame implements GuiListener {
             }
 
             if ((newProxy = Connection.getProxy(newProxy)) == null) {
-                showMsg("\'" + proxy + "' is invalid.", Constant.ERROR_MSG);
+                showMsg(Str.str("invalidProxy", proxy), Constant.ERROR_MSG);
                 if (addButtonPressed) {
                     addProxiesAddButton.setEnabled(true);
                 }
@@ -5333,7 +5365,7 @@ public class GUI extends JFrame implements GuiListener {
         proxyComboBox.setSelectedItem(Constant.NO_PROXY);
 
         int numNewProxies = validProxies.size();
-        showMsg(numNewProxies + " new" + (numNewProxies == 1 ? " proxy has " : " proxies have ") + "been added.", Constant.INFO_MSG);
+        showMsg(numNewProxies == 1 ? Str.str("proxyAdded") : Str.str("proxiesAdded", numNewProxies), Constant.INFO_MSG);
 
         try {
             IO.write(Constant.APP_DIR + Constant.PROXIES, proxiesBuf.toString().trim());
@@ -5350,7 +5382,7 @@ public class GUI extends JFrame implements GuiListener {
         enableProxyButtons(false);
         proxyDialog.setVisible(false);
 
-        proxyFileChooser.setFileFilter(Regex.proxyListFileFilter);
+        proxyFileChooser.setFileFilter(proxyListFileFilter);
         proxyFileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         if (!proxyImportFile.isEmpty()) {
             proxyFileChooser.setSelectedFile(new File(proxyImportFile));
@@ -5370,12 +5402,12 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_proxyImportButtonActionPerformed
 
     void proxyExportButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyExportButtonActionPerformed
-        int numProxies = exportProxies("export");
+        int numProxies = exportProxies("Export");
         if (numProxies == 1) {
             return;
         }
 
-        proxyFileChooser.setFileFilter(Regex.proxyListFileFilter);
+        proxyFileChooser.setFileFilter(proxyListFileFilter);
         proxyFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         proxyFileChooser.setSelectedFile(new File(proxyExportFile.isEmpty() ? Constant.PROXIES : proxyExportFile));
         if (proxyFileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION) {
@@ -5394,7 +5426,7 @@ public class GUI extends JFrame implements GuiListener {
                 proxyExportFile = proxyFile.getPath();
                 IO.write(proxyFile, proxiesBuf.toString().trim());
                 numProxies = proxies.size();
-                showMsg(numProxies + (numProxies == 1 ? " proxy has " : " proxies have ") + "been exported.", Constant.INFO_MSG);
+                showMsg(numProxies == 1 ? Str.str("proxyExported") : Str.str("proxiesExported", numProxies), Constant.INFO_MSG);
             } catch (Exception e) {
                 showException(e);
             }
@@ -5421,19 +5453,12 @@ public class GUI extends JFrame implements GuiListener {
     private void loadProfile() {
         if (profileUseButton.isEnabled()) {
             int profile = profileComboBox.getSelectedIndex();
-            String profileName;
-            if (profile == 0) {
-                settings.loadSettings(Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS);
-                profileName = "Default";
-            } else {
-                settings.loadSettings(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT);
-                profileName = profileComboBox.getItemAt(profile) + "'s";
-            }
+            settings.loadSettings(profile == 0 ? Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS : Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT);
             playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
             maximize();
-            timedMsg(profileName + " settings restored");
+            timedMsg(Str.str("settingsRestored", profileComboBox.getItemAt(profile)));
         } else {
-            showMsg("The profile needs to be set before use.", Constant.ERROR_MSG);
+            showMsg(Str.str("setProfileBeforeUse"), Constant.ERROR_MSG);
         }
     }
 
@@ -5450,6 +5475,9 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_profileComboBoxActionPerformed
 
     private void updateProfileGUIitems(int profile) {
+        if (profile == -1) {
+            return;
+        }
         if (profile == 0) {
             profileUseButton.setEnabled(true);
             UI.enable(false, profileClearButton, profileSetButton, profileRenameButton);
@@ -5540,13 +5568,14 @@ public class GUI extends JFrame implements GuiListener {
         try {
             settings.saveSettings(Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT);
             updateProfileGUIitems(profile);
-            showMsg("The profile has been set to the application's current settings.", Constant.INFO_MSG);
+            showMsg(Str.str("profileSet"), Constant.INFO_MSG);
         } catch (Exception e) {
             showException(e);
         }
     }//GEN-LAST:event_profileSetButtonActionPerformed
 
     void useProfileMenuMenuSelected(MenuEvent evt) {//GEN-FIRST:event_useProfileMenuMenuSelected
+        profile0MenuItem.setText((String) profileComboBox.getItemAt(0));
         profile1MenuItem.setText((String) profileComboBox.getItemAt(1));
         profile2MenuItem.setText((String) profileComboBox.getItemAt(2));
         profile3MenuItem.setText((String) profileComboBox.getItemAt(3));
@@ -5566,38 +5595,21 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_profileRenameButtonActionPerformed
 
     void profileNameChangeOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileNameChangeOKButtonActionPerformed
-        String newProfileName = profileNameChangeTextField.getText().trim();
-        if (!Regex.isMatch(newProfileName, "(\\p{Alpha}|\\d|-| ){1,20}+")) {
-            showMsg("Profile names must be 1-20 letters, digits, hyphens, or spaces.", Constant.ERROR_MSG);
+        String profileName = profileNameChangeTextField.getText().trim();
+        if (!Regex.isMatch(profileName, "(\\p{javaLowerCase}|\\p{javaUpperCase}|\\d|-| ){1,20}+")) {
+            showMsg(Str.str("profileNameFormat"), Constant.ERROR_MSG);
             return;
         }
-
-        if (newProfileName.equals(Constant.DEFAULT_PROFILE)) {
-            showMsg("The name is already in use by another profile. Choose a different name.", Constant.ERROR_MSG);
+        if (((DefaultComboBoxModel) profileComboBox.getModel()).getIndexOf(profileName) != -1) {
+            showMsg(Str.str("profileNameDuplicatePart1") + ' ' + Str.str("profileNameDuplicatePart2"), Constant.ERROR_MSG);
             return;
         }
 
         int profile = profileComboBox.getSelectedIndex();
-        String[] profileNames = new String[9];
-        for (int i = 1; i < 10; i++) {
-            if (i == profile) {
-                profileNames[i - 1] = newProfileName;
-            } else {
-                String profileName = (String) profileComboBox.getItemAt(i);
-                if (newProfileName.equals(profileName)) {
-                    showMsg("The name is already in use by another profile. Choose a different name.", Constant.ERROR_MSG);
-                    return;
-                }
-                profileNames[i - 1] = profileName;
-            }
-        }
-
-        profileComboBox.removeAllItems();
-        profileComboBox.addItem(Constant.DEFAULT_PROFILE);
-        for (String profileName : profileNames) {
-            profileComboBox.addItem(profileName);
-        }
-        profileComboBox.setSelectedItem(newProfileName);
+        profileComboBox.removeItemAt(profile);
+        profileComboBox.insertItemAt(profileName, profile);
+        profileComboBox.setSelectedIndex(profile);
+        preferences.put("GUI.profile" + profile + "MenuItem.text", profileName);
 
         profileNameChangeDialog.setVisible(false);
         profileDialog.setVisible(true);
@@ -5907,7 +5919,8 @@ public class GUI extends JFrame implements GuiListener {
             blacklistedToWhitelistedButtonActionPerformed(null);
         } else if (!(customExt = customExtensionTextField.getText()).startsWith(".") && key != KeyEvent.VK_PERIOD && key != KeyEvent.VK_DECIMAL && key
                 != KeyEvent.VK_ALT && key != KeyEvent.VK_ALT_GRAPH && key != KeyEvent.VK_CONTROL && key != KeyEvent.VK_META && key != KeyEvent.VK_SHIFT && key
-                != KeyEvent.VK_BACK_SPACE && key != KeyEvent.VK_ENTER && key != KeyEvent.VK_DELETE && key != KeyEvent.VK_ESCAPE && !evt.isActionKey()) {
+                != KeyEvent.VK_BACK_SPACE && key != KeyEvent.VK_ENTER && key != KeyEvent.VK_DELETE && key != KeyEvent.VK_ESCAPE && !evt.isActionKey()
+                && !evt.isAltDown() && !evt.isAltGraphDown() && !evt.isControlDown() && !evt.isMetaDown()) {
             customExtensionTextField.setText('.' + customExt);
         }
     }//GEN-LAST:event_customExtensionTextFieldKeyPressed
@@ -6266,7 +6279,8 @@ public class GUI extends JFrame implements GuiListener {
         if (port.isEmpty()) {
             portRandomizeCheckBox.setSelected(true);
         } else if ((portNum = portNum(port)) == -1) {
-            if (isConfirmed("\'" + port + "' is invalid. The port must be a number between 0 and 65535. A number between 49161 and 65533 is best. Retry?")) {
+            if (isConfirmed(Str.str("invalidPortPart1", port) + ' ' + Str.str("invalidPortPart2") + ' ' + Str.str("invalidPortPart3") + ' ' + Str.str(
+                    "invalidPortPart4"))) {
                 resultsToBackground(true);
                 portDialog.setVisible(true);
             } else {
@@ -6307,7 +6321,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_playlistMenuItemActionPerformed
 
-    private PlaylistItem selectedPlaylistItem() {
+    PlaylistItem selectedPlaylistItem() {
         synchronized (playlistSyncTable.lock) {
             int[] rows = playlistSyncTable.table.getSelectedRows();
             if (rows.length != 1) {
@@ -6516,6 +6530,10 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed
 
+    private void languageCountryOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryOkButtonActionPerformed
+        languageCountryDialog.setVisible(false);
+    }//GEN-LAST:event_languageCountryOkButtonActionPerformed
+
     private void playlistKeyPressed(KeyEvent evt) {
         if (!evt.isControlDown()) {
             return;
@@ -6571,7 +6589,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private void updatedTVComboBoxes() {
+    private void updateTVComboBoxes() {
         boolean allSeasons = tvSeasonComboBox.getSelectedItem().equals(Constant.ANY), allEpisodes = tvEpisodeComboBox.getSelectedItem().equals(Constant.ANY);
 
         if (allSeasons && !allEpisodes) {
@@ -6702,7 +6720,7 @@ public class GUI extends JFrame implements GuiListener {
                 connectionIssueButton.setEnabled(true);
                 connectionIssueButton.setBorderPainted(true);
                 connectionIssueButton.setIcon(warningIcon);
-                connectionIssueButton.setToolTipText("view connection issues (" + CTRL_CLICK + "hide)");
+                connectionIssueButton.setToolTipText(Str.ctrlStr("GUI.connectionIssueButton.toolTipText2"));
             }
         }
     }
@@ -6728,16 +6746,20 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void setSafetyDialog(String statistic, String link, String name) {
-        safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + "This download link (" + name
-                + ") is from an untrustworthy source." + (statistic == null || link == null ? "" : " " + statistic + " of the <a href=\"" + link
-                        + "\">comments</a> on the video indicate that it may be fake.")
-                + "<br><br><b>Do you want to proceed with this download link anyway?</b></font></td></tr></table></body></html>");
+        safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Str.str(
+                "linkSafetyWarningPart1", name) + (statistic == null || link == null ? "" : " " + Str.htmlLinkStr("linkSafetyWarningPart2", link, statistic))
+                + "<br><br><b>" + Str.str("linkSafetyWarningPart3") + "</b></font></td></tr></table></body></html>");
     }
 
     private Window[] windows() {
         return new Window[]{this, safetyDialog, msgDialog, summaryDialog, faqFrame, aboutDialog, timeoutDialog, tvDialog, resultsPerSearchDialog,
             downloadSizeDialog, extensionsDialog, languageCountryDialog, dummyDialog /* Backward compatibility */, proxyDialog, addProxiesDialog,
             removeProxiesDialog, profileDialog, profileNameChangeDialog, commentsDialog, portDialog, tvSubtitleDialog, movieSubtitleDialog};
+    }
+
+    private AbstractButton[] languageButtons() {
+        return new AbstractButton[]{englishRadioButtonMenuItem, spanishRadioButtonMenuItem, frenchRadioButtonMenuItem, italianRadioButtonMenuItem,
+            dutchRadioButtonMenuItem, portugueseRadioButtonMenuItem, turkishRadioButtonMenuItem};
     }
 
     private class Settings {
@@ -6758,6 +6780,7 @@ public class GUI extends JFrame implements GuiListener {
                     settings = defaultSettings;
                 }
                 int i = -1;
+                changeLocale(settings[Constant.SETTINGS_LEN - 1]);
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
                 i += restoreButtons(settings, i, buttonSet1());
                 ++i; // Backward compatibility
@@ -6795,11 +6818,13 @@ public class GUI extends JFrame implements GuiListener {
                 i += restoreComboBoxes(settings, i, timeoutDownloadLinkComboBox);
                 i += restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
                 i += restoreWindows(settings, i, playlistFrame);
+                activationDialog.pack();
 
                 playlistDir = getPath(settings, ++i);
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
-                restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */,
+                i += restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */,
                         playlistShowNonVideoItemsCheckBoxMenuItem, playDefaultAppMenuItem);
+                restoreColumnWidths(settings, i, resultsTable, yearCol, ratingCol);
 
                 if (!updateSettings) {
                     return;
@@ -6847,6 +6872,16 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(usePeerBlock).append(Constant.NEWLINE);
             saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */, playlistShowNonVideoItemsCheckBoxMenuItem,
                     playDefaultAppMenuItem);
+            saveColumnWidths(settings, resultsTable, yearCol, ratingCol);
+
+            String language = null;
+            for (AbstractButton languageButton : languageButtons()) {
+                if (languageButton.isSelected()) {
+                    language = languageButton.getName();
+                    break;
+                }
+            }
+            settings.append(language);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -6908,35 +6943,17 @@ public class GUI extends JFrame implements GuiListener {
 
         private void restoreList(String name, String str, DefaultListModel listModel) {
             listModel.clear();
-            if (str.equals(name + EMPTY_LIST)) {
-                return;
-            }
-
-            for (String currStr : Regex.split(str, ":")) {
-                listModel.addElement(currStr);
+            if (!str.equals(name + EMPTY_LIST)) {
+                for (String currStr : Regex.split(str, ":")) {
+                    listModel.addElement(currStr);
+                }
             }
         }
 
         private void restoreList(String name, String str, JList list) {
-            if (str.equals(name + EMPTY_LIST)) {
-                return;
+            if (!str.equals(name + EMPTY_LIST)) {
+                UI.select(list, Regex.split(str, ":"));
             }
-
-            String[] strs = Regex.split(str, ":");
-            int[] selection = new int[strs.length];
-            ListModel listModel = list.getModel();
-            int size = listModel.getSize(), k = 0;
-
-            for (int j = 0; j < size; j++) {
-                for (String currStr : strs) {
-                    if (currStr.equals(listModel.getElementAt(j))) {
-                        selection[k++] = j;
-                    }
-                }
-            }
-
-            list.setSelectedIndices(selection);
-            list.ensureIndexIsVisible(list.getSelectedIndex());
         }
 
         private String saveSize(Window window) {
@@ -6987,6 +7004,21 @@ public class GUI extends JFrame implements GuiListener {
 
         private String getPath(String[] settings, int settingsIndex) {
             return settings[settingsIndex].equals(EMPTY_PATH) ? "" : settings[settingsIndex].replace(Constant.SEPARATOR3, Constant.FILE_SEPARATOR);
+        }
+
+        private void saveColumnWidths(StringBuilder settings, JTable table, int... columns) {
+            TableColumnModel colModel = table.getColumnModel();
+            for (int column : columns) {
+                settings.append(colModel.getColumn(column).getWidth()).append(Constant.NEWLINE);
+            }
+        }
+
+        private int restoreColumnWidths(String[] settings, int settingsIndex, JTable table, int... columns) {
+            TableColumnModel colModel = table.getColumnModel();
+            for (int i = 0, j = settingsIndex + 1; i < columns.length; i++) {
+                colModel.getColumn(columns[i]).setPreferredWidth(Integer.parseInt(settings[j + i]));
+            }
+            return columns.length;
         }
     }
 
@@ -7208,8 +7240,8 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void altVideoDownloadStarted() {
         if (!isAltSearch) {
-            showConnectionException(new ConnectionException("<font color=\"red\">Switching to backup mode.</font> " + Connection.error("", null,
-                    Connection.downloadLinkInfoFailUrl())));
+            showConnectionException(new ConnectionException("<font color=\"red\">" + Str.str("switchingToBackupMode") + "</font> " + Str.str("connectionProblem",
+                    Connection.getShortUrl(Connection.downloadLinkInfoFailUrl(), false))));
             enableVideoFormats(false);
             UI.enable(true, exitBackupModeMenuItem, downloadLinkExitBackupModeMenuItem);
             isAltSearch = true;
@@ -7383,59 +7415,33 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void browserNotification(String item, String action, DomainType domainType) {
+    public void browserNotification(DomainType domainType) {
         if (!browserNotificationCheckBoxMenuItem.isSelected()) {
             return;
         }
 
-        String proxy = Constant.NO_PROXY;
-        switch (domainType) {
-            case DOWNLOAD_LINK_INFO:
-                if (proxyDownloadLinkInfoCheckBox.isSelected()) {
-                    proxy = getSelectedProxy();
-                }
-                break;
-            case VIDEO_INFO:
-                if (proxyVideoInfoCheckBox.isSelected()) {
-                    proxy = getSelectedProxy();
-                }
-                break;
-            case SEARCH_ENGINE:
-                if (proxySearchEnginesCheckBox.isSelected()) {
-                    proxy = getSelectedProxy();
-                }
-                break;
-            case TRAILER:
-                if (proxyTrailersCheckBox.isSelected()) {
-                    proxy = getSelectedProxy();
-                }
-                break;
-            case VIDEO_STREAMER:
-                if (proxyVideoStreamersCheckBox.isSelected()) {
-                    proxy = getSelectedProxy();
-                }
-                break;
-            case UPDATE:
-                if (proxyUpdatesCheckBox.isSelected()) {
-                    proxy = getSelectedProxy();
-                }
-                break;
-            case SUBTITLE:
-                if (proxySubtitlesCheckBox.isSelected()) {
-                    proxy = getSelectedProxy();
-                }
-                break;
-            default:
-                break;
+        JCheckBox proxyCheckBox;
+        String type;
+        if (domainType == DomainType.DOWNLOAD_LINK_INFO) {
+            proxyCheckBox = proxyDownloadLinkInfoCheckBox;
+            type = "Download";
+        } else if (domainType == DomainType.VIDEO_INFO) {
+            proxyCheckBox = proxyVideoInfoCheckBox;
+            type = "Summary";
+        } else if (domainType == DomainType.TRAILER) {
+            proxyCheckBox = proxyTrailersCheckBox;
+            type = "Trailer";
+        } else if (domainType == DomainType.VIDEO_STREAMER) {
+            proxyCheckBox = proxyVideoStreamersCheckBox;
+            type = "Watch";
+        } else {
+            return;
         }
 
-        String newMsg = "The " + item + " will be " + action + " in your web browser.";
-        if (proxy.equals(Constant.NO_PROXY)) {
-            showOptionalMsg(newMsg, browserNotificationCheckBoxMenuItem);
-        } else {
-            String[] proxyParts = Regex.split(proxy, ":");
-            showOptionalMsg(newMsg + " Set your web browser's proxy to " + proxyParts[0] + " on port " + proxyParts[1] + '.', browserNotificationCheckBoxMenuItem);
-        }
+        String proxy = (proxyCheckBox.isSelected() ? Connection.getProxy(getSelectedProxy()) : Constant.NO_PROXY);
+        String[] proxyParts;
+        showOptionalMsg(Str.str("browse" + type + "Link") + (proxy == null || proxy.equals(Constant.NO_PROXY) ? "" : ' ' + Str.str("setWebBrowserProxy",
+                (proxyParts = Regex.split(proxy, 256))[0], proxyParts[1])), browserNotificationCheckBoxMenuItem);
     }
 
     private void updateOptionalMsgCheckBox(JMenuItem menuItem) {
@@ -7457,8 +7463,7 @@ public class GUI extends JFrame implements GuiListener {
             IO.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
         }
-        if (canShowPeerBlock && (showOptionalConfirm(showing(), "Start " + Constant.PEER_BLOCK_APP_TITLE + " to block untrusty IPs?",
-                peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION)) {
+        if (canShowPeerBlock && showOptionalConfirm(showing(), Str.str("startPeerblock"), peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION) {
             usePeerBlock = false;
             return;
         }
@@ -7482,8 +7487,28 @@ public class GUI extends JFrame implements GuiListener {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            showMsg("Error starting " + Constant.PEER_BLOCK_APP_TITLE + ": " + e.getMessage(), Constant.ERROR_MSG);
+            showMsg(Str.str("peerblockStartError") + ' ' + ExceptionUtil.toString(e), Constant.ERROR_MSG);
         }
+    }
+
+    private String save(final JFileChooser fileChooser, final FileFilter fileFilter, final String selectedFilePath, File file) throws Exception {
+        final AtomicReference<File> selectedFileRef = new AtomicReference<File>();
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                fileChooser.setFileFilter(fileFilter);
+                fileChooser.setSelectedFile(new File(selectedFilePath));
+                if (save(fileChooser)) {
+                    selectedFileRef.set(fileChooser.getSelectedFile());
+                }
+            }
+        });
+        File selectedFile = selectedFileRef.get();
+        if (selectedFile != null) {
+            IO.write(file, selectedFile);
+            return IO.parentDir(selectedFile);
+        }
+        return null;
     }
 
     private boolean save(JFileChooser fileChooser) {
@@ -7495,25 +7520,17 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void saveTorrent(File torrentFile) throws Exception {
-        torrentFileChooser.setFileFilter(Regex.torrentFileFilter);
-        torrentFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        torrentFileChooser.setSelectedFile(new File(torrentDir + torrentFile.getName()));
-        if (save(torrentFileChooser)) {
-            File torrent = torrentFileChooser.getSelectedFile();
-            torrentDir = IO.parentDir(torrent);
-            IO.write(torrentFile, torrent);
+        String saveDir = save(torrentFileChooser, torrentFileFilter, torrentDir + torrentFile.getName(), torrentFile);
+        if (saveDir != null) {
+            torrentDir = saveDir;
         }
     }
 
     @Override
     public void saveSubtitle(String saveFileName, File subtitleFile) throws Exception {
-        subtitleFileChooser.setFileFilter(Regex.subtitleFileFilter);
-        subtitleFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        subtitleFileChooser.setSelectedFile(new File(subtitleDir + saveFileName));
-        if (save(subtitleFileChooser)) {
-            File subtitle = subtitleFileChooser.getSelectedFile();
-            subtitleDir = IO.parentDir(subtitle);
-            IO.write(subtitleFile, subtitle);
+        String saveDir = save(subtitleFileChooser, subtitleFileFilter, subtitleDir + saveFileName, subtitleFile);
+        if (saveDir != null) {
+            subtitleDir = saveDir;
         }
     }
 
@@ -7533,13 +7550,23 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void setTitle(String title, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(title, row, titleCol, idCol, titleID);
+    public void setTitle(final String title, final int row, final String titleID) {
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.setModelValueAt(title, row, titleCol, idCol, titleID);
+            }
+        });
     }
 
     @Override
-    public void setSummary(String summary, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(summary, row, summaryCol, idCol, titleID);
+    public void setSummary(final String summary, final int row, final String titleID) {
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.setModelValueAt(summary, row, summaryCol, idCol, titleID);
+            }
+        });
     }
 
     @Override
@@ -7548,23 +7575,43 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void setSeason(String season, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(season, row, seasonCol, idCol, titleID);
+    public void setSeason(final String season, final int row, final String titleID) {
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.setModelValueAt(season, row, seasonCol, idCol, titleID);
+            }
+        });
     }
 
     @Override
-    public void setEpisode(String episode, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(episode, row, episodeCol, idCol, titleID);
+    public void setEpisode(final String episode, final int row, final String titleID) {
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.setModelValueAt(episode, row, episodeCol, idCol, titleID);
+            }
+        });
     }
 
     @Override
-    public void setImageLink(String imageLink, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(imageLink, row, imageLinkCol, idCol, titleID);
+    public void setImageLink(final String imageLink, final int row, final String titleID) {
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.setModelValueAt(imageLink, row, imageLinkCol, idCol, titleID);
+            }
+        });
     }
 
     @Override
-    public void setImagePath(String imagePath, int row, String titleID) {
-        resultsSyncTable.setModelValueAt(imagePath, row, imageCol, idCol, titleID);
+    public void setImagePath(final String imagePath, final int row, final String titleID) {
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.setModelValueAt(imagePath, row, imageCol, idCol, titleID);
+            }
+        });
     }
 
     @Override
@@ -7589,12 +7636,17 @@ public class GUI extends JFrame implements GuiListener {
     public void newSearch(int maxProgress, boolean isTVShow) {
         enableVideoFormats(true);
         UI.enable(false, exitBackupModeMenuItem, downloadLinkExitBackupModeMenuItem);
-        resultsSyncTable.setRowCount(0);
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.setRowCount(0);
+            }
+        });
         isAltSearch = false;
-        resultsLabel.setText("Results: 0");
+        searchNumResultsUpdate(0);
         progressBar.setMinimum(0);
         progressBar.setMaximum(maxProgress);
-        progressBar.setValue(0);
+        UI.setVal(progressBar, 0);
 
         Connection.clearCache();
         if (isTVShow) {
@@ -7612,7 +7664,7 @@ public class GUI extends JFrame implements GuiListener {
         }
         progressBar.setMinimum(0);
         progressBar.setMaximum(maxProgress);
-        progressBar.setValue(0);
+        UI.setVal(progressBar, 0);
         return true;
     }
 
@@ -7620,10 +7672,15 @@ public class GUI extends JFrame implements GuiListener {
         try {
             for (int i = 0; i < 25; i++) {
                 if (resultsSyncTable.getRowCount() > 0 && resultsSyncTable.getSelectedRow() == -1) {
-                    JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
-                    if ((new Rectangle(viewport.getExtentSize())).intersects(rectangle(viewport, resultsSyncTable.getCellRect(0, 0, true)))) {
-                        resultsSyncTable.setRowSelectionInterval(0, 0);
-                    }
+                    UI.run(false, new Runnable() {
+                        @Override
+                        public void run() {
+                            JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
+                            if ((new Rectangle(viewport.getExtentSize())).intersects(rectangle(viewport, resultsSyncTable.getCellRect(0, 0, true)))) {
+                                resultsSyncTable.setRowSelectionInterval(0, 0);
+                            }
+                        }
+                    });
                     break;
                 }
                 Thread.sleep(10);
@@ -7647,7 +7704,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void searchProgressMaxOut() {
-        progressBar.setValue(progressBar.getMaximum());
+        UI.setVal(progressBar, progressBar.getMaximum());
     }
 
     @Override
@@ -7656,8 +7713,13 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void newResult(Object[] result) {
-        resultsSyncTable.addRow(result);
+    public void newResult(final Object[] result) {
+        UI.run(false, new Runnable() {
+            @Override
+            public void run() {
+                resultsSyncTable.addRow(result);
+            }
+        });
         posterImagePaths.add((String) result[imageCol]);
         updateFindTitles((String) result[currTitleCol]);
     }
@@ -7673,108 +7735,137 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void searchNumResultsUpdate(int numResults) {
-        resultsLabel.setText("Results: " + numResults);
+        resultsLabel.setText(Str.str("results") + " " + numResults);
     }
 
     @Override
     public void searchProgressIncrement() {
-        progressBar.setValue(progressBar.getValue() + 1);
+        UI.setVal(progressBar, progressBar.getValue() + 1);
     }
 
     @Override
-    public boolean newPlaylistItems(List<Object[]> items, int insertRow, int primaryItemIndex) {
-        boolean isPrimaryItemNew = true;
-        synchronized (playlistSyncTable.lock) {
-            for (int i = 0, numItems = items.size(), currInsertRow = insertRow, prevInsertRow; i < numItems; i++) {
-                if ((prevInsertRow = newPlaylistItem(items.get(i), currInsertRow)) >= 0) {
-                    currInsertRow = prevInsertRow + 1;
-                } else if (i == primaryItemIndex) {
-                    isPrimaryItemNew = false;
-                }
-            }
-        }
-        return isPrimaryItemNew;
-    }
-
-    @Override
-    public int newPlaylistItem(Object[] item, int insertRow) {
-        synchronized (playlistSyncTable.lock) {
-            int numRows = playlistSyncTable.tableModel.getRowCount();
-            for (int row = numRows - 1; row > -1; row--) {
-                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(item[playlistItemCol])) {
-                    return -1;
-                }
-            }
-            if (insertRow >= 0 && insertRow < numRows) {
-                try {
-                    playlistSyncTable.tableModel.insertRow(insertRow, item);
-                    return insertRow;
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                }
-            }
-            playlistSyncTable.tableModel.addRow(item);
-            return numRows;
-        }
-    }
-
-    @Override
-    public void removePlaylistItem(PlaylistItem playlistItem) {
-        synchronized (playlistSyncTable.lock) {
-            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
-                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
-                    int[] viewRows = playlistSyncTable.table.getSelectedRows();
-                    playlistSyncTable.tableModel.removeRow(row);
-                    if (viewRows.length != 0) {
-                        selectFirstRow(viewRows);
-                    }
-                    return;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem, boolean updateValOnly) {
-        synchronized (playlistSyncTable.lock) {
-            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
-                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
-                    FormattedNum oldProgress = (FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol);
-                    if (updateValOnly) {
-                        Number newProgressVal = progress.val();
-                        if (!newProgressVal.equals(oldProgress.val())) {
-                            playlistSyncTable.tableModel.setValueAt(oldProgress.copy(newProgressVal), row, playlistProgressCol);
+    public boolean newPlaylistItems(final List<Object[]> items, final int insertRow, final int primaryItemIndex) {
+        return UI.run(new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                boolean isPrimaryItemNew = true;
+                synchronized (playlistSyncTable.lock) {
+                    for (int i = 0, numItems = items.size(), currInsertRow = insertRow, prevInsertRow; i < numItems; i++) {
+                        if ((prevInsertRow = newPlaylistItemHelper(items.get(i), currInsertRow)) >= 0) {
+                            currInsertRow = prevInsertRow + 1;
+                        } else if (i == primaryItemIndex) {
+                            isPrimaryItemNew = false;
                         }
-                    } else if (!progress.equals(oldProgress)) {
-                        playlistSyncTable.tableModel.setValueAt(progress, row, playlistProgressCol);
                     }
-                    return;
                 }
+                return isPrimaryItemNew;
             }
-        }
+        });
     }
 
     @Override
-    public boolean showPlaylist(PlaylistItem selectedPlaylistItem) {
+    public int newPlaylistItem(final Object[] item, final int insertRow) {
+        return UI.run(new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                synchronized (playlistSyncTable.lock) {
+                    return newPlaylistItemHelper(item, insertRow);
+                }
+            }
+        });
+    }
+
+    private int newPlaylistItemHelper(final Object[] item, final int insertRow) {
+        int numRows = playlistSyncTable.tableModel.getRowCount();
+        for (int row = numRows - 1; row > -1; row--) {
+            if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(item[playlistItemCol])) {
+                return -1;
+            }
+        }
+        if (insertRow >= 0 && insertRow < numRows) {
+            try {
+                playlistSyncTable.tableModel.insertRow(insertRow, item);
+                return insertRow;
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
+        }
+        playlistSyncTable.tableModel.addRow(item);
+        return numRows;
+    }
+
+    @Override
+    public void removePlaylistItem(final PlaylistItem playlistItem) {
+        UI.run(true, new Runnable() {
+            @Override
+            public void run() {
+                synchronized (playlistSyncTable.lock) {
+                    for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                        if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
+                            int[] viewRows = playlistSyncTable.table.getSelectedRows();
+                            playlistSyncTable.tableModel.removeRow(row);
+                            if (viewRows.length != 0) {
+                                selectFirstRow(viewRows);
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void setPlaylistItemProgress(final FormattedNum progress, final PlaylistItem playlistItem, final boolean updateValOnly) {
+        UI.run(false, new Runnable() {
+            @Override
+            public void run() {
+                synchronized (playlistSyncTable.lock) {
+                    for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                        if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
+                            FormattedNum oldProgress = (FormattedNum) playlistSyncTable.tableModel.getValueAt(row, playlistProgressCol);
+                            if (updateValOnly) {
+                                Number newProgressVal = progress.val();
+                                if (!newProgressVal.equals(oldProgress.val())) {
+                                    playlistSyncTable.tableModel.setValueAt(oldProgress.copy(newProgressVal), row, playlistProgressCol);
+                                }
+                            } else if (!progress.equals(oldProgress)) {
+                                playlistSyncTable.tableModel.setValueAt(progress, row, playlistProgressCol);
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public boolean showPlaylist(final PlaylistItem selectedPlaylistItem) {
         UI.show(playlistFrame);
         restorePlaylist(false);
-        boolean selected = false;
-        synchronized (playlistSyncTable.lock) {
-            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
-                if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(selectedPlaylistItem)) {
-                    int viewRow = playlistSyncTable.table.convertRowIndexToView(row);
-                    if (viewRow != -1) {
-                        playlistSyncTable.table.setRowSelectionInterval(viewRow, viewRow);
-                        JViewport viewport = (JViewport) playlistSyncTable.table.getParent();
-                        viewport.scrollRectToVisible(rectangle(viewport, playlistSyncTable.table.getCellRect(viewRow, 0, true)));
-                        selected = true;
+        boolean selected = UI.run(new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                synchronized (playlistSyncTable.lock) {
+                    for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                        if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(selectedPlaylistItem)) {
+                            int viewRow = playlistSyncTable.table.convertRowIndexToView(row);
+                            if (viewRow != -1) {
+                                playlistSyncTable.table.setRowSelectionInterval(viewRow, viewRow);
+                                JViewport viewport = (JViewport) playlistSyncTable.table.getParent();
+                                viewport.scrollRectToVisible(rectangle(viewport, playlistSyncTable.table.getCellRect(viewRow, 0, true)));
+                                return true;
+                            }
+                            break;
+                        }
                     }
-                    break;
+                    return false;
                 }
             }
-        }
+        });
         refreshPlaylistControls();
         return selected;
     }
@@ -7785,30 +7876,35 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void playlistError(String msg, boolean html) {
+    public void playlistError(String msg) {
         synchronized (optionDialogLock) {
-            showOptionDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing(), html ? getEditorPane(msg) : getTextArea(msg),
-                    Constant.APP_TITLE, Constant.ERROR_MSG, false);
+            showOptionDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing(), getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG,
+                    false);
         }
     }
 
-    private void play(PlaylistItem playlistItem) {
+    void play(PlaylistItem playlistItem) {
         if (playlistItem == null) {
             playlistPlayButton.setIcon(playIcon);
-            playlistPlayMenuItem.setText("Play");
+            playlistPlayMenuItem.setText(Str.str("play"));
             UI.enable(false, playlistOpenMenuItem, playlistPlayButton, playlistPlayMenuItem);
             return;
         }
         playlistOpenMenuItem.setEnabled(playlistItem.canOpen());
         boolean play = playlistItem.canPlay(), active = playlistItem.isActive();
         playlistPlayButton.setIcon(play ? playIcon : stopIcon);
-        playlistPlayMenuItem.setText(play ? "Play" : "Stop");
+        playlistPlayMenuItem.setText(Str.str(play ? "play" : "stop"));
         UI.enable((play && !active) || (!play && active), playlistPlayButton, playlistPlayMenuItem);
     }
 
     @Override
     public void refreshPlaylistControls() {
-        play(selectedPlaylistItem());
+        UI.run(false, new Runnable() {
+            @Override
+            public void run() {
+                play(selectedPlaylistItem());
+            }
+        });
     }
 
     @Override
@@ -7826,7 +7922,7 @@ public class GUI extends JFrame implements GuiListener {
     public boolean isAuthorizationConfirmed(String msg) {
         synchronized (optionDialogLock) {
             authenticationMessageLabel.setText(msg);
-            return showOptionDialog(authenticationPanel, "Authentication Required", JOptionPane.OK_CANCEL_OPTION, true) == JOptionPane.OK_OPTION;
+            return showOptionDialog(authenticationPanel, Str.str("authenticationRequired"), JOptionPane.OK_CANCEL_OPTION, true) == JOptionPane.OK_OPTION;
         }
     }
 
@@ -8041,12 +8137,12 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void updateStarted() {
         updateMenuItem.setEnabled(false);
-        updateMenuItem.setText("Checking for Updates...");
+        updateMenuItem.setText(Str.str("GUI.updateMenuItem.text2"));
     }
 
     @Override
     public void updateStopped() {
-        updateMenuItem.setText("Check for Updates");
+        updateMenuItem.setText(Str.str("GUI.updateMenuItem.text"));
         updateMenuItem.setEnabled(true);
     }
 
@@ -8127,7 +8223,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public String invisibleSeparator() {
-        return UI.displayableStr(playlistSyncTable.table, "\u200B\u200B\u200B", "\u0009\u0009\u0009");
+        return UI.displayableStr(playlistSyncTable.table, "\u200b\u200b\u200b", "\u0009\u0009\u0009");
     }
 
     @Override
@@ -8148,7 +8244,7 @@ public class GUI extends JFrame implements GuiListener {
         activationTextField.setText(activationCode);
         if (alert) {
             activationDialog.setVisible(false);
-            showMsg("Activation Successful!", Constant.INFO_MSG);
+            showMsg(Str.str("activationSuccessful"), Constant.INFO_MSG);
         }
     }
 
@@ -8156,7 +8252,7 @@ public class GUI extends JFrame implements GuiListener {
     public void licenseDeactivated(boolean alert) {
         activationTextField.setForeground(Color.BLACK);
         if (alert) {
-            showMsg("Activation Failed.", Constant.ERROR_MSG);
+            showMsg(Str.str("activationFailed"), Constant.ERROR_MSG);
         }
     }
 
@@ -8170,6 +8266,446 @@ public class GUI extends JFrame implements GuiListener {
     public void licenseActivationStopped() {
         UI.enable(true, activationButton, activationUpgradeButton);
         activationLoadingLabel.setIcon(notLoadingIcon);
+    }
+
+    void changeLocale(String locale) {
+        try {
+            changeLocale(locale == null || locale.equals(Constant.NULL) ? null : new Locale(locale.substring(0, 2), locale.substring(3)));
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
+    }
+
+    private void changeLocale(Locale locale) {
+        NumberFormat prevNumFormat = Str.getNumFormat();
+        workerListener.changeLocale(locale);
+
+        languageButtonGroup.clearSelection();
+        for (AbstractButton languageButton : languageButtons()) {
+            if (Str.locale().toString().equals(languageButton.getName())) {
+                languageButtonGroup.setSelected(languageButton.getModel(), true);
+                break;
+            }
+        }
+
+        UI.update(typeComboBox, false, Str.strs("GUI.typeComboBox.model"));
+
+        NumberFormat ratingFormat = Str.getNumFormat(Constant.RATING_FORMAT);
+        String[] modelRatings = ((Renderer) ratingComboBox.getRenderer()).model(), viewRatings = new String[modelRatings.length];
+        viewRatings[0] = Str.str("any");
+        for (int i = 1; i < modelRatings.length; i++) {
+            viewRatings[i] = ratingFormat.format(Double.parseDouble(modelRatings[i]));
+        }
+        UI.update(ratingComboBox, false, viewRatings);
+
+        UI.update(genreList, true, Str.strs("GUI.genreList.model"));
+        UI.update(tvSeasonComboBox, false, UI.items(1, 100, 1, true, Str.str("any"), null));
+        UI.update(tvEpisodeComboBox, false, UI.items(0, 300, 1, true, Str.str("any"), null));
+        updateTVComboBoxes();
+        UI.update(languageList, true, Str.strs("GUI.languageList.model"));
+        UI.update(countryList, true, Str.strs("GUI.countryList.model"));
+        String[] subtitleLanguages = Str.strs("GUI.subtitleLanguageComboBox.model");
+        UI.update(movieSubtitleLanguageComboBox, true, subtitleLanguages);
+        UI.update(tvSubtitleLanguageComboBox, true, subtitleLanguages);
+        String[] subtitleFormats = {Str.str("any"), Constant.HQ, Constant.DVD, Constant.HD720, Constant.HD1080};
+        UI.update(movieSubtitleFormatComboBox, false, subtitleFormats);
+        UI.update(tvSubtitleFormatComboBox, false, subtitleFormats);
+        UI.update(maxDownloadSizeComboBox, false, UI.items(1, 100, 1, false, null, Str.str("infinity")));
+
+        Object proxy = proxyComboBox.getSelectedItem();
+        ((Renderer) proxyComboBox.getRenderer()).setView(false, Str.str("noProxy"));
+        proxyComboBox.setModel(proxyComboBox.getModel());
+        proxyComboBox.setSelectedItem(proxy);
+
+        aboutDialog.setTitle(Str.str("GUI.aboutDialog.title"));
+        aboutMenuItem.setText(Str.str("GUI.aboutMenuItem.text"));
+        activationButton.setText(Str.str("GUI.activationButton.text"));
+        activationButton.setToolTipText(Str.str("GUI.activationButton.toolTipText"));
+        activationCodeLabel.setText(Str.str("GUI.activationCodeLabel.text"));
+        activationDialog.setTitle(Str.str("GUI.activationDialog.title"));
+        activationMenuItem.setText(Str.str("GUI.activationMenuItem.text"));
+        activationUpgradeButton.setText(Str.str("GUI.activationUpgradeButton.text"));
+        activationUpgradeButton.setToolTipText(Str.str("GUI.activationUpgradeButton.toolTipText"));
+        activationUpgradeLabel.setText(Str.str("GUI.activationUpgradeLabel.text"));
+        addProxiesAddButton.setText(Str.str("GUI.addProxiesAddButton.text"));
+        addProxiesCancelButton.setText(Str.str("GUI.addProxiesCancelButton.text"));
+        addProxiesDialog.setTitle(Str.str("GUI.addProxiesDialog.title"));
+        addProxiesLabel.setText(Str.str("GUI.addProxiesLabel.text"));
+        anyTitleCheckBox.setText(Str.str("GUI.anyTitleCheckBox.text"));
+        anyTitleCheckBox.setToolTipText(Str.str("GUI.anyTitleCheckBox.toolTipText"));
+        authenticationMessageLabel.setText(Str.str("GUI.authenticationMessageLabel.text"));
+        authenticationPasswordLabel.setText(Str.str("GUI.authenticationPasswordLabel.text"));
+        authenticationUsernameLabel.setText(Str.str("GUI.authenticationUsernameLabel.text"));
+        autoDownloadingCheckBoxMenuItem.setText(Str.str("GUI.autoDownloadingCheckBoxMenuItem.text"));
+        autoDownloadingCheckBoxMenuItem.setToolTipText(Str.str("GUI.autoDownloadingCheckBoxMenuItem.toolTipText"));
+        blacklistedLabel.setText(Str.str("GUI.blacklistedLabel.text"));
+        blacklistedToWhitelistedButton.setToolTipText(Str.str("GUI.blacklistedToWhitelistedButton.toolTipText"));
+        browserNotificationCheckBoxMenuItem.setText(Str.str("GUI.browserNotificationCheckBoxMenuItem.text"));
+        closeBoxButton.setToolTipText(Str.str("GUI.closeBoxButton.toolTipText"));
+        commentsDialog.setTitle(Str.str("GUI.commentsDialog.title"));
+        copyDownloadLink1MenuItem.setText(Str.str("GUI.copyDownloadLink1MenuItem.text"));
+        copyDownloadLink1MenuItem.setToolTipText(Str.ctrlStr("GUI.copyDownloadLink1MenuItem.toolTipText"));
+        copyDownloadLink2MenuItem.setText(Str.str("GUI.copyDownloadLink2MenuItem.text"));
+        copyDownloadLink2MenuItem.setToolTipText(Str.ctrlStr("GUI.copyDownloadLink2MenuItem.toolTipText"));
+        copyFullTitleAndYearMenuItem.setText(Str.str("GUI.copyFullTitleAndYearMenuItem.text"));
+        copyFullTitleAndYearMenuItem.setToolTipText(Str.str("GUI.copyFullTitleAndYearMenuItem.toolTipText"));
+        copyMenu.setText(Str.str("GUI.copyMenu.text"));
+        copyMenuItem.setText(Str.str("GUI.copyMenuItem.text"));
+        copyPosterImageMenuItem.setText(Str.str("GUI.copyPosterImageMenuItem.text"));
+        copySelectionMenuItem.setText(Str.str("GUI.copySelectionMenuItem.text"));
+        copySubtitleLinkMenuItem.setText(Str.str("GUI.copySubtitleLinkMenuItem.text"));
+        copySummaryLinkMenuItem.setText(Str.str("GUI.copySummaryLinkMenuItem.text"));
+        copyTrailerLinkMenuItem.setText(Str.str("GUI.copyTrailerLinkMenuItem.text"));
+        copyWatchLink1MenuItem.setText(Str.str("GUI.copyWatchLink1MenuItem.text"));
+        copyWatchLink2MenuItem.setText(Str.str("GUI.copyWatchLink2MenuItem.text"));
+        countryLabel.setText(Str.str("GUI.countryLabel.text"));
+        customRadioButtonMenuItem.setText(Str.str("GUI.customRadioButtonMenuItem.text"));
+        cutMenuItem.setText(Str.str("GUI.cutMenuItem.text"));
+        defaultRadioButtonMenuItem.setText(Str.str("GUI.defaultRadioButtonMenuItem.text"));
+        deleteMenuItem.setText(Str.str("GUI.deleteMenuItem.text"));
+        downloadLink1Button.setText(Str.str("GUI.downloadLink1Button.text"));
+        downloadLink1Button.setToolTipText(Str.ctrlStr("GUI.downloadLink1Button.toolTipText"));
+        downloadLink1MenuItem.setText(Str.str("GUI.downloadLink1MenuItem.text"));
+        downloadLink1MenuItem.setToolTipText(Str.ctrlStr("GUI.downloadLink1MenuItem.toolTipText"));
+        downloadLink2Button.setText(Str.str("GUI.downloadLink2Button.text"));
+        downloadLink2Button.setToolTipText(Str.ctrlStr("GUI.downloadLink2Button.toolTipText"));
+        downloadLink2MenuItem.setText(Str.str("GUI.downloadLink2MenuItem.text"));
+        downloadLink2MenuItem.setToolTipText(Str.ctrlStr("GUI.downloadLink2MenuItem.toolTipText"));
+        downloadLinkCancelMenuItem.setText(Str.str("GUI.downloadLinkCancelMenuItem.text"));
+        downloadLinkExitBackupModeMenuItem.setText(Str.str("GUI.downloadLinkExitBackupModeMenuItem.text"));
+        downloadMenu.setText(Str.str("GUI.downloadMenu.text"));
+        downloadSizeButton.setText(Str.str("GUI.downloadSizeButton.text"));
+        downloadSizeDialog.setTitle(Str.str("GUI.downloadSizeDialog.title"));
+        downloadSizeIgnoreCheckBox.setText(Str.str("GUI.downloadSizeIgnoreCheckBox.text"));
+        downloadSizeLabel.setText(Str.str("GUI.downloadSizeLabel.text"));
+        downloadSizeLabel.setToolTipText(Str.str("GUI.downloadSizeLabel.toolTipText"));
+        downloadSizeMenuItem.setText(Str.str("GUI.downloadSizeMenuItem.text"));
+        downloadSizeToLabel.setText(Str.str("GUI.downloadSizeToLabel.text"));
+        downloadWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.downloadWithDefaultAppCheckBoxMenuItem.text"));
+        downloaderMenu.setText(Str.str("GUI.downloaderMenu.text"));
+        dvdCheckBox.setToolTipText(Str.str("GUI.dvdCheckBox.toolTipText"));
+        editMenu.setText(Str.str("GUI.editMenu.text"));
+        editProfilesMenuItem.setText(Str.str("GUI.editProfilesMenuItem.text"));
+        emailDownloadLink1MenuItem.setText(Str.str("GUI.emailDownloadLink1MenuItem.text"));
+        emailDownloadLink1MenuItem.setToolTipText(Str.ctrlStr("GUI.emailDownloadLink1MenuItem.toolTipText"));
+        emailDownloadLink2MenuItem.setText(Str.str("GUI.emailDownloadLink2MenuItem.text"));
+        emailDownloadLink2MenuItem.setToolTipText(Str.ctrlStr("GUI.emailDownloadLink2MenuItem.toolTipText"));
+        emailEverythingMenuItem.setText(Str.str("GUI.emailEverythingMenuItem.text"));
+        emailMenu.setText(Str.str("GUI.emailMenu.text"));
+        emailSummaryLinkMenuItem.setText(Str.str("GUI.emailSummaryLinkMenuItem.text"));
+        emailTrailerLinkMenuItem.setText(Str.str("GUI.emailTrailerLinkMenuItem.text"));
+        emailWatchLink1MenuItem.setText(Str.str("GUI.emailWatchLink1MenuItem.text"));
+        emailWatchLink2MenuItem.setText(Str.str("GUI.emailWatchLink2MenuItem.text"));
+        emailWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.emailWithDefaultAppCheckBoxMenuItem.text"));
+        episodeLabel.setText(Str.str("GUI.episodeLabel.text"));
+        episodeLabel.setToolTipText(Str.str("GUI.episodeLabel.toolTipText"));
+        exitBackupModeMenuItem.setText(Str.str("GUI.exitBackupModeMenuItem.text"));
+        exitMenuItem.setText(Str.str("GUI.exitMenuItem.text"));
+        extensionsButton.setText(Str.str("GUI.extensionsButton.text"));
+        extensionsDialog.setTitle(Str.str("GUI.extensionsDialog.title"));
+        faqFrame.setTitle(Str.str("GUI.faqFrame.title"));
+        faqMenuItem.setText(Str.str("GUI.faqMenuItem.text"));
+        feedCheckBoxMenuItem.setText(Str.str("GUI.feedCheckBoxMenuItem.text"));
+        feedCheckBoxMenuItem.setToolTipText(Str.str("GUI.feedCheckBoxMenuItem.toolTipText"));
+        fileExtensionsLabel.setText(Str.str("GUI.fileExtensionsLabel.text"));
+        fileExtensionsMenuItem.setText(Str.str("GUI.fileExtensionsMenuItem.text"));
+        fileMenu.setText(Str.str("GUI.fileMenu.text"));
+        findMenuItem.setText(Str.str("GUI.findMenuItem.text"));
+        findSubtitleMenuItem.setText(Str.str("GUI.findSubtitleMenuItem.text"));
+        genreLabel.setText(Str.str("GUI.genreLabel.text"));
+        genreLabel.setToolTipText(Str.str("GUI.genreLabel.toolTipText"));
+        hd1080CheckBox.setToolTipText(Str.str("GUI.hd1080CheckBox.toolTipText"));
+        hd720CheckBox.setToolTipText(Str.str("GUI.hd720CheckBox.toolTipText"));
+        helpMenu.setText(Str.str("GUI.helpMenu.text"));
+        hideMenuItem.setText(Str.str("GUI.hideMenuItem.text"));
+        hqVideoTypeCheckBox.setToolTipText(Str.str("GUI.hqVideoTypeCheckBox.toolTipText"));
+        languageCountryDialog.setTitle(Str.str("GUI.languageCountryDialog.title"));
+        languageCountryMenuItem.setText(Str.str("GUI.languageCountryMenuItem.text"));
+        languageCountryOkButton.setText(Str.str("GUI.languageCountryOkButton.text"));
+        languageCountryWarningTextArea.setText(Str.str("GUI.languageCountryWarningTextArea.text"));
+        languageLabel.setText(Str.str("GUI.languageLabel.text"));
+        languageMenu.setText(Str.str("GUI.languageMenu.text"));
+        linkProgressBar.setString(Str.str("GUI.linkProgressBar.string"));
+        listCopyMenuItem.setText(Str.str("GUI.listCopyMenuItem.text"));
+        listCutMenuItem.setText(Str.str("GUI.listCutMenuItem.text"));
+        listDeleteMenuItem.setText(Str.str("GUI.listDeleteMenuItem.text"));
+        listSelectAllMenuItem.setText(Str.str("GUI.listSelectAllMenuItem.text"));
+        loadMoreResultsButton.setText(Str.str("GUI.loadMoreResultsButton.text"));
+        loadMoreResultsButton.setToolTipText(Str.str("GUI.loadMoreResultsButton.toolTipText"));
+        movieSubtitleCancelButton.setText(Str.str("GUI.movieSubtitleCancelButton.text"));
+        movieSubtitleCancelButton.setToolTipText(Str.str("GUI.movieSubtitleCancelButton.toolTipText"));
+        movieSubtitleDialog.setTitle(Str.str("GUI.movieSubtitleDialog.title"));
+        movieSubtitleDownloadMatch1Button.setText(Str.str("GUI.movieSubtitleDownloadMatch1Button.text"));
+        movieSubtitleDownloadMatch1Button.setToolTipText(Str.str("GUI.movieSubtitleDownloadMatch1Button.toolTipText"));
+        movieSubtitleDownloadMatch2Button.setText(Str.str("GUI.movieSubtitleDownloadMatch2Button.text"));
+        movieSubtitleDownloadMatch2Button.setToolTipText(Str.str("GUI.movieSubtitleDownloadMatch2Button.toolTipText"));
+        movieSubtitleFormatLabel.setText(Str.str("GUI.movieSubtitleFormatLabel.text"));
+        movieSubtitleLanguageLabel.setText(Str.str("GUI.movieSubtitleLanguageLabel.text"));
+        msgOKButton.setText(Str.str("GUI.msgOKButton.text"));
+        noButton.setText(Str.str("GUI.noButton.text"));
+        noButton.setToolTipText(Str.str("GUI.noButton.toolTipText"));
+        optionalMsgCheckBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
+        pasteMenuItem.setText(Str.str("GUI.pasteMenuItem.text"));
+        peerBlockNotificationCheckBoxMenuItem.setText(Str.str("GUI.peerBlockNotificationCheckBoxMenuItem.text"));
+        playButton.setText(Str.str("GUI.playButton.text"));
+        playButton.setToolTipText(Str.ctrlStr("GUI.playButton.toolTipText"));
+        playMenuItem.setText(Str.str("GUI.playMenuItem.text"));
+        playMenuItem.setToolTipText(Str.ctrlStr("GUI.playMenuItem.toolTipText"));
+        playlistAutoOpenCheckBoxMenuItem.setText(Str.str("GUI.playlistAutoOpenCheckBoxMenuItem.text"));
+        playlistCopyMenuItem.setText(Str.str("GUI.playlistCopyMenuItem.text"));
+        playlistFrame.setTitle(Str.str("GUI.playlistFrame.title"));
+        playlistMenu.setText(Str.str("GUI.playlistMenu.text"));
+        playlistMenuItem.setText(Str.str("GUI.playlistMenuItem.text"));
+        playlistMoveDownButton.setToolTipText(Str.str("GUI.playlistMoveDownButton.toolTipText"));
+        playlistMoveDownMenuItem.setText(Str.str("GUI.playlistMoveDownMenuItem.text"));
+        playlistMoveUpButton.setToolTipText(Str.str("GUI.playlistMoveUpButton.toolTipText"));
+        playlistMoveUpMenuItem.setText(Str.str("GUI.playlistMoveUpMenuItem.text"));
+        playlistOpenMenuItem.setText(Str.str("GUI.playlistOpenMenuItem.text"));
+        playlistPlayButton.setToolTipText(Str.ctrlStr("GUI.playlistPlayButton.toolTipText"));
+        playlistPlayMenuItem.setToolTipText(Str.ctrlStr("GUI.playlistPlayMenuItem.toolTipText"));
+        playlistPlayWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.playlistPlayWithDefaultAppCheckBoxMenuItem.text"));
+        playlistRemoveButton.setToolTipText(Str.str("GUI.playlistRemoveButton.toolTipText"));
+        playlistRemoveMenuItem.setText(Str.str("GUI.playlistRemoveMenuItem.text"));
+        playlistSaveFolderMenuItem.setText(Str.str("GUI.playlistSaveFolderMenuItem.text"));
+        playlistShowNonVideoItemsCheckBoxMenuItem.setText(Str.str("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.text"));
+        playlistShowNonVideoItemsCheckBoxMenuItem.setToolTipText(Str.str("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.toolTipText"));
+        popularMoviesButton.setText(Str.str("GUI.popularMoviesButton.text"));
+        popularMoviesButton.setToolTipText(Str.ctrlStr("GUI.popularMoviesButton.toolTipText"));
+        popularMoviesResultsPerSearchLabel.setText(Str.str("GUI.popularMoviesResultsPerSearchLabel.text"));
+        popularMoviesResultsPerSearchLabel.setToolTipText(Str.str("GUI.popularMoviesResultsPerSearchLabel.toolTipText"));
+        popularTVShowsButton.setText(Str.str("GUI.popularTVShowsButton.text"));
+        popularTVShowsButton.setToolTipText(Str.str("GUI.popularTVShowsButton.toolTipText"));
+        popularTVShowsResultsPerSearchLabel.setText(Str.str("GUI.popularTVShowsResultsPerSearchLabel.text"));
+        popularTVShowsResultsPerSearchLabel.setToolTipText(Str.str("GUI.popularTVShowsResultsPerSearchLabel.toolTipText"));
+        portDialog.setTitle(Str.str("GUI.portDialog.title"));
+        portLabel.setText(Str.str("GUI.portLabel.text"));
+        portLabel.setToolTipText(Str.str("GUI.portLabel.toolTipText"));
+        portMenuItem.setText(Str.str("GUI.portMenuItem.text"));
+        portOkButton.setText(Str.str("GUI.portOkButton.text"));
+        portRandomizeCheckBox.setText(Str.str("GUI.portRandomizeCheckBox.text"));
+        portRandomizeCheckBox.setToolTipText(Str.str("GUI.portRandomizeCheckBox.toolTipText"));
+        portTextField.setToolTipText(Str.str("GUI.portTextField.toolTipText"));
+        printMenuItem.setText(Str.str("GUI.printMenuItem.text"));
+        profileClearButton.setText(Str.str("GUI.profileClearButton.text"));
+        profileDialog.setTitle(Str.str("GUI.profileDialog.title"));
+        profileNameChangeCancelButton.setText(Str.str("GUI.profileNameChangeCancelButton.text"));
+        profileNameChangeDialog.setTitle(Str.str("GUI.profileNameChangeDialog.title"));
+        profileNameChangeLabel.setText(Str.str("GUI.profileNameChangeLabel.text"));
+        profileNameChangeOKButton.setText(Str.str("GUI.profileNameChangeOKButton.text"));
+        profileOKButton.setText(Str.str("GUI.profileOKButton.text"));
+        profileRenameButton.setText(Str.str("GUI.profileRenameButton.text"));
+        profileSetButton.setText(Str.str("GUI.profileSetButton.text"));
+        profileUseButton.setText(Str.str("GUI.profileUseButton.text"));
+        progressBarLabel.setText(Str.str("GUI.progressBarLabel.text"));
+        proxyAddButton.setText(Str.str("GUI.proxyAddButton.text"));
+        proxyDialog.setTitle(Str.str("GUI.proxyDialog.title"));
+        proxyDownloadButton.setText(Str.str("GUI.proxyDownloadButton.text"));
+        proxyDownloadLinkInfoCheckBox.setText(Str.str("GUI.proxyDownloadLinkInfoCheckBox.text"));
+        proxyExportButton.setText(Str.str("GUI.proxyExportButton.text"));
+        proxyImportButton.setText(Str.str("GUI.proxyImportButton.text"));
+        proxyMenuItem.setText(Str.str("GUI.proxyMenuItem.text"));
+        proxyOKButton.setText(Str.str("GUI.proxyOKButton.text"));
+        proxyRemoveButton.setText(Str.str("GUI.proxyRemoveButton.text"));
+        proxySearchEnginesCheckBox.setText(Str.str("GUI.proxySearchEnginesCheckBox.text"));
+        proxySubtitlesCheckBox.setText(Str.str("GUI.proxySubtitlesCheckBox.text"));
+        proxyTrailersCheckBox.setText(Str.str("GUI.proxyTrailersCheckBox.text"));
+        proxyUpdatesCheckBox.setText(Str.str("GUI.proxyUpdatesCheckBox.text"));
+        proxyUseForLabel.setText(Str.str("GUI.proxyUseForLabel.text"));
+        proxyVideoInfoCheckBox.setText(Str.str("GUI.proxyVideoInfoCheckBox.text"));
+        proxyVideoStreamersCheckBox.setText(Str.str("GUI.proxyVideoStreamersCheckBox.text"));
+        ratingLabel.setText(Str.str("GUI.ratingLabel.text"));
+        ratingLabel.setToolTipText(Str.str("GUI.ratingLabel.toolTipText"));
+        readSummaryButton.setText(Str.str("GUI.readSummaryButton.text"));
+        readSummaryButton.setToolTipText(Str.str("GUI.readSummaryButton.toolTipText"));
+        readSummaryCancelMenuItem.setText(Str.str("GUI.readSummaryCancelMenuItem.text"));
+        readSummaryMenuItem.setText(Str.str("GUI.readSummaryMenuItem.text"));
+        regularResultsPerSearchLabel.setText(Str.str("GUI.regularResultsPerSearchLabel.text"));
+        regularResultsPerSearchLabel.setToolTipText(Str.str("GUI.regularResultsPerSearchLabel.toolTipText"));
+        releasedLabel.setText(Str.str("GUI.releasedLabel.text"));
+        releasedLabel.setToolTipText(Str.str("GUI.releasedLabel.toolTipText"));
+        releasedToLabel.setText(Str.str("GUI.releasedToLabel.text"));
+        removeProxiesCancelButton.setText(Str.str("GUI.removeProxiesCancelButton.text"));
+        removeProxiesDialog.setTitle(Str.str("GUI.removeProxiesDialog.title"));
+        removeProxiesLabel.setText(Str.str("GUI.removeProxiesLabel.text"));
+        removeProxiesRemoveButton.setText(Str.str("GUI.removeProxiesRemoveButton.text"));
+        resetWindowMenuItem.setText(Str.str("GUI.resetWindowMenuItem.text"));
+        resultsLabel.setToolTipText(Str.str("GUI.resultsLabel.toolTipText"));
+        resultsPerSearchButton.setText(Str.str("GUI.resultsPerSearchButton.text"));
+        resultsPerSearchDialog.setTitle(Str.str("GUI.resultsPerSearchDialog.title"));
+        resultsPerSearchMenuItem.setText(Str.str("GUI.resultsPerSearchMenuItem.text"));
+        safetyCheckBoxMenuItem.setText(Str.str("GUI.safetyCheckBoxMenuItem.text"));
+        safetyCheckBoxMenuItem.setToolTipText(Str.str("GUI.safetyCheckBoxMenuItem.toolTipText"));
+        safetyDialog.setTitle(Str.str("GUI.safetyDialog.title"));
+        searchButton.setText(Str.str("GUI.searchButton.text"));
+        searchButton.setToolTipText(Str.str("GUI.searchButton.toolTipText"));
+        searchMenu.setText(Str.str("GUI.searchMenu.text"));
+        seasonLabel.setText(Str.str("GUI.seasonLabel.text"));
+        seasonLabel.setToolTipText(Str.str("GUI.seasonLabel.toolTipText"));
+        selectAllMenuItem.setText(Str.str("GUI.selectAllMenuItem.text"));
+        stopButton.setText(Str.str("GUI.stopButton.text"));
+        stopButton.setToolTipText(Str.str("GUI.stopButton.toolTipText"));
+        summaryCloseButton.setText(Str.str("GUI.summaryCloseButton.text"));
+        summaryDialog.setTitle(Str.str("GUI.summaryDialog.title"));
+        summaryTextToSpeechButton.setToolTipText(Str.str("GUI.summaryTextToSpeechButton.toolTipText"));
+        textComponentCopyMenuItem.setText(Str.str("GUI.textComponentCopyMenuItem.text"));
+        textComponentCutMenuItem.setText(Str.str("GUI.textComponentCutMenuItem.text"));
+        textComponentDeleteMenuItem.setText(Str.str("GUI.textComponentDeleteMenuItem.text"));
+        textComponentPasteMenuItem.setText(Str.str("GUI.textComponentPasteMenuItem.text"));
+        textComponentPasteSearchMenuItem.setText(Str.str("GUI.textComponentPasteSearchMenuItem.text"));
+        textComponentSelectAllMenuItem.setText(Str.str("GUI.textComponentSelectAllMenuItem.text"));
+        timeoutButton.setText(Str.str("GUI.timeoutButton.text"));
+        timeoutDialog.setTitle(Str.str("GUI.timeoutDialog.title"));
+        timeoutDownloadLinkLabel.setText(Str.str("GUI.timeoutDownloadLinkLabel.text"));
+        timeoutDownloadLinkLabel.setToolTipText(Str.str("GUI.timeoutDownloadLinkLabel.toolTipText"));
+        timeoutLabel.setText(Str.str("GUI.timeoutLabel.text"));
+        timeoutLabel.setToolTipText(Str.str("GUI.timeoutLabel.toolTipText"));
+        timeoutMenuItem.setText(Str.str("GUI.timeoutMenuItem.text"));
+        titleLabel.setText(Str.str("GUI.titleLabel.text"));
+        titleLabel.setToolTipText(Str.str("GUI.titleLabel.toolTipText"));
+        tvCancelButton.setText(Str.str("GUI.tvCancelButton.text"));
+        tvCancelButton.setToolTipText(Str.str("GUI.tvCancelButton.toolTipText"));
+        tvDialog.setTitle(Str.str("GUI.tvDialog.title"));
+        tvSelectionLabel.setText(Str.str("GUI.tvSelectionLabel.text"));
+        tvSubmitButton.setText(Str.str("GUI.tvSubmitButton.text"));
+        tvSubmitButton.setToolTipText(Str.str("GUI.tvSubmitButton.toolTipText"));
+        tvSubtitleCancelButton.setText(Str.str("GUI.tvSubtitleCancelButton.text"));
+        tvSubtitleCancelButton.setToolTipText(Str.str("GUI.tvSubtitleCancelButton.toolTipText"));
+        tvSubtitleDialog.setTitle(Str.str("GUI.tvSubtitleDialog.title"));
+        tvSubtitleDownloadMatch1Button.setText(Str.str("GUI.tvSubtitleDownloadMatch1Button.text"));
+        tvSubtitleDownloadMatch1Button.setToolTipText(Str.str("GUI.tvSubtitleDownloadMatch1Button.toolTipText"));
+        tvSubtitleDownloadMatch2Button.setText(Str.str("GUI.tvSubtitleDownloadMatch2Button.text"));
+        tvSubtitleDownloadMatch2Button.setToolTipText(Str.str("GUI.tvSubtitleDownloadMatch2Button.toolTipText"));
+        tvSubtitleEpisodeLabel.setText(Str.str("GUI.tvSubtitleEpisodeLabel.text"));
+        tvSubtitleEpisodeLabel.setToolTipText(Str.str("GUI.tvSubtitleEpisodeLabel.toolTipText"));
+        tvSubtitleFormatLabel.setText(Str.str("GUI.tvSubtitleFormatLabel.text"));
+        tvSubtitleLanguageLabel.setText(Str.str("GUI.tvSubtitleLanguageLabel.text"));
+        tvSubtitleSeasonLabel.setText(Str.str("GUI.tvSubtitleSeasonLabel.text"));
+        tvSubtitleSeasonLabel.setToolTipText(Str.str("GUI.tvSubtitleSeasonLabel.toolTipText"));
+        typeLabel.setText(Str.str("GUI.typeLabel.text"));
+        typeLabel.setToolTipText(Str.str("GUI.typeLabel.toolTipText"));
+        updateCheckBoxMenuItem.setText(Str.str("GUI.updateCheckBoxMenuItem.text"));
+        updateMenuItem.setText(Str.str("GUI.updateMenuItem.text"));
+        useProfileMenu.setText(Str.str("GUI.useProfileMenu.text"));
+        viewMenu.setText(Str.str("GUI.viewMenu.text"));
+        viewNewHighQualityMoviesMenuItem.setText(Str.str("GUI.viewNewHighQualityMoviesMenuItem.text"));
+        watchSource1Button.setText(Str.str("GUI.watchSource1Button.text"));
+        watchSource1Button.setToolTipText(Str.str("GUI.watchSource1Button.toolTipText"));
+        watchSource1MenuItem.setText(Str.str("GUI.watchSource1MenuItem.text"));
+        watchSource2Button.setText(Str.str("GUI.watchSource2Button.text"));
+        watchSource2Button.setToolTipText(Str.str("GUI.watchSource2Button.toolTipText"));
+        watchSource2MenuItem.setText(Str.str("GUI.watchSource2MenuItem.text"));
+        watchSourceCancelMenuItem.setText(Str.str("GUI.watchSourceCancelMenuItem.text"));
+        watchTrailerButton.setText(Str.str("GUI.watchTrailerButton.text"));
+        watchTrailerButton.setToolTipText(Str.str("GUI.watchTrailerButton.toolTipText"));
+        watchTrailerCancelMenuItem.setText(Str.str("GUI.watchTrailerCancelMenuItem.text"));
+        watchTrailerMenuItem.setText(Str.str("GUI.watchTrailerMenuItem.text"));
+        whitelistLabel.setText(Str.str("GUI.whitelistLabel.text"));
+        whitelistedToBlacklistedButton.setToolTipText(Str.str("GUI.whitelistedToBlacklistedButton.toolTipText"));
+        yesButton.setText(Str.str("GUI.yesButton.text"));
+        yesButton.setToolTipText(Str.str("GUI.yesButton.toolTipText"));
+
+        anyTitleCheckBox.setText(anyTitleCheckBox.getText() + " ");
+        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(577)));
+        proxyVideoInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(578)));
+        proxySearchEnginesCheckBox.setToolTipText(Str.str("forExample", Str.get(579)));
+        proxyTrailersCheckBox.setToolTipText(Str.str("forExample", Str.get(580)));
+        proxyVideoStreamersCheckBox.setToolTipText(Str.str("forExample", Str.get(581)));
+        proxyUpdatesCheckBox.setToolTipText(Str.str("forExample", Str.get(582)));
+        proxySubtitlesCheckBox.setToolTipText(Str.str("forExample", Str.get(583)));
+
+        startDateChooser.setLocale(Str.locale());
+        endDateChooser.setLocale(Str.locale());
+
+        TableColumnModel colModel = resultsTable.getColumnModel();
+        colModel.getColumn(resultsTable.convertColumnIndexToView(titleCol)).setHeaderValue(Str.str("GUI.resultsTable.columnModel.title1"));
+        colModel.getColumn(resultsTable.convertColumnIndexToView(yearCol)).setHeaderValue(Str.str("GUI.resultsTable.columnModel.title2"));
+        colModel.getColumn(resultsTable.convertColumnIndexToView(ratingCol)).setHeaderValue(Str.str("GUI.resultsTable.columnModel.title3"));
+        resultsTable.getTableHeader().repaint();
+        colModel = playlistTable.getColumnModel();
+        colModel.getColumn(playlistTable.convertColumnIndexToView(playlistNameCol)).setHeaderValue(Str.str("GUI.playlistTable.columnModel.title0"));
+        colModel.getColumn(playlistTable.convertColumnIndexToView(playlistSizeCol)).setHeaderValue(Str.str("GUI.playlistTable.columnModel.title1"));
+        colModel.getColumn(playlistTable.convertColumnIndexToView(playlistProgressCol)).setHeaderValue(Str.str("GUI.playlistTable.columnModel.title2"));
+        playlistTable.getTableHeader().repaint();
+
+        synchronized (resultsSyncTable.lock) {
+            @SuppressWarnings("unchecked")
+            List<List<Object>> rows = resultsSyncTable.tableModel.getDataVector();
+            if (!rows.isEmpty()) {
+                try {
+                    for (List<Object> row : rows) {
+                        String rating = UI.innerHTML((String) row.get(ratingCol));
+                        row.set(ratingCol, rating.equals(Constant.NO_RATING) ? rating : ratingFormat.format(prevNumFormat.parse(rating).doubleValue()));
+                    }
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                }
+                resultsSyncTable.tableModel.fireTableDataChanged();
+            }
+        }
+
+        synchronized (playlistSyncTable.lock) {
+            @SuppressWarnings("unchecked")
+            List<List<Object>> rows = playlistSyncTable.tableModel.getDataVector();
+            if (!rows.isEmpty()) {
+                try {
+                    for (List<Object> row : rows) {
+                        row.set(playlistSizeCol, workerListener.playlistItemSize(((FormattedNum) row.get(playlistSizeCol)).val().longValue()));
+                    }
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                }
+                playlistSyncTable.tableModel.fireTableDataChanged();
+            }
+        }
+
+        String results = Regex.firstMatch(resultsLabel.getText(), "\\d++\\z");
+        if (!results.isEmpty()) {
+            searchNumResultsUpdate(Integer.parseInt(results));
+        }
+        UI.setVal(progressBar, progressBar.getValue());
+
+        try {
+            if (trayIcon != null) {
+                UI.updateTrayIconLabels(trayIcon, this);
+            }
+            if (playlistTrayIcon != null) {
+                UI.updateTrayIconLabels(playlistTrayIcon, playlistFrame);
+            }
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
+
+        String[] names = new String[10];
+        for (int i = 0; i < names.length; i++) {
+            String profile = "GUI.profile" + i + "MenuItem.text";
+            names[i] = (i == 0 ? Str.str(profile) : preferences.get(profile, Str.str(profile)));
+        }
+
+        int profileIndex = profileComboBox.getSelectedIndex();
+        profileComboBox.removeAllItems();
+        for (int i = 0; i < names.length; i++) {
+            profileComboBox.addItem(names[i]);
+            updateProfileGUIitems(i);
+        }
+        profileComboBox.setSelectedIndex(profileIndex == -1 ? 0 : profileIndex);
+
+        initFileNameExtensionFilters();
+
+        aboutEditorPane.setText(UI.about());
+
+        if (!Constant.WINDOWS_XP_AND_HIGHER) {
+            String toolTip = Str.str("windowsXPOrHigherNeeded");
+            peerBlockNotificationCheckBoxMenuItem.setToolTipText(toolTip);
+            playlistPlayWithDefaultAppCheckBoxMenuItem.setToolTipText(toolTip);
+        }
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     JDialog aboutDialog;
@@ -8251,6 +8787,7 @@ public class GUI extends JFrame implements GuiListener {
     JLabel downloadSizeToLabel;
     JCheckBoxMenuItem downloadWithDefaultAppCheckBoxMenuItem;
     JMenu downloaderMenu;
+    JRadioButtonMenuItem dutchRadioButtonMenuItem;
     JCheckBox dvdCheckBox;
     JMenu editMenu;
     Separator editMenuSeparator1;
@@ -8267,6 +8804,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem emailWatchLink2MenuItem;
     JCheckBoxMenuItem emailWithDefaultAppCheckBoxMenuItem;
     JDateChooser endDateChooser;
+    JRadioButtonMenuItem englishRadioButtonMenuItem;
     JLabel episodeLabel;
     JMenuItem exitBackupModeMenuItem;
     JPopupMenu exitBackupModePopupMenu;
@@ -8286,6 +8824,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem findMenuItem;
     JMenuItem findSubtitleMenuItem;
     JTextField findTextField;
+    JRadioButtonMenuItem frenchRadioButtonMenuItem;
     JLabel genreLabel;
     JList genreList;
     JScrollPane genreScrollPane;
@@ -8296,12 +8835,15 @@ public class GUI extends JFrame implements GuiListener {
     Separator helpMenuSeparator2;
     JMenuItem hideMenuItem;
     JCheckBox hqVideoTypeCheckBox;
-    JButton langaugeCountryOkButton;
+    JRadioButtonMenuItem italianRadioButtonMenuItem;
+    ButtonGroup languageButtonGroup;
     JDialog languageCountryDialog;
     JMenuItem languageCountryMenuItem;
-    JLabel languageCountryWarningLabel;
+    JButton languageCountryOkButton;
+    JTextArea languageCountryWarningTextArea;
     JLabel languageLabel;
     JList languageList;
+    JMenu languageMenu;
     JScrollPane languageScrollPane;
     JProgressBar linkProgressBar;
     JMenuItem listCopyMenuItem;
@@ -8373,6 +8915,7 @@ public class GUI extends JFrame implements GuiListener {
     JButton portOkButton;
     JCheckBox portRandomizeCheckBox;
     JTextField portTextField;
+    JRadioButtonMenuItem portugueseRadioButtonMenuItem;
     JMenuItem printMenuItem;
     JMenuItem profile0MenuItem;
     JMenuItem profile1MenuItem;
@@ -8455,6 +8998,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator searchMenuSeparator6;
     JLabel seasonLabel;
     JMenuItem selectAllMenuItem;
+    JRadioButtonMenuItem spanishRadioButtonMenuItem;
     JDateChooser startDateChooser;
     JTextField statusBarTextField;
     JButton stopButton;
@@ -8489,6 +9033,7 @@ public class GUI extends JFrame implements GuiListener {
     JTextField titleTextField;
     JFileChooser torrentFileChooser;
     JButton trashCanButton;
+    JRadioButtonMenuItem turkishRadioButtonMenuItem;
     JButton tvCancelButton;
     JDialog tvDialog;
     JComboBox tvEpisodeComboBox;
@@ -8515,6 +9060,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenu useProfileMenu;
     Separator useProfileMenuSeparator1;
     JMenu viewMenu;
+    Separator viewMenuSeparator1;
     JMenuItem viewNewHighQualityMoviesMenuItem;
     JButton watchSource1Button;
     JMenuItem watchSource1MenuItem;

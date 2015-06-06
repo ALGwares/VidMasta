@@ -7,43 +7,41 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 
 public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 19.1;
+    public static final double APP_VERSION = 19.2;
     public static final boolean WINDOWS_XP_AND_HIGHER;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
     public static final String TV_SHOW = "TV Show";
     public static final String IP_FILTER = "ipfilter.dat";
-    public static final String PEER_BLOCK_APP_TITLE = "PeerBlock";
     public static final String PEER_BLOCK = "peerblock", PEER_BLOCK_VERSION;
     public static final String CONNECTIVITY = "connectivity";
     public static final String SEPARATOR1 = ":::", SEPARATOR2 = "~~~", SEPARATOR3 = ";;;";
-    public static final String IMAGE_COL = "", TITLE_COL = "Title", YEAR_COL = "Year", RATING_COL = "Rating", ID_COL = "0", CURR_TITLE_COL = "1";
+    public static final String IMAGE_COL = "", ID_COL = "0", CURR_TITLE_COL = "1";
     public static final String OLD_TITLE_COL = "2", SUMMARY_COL = "3", IMAGE_LINK_COL = "4", IS_TV_SHOW_COL = "5", IS_TV_SHOW_AND_MOVIE_COL = "6";
-    public static final String PLAYLIST_NAME_COL = "Name", PLAYLIST_SIZE_COL = "Size", PLAYLIST_PROGRESS_COL = "Progress", PLAYLIST_ITEM_COL = "0";
+    public static final String PLAYLIST_ITEM_COL = "0";
     public static final String SEASON_COL = "7", EPISODE_COL = "8";
-    public static final String TV_EPISODE_FORMAT = "%02d";
+    public static final String TV_EPISODE_FORMAT = "%02d", RATING_FORMAT = "#.0", NO_RATING = "-";
     public static final String ZERO_WIDTH_SPACE;
+    public static final String GENRE_HTML_ID = "genre", STORYLINE_HTML_ID = "storyline";
+    public static final String TV_NEXT_EPISODE_HTML_ID = "nextEpisode", TV_PREV_EPISODE_HTML_ID = "prevEpisode";
     public static final int TV_EPISODE_PLACEHOLDER_LEN = 100;
-    public static final String TV_EPISODE_PLACEHOLDER, TV_NEXT_EPISODE_HTML_ID, TV_NEXT_EPISODE_HTML, TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER;
-    public static final String TV_PREV_EPISODE_HTML_ID, TV_PREV_EPISODE_HTML, TV_PREV_EPISODE_HTML_AND_PLACEHOLDER, TV_EPISODE_REGEX;
+    public static final String TV_EPISODE_PLACEHOLDER;
     public static final String TITLE_INDENT = "&nbsp;&nbsp;&nbsp;";
     public static final int TITLE_INDENT_LEN = TITLE_INDENT.length();
     public static final String HTML_FONT = "<font face=\"Verdana, Geneva, sans-serif\" size=\"4\">";
     public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
     public static final String TXT = ".txt", HTML = ".html", SWF = ".swf", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
-    public static final String PROFILES = "profiles" + TXT;
-    public static final int UPDATE_FILE_VERSION = 63;
+    public static final int UPDATE_FILE_VERSION = 64;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
-    public static final int SETTINGS_LEN = 71;
+    public static final int SETTINGS_LEN = 74;
     public static final int SETTINGS_VERSION = 11;
     public static final String PROFILE = "profile" + SETTINGS_VERSION + "_";
     public static final String USER_SETTINGS = "userSettings" + SETTINGS_VERSION + TXT;
@@ -54,7 +52,7 @@ public class Constant implements IOConstant {
     public static final String NO_IMAGE = "" + Character.MAX_VALUE + Character.MAX_VALUE + Character.MAX_VALUE;
     public static final String ZIP = ".zip";
     public static final String PROXY_VERSION = "proxyVersion" + TXT;
-    public static final String PLAYLIST = "playlist2" + Constant.TXT;
+    public static final String PLAYLIST = "playlist2" + TXT;
     public static final String PROXIES = "proxies" + TXT;
     public static final String ERROR_LOG = "errorLog" + TXT;
     public static final String NO_PROXY = "NO PROXY";
@@ -63,10 +61,7 @@ public class Constant implements IOConstant {
     public static final String APP_TITLE = "VidMasta";
     public static final String EXE = ".exe", JAR = ".jar", JAR_OPTION = "-jar";
     public static final String PROGRAM_JAR = APP_TITLE + JAR;
-    public static final String DEFAULT_PROFILE = "Default Profile";
     public static final String TORRENTS = "torrents";
-    public static final String CONNECTING = "Connecting to ";
-    public static final String TRANSFERRING = "Transferring data from ";
     public static final String HOME_DIR = System.getProperty("user.home", ""), WORKING_DIR = System.getProperty("user.dir", ".");
     public static final String PROGRAM_DIR, APP_DIR, CACHE_DIR, TEMP_DIR, TORRENTS_DIR, DESKTOP_DIR;
     public static final String JAVA, JAVA_VERSION = System.getProperty("java.version", "");
@@ -106,13 +101,6 @@ public class Constant implements IOConstant {
             placeholder.append(placeholderChar);
         }
         TV_EPISODE_PLACEHOLDER = placeholder.toString();
-        TV_NEXT_EPISODE_HTML_ID = "nextEpisode";
-        TV_NEXT_EPISODE_HTML = "<b id=\"" + TV_NEXT_EPISODE_HTML_ID + "\">Next Episode: </b>";
-        TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER = TV_NEXT_EPISODE_HTML + TV_EPISODE_PLACEHOLDER;
-        TV_PREV_EPISODE_HTML_ID = "prevEpisode";
-        TV_PREV_EPISODE_HTML = "<b id=\"" + TV_PREV_EPISODE_HTML_ID + "\">Prev Episode: </b>";
-        TV_PREV_EPISODE_HTML_AND_PLACEHOLDER = TV_PREV_EPISODE_HTML + TV_EPISODE_PLACEHOLDER;
-        TV_EPISODE_REGEX = popularEpisode("", "");
     }
 
     private static String initProgramDir() {
@@ -165,7 +153,6 @@ public class Constant implements IOConstant {
                 copyFileToAppDir(tempAppDir, UPDATE_FILE);
                 copyFileToAppDir(tempAppDir, USER_SETTINGS);
                 copyFileToAppDir(tempAppDir, PROXY_VERSION);
-                copyFileToAppDir(tempAppDir, PROFILES);
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
@@ -200,7 +187,7 @@ public class Constant implements IOConstant {
             String appDir = userHomeDir();
             appDirs.add(MAC ? appDir + "Library" + FILE_SEPARATOR + "Application Support" + FILE_SEPARATOR : appDir);
         }
-        return appDirs.toArray(new String[appDirs.size()]);
+        return appDirs.toArray(EMPTY_STRS);
     }
 
     private static void copyFileToAppDir(String appDir, String fileName) throws Exception {
@@ -208,27 +195,6 @@ public class Constant implements IOConstant {
         if (!file.exists()) {
             IO.write(file, IO.read(PROGRAM_DIR + fileName));
         }
-    }
-
-    public static String popularEpisode(String season, String episode) {
-        String popularEpisode = " (Popular Episode: ";
-        String rightParenthesis = ")";
-        String seasonStr;
-        String episodeStr;
-        if (season.isEmpty()) {
-            popularEpisode = Pattern.quote(popularEpisode);
-            rightParenthesis = Pattern.quote(rightParenthesis);
-            seasonStr = "\\d{2}+";
-            episodeStr = seasonStr;
-        } else {
-            seasonStr = season;
-            episodeStr = episode;
-        }
-        return popularEpisode + 'S' + seasonStr + 'E' + episodeStr + rightParenthesis;
-    }
-
-    public static String aka(String str) {
-        return " (AKA: " + str + ')';
     }
 
     private Constant() {

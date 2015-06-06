@@ -1,12 +1,17 @@
 package str;
 
+import i18n.I18nStr;
 import listener.GuiListener;
 import listener.StrUpdateListener;
 import listener.StrUpdateListener.UpdateListener;
 
-public class Str {
+public class Str extends I18nStr {
 
     private static StrUpdateListener strUpdateListener;
+
+    public static void init(StrUpdateListener listener) {
+        strUpdateListener = listener;
+    }
 
     public static String get(int index) {
         return strUpdateListener.get(index);
@@ -49,10 +54,6 @@ public class Str {
             }
         }
         return new String(chars);
-    }
-
-    public static void init(StrUpdateListener listener) {
-        strUpdateListener = listener;
     }
 
     private Str() {

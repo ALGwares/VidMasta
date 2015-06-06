@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import javax.swing.SwingWorker;
 import javax.swing.text.Element;
 import listener.DomainType;
@@ -28,7 +29,7 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
     private final int ROW;
     private Video video;
     private Element nextEpisodeElement, prevEpisodeElement;
-    private String nextEpisodeText = "unknown", prevEpisodeText = nextEpisodeText, nextSeasonNum, nextEpisodeNum;
+    private String nextEpisodeText = Str.str("unknown"), prevEpisodeText = nextEpisodeText, prevSeasonNum, prevEpisodeNum;
 
     EpisodeFinder(GuiListener guiListener, int row, Video video) {
         this.guiListener = guiListener;
@@ -48,7 +49,7 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
                 Debug.print(e);
             }
             updateSummary = false;
-            nextEpisodeText = "connection problem, reopen summary";
+            nextEpisodeText = Str.str("episodeConnectionProblem");
             prevEpisodeText = nextEpisodeText;
         } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -56,26 +57,27 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
             }
         } finally {
             if (!isCancelled()) {
-                String summary = showEpisode(prevEpisodeElement, prevEpisodeText, Constant.TV_PREV_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_PREV_EPISODE_HTML,
-                        showEpisode(nextEpisodeElement, nextEpisodeText, Constant.TV_NEXT_EPISODE_HTML_AND_PLACEHOLDER, Constant.TV_NEXT_EPISODE_HTML,
-                                updateSummary ? video.summary : null));
+                String summary = showEpisode(prevEpisodeElement, prevEpisodeText, Constant.TV_PREV_EPISODE_HTML_ID, showEpisode(nextEpisodeElement,
+                        nextEpisodeText, Constant.TV_NEXT_EPISODE_HTML_ID, updateSummary ? video.summary : null));
                 if (summary != null) {
                     guiListener.setSummary(summary, ROW, video.ID);
                     video.summary = summary;
                 }
                 String season = guiListener.getSeason(ROW, video.ID);
-                if (season != null && season.isEmpty() && nextSeasonNum != null && nextEpisodeNum != null) {
-                    guiListener.setSeason(nextSeasonNum, ROW, video.ID);
-                    guiListener.setEpisode(nextEpisodeNum, ROW, video.ID);
+                if (season != null && season.isEmpty() && prevSeasonNum != null && prevEpisodeNum != null) {
+                    guiListener.setSeason(prevSeasonNum, ROW, video.ID);
+                    guiListener.setEpisode(prevEpisodeNum, ROW, video.ID);
                 }
             }
         }
         return null;
     }
 
-    private String showEpisode(Element element, String text, String placeholder, String label, String summary) {
+    private String showEpisode(Element element, String text, String id, String summary) {
         guiListener.insertAfterSummaryElement(element, text);
-        return summary == null ? null : summary.replace(placeholder, label + text);
+        String label;
+        return summary == null ? null : ((label = Regex.firstMatch(summary, VideoSearch.summaryTagRegex(id))).isEmpty() ? summary : Regex.replaceFirst(summary,
+                Pattern.quote(label + Constant.TV_EPISODE_PLACEHOLDER), label + text));
     }
 
     private static List<String> sortedNumListSet(Collection<String> strs, boolean ascending) {
@@ -100,19 +102,19 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
         if (Regex.isMatch(airdateText, 534)) {
             airdateText = VideoSearch.dateToString(dateFormat, Regex.replaceAll(airdateText, 535), Boolean.parseBoolean(Str.get(558)));
         } else if (Regex.isMatch(airdateText, 546)) {
-            airdateText = VideoSearch.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdateText, 535),
-                    Boolean.parseBoolean(Str.get(559)));
+            airdateText = VideoSearch.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdateText, 535), Boolean.parseBoolean(
+                    Str.get(559)));
         } else if (airdateText.isEmpty() || Regex.isMatch(airdateText, 537)) {
-            airdateText = "unknown";
+            airdateText = Str.str("unknown");
         }
         String seasonNumber, episodeNumber, episodeText = "S" + (seasonNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(season))) + "E"
-                + (episodeNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(episode))) + " (airdate " + airdateText + ")";
+                + (episodeNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(episode))) + " (" + Str.str("airdate") + ' ' + airdateText + ')';
         if (isNextEpisode) {
             nextEpisodeText = episodeText;
-            nextSeasonNum = seasonNumber;
-            nextEpisodeNum = episodeNumber;
         } else {
             prevEpisodeText = episodeText;
+            prevSeasonNum = seasonNumber;
+            prevEpisodeNum = episodeNumber;
         }
     }
 

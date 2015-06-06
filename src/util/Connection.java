@@ -68,10 +68,10 @@ public class Connection {
         Authenticator.setDefault(new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                String msg = "A login is requested by " + getShortUrl(getRequestingURL().toString(), false) + ".";
+                String msg = Str.str("loginRequested", getShortUrl(getRequestingURL().toString(), false));
                 String prompt = getRequestingPrompt().trim();
                 if (!prompt.isEmpty()) {
-                    msg += " The site says: ''" + prompt + "''";
+                    msg += ' ' + Str.str("websiteMsg") + ' ' + prompt;
                 }
                 if (guiListener.isAuthorizationConfirmed(msg)) {
                     char[] password = guiListener.getAuthorizationPassword();
@@ -160,7 +160,7 @@ public class Connection {
                     }
 
                     if (showStatus) {
-                        setStatusBar(Constant.TRANSFERRING + statusMsg);
+                        setStatusBar(Str.str("transferring") + ' ' + statusMsg);
                     }
 
                     String line;
@@ -192,7 +192,7 @@ public class Connection {
                             downloadLinkInfoFail.set(true);
                         }
                     }
-                    throw new ConnectionException(error("", "", url), e, connection == null ? null : connection.getURL().toString());
+                    throw new ConnectionException(error(url), e, connection == null ? null : connection.getURL().toString());
                 } finally {
                     if (showStatus) {
                         unsetStatusBar();
@@ -209,13 +209,12 @@ public class Connection {
         return t instanceof FileNotFoundException && Regex.isMatch(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND), 599);
     }
 
-    public static String error(String problem, String solution, String url) {
-        return (problem == null ? "" : "There was a problem " + (problem.isEmpty() ? "connecting to " : problem)) + (url == null ? "" : getShortUrl(url, false))
-                + (solution == null ? "." : ". Try " + solution + "increasing the connection timeout under the search menu.");
+    public static String error(String url) {
+        return Str.str("connectionProblem", getShortUrl(url, false)) + ' ' + Str.str("connectionSolution");
     }
 
-    public static String error(String url) {
-        return getShortUrl(url, false) + " is experiencing technical issues. Please retry.";
+    public static String serverError(String url) {
+        return Str.str("serverProblem", getShortUrl(url, false)) + ' ' + Str.str("pleaseRetry");
     }
 
     private static String deproxyDownloadLinkInfoProxyUrl(String downloadLinkInfoProxyUrl) {
@@ -315,7 +314,7 @@ public class Connection {
             if (Debug.DEBUG) {
                 Debug.println("'" + url + "' response: '" + connection.getResponseMessage() + "'");
             }
-            throw new IOException(error("", "", url));
+            throw new IOException(error(url));
         }
     }
 
@@ -399,7 +398,7 @@ public class Connection {
                     };
 
                     if (showStatus) {
-                        setStatusBar(Constant.TRANSFERRING + statusMsg);
+                        setStatusBar(Str.str("transferring") + ' ' + statusMsg);
                     }
 
                     outputStarted = true;
@@ -471,8 +470,8 @@ public class Connection {
             try {
                 if (showStatus) {
                     InetSocketAddress socketAddress = (InetSocketAddress) proxy.address();
-                    statusMsg += " (using proxy " + socketAddress.getAddress().getHostAddress() + ':' + socketAddress.getPort() + ')';
-                    setStatusBar(Constant.CONNECTING + statusMsg);
+                    statusMsg += ' ' + Str.str("proxing", socketAddress.getAddress().getHostAddress() + ':' + socketAddress.getPort());
+                    setStatusBar(Str.str("connecting") + ' ' + statusMsg);
                 }
 
                 connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
@@ -487,7 +486,7 @@ public class Connection {
                 }
 
                 if (showStatus) {
-                    setStatusBar(Constant.TRANSFERRING + statusMsg);
+                    setStatusBar(Str.str("transferring") + ' ' + statusMsg);
                 }
 
                 is.read();
@@ -501,7 +500,7 @@ public class Connection {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                throw new ProxyException("Proxy failed for " + error(null, "using a different proxy or ", url));
+                throw new ProxyException(Str.str("proxyProblem", getShortUrl(url, false)) + ' ' + Str.str("proxySolution"));
             } finally {
                 if (showStatus) {
                     unsetStatusBar();
@@ -511,7 +510,7 @@ public class Connection {
         }
 
         if (showStatus) {
-            setStatusBar(Constant.CONNECTING + statusMsg);
+            setStatusBar(Str.str("connecting") + ' ' + statusMsg);
         }
 
         return statusMsg;
@@ -635,7 +634,7 @@ public class Connection {
     }
 
     public static void email(String url) throws IOException {
-        browse(url, "an email client", "mailto");
+        browse(url, "emailClient");
     }
 
     private static String encodeMailtoArg(String arg) throws IOException {
@@ -643,10 +642,10 @@ public class Connection {
     }
 
     public static void browse(String url) throws IOException {
-        browse(url, "a web browser", "HTTP");
+        browse(url, "webBrowser");
     }
 
-    public static void browse(String url, String applicationType, String linkType) throws IOException {
+    public static void browse(String url, String applicationType) throws IOException {
         Desktop desktop;
         if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(Action.BROWSE)) {
             try {
@@ -655,12 +654,10 @@ public class Connection {
                 if (Debug.DEBUG) {
                     Debug.print(e);
                 }
-                throw new IOException("Associate/install an application (e.g. " + applicationType + ") for " + linkType + " links and then retry.");
+                throw new IOException(Str.str(applicationType + "Needed"));
             }
         } else {
-            throw new IOException(
-                    "Update Java on your computer at http://www.java.com in order to complete your action. Or manually open the following link with "
-                    + applicationType + ':' + Constant.NEWLINE2 + url + Constant.NEWLINE);
+            throw new IOException(Str.str("updateJava") + ' ' + Str.str(applicationType + "Alternative") + Constant.NEWLINE2 + url + Constant.NEWLINE);
         }
     }
 
@@ -673,7 +670,7 @@ public class Connection {
             @Override
             public void run() {
                 try {
-                    setStatusBar("Update error: " + ExceptionUtil.toString(e));
+                    setStatusBar(Str.str("updateError") + ' ' + ExceptionUtil.toString(e));
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e2) {

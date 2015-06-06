@@ -133,7 +133,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
             Connection.removeFromCache(url);
             if (!isCancelled()) {
                 searchStopped();
-                guiListener.msg(Connection.error(url), Constant.ERROR_MSG);
+                guiListener.msg(Connection.serverError(url), Constant.ERROR_MSG);
             }
             throw new ConnectionException();
         }
@@ -164,7 +164,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
             return;
         }
         searchStopped();
-        guiListener.msg("The subtitle could not be found.", Constant.INFO_MSG);
+        guiListener.msg(Str.str("subtitleNotFound"), Constant.INFO_MSG);
     }
 
     private void saveSubtitle(List<String> results, boolean isExactResult) throws Exception {
@@ -253,7 +253,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                         Debug.print(e);
                     }
                     if (!isCancelled()) {
-                        guiListener.error(new ConnectionException(Connection.error("", "", url)));
+                        guiListener.error(new ConnectionException(Connection.error(url)));
                     }
                     continue;
                 }
