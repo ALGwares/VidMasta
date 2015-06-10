@@ -30,7 +30,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     private Collection<Torrent> torrents;
     private Video video;
     private String seasonAndEpisode;
-    private boolean orderByLeechers, magnetLinkOnly, ignoreYear, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch;
+    private boolean orderByLeechers, magnetLinkOnly, ignoreYear, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch, altSearch;
     private final int MAX_NUM_ATTEMPTS = Integer.parseInt(Str.get(176)), COUNTER1_MAX = Integer.parseInt(Str.get(168));
     private final int COUNTER2_MAX1 = Integer.parseInt(Str.get(170)), COUNTER2_MAX2 = Integer.parseInt(Str.get(336));
     private int attemptNum, counter1, counter2, counter2Max;
@@ -40,7 +40,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     private static final Map<String, Boolean> savedTorrents = new ConcurrentHashMap<String, Boolean>(16);
 
     TorrentFinder(GuiListener guiListener, Collection<Torrent> torrents, Video video, String seasonAndEpisode, boolean orderByLeechers, boolean magnetLinkOnly,
-            boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, TorrentSearchState searchState, List<BoxSetVideo> boxSet) {
+            boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, TorrentSearchState searchState, List<BoxSetVideo> boxSet, boolean altSearch) {
         this.guiListener = guiListener;
         this.torrents = torrents;
         this.video = video;
@@ -54,6 +54,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         this.boxSet = boxSet;
         categorySearch = Str.get(video.IS_TV_SHOW ? 658 : 659);
         counter2Max = (boxSet == null ? COUNTER2_MAX1 : COUNTER2_MAX2);
+        this.altSearch = altSearch;
     }
 
     private boolean isCancelled2() {
@@ -62,6 +63,17 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
 
     @Override
     protected Object doInBackground() {
+        if (altSearch) {
+            try {
+                findTorrent();
+            } catch (Exception e) {
+                if (!isCancelled()) {
+                    guiListener.error(e);
+                }
+            }
+            return null;
+        }
+
         while (true) {
             if (Debug.DEBUG) {
                 Debug.println("Thread: " + Thread.currentThread().getName() + " Attempt: " + (attemptNum + 1));
@@ -170,6 +182,16 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         }
 
         return null;
+    }
+
+    private void findTorrent() throws Exception {
+        String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.ID, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, true, true);
+        if (!isCancelled() && !sourceCode.isEmpty()) {
+            Torrent torrent = getTorrentHelper(sourceCode);
+            if (torrent != null && !isCancelled()) {
+                torrents.add(torrent);
+            }
+        }
     }
 
     private Torrent getTorrentHelper(String sourceCode) throws Exception {

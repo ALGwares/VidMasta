@@ -7883,7 +7883,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    void play(PlaylistItem playlistItem) {
+    private void play(PlaylistItem playlistItem) {
         if (playlistItem == null) {
             playlistPlayButton.setIcon(playIcon);
             playlistPlayMenuItem.setText(Str.str("play"));

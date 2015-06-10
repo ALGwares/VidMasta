@@ -1,7 +1,6 @@
 package i18n;
 
 import java.awt.event.KeyEvent;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -58,7 +57,6 @@ public class I18nStr {
         NumberFormat percentFormat = NumberFormat.getPercentInstance(locale());
         percentFormat.setMinimumFractionDigits(numFractionDigits);
         percentFormat.setMaximumFractionDigits(numFractionDigits);
-        percentFormat.setRoundingMode(RoundingMode.FLOOR);
         return percentFormat;
     }
 

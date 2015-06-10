@@ -154,7 +154,7 @@ public class VideoFinder extends AbstractSwingWorker {
             directStreamSearch();
         } else {
             searchState = new TorrentSearchState(guiListener);
-            isDownload1 = (CONTENT_TYPE == ContentType.DOWNLOAD1);
+            isDownload1 = (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3);
 
             if (video.IS_TV_SHOW) {
                 if (video.season.isEmpty() || video.episode.isEmpty()) {
@@ -211,7 +211,7 @@ public class VideoFinder extends AbstractSwingWorker {
         linkProgressDone();
         guiListener.msg(Str.str((contentType == null ? "watch" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? ""
                 : (!isStream2.get() ? "1" : "2")) : "download" + (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent()) ? ""
-                        : ((isDownload1 || contentType == ContentType.DOWNLOAD3 ? "1" : "2") + (PLAY ? "Play" : "")))) + "LinkNotFound"), Constant.INFO_MSG);
+                        : ((isDownload1 ? "1" : "2") + (PLAY ? "Play" : "")))) + "LinkNotFound"), Constant.INFO_MSG);
     }
 
     private void error(Exception e) {
@@ -264,7 +264,7 @@ public class VideoFinder extends AbstractSwingWorker {
             }
             watchStopped();
         } else {
-            isDownload1 = (contentType == ContentType.DOWNLOAD1);
+            isDownload1 = (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD3);
             searchState = new TorrentSearchState(guiListener);
             guiListener.enableDownload(false);
             guiListener.enableTorrentSearchStop(true);
@@ -752,10 +752,22 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 torrents.add(new Torrent("", magnet.MAGNET_LINK, results[i + 2].trim(), torrent, extensions, null, Integer.parseInt(results[i + 3].trim()) == 1, 0,
                         0));
+                return;
             } catch (Exception e) {
                 error(e);
             }
-            return;
+            break;
+        }
+
+        findAlt2DownloadLink();
+    }
+
+    private void findAlt2DownloadLink() throws Exception {
+        if (!isCancelled() && torrents.isEmpty()) {
+            torrents = new CopyOnWriteArrayList<Torrent>();
+            torrentFinders = new ArrayList<TorrentFinder>(1);
+            addFinder(video.title, "", false, false, false, null, true);
+            RunnableUtil.runAndWaitFor(torrentFinders);
         }
     }
 
@@ -806,6 +818,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
         if (!PREFETCH) {
             RunnableUtil.runAndWaitFor(torrentFinders);
+            findAlt2DownloadLink();
         }
         return true;
     }
@@ -855,6 +868,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
         if (!PREFETCH) {
             RunnableUtil.runAndWaitFor(torrentFinders);
+            findAlt2DownloadLink();
         }
     }
 
@@ -889,20 +903,21 @@ public class VideoFinder extends AbstractSwingWorker {
             if (Debug.DEBUG) {
                 Debug.println('\'' + currTitle + "' added to download links to query for");
             }
-            addFinder(currTitle, "", true, isOldTitle, false, boxSet);
+            addFinder(currTitle, "", true, isOldTitle, false, boxSet, false);
         }
     }
 
     private void addFinder(String dirtyTitle, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix) {
-        addFinder(dirtyTitle, seasonAndEpisode, ignoreYear, isOldTitle, isTitlePrefix, null);
+        addFinder(dirtyTitle, seasonAndEpisode, ignoreYear, isOldTitle, isTitlePrefix, null, false);
     }
 
-    private void addFinder(String dirtyTitle, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, List<BoxSetVideo> boxSet) {
-        Video vid = new Video("", dirtyTitle, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+    private void addFinder(String dirtyTitle, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, List<BoxSetVideo> boxSet,
+            boolean altSearch) {
+        Video vid = new Video(video.ID, dirtyTitle, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
         vid.season = video.season;
         vid.episode = video.episode;
         torrentFinders.add(new TorrentFinder(guiListener, torrents, vid, seasonAndEpisode, isDownload1, magnetLinkOnly(), ignoreYear, isOldTitle, isTitlePrefix,
-                new TorrentSearchState(searchState), boxSet));
+                new TorrentSearchState(searchState), boxSet, altSearch));
     }
 
     private void updateOldTitleAndSummaryHelper() throws Exception {

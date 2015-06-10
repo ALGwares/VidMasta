@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.06.10   | VidMasta 19.3
+
+CHANGE: CORE | Improved performance of download link searches
+
+
+
+
 2015.06.06   | VidMasta 19.2
 
 CHANGE: UI   | Added support for Turkish, English (already supported), Spanish, Italian, French, Dutch, and Portuguese
