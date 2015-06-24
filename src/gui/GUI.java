@@ -190,7 +190,7 @@ public class GUI extends JFrame implements GuiListener {
             playlistTableCopyListener = new PlaylistTableCopyListener();
     private final Object msgDialogLock = new Object(), optionDialogLock = new Object(), playlistRestorationLock = new Object();
     private final Settings settings = new Settings();
-    final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
+    private final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
     final BlockingQueue<String> posterImagePaths = new LinkedBlockingQueue<String>();
     private Thread posterCacher;
     private JTextFieldDateEditor startDateTextField, endDateTextField;

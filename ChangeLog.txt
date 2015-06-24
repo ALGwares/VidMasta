@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.06.24   | VidMasta 19.4
+
+CHANGE: CORE | Improved play and download performance
+CHANGE: CORE | Improved play and download error handling
+
+
+
+
 2015.06.10   | VidMasta 19.3
 
 CHANGE: CORE | Improved performance of download link searches

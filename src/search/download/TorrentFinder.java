@@ -65,7 +65,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     protected Object doInBackground() {
         if (altSearch) {
             try {
-                findTorrent();
+                getTorrent();
             } catch (Exception e) {
                 if (!isCancelled()) {
                     guiListener.error(e);
@@ -153,7 +153,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
 
         int currPageNum = Integer.parseInt(Str.get(662));
         while (counter2 != counter2Max) {
-            Torrent torrent = getTorrentHelper(sourceCode);
+            Torrent torrent = getTorrent(39, sourceCode);
 
             if (counter1 == COUNTER1_MAX || isCancelled()) {
                 return null;
@@ -184,17 +184,17 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         return null;
     }
 
-    private void findTorrent() throws Exception {
+    private void getTorrent() throws Exception {
         String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.ID, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, true, true);
         if (!isCancelled() && !sourceCode.isEmpty()) {
-            Torrent torrent = getTorrentHelper(sourceCode);
+            Torrent torrent = getTorrent(700, sourceCode);
             if (torrent != null && !isCancelled()) {
                 torrents.add(torrent);
             }
         }
     }
 
-    private Torrent getTorrentHelper(String sourceCode) throws Exception {
+    private Torrent getTorrent(int urlIndex, String sourceCode) throws Exception {
         Matcher titleMatcher = Regex.matcher(48, sourceCode);
         while (!titleMatcher.hitEnd() && counter1 != COUNTER1_MAX) {
             if (isCancelled()) {
@@ -270,7 +270,11 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 numSourcesNum = Integer.parseInt(numSources);
             }
 
-            Magnet magnet = new Magnet(Str.get(388) + Regex.match(videoStr, 389));
+            String magnetLink = Regex.match(videoStr, 389);
+            if (magnetLink.isEmpty()) {
+                throw new ConnectionException(Connection.serverError(Str.get(urlIndex)));
+            }
+            Magnet magnet = new Magnet(Str.get(388) + magnetLink);
             boolean isTorrentDownloaded = magnet.download(guiListener, this, magnetLinkOnly);
             if (isCancelled()) {
                 return null;
@@ -381,6 +385,10 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
 
     private boolean isRightTitle(String titleName, boolean isBoxSet) throws Exception {
         counter1++;
+        if (altSearch) {
+            return true;
+        }
+
         TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);
         String titleLink = VideoSearch.getTitleLink(titleParts.title, titleParts.year);
         if (titleLink == null) {

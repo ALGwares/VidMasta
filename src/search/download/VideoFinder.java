@@ -814,7 +814,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
             }
         }
-        addTVLinks(seasonAndEpisodes);
+        addTVFinders(seasonAndEpisodes);
 
         if (!PREFETCH) {
             RunnableUtil.runAndWaitFor(torrentFinders);
@@ -837,9 +837,9 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
-        addMovieLinks(video.title, false);
+        addMovieFinders(video.title, false);
         if (!video.oldTitle.isEmpty()) {
-            addMovieLinks(video.oldTitle, true);
+            addMovieFinders(video.oldTitle, true);
         }
 
         if ((Calendar.getInstance().get(Calendar.YEAR) - Integer.parseInt(video.year)) > Integer.parseInt(Str.get(337))) {
@@ -853,13 +853,13 @@ public class VideoFinder extends AbstractSwingWorker {
                         if (Debug.DEBUG) {
                             Debug.println("title belongs to movie box set");
                         }
-                        addBoxSetLinks(boxSet, false);
+                        addBoxSetFinders(boxSet, false);
                         break outer;
                     } else if (!video.oldTitle.isEmpty() && boxSetVideo.isSameTitle(video.oldTitle, video.year)) {
                         if (Debug.DEBUG) {
                             Debug.println("ORIGINAL title belongs to movie box set");
                         }
-                        addBoxSetLinks(boxSet, true);
+                        addBoxSetFinders(boxSet, true);
                         break outer;
                     }
                 }
@@ -872,7 +872,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private void addTVLinks(Iterable<String> seasonAndEpisodes) {
+    private void addTVFinders(Iterable<String> seasonAndEpisodes) {
         for (String seasonAndEpisode : seasonAndEpisodes) {
             addFinder(video.title, seasonAndEpisode, true, false, false);
             addFinder(video.title, seasonAndEpisode, false, false, false);
@@ -885,7 +885,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private void addMovieLinks(String dirtyMovieTitle, boolean isOldTitle) {
+    private void addMovieFinders(String dirtyMovieTitle, boolean isOldTitle) {
         String dirtyMovieTitlePrefix = VideoSearch.getMovieTitlePrefix(dirtyMovieTitle);
         if (dirtyMovieTitlePrefix != null) {
             addFinder(dirtyMovieTitlePrefix, "", false, isOldTitle, true);
@@ -895,7 +895,7 @@ public class VideoFinder extends AbstractSwingWorker {
         addFinder(dirtyMovieTitle, "", true, isOldTitle, false);
     }
 
-    private void addBoxSetLinks(List<BoxSetVideo> boxSet, boolean isOldTitle) {
+    private void addBoxSetFinders(List<BoxSetVideo> boxSet, boolean isOldTitle) {
         for (String currTitle : BoxSetVideo.getSearchTitles(boxSet)) {
             if (currTitle == null) {
                 continue;
