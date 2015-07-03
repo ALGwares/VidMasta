@@ -64,7 +64,7 @@ public class Main implements WorkerListener {
     private Updater updater;
     private RegularSearcher regularSearcher;
     private PopularSearcher popularSearcher;
-    private VideoFinder summaryFinder, trailerFinder, torrentFinder, streamFinder;
+    private VideoFinder summaryFinder, trailerFinder, torrentFinder;
     private ProxyListDownloader proxyDownloader;
     private SubtitleFinder subtitleFinder;
     private Prefetcher prefetcher;
@@ -279,23 +279,18 @@ public class Main implements WorkerListener {
         return isWorkDone(torrentFinder);
     }
 
-    @Override
-    public boolean isStreamSearchDone() {
-        return isWorkDone(streamFinder);
-    }
-
     private boolean areSearchersDone() {
         return isWorkDone(regularSearcher) && isWorkDone(popularSearcher);
     }
 
     @Override
     public boolean areWorkersDone() {
-        return isSummarySearchDone() && isTrailerSearchDone() && isTorrentSearchDone() && isStreamSearchDone() && areSearchersDone();
+        return isSummarySearchDone() && isTrailerSearchDone() && isTorrentSearchDone() && areSearchersDone();
     }
 
     @Override
     public boolean isLinkProgressDone() {
-        return (torrentFinder == null || torrentFinder.isLinkProgressDone()) && (streamFinder == null || streamFinder.isLinkProgressDone());
+        return torrentFinder == null || torrentFinder.isLinkProgressDone();
     }
 
     @Override
@@ -327,11 +322,6 @@ public class Main implements WorkerListener {
     @Override
     public void torrentSearchStopped() {
         stop(torrentFinder);
-    }
-
-    @Override
-    public void streamSearchStopped() {
-        stop(streamFinder);
     }
 
     @Override
@@ -388,15 +378,6 @@ public class Main implements WorkerListener {
         Magnet.startAzureus(gui);
         startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener, play));
         torrentFinder.execute();
-    }
-
-    @Override
-    public void streamSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
-        if (!isStreamSearchDone()) {
-            return;
-        }
-        startPrefetcher(streamFinder = new VideoFinder(gui, contentType, row, video, strExportListener, false));
-        streamFinder.execute();
     }
 
     @Override

@@ -13,19 +13,15 @@ public class Prefetcher extends AbstractSwingWorker {
     public Prefetcher(VideoFinder videoFinder) {
         this.videoFinder = new VideoFinder(videoFinder.CONTENT_TYPE, videoFinder);
         if (videoFinder.CONTENT_TYPE == ContentType.SUMMARY) {
-            fetchOrder = new ContentType[]{ContentType.TRAILER, ContentType.DOWNLOAD1, ContentType.STREAM1, ContentType.DOWNLOAD2, ContentType.STREAM2};
+            fetchOrder = new ContentType[]{ContentType.TRAILER, ContentType.DOWNLOAD1, ContentType.DOWNLOAD2};
         } else if (videoFinder.CONTENT_TYPE == ContentType.TRAILER) {
-            fetchOrder = new ContentType[]{ContentType.DOWNLOAD1, ContentType.STREAM1, ContentType.DOWNLOAD2, ContentType.STREAM2};
+            fetchOrder = new ContentType[]{ContentType.DOWNLOAD1, ContentType.DOWNLOAD2};
         } else if (videoFinder.CONTENT_TYPE == ContentType.DOWNLOAD1) {
-            fetchOrder = new ContentType[]{ContentType.DOWNLOAD2, ContentType.STREAM1, ContentType.STREAM2, ContentType.TRAILER};
+            fetchOrder = new ContentType[]{ContentType.DOWNLOAD2, ContentType.TRAILER};
         } else if (videoFinder.CONTENT_TYPE == ContentType.DOWNLOAD2) {
-            fetchOrder = new ContentType[]{ContentType.STREAM1, ContentType.STREAM2, ContentType.DOWNLOAD1, ContentType.TRAILER};
-        } else if (videoFinder.CONTENT_TYPE == ContentType.DOWNLOAD3) {
-            fetchOrder = new ContentType[]{ContentType.STREAM1, ContentType.STREAM2, ContentType.TRAILER};
-        } else if (videoFinder.CONTENT_TYPE == ContentType.STREAM1) {
-            fetchOrder = new ContentType[]{ContentType.STREAM2, ContentType.DOWNLOAD1, ContentType.DOWNLOAD2, ContentType.TRAILER};
+            fetchOrder = new ContentType[]{ContentType.DOWNLOAD1, ContentType.TRAILER};
         } else {
-            fetchOrder = new ContentType[]{ContentType.DOWNLOAD1, ContentType.DOWNLOAD2, ContentType.STREAM1, ContentType.TRAILER};
+            fetchOrder = new ContentType[]{ContentType.TRAILER};
         }
     }
 

@@ -439,7 +439,6 @@ public class Connection {
                 || (guiListener.canProxyVideoInfo() && domainType == DomainType.VIDEO_INFO)
                 || (guiListener.canProxySearchEngines() && domainType == DomainType.SEARCH_ENGINE)
                 || (guiListener.canProxyTrailers() && domainType == DomainType.TRAILER)
-                || (guiListener.canProxyVideoStreamers() && domainType == DomainType.VIDEO_STREAMER)
                 || (guiListener.canProxyUpdates() && domainType == DomainType.UPDATE)
                 || (guiListener.canProxySubtitles() && domainType == DomainType.SUBTITLE))) {
             return Proxy.NO_PROXY;

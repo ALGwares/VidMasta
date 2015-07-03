@@ -17,8 +17,6 @@ public interface WorkerListener {
 
     void torrentSearchStopped();
 
-    void streamSearchStopped();
-
     void loadMoreSearchResults(boolean isRegularSearcher);
 
     void popularSearchStarted(int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed, boolean startAsap);
@@ -28,8 +26,6 @@ public interface WorkerListener {
     boolean isTrailerSearchDone();
 
     boolean isTorrentSearchDone();
-
-    boolean isStreamSearchDone();
 
     boolean areWorkersDone();
 
@@ -42,8 +38,6 @@ public interface WorkerListener {
     void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
     void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play);
-
-    void streamSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
 
     void proxyListDownloadStarted();
 

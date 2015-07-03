@@ -111,8 +111,7 @@ public class VideoStrExporter implements VideoStrExportListener {
             UI.exportToClipboard(imagePath, emailBody);
             guiListener.timedMsg(Str.str("content" + (imagePath == null ? "" : "AndImage") + "Copied"));
         } else if (UI.exportToClipboard(imagePath, content.trim())) {
-            for (ContentType type : new ContentType[]{ContentType.DOWNLOAD1, ContentType.DOWNLOAD2, ContentType.DOWNLOAD3, ContentType.STREAM1,
-                ContentType.STREAM2, ContentType.SUBTITLE}) {
+            for (ContentType type : new ContentType[]{ContentType.DOWNLOAD1, ContentType.DOWNLOAD2, ContentType.DOWNLOAD3, ContentType.SUBTITLE}) {
                 if (strs.get(type) != null) {
                     guiListener.timedMsg(Str.str("contentCopied"));
                     return;

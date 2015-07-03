@@ -202,7 +202,7 @@ public class GUI extends JFrame implements GuiListener {
     private int findTitleRow = -2;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
-    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
+    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
     JComboBox dummyComboBox = new JComboBox();
 
     public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
@@ -323,8 +323,6 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
         }, playButton, downloadLink1Button, downloadLink2Button);
-
-        UI.addPopupMenu(watchSourceButtonPopupMenu, watchSource1Button, watchSource2Button);
 
         UI.addMouseListener(new AbstractPopupListener() {
             @Override
@@ -739,8 +737,6 @@ public class GUI extends JFrame implements GuiListener {
         playMenuItem = new JMenuItem();
         downloadLink1MenuItem = new JMenuItem();
         downloadLink2MenuItem = new JMenuItem();
-        watchSource1MenuItem = new JMenuItem();
-        watchSource2MenuItem = new JMenuItem();
         tablePopupMenuSeparator1 = new Separator();
         copyMenu = new JMenu();
         copySelectionMenuItem = new JMenuItem();
@@ -749,16 +745,12 @@ public class GUI extends JFrame implements GuiListener {
         copyMenuSeparator1 = new Separator();
         copyDownloadLink1MenuItem = new JMenuItem();
         copyDownloadLink2MenuItem = new JMenuItem();
-        copyWatchLink1MenuItem = new JMenuItem();
-        copyWatchLink2MenuItem = new JMenuItem();
         copySummaryLinkMenuItem = new JMenuItem();
         copyTrailerLinkMenuItem = new JMenuItem();
         copySubtitleLinkMenuItem = new JMenuItem();
         emailMenu = new JMenu();
         emailDownloadLink1MenuItem = new JMenuItem();
         emailDownloadLink2MenuItem = new JMenuItem();
-        emailWatchLink1MenuItem = new JMenuItem();
-        emailWatchLink2MenuItem = new JMenuItem();
         emailSummaryLinkMenuItem = new JMenuItem();
         emailTrailerLinkMenuItem = new JMenuItem();
         emailMenuSeparator1 = new Separator();
@@ -789,7 +781,6 @@ public class GUI extends JFrame implements GuiListener {
         proxyLoadingLabel = new JLabel();
         proxyImportButton = new JButton();
         proxyExportButton = new JButton();
-        proxyVideoStreamersCheckBox = new JCheckBox();
         proxyUpdatesCheckBox = new JCheckBox();
         proxySubtitlesCheckBox = new JCheckBox();
         addProxiesDialog = new JDialog();
@@ -883,8 +874,6 @@ public class GUI extends JFrame implements GuiListener {
         downloadLinkButtonPopupMenu = new JPopupMenu();
         downloadLinkCancelMenuItem = new JMenuItem();
         downloadLinkExitBackupModeMenuItem = new JMenuItem();
-        watchSourceButtonPopupMenu = new JPopupMenu();
-        watchSourceCancelMenuItem = new JMenuItem();
         playlistFrame = new JFrame();
         playlistScrollPane = new JScrollPane();
         playlistTable = new JTable();
@@ -943,8 +932,6 @@ public class GUI extends JFrame implements GuiListener {
         playButton = new JButton();
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
-        watchSource1Button = new JButton();
-        watchSource2Button = new JButton();
         statusBarTextField = new JTextField();
         connectionIssueButton = new JButton();
         startDateChooser = new JDateChooser(new JCalendar(null, null, true, true), null, null, null);
@@ -1791,24 +1778,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         tablePopupMenu.add(downloadLink2MenuItem);
-
-        watchSource1MenuItem.setText(bundle.getString("GUI.watchSource1MenuItem.text")); // NOI18N
-        watchSource1MenuItem.setEnabled(false);
-        watchSource1MenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                watchSource1MenuItemActionPerformed(evt);
-            }
-        });
-        tablePopupMenu.add(watchSource1MenuItem);
-
-        watchSource2MenuItem.setText(bundle.getString("GUI.watchSource2MenuItem.text")); // NOI18N
-        watchSource2MenuItem.setEnabled(false);
-        watchSource2MenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                watchSource2MenuItemActionPerformed(evt);
-            }
-        });
-        tablePopupMenu.add(watchSource2MenuItem);
         tablePopupMenu.add(tablePopupMenuSeparator1);
 
         copyMenu.setText(bundle.getString("GUI.copyMenu.text")); // NOI18N
@@ -1872,24 +1841,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         copyMenu.add(copyDownloadLink2MenuItem);
 
-        copyWatchLink1MenuItem.setText(bundle.getString("GUI.copyWatchLink1MenuItem.text")); // NOI18N
-        copyWatchLink1MenuItem.setEnabled(false);
-        copyWatchLink1MenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                copyWatchLink1MenuItemActionPerformed(evt);
-            }
-        });
-        copyMenu.add(copyWatchLink1MenuItem);
-
-        copyWatchLink2MenuItem.setText(bundle.getString("GUI.copyWatchLink2MenuItem.text")); // NOI18N
-        copyWatchLink2MenuItem.setEnabled(false);
-        copyWatchLink2MenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                copyWatchLink2MenuItemActionPerformed(evt);
-            }
-        });
-        copyMenu.add(copyWatchLink2MenuItem);
-
         copySummaryLinkMenuItem.setText(bundle.getString("GUI.copySummaryLinkMenuItem.text")); // NOI18N
         copySummaryLinkMenuItem.setEnabled(false);
         copySummaryLinkMenuItem.addActionListener(new ActionListener() {
@@ -1950,24 +1901,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         emailMenu.add(emailDownloadLink2MenuItem);
-
-        emailWatchLink1MenuItem.setText(bundle.getString("GUI.emailWatchLink1MenuItem.text")); // NOI18N
-        emailWatchLink1MenuItem.setEnabled(false);
-        emailWatchLink1MenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                emailWatchLink1MenuItemActionPerformed(evt);
-            }
-        });
-        emailMenu.add(emailWatchLink1MenuItem);
-
-        emailWatchLink2MenuItem.setText(bundle.getString("GUI.emailWatchLink2MenuItem.text")); // NOI18N
-        emailWatchLink2MenuItem.setEnabled(false);
-        emailWatchLink2MenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                emailWatchLink2MenuItemActionPerformed(evt);
-            }
-        });
-        emailMenu.add(emailWatchLink2MenuItem);
 
         emailSummaryLinkMenuItem.setText(bundle.getString("GUI.emailSummaryLinkMenuItem.text")); // NOI18N
         emailSummaryLinkMenuItem.setEnabled(false);
@@ -2144,9 +2077,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        proxyVideoStreamersCheckBox.setText(bundle.getString("GUI.proxyVideoStreamersCheckBox.text")); // NOI18N
-        proxyVideoStreamersCheckBox.setToolTipText(Str.str("forExample", Str.get(581)));
-
         proxyUpdatesCheckBox.setText(bundle.getString("GUI.proxyUpdatesCheckBox.text")); // NOI18N
         proxyUpdatesCheckBox.setToolTipText(Str.str("forExample", Str.get(582)));
 
@@ -2171,11 +2101,10 @@ public class GUI extends JFrame implements GuiListener {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(proxyTrailersCheckBox)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(proxyVideoStreamersCheckBox)
-                        .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(proxyUpdatesCheckBox)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(proxySubtitlesCheckBox))
+                        .addComponent(proxySubtitlesCheckBox)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(proxyDialogLayout.createSequentialGroup()
                         .addComponent(proxyAddButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -2203,7 +2132,6 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(proxyVideoInfoCheckBox)
                     .addComponent(proxySearchEnginesCheckBox)
                     .addComponent(proxyTrailersCheckBox)
-                    .addComponent(proxyVideoStreamersCheckBox)
                     .addComponent(proxyUpdatesCheckBox)
                     .addComponent(proxySubtitlesCheckBox))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
@@ -2220,7 +2148,7 @@ public class GUI extends JFrame implements GuiListener {
 
         proxyDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {proxyAddButton, proxyDownloadButton, proxyExportButton, proxyImportButton, proxyOKButton, proxyRemoveButton});
 
-        proxyDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {proxyDownloadLinkInfoCheckBox, proxySearchEnginesCheckBox, proxySubtitlesCheckBox, proxyTrailersCheckBox, proxyUpdatesCheckBox, proxyVideoInfoCheckBox, proxyVideoStreamersCheckBox});
+        proxyDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {proxyDownloadLinkInfoCheckBox, proxySearchEnginesCheckBox, proxySubtitlesCheckBox, proxyTrailersCheckBox, proxyUpdatesCheckBox, proxyVideoInfoCheckBox});
 
         splashScreen.progress();
 
@@ -3079,15 +3007,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadLinkButtonPopupMenu.add(downloadLinkExitBackupModeMenuItem);
 
-        watchSourceCancelMenuItem.setText(bundle.getString("GUI.watchSourceCancelMenuItem.text")); // NOI18N
-        watchSourceCancelMenuItem.setEnabled(false);
-        watchSourceCancelMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                watchSourceCancelMenuItemActionPerformed(evt);
-            }
-        });
-        watchSourceButtonPopupMenu.add(watchSourceCancelMenuItem);
-
         playlistFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         playlistFrame.setTitle(bundle.getString("GUI.playlistFrame.title")); // NOI18N
         playlistFrame.setAlwaysOnTop(true);
@@ -3735,24 +3654,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        watchSource1Button.setText(bundle.getString("GUI.watchSource1Button.text")); // NOI18N
-        watchSource1Button.setToolTipText(bundle.getString("GUI.watchSource1Button.toolTipText")); // NOI18N
-        watchSource1Button.setEnabled(false);
-        watchSource1Button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                watchSource1ButtonActionPerformed(evt);
-            }
-        });
-
-        watchSource2Button.setText(bundle.getString("GUI.watchSource2Button.text")); // NOI18N
-        watchSource2Button.setToolTipText(bundle.getString("GUI.watchSource2Button.toolTipText")); // NOI18N
-        watchSource2Button.setEnabled(false);
-        watchSource2Button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                watchSource2ButtonActionPerformed(evt);
-            }
-        });
-
         statusBarTextField.setEditable(false);
         statusBarTextField.setFont(new Font("Verdana", 0, 10)); // NOI18N
         statusBarTextField.setText(null);
@@ -4318,12 +4219,8 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(downloadLink1Button)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(downloadLink2Button)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(watchSource1Button)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(watchSource2Button)
                         .addGap(18, 18, 18)
-                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
+                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 581, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(connectionIssueButton)))
                 .addContainerGap())
@@ -4335,7 +4232,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -4377,8 +4274,6 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(watchTrailerButton)
                     .addComponent(downloadLink1Button)
                     .addComponent(downloadLink2Button)
-                    .addComponent(watchSource1Button)
-                    .addComponent(watchSource2Button)
                     .addComponent(connectionIssueButton)
                     .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(playButton))
@@ -4414,7 +4309,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchTrailerButton});
 
         setSize(new Dimension(1337, 773));
         setLocationRelativeTo(null);
@@ -4834,9 +4729,8 @@ public class GUI extends JFrame implements GuiListener {
         boolean enable = false;
         linkProgressBar.setIndeterminate(enable);
         linkProgressBar.setStringPainted(enable);
-        UI.enable(enable, closeBoxButton, downloadLinkCancelMenuItem, watchSourceCancelMenuItem);
+        UI.enable(enable, closeBoxButton, downloadLinkCancelMenuItem);
         workerListener.torrentSearchStopped();
-        workerListener.streamSearchStopped();
     }//GEN-LAST:event_closeBoxButtonActionPerformed
 
     void resultsTableValueChanged(ListSelectionEvent evt) {
@@ -4846,7 +4740,6 @@ public class GUI extends JFrame implements GuiListener {
 
         boolean enable = false;
         UI.enable(enable, findSubtitleMenuItem, emailEverythingMenuItem, copySubtitleLinkMenuItem);
-        enableWatch(enable);
         enableDownload(enable);
         UI.enable(enable, watchTrailerButton, watchTrailerMenuItem, emailTrailerLinkMenuItem, copyTrailerLinkMenuItem, readSummaryButton, readSummaryMenuItem,
                 emailSummaryLinkMenuItem, copySummaryLinkMenuItem, copyPosterImageMenuItem, copyFullTitleAndYearMenuItem, copySelectionMenuItem);
@@ -4856,17 +4749,14 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         enable = true;
-        boolean isStreamSearchDone = workerListener.isStreamSearchDone(), isTorrentSearchDone = workerListener.isTorrentSearchDone(),
-                isTrailerSearchDone = workerListener.isTrailerSearchDone(), isSummarySearchDone = workerListener.isSummarySearchDone();
+        boolean isTorrentSearchDone = workerListener.isTorrentSearchDone(), isTrailerSearchDone = workerListener.isTrailerSearchDone(),
+                isSummarySearchDone = workerListener.isSummarySearchDone();
 
         findSubtitleMenuItem.setEnabled(enable);
-        if (isStreamSearchDone && isTorrentSearchDone && isTrailerSearchDone && isSummarySearchDone) {
+        if (isTorrentSearchDone && isTrailerSearchDone && isSummarySearchDone) {
             emailEverythingMenuItem.setEnabled(enable);
         }
         copySubtitleLinkMenuItem.setEnabled(enable);
-        if (isStreamSearchDone) {
-            enableWatch(enable);
-        }
         if (isTorrentSearchDone) {
             enableDownload(enable);
         }
@@ -5635,26 +5525,6 @@ public class GUI extends JFrame implements GuiListener {
         profileDialog.setVisible(false);
     }//GEN-LAST:event_profileOKButtonActionPerformed
 
-    void watchSource1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource1ButtonActionPerformed
-        watchSourceActionPerformed(ContentType.STREAM1, selectedRow(), null);
-    }//GEN-LAST:event_watchSource1ButtonActionPerformed
-
-    private void watchSourceActionPerformed(ContentType streamContentType, SelectedTableRow row, VideoStrExportListener strExportListener) {
-        workerListener.streamSearchStarted(streamContentType, row.VAL, row.video, strExportListener);
-    }
-
-    void watchSource2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource2ButtonActionPerformed
-        watchSourceActionPerformed(ContentType.STREAM2, selectedRow(), null);
-    }//GEN-LAST:event_watchSource2ButtonActionPerformed
-
-    void watchSource1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource1MenuItemActionPerformed
-        watchSource1ButtonActionPerformed(evt);
-    }//GEN-LAST:event_watchSource1MenuItemActionPerformed
-
-    void watchSource2MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSource2MenuItemActionPerformed
-        watchSource2ButtonActionPerformed(evt);
-    }//GEN-LAST:event_watchSource2MenuItemActionPerformed
-
     void connectionIssueButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_connectionIssueButtonActionPerformed
         connectionIssueButton.setIcon(noWarningIcon);
         connectionIssueButton.setToolTipText(null);
@@ -6166,27 +6036,6 @@ public class GUI extends JFrame implements GuiListener {
         downloadLinkExportActionPerformed(ContentType.DOWNLOAD2, true);
     }//GEN-LAST:event_emailDownloadLink2MenuItemActionPerformed
 
-    private void watchSourceExportActionPerformed(ContentType streamContentType, boolean exportToEmail) {
-        SelectedTableRow row = selectedRow();
-        watchSourceActionPerformed(streamContentType, row, row.strExportListener(exportToEmail));
-    }
-
-    private void copyWatchLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyWatchLink1MenuItemActionPerformed
-        watchSourceExportActionPerformed(ContentType.STREAM1, false);
-    }//GEN-LAST:event_copyWatchLink1MenuItemActionPerformed
-
-    private void emailWatchLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailWatchLink1MenuItemActionPerformed
-        watchSourceExportActionPerformed(ContentType.STREAM1, true);
-    }//GEN-LAST:event_emailWatchLink1MenuItemActionPerformed
-
-    private void copyWatchLink2MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyWatchLink2MenuItemActionPerformed
-        watchSourceExportActionPerformed(ContentType.STREAM2, false);
-    }//GEN-LAST:event_copyWatchLink2MenuItemActionPerformed
-
-    private void emailWatchLink2MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailWatchLink2MenuItemActionPerformed
-        watchSourceExportActionPerformed(ContentType.STREAM2, true);
-    }//GEN-LAST:event_emailWatchLink2MenuItemActionPerformed
-
     private void copySubtitleLinkMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copySubtitleLinkMenuItemActionPerformed
         SelectedTableRow row = selectedRow();
         findSubtitleActionPerformed(row, row.strExportListener(false));
@@ -6194,11 +6043,10 @@ public class GUI extends JFrame implements GuiListener {
 
     private void emailEverythingMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailEverythingMenuItemActionPerformed
         SelectedTableRow row = selectedRow();
-        VideoStrExportListener strExportListener = row.strExportListener(true, true, 8);
+        VideoStrExportListener strExportListener = row.strExportListener(true, true, 6);
         readSummaryActionPerformed(row, strExportListener);
         exportPosterImage(row, strExportListener);
         downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, strExportListener, false);
-        watchSourceActionPerformed(ContentType.STREAM1, row, strExportListener);
         watchTrailerActionPerformed(row, strExportListener);
         exportSummaryLink(row, strExportListener);
     }//GEN-LAST:event_emailEverythingMenuItemActionPerformed
@@ -6257,11 +6105,6 @@ public class GUI extends JFrame implements GuiListener {
         downloadLinkCancelMenuItem.setEnabled(false);
         workerListener.torrentSearchStopped();
     }//GEN-LAST:event_downloadLinkCancelMenuItemActionPerformed
-
-    private void watchSourceCancelMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchSourceCancelMenuItemActionPerformed
-        watchSourceCancelMenuItem.setEnabled(false);
-        workerListener.streamSearchStopped();
-    }//GEN-LAST:event_watchSourceCancelMenuItemActionPerformed
 
     private void downloadLinkExitBackupModeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLinkExitBackupModeMenuItemActionPerformed
         exitBackupModeMenuItemActionPerformed(evt);
@@ -6897,8 +6740,8 @@ public class GUI extends JFrame implements GuiListener {
 
         private AbstractButton[] buttonSet2() {
             return new AbstractButton[]{autoDownloadingCheckBoxMenuItem, updateCheckBoxMenuItem, dummyMenuItem /* Backward compatibility */,
-                proxyDownloadLinkInfoCheckBox, proxyVideoInfoCheckBox, proxySearchEnginesCheckBox, proxyTrailersCheckBox, proxyVideoStreamersCheckBox,
-                proxyUpdatesCheckBox, proxySubtitlesCheckBox, browserNotificationCheckBoxMenuItem};
+                proxyDownloadLinkInfoCheckBox, proxyVideoInfoCheckBox, proxySearchEnginesCheckBox, proxyTrailersCheckBox,
+                dummyMenuItem3 /* Backward compatibility */, proxyUpdatesCheckBox, proxySubtitlesCheckBox, browserNotificationCheckBoxMenuItem};
         }
 
         private void saveComboBoxes(StringBuilder settings, JComboBox... comboBoxes) {
@@ -7185,12 +7028,6 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void enableWatch(boolean enable) {
-        UI.enable(enable, watchSource2Button, watchSource2MenuItem, emailWatchLink2MenuItem, copyWatchLink2MenuItem, watchSource1Button, watchSource1MenuItem,
-                emailWatchLink1MenuItem, copyWatchLink1MenuItem);
-    }
-
-    @Override
     public void enableSummarySearchStop(boolean enable) {
         readSummaryCancelMenuItem.setEnabled(enable);
     }
@@ -7206,11 +7043,6 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void enableStreamSearchStop(boolean enable) {
-        watchSourceCancelMenuItem.setEnabled(enable);
-    }
-
-    @Override
     public void enableLinkProgress(boolean enable) {
         if (enable || workerListener.isLinkProgressDone()) {
             linkProgressBar.setIndeterminate(enable);
@@ -7223,13 +7055,6 @@ public class GUI extends JFrame implements GuiListener {
     public void videoDownloadStopped() {
         if (resultsSyncTable.getSelectedRows().length == 1) {
             enableDownload(true);
-        }
-    }
-
-    @Override
-    public void videoWatchStopped() {
-        if (resultsSyncTable.getSelectedRows().length == 1) {
-            enableWatch(true);
         }
     }
 
@@ -7431,9 +7256,6 @@ public class GUI extends JFrame implements GuiListener {
         } else if (domainType == DomainType.TRAILER) {
             proxyCheckBox = proxyTrailersCheckBox;
             type = "Trailer";
-        } else if (domainType == DomainType.VIDEO_STREAMER) {
-            proxyCheckBox = proxyVideoStreamersCheckBox;
-            type = "Watch";
         } else {
             return;
         }
@@ -8010,11 +7832,6 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public boolean canProxyVideoStreamers() {
-        return proxyVideoStreamersCheckBox.isSelected();
-    }
-
-    @Override
     public boolean canProxyUpdates() {
         return proxyUpdatesCheckBox.isSelected();
     }
@@ -8358,8 +8175,6 @@ public class GUI extends JFrame implements GuiListener {
         copySubtitleLinkMenuItem.setText(Str.str("GUI.copySubtitleLinkMenuItem.text"));
         copySummaryLinkMenuItem.setText(Str.str("GUI.copySummaryLinkMenuItem.text"));
         copyTrailerLinkMenuItem.setText(Str.str("GUI.copyTrailerLinkMenuItem.text"));
-        copyWatchLink1MenuItem.setText(Str.str("GUI.copyWatchLink1MenuItem.text"));
-        copyWatchLink2MenuItem.setText(Str.str("GUI.copyWatchLink2MenuItem.text"));
         countryLabel.setText(Str.str("GUI.countryLabel.text"));
         customRadioButtonMenuItem.setText(Str.str("GUI.customRadioButtonMenuItem.text"));
         cutMenuItem.setText(Str.str("GUI.cutMenuItem.text"));
@@ -8396,8 +8211,6 @@ public class GUI extends JFrame implements GuiListener {
         emailMenu.setText(Str.str("GUI.emailMenu.text"));
         emailSummaryLinkMenuItem.setText(Str.str("GUI.emailSummaryLinkMenuItem.text"));
         emailTrailerLinkMenuItem.setText(Str.str("GUI.emailTrailerLinkMenuItem.text"));
-        emailWatchLink1MenuItem.setText(Str.str("GUI.emailWatchLink1MenuItem.text"));
-        emailWatchLink2MenuItem.setText(Str.str("GUI.emailWatchLink2MenuItem.text"));
         emailWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.emailWithDefaultAppCheckBoxMenuItem.text"));
         episodeLabel.setText(Str.str("GUI.episodeLabel.text"));
         episodeLabel.setToolTipText(Str.str("GUI.episodeLabel.toolTipText"));
@@ -8514,7 +8327,6 @@ public class GUI extends JFrame implements GuiListener {
         proxyUpdatesCheckBox.setText(Str.str("GUI.proxyUpdatesCheckBox.text"));
         proxyUseForLabel.setText(Str.str("GUI.proxyUseForLabel.text"));
         proxyVideoInfoCheckBox.setText(Str.str("GUI.proxyVideoInfoCheckBox.text"));
-        proxyVideoStreamersCheckBox.setText(Str.str("GUI.proxyVideoStreamersCheckBox.text"));
         ratingLabel.setText(Str.str("GUI.ratingLabel.text"));
         ratingLabel.setToolTipText(Str.str("GUI.ratingLabel.toolTipText"));
         readSummaryButton.setText(Str.str("GUI.readSummaryButton.text"));
@@ -8590,13 +8402,6 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.setText(Str.str("GUI.useProfileMenu.text"));
         viewMenu.setText(Str.str("GUI.viewMenu.text"));
         viewNewHighQualityMoviesMenuItem.setText(Str.str("GUI.viewNewHighQualityMoviesMenuItem.text"));
-        watchSource1Button.setText(Str.str("GUI.watchSource1Button.text"));
-        watchSource1Button.setToolTipText(Str.str("GUI.watchSource1Button.toolTipText"));
-        watchSource1MenuItem.setText(Str.str("GUI.watchSource1MenuItem.text"));
-        watchSource2Button.setText(Str.str("GUI.watchSource2Button.text"));
-        watchSource2Button.setToolTipText(Str.str("GUI.watchSource2Button.toolTipText"));
-        watchSource2MenuItem.setText(Str.str("GUI.watchSource2MenuItem.text"));
-        watchSourceCancelMenuItem.setText(Str.str("GUI.watchSourceCancelMenuItem.text"));
         watchTrailerButton.setText(Str.str("GUI.watchTrailerButton.text"));
         watchTrailerButton.setToolTipText(Str.str("GUI.watchTrailerButton.toolTipText"));
         watchTrailerCancelMenuItem.setText(Str.str("GUI.watchTrailerCancelMenuItem.text"));
@@ -8611,7 +8416,6 @@ public class GUI extends JFrame implements GuiListener {
         proxyVideoInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(578)));
         proxySearchEnginesCheckBox.setToolTipText(Str.str("forExample", Str.get(579)));
         proxyTrailersCheckBox.setToolTipText(Str.str("forExample", Str.get(580)));
-        proxyVideoStreamersCheckBox.setToolTipText(Str.str("forExample", Str.get(581)));
         proxyUpdatesCheckBox.setToolTipText(Str.str("forExample", Str.get(582)));
         proxySubtitlesCheckBox.setToolTipText(Str.str("forExample", Str.get(583)));
 
@@ -8757,8 +8561,6 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem copySubtitleLinkMenuItem;
     JMenuItem copySummaryLinkMenuItem;
     JMenuItem copyTrailerLinkMenuItem;
-    JMenuItem copyWatchLink1MenuItem;
-    JMenuItem copyWatchLink2MenuItem;
     JLabel countryLabel;
     JList countryList;
     JScrollPane countryScrollPane;
@@ -8800,8 +8602,6 @@ public class GUI extends JFrame implements GuiListener {
     Separator emailMenuSeparator1;
     JMenuItem emailSummaryLinkMenuItem;
     JMenuItem emailTrailerLinkMenuItem;
-    JMenuItem emailWatchLink1MenuItem;
-    JMenuItem emailWatchLink2MenuItem;
     JCheckBoxMenuItem emailWithDefaultAppCheckBoxMenuItem;
     JDateChooser endDateChooser;
     JRadioButtonMenuItem englishRadioButtonMenuItem;
@@ -8959,7 +8759,6 @@ public class GUI extends JFrame implements GuiListener {
     JCheckBox proxyUpdatesCheckBox;
     JLabel proxyUseForLabel;
     JCheckBox proxyVideoInfoCheckBox;
-    JCheckBox proxyVideoStreamersCheckBox;
     JComboBox ratingComboBox;
     JLabel ratingLabel;
     JButton readSummaryButton;
@@ -9062,12 +8861,6 @@ public class GUI extends JFrame implements GuiListener {
     JMenu viewMenu;
     Separator viewMenuSeparator1;
     JMenuItem viewNewHighQualityMoviesMenuItem;
-    JButton watchSource1Button;
-    JMenuItem watchSource1MenuItem;
-    JButton watchSource2Button;
-    JMenuItem watchSource2MenuItem;
-    JPopupMenu watchSourceButtonPopupMenu;
-    JMenuItem watchSourceCancelMenuItem;
     JButton watchTrailerButton;
     JPopupMenu watchTrailerButtonPopupMenu;
     JMenuItem watchTrailerCancelMenuItem;

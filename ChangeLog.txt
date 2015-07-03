@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.07.03   | VidMasta 19.5
+
+CHANGE: UI   | Removed no longer necessary watch buttons
+
+
+
+
 2015.06.24   | VidMasta 19.4
 
 CHANGE: CORE | Improved play and download performance

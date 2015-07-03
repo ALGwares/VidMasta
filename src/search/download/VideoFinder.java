@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,7 +20,6 @@ import listener.GuiListener;
 import listener.Video;
 import listener.VideoStrExportListener;
 import search.BoxSetVideo;
-import search.util.TitleParts;
 import search.util.VideoSearch;
 import str.Str;
 import torrent.FileTypeChecker;
@@ -44,8 +42,7 @@ public class VideoFinder extends AbstractSwingWorker {
     final Video video;
     public final boolean PREFETCH, PLAY;
     public final String TITLE;
-    volatile String streamLink;
-    final AtomicBoolean isStream2 = new AtomicBoolean(), findOldTitleStream = new AtomicBoolean(), isLinkProgressDone = new AtomicBoolean();
+    final AtomicBoolean isLinkProgressDone = new AtomicBoolean();
     private boolean isDownload1, cancelTVSelection, playAutoStart = true, startPeerblock = true;
     private String oldTitle, export;
     private static volatile SwingWorker<?, ?> episodeFinder;
@@ -106,13 +103,6 @@ public class VideoFinder extends AbstractSwingWorker {
                         resetDownloadVideoFinder();
                         search(export2ContentType);
                     }
-                } else if (CONTENT_TYPE == ContentType.STREAM1) {
-                    export = null;
-                    export2ContentType = ContentType.STREAM2;
-                    isLinkProgressDone.set(false);
-                    findOldTitleStream.set(false);
-                    streamLink = null;
-                    search(export2ContentType);
                 }
             }
         }
@@ -149,9 +139,6 @@ public class VideoFinder extends AbstractSwingWorker {
         if (CONTENT_TYPE == ContentType.SUMMARY) {
         } else if (CONTENT_TYPE == ContentType.TRAILER) {
             findTrailer();
-        } else if (CONTENT_TYPE == ContentType.STREAM1 || CONTENT_TYPE == ContentType.STREAM2) {
-            isStream2.set(CONTENT_TYPE == ContentType.STREAM2);
-            directStreamSearch();
         } else {
             searchState = new TorrentSearchState(guiListener);
             isDownload1 = (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3);
@@ -190,45 +177,16 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private void watchStopped() {
-        guiListener.enableStreamSearchStop(false);
-        guiListener.videoWatchStopped();
-        linkProgressDone();
-    }
-
     private void downloadStopped() {
         guiListener.enableTorrentSearchStop(false);
         guiListener.videoDownloadStopped();
         linkProgressDone();
     }
 
-    private void msg(ContentType contentType) {
-        if (contentType == null) {
-            guiListener.enableStreamSearchStop(false);
-        } else {
-            guiListener.enableTorrentSearchStop(false);
-        }
-        linkProgressDone();
-        guiListener.msg(Str.str((contentType == null ? "watch" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? ""
-                : (!isStream2.get() ? "1" : "2")) : "download" + (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent()) ? ""
-                        : ((isDownload1 ? "1" : "2") + (PLAY ? "Play" : "")))) + "LinkNotFound"), Constant.INFO_MSG);
-    }
-
     private void error(Exception e) {
         if (!isCancelled()) {
             guiListener.error(e);
         }
-    }
-
-    private void browseStream(String url) throws IOException {
-        if (strExportListener != null) {
-            export = url;
-            return;
-        }
-        guiListener.enableStreamSearchStop(false);
-        linkProgressDone();
-        guiListener.browserNotification(DomainType.VIDEO_STREAMER);
-        Connection.browse(url);
     }
 
     private void search(ContentType contentType) {
@@ -252,17 +210,6 @@ public class VideoFinder extends AbstractSwingWorker {
             }
             guiListener.enableTrailerSearchStop(false);
             guiListener.watchTrailerStopped();
-        } else if (contentType == ContentType.STREAM1 || contentType == ContentType.STREAM2) {
-            isStream2.set(contentType == ContentType.STREAM2);
-            guiListener.enableWatch(false);
-            guiListener.enableStreamSearchStop(true);
-
-            try {
-                findStream();
-            } catch (Exception e) {
-                error(e);
-            }
-            watchStopped();
         } else {
             isDownload1 = (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD3);
             searchState = new TorrentSearchState(guiListener);
@@ -327,7 +274,10 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (torrent == null) {
-                    msg(contentType);
+                    guiListener.enableTorrentSearchStop(false);
+                    linkProgressDone();
+                    guiListener.msg(Str.str(("download" + (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent()) ? ""
+                            : ((isDownload1 ? "1" : "2") + (PLAY ? "Play" : "")))) + "LinkNotFound"), Constant.INFO_MSG);
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
@@ -489,158 +439,6 @@ public class VideoFinder extends AbstractSwingWorker {
             startPeerBlock();
             guiListener.saveTorrent(torrentFile);
         }
-    }
-
-    private void findStream() throws Exception {
-        guiListener.enableLinkProgress(true);
-
-        directStreamSearch();
-
-        if (isCancelled()) {
-            return;
-        }
-
-        if (streamLink == null) {
-            indirectStreamSearch();
-        } else {
-            browseStream(Str.get(isStream2.get() ? 265 : 410) + streamLink);
-        }
-    }
-
-    private void indirectStreamSearch() throws Exception {
-        String link = VideoSearch.searchEngineQuery((findOldTitleStream.get() ? oldTitle : TITLE) + (video.year.isEmpty() ? "" : ' ' + video.year) + ' '
-                + Str.get(isStream2.get() ? 279 : 371), isStream2.get() ? 620 : 621);
-        if (isCancelled()) {
-            return;
-        }
-
-        if (link == null) {
-            findOldTitleStream();
-            return;
-        }
-
-        boolean isValidStream = isValidateStream(link = Str.get(isStream2.get() ? 284 : 376) + link);
-        if (isCancelled()) {
-            return;
-        }
-
-        if (isValidStream) {
-            browseStream(link);
-        } else {
-            findOldTitleStream();
-        }
-    }
-
-    private void findOldTitleStream() throws Exception {
-        if (findOldTitleStream.get()) {
-            msg(null);
-            return;
-        }
-
-        findOldTitleStream.set(true);
-        updateOldTitleAndSummary();
-        if (isCancelled()) {
-            return;
-        }
-
-        if (oldTitle == null) {
-            msg(null);
-        } else {
-            findStream();
-        }
-    }
-
-    boolean isValidateStream(String link) throws Exception {
-        String source = Connection.getSourceCode(link, DomainType.VIDEO_STREAMER);
-        if (isStream2.get()) {
-            return isValidateStreamHelper(Regex.firstMatch(source, 285));
-        } else {
-            String year = Regex.firstMatch(Regex.match(source, 377), 368);
-            if (!video.IS_TV_SHOW && year.isEmpty()) {
-                return false;
-            }
-            String title = Regex.match(source, 373);
-            return isValidateStream(title, year);
-        }
-    }
-
-    boolean isValidateStream(String title, String year) throws Exception {
-        return isValidateStreamHelper(VideoSearch.getTitleLink(title, year));
-    }
-
-    private boolean isValidateStreamHelper(String titleLink) throws Exception {
-        if (isCancelled() || titleLink == null || titleLink.isEmpty()) {
-            return false;
-        }
-        String source = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO);
-        updateOldTitleAndSummary();
-        TitleParts titleParts = VideoSearch.getImdbTitleParts(source);
-        if (findOldTitleStream.get() && (titleParts.title = Regex.match(source, 174)).isEmpty()) {
-            return false;
-        }
-        titleParts.title = Regex.clean(titleParts.title);
-
-        if (!VideoSearch.isImdbVideoType(source, video.IS_TV_SHOW)) {
-            if (Debug.DEBUG) {
-                Debug.println("Wrong video type (NOT a " + (video.IS_TV_SHOW ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
-            }
-            return false;
-        }
-
-        if (Debug.DEBUG) {
-            Debug.println("Stream result: '" + titleParts.title + "' '" + titleParts.year + "'");
-        }
-        return titleParts.title.equals(findOldTitleStream.get() ? oldTitle : TITLE) && titleParts.year.equals(video.year);
-    }
-
-    private void directStreamSearch() throws Exception {
-        List<String> results;
-        if (isStream2.get()) {
-            String source = Connection.getSourceCode(Str.get(video.IS_TV_SHOW ? 260 : 261) + URLEncoder.encode(findOldTitleStream.get() ? oldTitle : TITLE,
-                    Constant.UTF8), DomainType.VIDEO_STREAMER, !PREFETCH);
-            if (PREFETCH) {
-                return;
-            }
-            results = Regex.allMatches(source, video.IS_TV_SHOW ? 262 : 263);
-        } else {
-            String source, key;
-            if (Boolean.parseBoolean(Str.get(572))) {
-                source = Connection.getSourceCode(Str.get(396), DomainType.VIDEO_STREAMER, !PREFETCH);
-                key = Regex.match(source, 573);
-                if (!key.isEmpty()) {
-                    key = Str.get(575) + key;
-                }
-            } else {
-                key = "";
-            }
-
-            source = Connection.getSourceCode(Str.get(399) + Str.get(video.IS_TV_SHOW ? 400 : 401) + Str.get(402) + URLEncoder.encode(findOldTitleStream.get()
-                    ? oldTitle : TITLE, Constant.UTF8) + Str.get(576) + key, DomainType.VIDEO_STREAMER, !PREFETCH);
-            if (PREFETCH) {
-                return;
-            }
-            results = Regex.allMatches(source, 405);
-        }
-
-        Collection<StreamFinder> streamFinders = new ArrayList<StreamFinder>(35);
-        int numResults = results.size(), maxNumSerialSearches = Integer.parseInt(Str.get(290)), maxNumResults = Integer.parseInt(Str.get(310));
-        for (int i = 0; i < numResults && i < maxNumResults; i++) {
-            StreamFinder streamFinder = new StreamFinder(results.get(i));
-            if (i < maxNumSerialSearches) {
-                if (isCancelled()) {
-                    return;
-                }
-
-                RunnableUtil.runAndWaitFor(Arrays.asList(streamFinder));
-                if (streamLink != null) {
-                    return;
-                }
-            } else {
-                streamFinders.add(streamFinder);
-            }
-        }
-
-        RunnableUtil.runAndWaitFor(streamFinders);
     }
 
     private boolean tvChoices() {
@@ -962,62 +760,6 @@ public class VideoFinder extends AbstractSwingWorker {
             updateOldTitleAndSummaryHelper();
         } else if (oldTitle == null && !video.oldTitle.isEmpty()) {
             oldTitle = Regex.clean(video.oldTitle);
-        }
-    }
-
-    private class StreamFinder extends SwingWorker<Object, Object> {
-
-        private String result;
-
-        StreamFinder(String result) {
-            this.result = result;
-        }
-
-        @Override
-        protected Object doInBackground() {
-            if (isCancelled() || streamLink != null) {
-                return null;
-            }
-
-            String link = "";
-            try {
-                link = search();
-            } catch (Exception e) {
-                error(e);
-            }
-
-            if (isCancelled() || streamLink != null || link.isEmpty()) {
-                return null;
-            }
-
-            synchronized (StreamFinder.class) {
-                if (isCancelled()) {
-                    return null;
-                }
-                if (streamLink == null) {
-                    streamLink = link;
-                }
-            }
-
-            return null;
-        }
-
-        private String search() throws Exception {
-            if (isStream2.get()) {
-                String title = Regex.match(result, 276), year = Regex.firstMatch(result, 264);
-                if (!year.isEmpty()) {
-                    year = year.substring(0, 4);
-                }
-                if (!Regex.isMatch(year, 289) && isValidateStream(title, year)) {
-                    return Regex.match(result, 287);
-                }
-            } else {
-                TitleParts titleParts = VideoSearch.getImdbTitleParts(result, 406);
-                if (isValidateStream(titleParts.title, titleParts.year)) {
-                    return Regex.match(result, 408);
-                }
-            }
-            return "";
         }
     }
 

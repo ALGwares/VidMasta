@@ -105,8 +105,6 @@ public class SplashScreen extends JFrame {
         playButton = new JButton();
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
-        watchSource1Button = new JButton();
-        watchSource2Button = new JButton();
         statusBarTextField = new JTextField();
         connectionIssueButton = new JButton();
         startDateTextField = new JTextField();
@@ -288,12 +286,6 @@ public class SplashScreen extends JFrame {
         downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text"));
         downloadLink2Button.setEnabled(false);
 
-        watchSource1Button.setText(bundle.getString("GUI.watchSource1Button.text"));
-        watchSource1Button.setEnabled(false);
-
-        watchSource2Button.setText(bundle.getString("GUI.watchSource2Button.text"));
-        watchSource2Button.setEnabled(false);
-
         statusBarTextField.setEditable(false);
         statusBarTextField.setFont(new Font("Verdana", 0, 10));
         statusBarTextField.setText(INITIALIZING + percentFormat.format(0.0) + DONE);
@@ -417,12 +409,8 @@ public class SplashScreen extends JFrame {
                                         .addComponent(downloadLink1Button)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(downloadLink2Button)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(watchSource1Button)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(watchSource2Button)
                                         .addGap(18, 18, 18)
-                                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 331, Short.MAX_VALUE)
+                                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 581, Short.MAX_VALUE)
                                         .addGap(18, 18, 18)
                                         .addComponent(connectionIssueButton)))
                         .addContainerGap())
@@ -434,7 +422,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -476,8 +464,6 @@ public class SplashScreen extends JFrame {
                                 .addComponent(watchTrailerButton)
                                 .addComponent(downloadLink1Button)
                                 .addComponent(downloadLink2Button)
-                                .addComponent(watchSource1Button)
-                                .addComponent(watchSource2Button)
                                 .addComponent(connectionIssueButton)
                                 .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(playButton))
@@ -513,7 +499,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchSource1Button, watchSource2Button, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchTrailerButton});
 
         setSize(new Dimension(1337, 773));
         setLocationRelativeTo(null);
@@ -565,7 +551,5 @@ public class SplashScreen extends JFrame {
     JComboBox typeComboBox;
     JLabel typeLabel;
     JMenu viewMenu;
-    JButton watchSource1Button;
-    JButton watchSource2Button;
     JButton watchTrailerButton;
 }

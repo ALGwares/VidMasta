@@ -20,21 +20,15 @@ public interface GuiListener {
 
     void enableDownload(boolean enable);
 
-    void enableWatch(boolean enable);
-
     void enableSummarySearchStop(boolean enable);
 
     void enableTrailerSearchStop(boolean enable);
 
     void enableTorrentSearchStop(boolean enable);
 
-    void enableStreamSearchStop(boolean enable);
-
     void enableLinkProgress(boolean enable);
 
     void videoDownloadStopped();
-
-    void videoWatchStopped();
 
     void altVideoDownloadStarted();
 
@@ -157,8 +151,6 @@ public interface GuiListener {
     boolean canProxySearchEngines();
 
     boolean canProxyTrailers();
-
-    boolean canProxyVideoStreamers();
 
     boolean canProxyUpdates();
 
