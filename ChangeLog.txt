@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.07.12   | VidMasta 19.6
+
+CHANGE: UI   | Added watch on device popup menu item to watch movies and TV shows on PS3, Xbox, TV, mobile, tablet, and more
+
+
+
+
 2015.07.03   | VidMasta 19.5
 
 CHANGE: UI   | Removed no longer necessary watch buttons

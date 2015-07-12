@@ -756,6 +756,8 @@ public class GUI extends JFrame implements GuiListener {
         emailMenuSeparator1 = new Separator();
         emailEverythingMenuItem = new JMenuItem();
         tablePopupMenuSeparator2 = new Separator();
+        watchOnDeviceMenuItem = new JMenuItem();
+        tablePopupMenuSeparator3 = new Separator();
         findSubtitleMenuItem = new JMenuItem();
         textComponentPopupMenu = new JPopupMenu();
         textComponentCutMenuItem = new JMenuItem();
@@ -1015,7 +1017,6 @@ public class GUI extends JFrame implements GuiListener {
         helpMenu = new JMenu();
         faqMenuItem = new JMenuItem();
         helpMenuSeparator1 = new Separator();
-        activationMenuItem = new JMenuItem();
         updateMenuItem = new JMenuItem();
         updateCheckBoxMenuItem = new JCheckBoxMenuItem();
         helpMenuSeparator2 = new Separator();
@@ -1932,6 +1933,16 @@ public class GUI extends JFrame implements GuiListener {
 
         tablePopupMenu.add(emailMenu);
         tablePopupMenu.add(tablePopupMenuSeparator2);
+
+        watchOnDeviceMenuItem.setText(bundle.getString("GUI.watchOnDeviceMenuItem.text")); // NOI18N
+        watchOnDeviceMenuItem.setToolTipText(bundle.getString("GUI.watchOnDeviceMenuItem.toolTipText")); // NOI18N
+        watchOnDeviceMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                watchOnDeviceMenuItemActionPerformed(evt);
+            }
+        });
+        tablePopupMenu.add(watchOnDeviceMenuItem);
+        tablePopupMenu.add(tablePopupMenuSeparator3);
 
         findSubtitleMenuItem.setText(bundle.getString("GUI.findSubtitleMenuItem.text")); // NOI18N
         findSubtitleMenuItem.setEnabled(false);
@@ -4109,14 +4120,6 @@ public class GUI extends JFrame implements GuiListener {
         helpMenu.add(faqMenuItem);
         helpMenu.add(helpMenuSeparator1);
 
-        activationMenuItem.setText(bundle.getString("GUI.activationMenuItem.text")); // NOI18N
-        activationMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                activationMenuItemActionPerformed(evt);
-            }
-        });
-        helpMenu.add(activationMenuItem);
-
         updateMenuItem.setText(bundle.getString("GUI.updateMenuItem.text")); // NOI18N
         updateMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -6291,10 +6294,6 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_playlistFrameWindowClosing
 
-    private void activationMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationMenuItemActionPerformed
-        licenseActivation();
-    }//GEN-LAST:event_activationMenuItemActionPerformed
-
     private void activationButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationButtonActionPerformed
         workerListener.license(activationTextField.getText().trim(), false);
     }//GEN-LAST:event_activationButtonActionPerformed
@@ -6376,6 +6375,14 @@ public class GUI extends JFrame implements GuiListener {
     private void languageCountryOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryOkButtonActionPerformed
         languageCountryDialog.setVisible(false);
     }//GEN-LAST:event_languageCountryOkButtonActionPerformed
+
+    private void watchOnDeviceMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchOnDeviceMenuItemActionPerformed
+        try {
+            Connection.browse(Str.get(Constant.WINDOWS ? 701 : (Constant.MAC ? 702 : 703)));
+        } catch (Exception e) {
+            showException(e);
+        }
+    }//GEN-LAST:event_watchOnDeviceMenuItemActionPerformed
 
     private void playlistKeyPressed(KeyEvent evt) {
         if (!evt.isControlDown()) {
@@ -8142,7 +8149,6 @@ public class GUI extends JFrame implements GuiListener {
         activationButton.setToolTipText(Str.str("GUI.activationButton.toolTipText"));
         activationCodeLabel.setText(Str.str("GUI.activationCodeLabel.text"));
         activationDialog.setTitle(Str.str("GUI.activationDialog.title"));
-        activationMenuItem.setText(Str.str("GUI.activationMenuItem.text"));
         activationUpgradeButton.setText(Str.str("GUI.activationUpgradeButton.text"));
         activationUpgradeButton.setToolTipText(Str.str("GUI.activationUpgradeButton.toolTipText"));
         activationUpgradeLabel.setText(Str.str("GUI.activationUpgradeLabel.text"));
@@ -8402,6 +8408,8 @@ public class GUI extends JFrame implements GuiListener {
         useProfileMenu.setText(Str.str("GUI.useProfileMenu.text"));
         viewMenu.setText(Str.str("GUI.viewMenu.text"));
         viewNewHighQualityMoviesMenuItem.setText(Str.str("GUI.viewNewHighQualityMoviesMenuItem.text"));
+        watchOnDeviceMenuItem.setText(Str.str("GUI.watchOnDeviceMenuItem.text"));
+        watchOnDeviceMenuItem.setToolTipText(Str.str("GUI.watchOnDeviceMenuItem.toolTipText"));
         watchTrailerButton.setText(Str.str("GUI.watchTrailerButton.text"));
         watchTrailerButton.setToolTipText(Str.str("GUI.watchTrailerButton.toolTipText"));
         watchTrailerCancelMenuItem.setText(Str.str("GUI.watchTrailerCancelMenuItem.text"));
@@ -8520,7 +8528,6 @@ public class GUI extends JFrame implements GuiListener {
     JLabel activationCodeLabel;
     JDialog activationDialog;
     JLabel activationLoadingLabel;
-    JMenuItem activationMenuItem;
     JTextField activationTextField;
     JButton activationUpgradeButton;
     JLabel activationUpgradeLabel;
@@ -8811,6 +8818,7 @@ public class GUI extends JFrame implements GuiListener {
     JPopupMenu tablePopupMenu;
     Separator tablePopupMenuSeparator1;
     Separator tablePopupMenuSeparator2;
+    Separator tablePopupMenuSeparator3;
     JMenuItem textComponentCopyMenuItem;
     JMenuItem textComponentCutMenuItem;
     JMenuItem textComponentDeleteMenuItem;
@@ -8861,6 +8869,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenu viewMenu;
     Separator viewMenuSeparator1;
     JMenuItem viewNewHighQualityMoviesMenuItem;
+    JMenuItem watchOnDeviceMenuItem;
     JButton watchTrailerButton;
     JPopupMenu watchTrailerButtonPopupMenu;
     JMenuItem watchTrailerCancelMenuItem;

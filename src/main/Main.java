@@ -296,12 +296,11 @@ public class Main implements WorkerListener {
     @Override
     public void regularSearchStarted(int numResultsPerSearch, boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres,
             String[] languages, String[] countries, String minRating) {
-        if (!areSearchersDone()) {
-            return;
+        if (areSearchersDone()) {
+            regularSearcher = new RegularSearcher(gui, numResultsPerSearch, isTVShow, startDate, endDate, title, genres, languages, countries, minRating);
+            stopPrefetcher();
+            regularSearcher.execute();
         }
-        regularSearcher = new RegularSearcher(gui, numResultsPerSearch, isTVShow, startDate, endDate, title, genres, languages, countries, minRating);
-        stopPrefetcher();
-        regularSearcher.execute();
     }
 
     @Override
@@ -326,24 +325,22 @@ public class Main implements WorkerListener {
 
     @Override
     public void loadMoreSearchResults(boolean isRegularSearcher) {
-        if (!areSearchersDone()) {
-            return;
-        }
-        if (isRegularSearcher) {
-            (regularSearcher = new RegularSearcher(regularSearcher)).execute();
-        } else {
-            (popularSearcher = new PopularSearcher(popularSearcher)).execute();
+        if (areSearchersDone()) {
+            if (isRegularSearcher) {
+                (regularSearcher = new RegularSearcher(regularSearcher)).execute();
+            } else {
+                (popularSearcher = new PopularSearcher(popularSearcher)).execute();
+            }
         }
     }
 
     @Override
     public void popularSearchStarted(int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed, boolean startAsap) {
-        if (!areSearchersDone()) {
-            return;
+        if (areSearchersDone()) {
+            popularSearcher = new PopularSearcher(gui, numResultsPerSearch, isTVShow, languages, countries, isFeed, startAsap);
+            stopPrefetcher();
+            popularSearcher.execute();
         }
-        popularSearcher = new PopularSearcher(gui, numResultsPerSearch, isTVShow, languages, countries, isFeed, startAsap);
-        stopPrefetcher();
-        popularSearcher.execute();
     }
 
     @Override
@@ -353,48 +350,43 @@ public class Main implements WorkerListener {
 
     @Override
     public void summarySearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
-        if (!isSummarySearchDone()) {
-            return;
+        if (isSummarySearchDone()) {
+            summaryReaderVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+            startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener, false));
+            summaryFinder.execute();
         }
-        summaryReaderVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
-        startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener, false));
-        summaryFinder.execute();
     }
 
     @Override
     public void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
-        if (!isTrailerSearchDone()) {
-            return;
+        if (isTrailerSearchDone()) {
+            startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener, false));
+            trailerFinder.execute();
         }
-        startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener, false));
-        trailerFinder.execute();
     }
 
     @Override
     public void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play) {
-        if (!isTorrentSearchDone()) {
-            return;
+        if (isTorrentSearchDone()) {
+            Magnet.startAzureus(gui);
+            startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener, play));
+            torrentFinder.execute();
         }
-        Magnet.startAzureus(gui);
-        startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener, play));
-        torrentFinder.execute();
     }
 
     @Override
     public void proxyListDownloadStarted() {
-        if (!isWorkDone(proxyDownloader)) {
-            return;
+        if (isWorkDone(proxyDownloader)) {
+            (proxyDownloader = new ProxyListDownloader(gui)).execute();
         }
-        (proxyDownloader = new ProxyListDownloader(gui)).execute();
     }
 
     @Override
     public void summaryReadStarted(String summary) {
-        if (!isWorkDone(summaryReader) || summaryReaderVideo == null) {
-            return;
+        if (isWorkDone(summaryReader) && summaryReaderVideo != null) {
+            summaryReaderVideo.summary = summary;
+            (summaryReader = new SummaryReader(gui, summaryReaderVideo)).execute();
         }
-        summaryReaderVideo.summary = summary;
-        (summaryReader = new SummaryReader(gui, summaryReaderVideo)).execute();
     }
 
     @Override
@@ -404,10 +396,9 @@ public class Main implements WorkerListener {
 
     @Override
     public void subtitleSearchStarted(String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener) {
-        if (!isWorkDone(subtitleFinder)) {
-            return;
+        if (isWorkDone(subtitleFinder)) {
+            (subtitleFinder = new SubtitleFinder(gui, format, languageID, video, firstMatch, strExportListener)).execute();
         }
-        (subtitleFinder = new SubtitleFinder(gui, format, languageID, video, firstMatch, strExportListener)).execute();
     }
 
     @Override
@@ -417,10 +408,9 @@ public class Main implements WorkerListener {
 
     @Override
     public void updateStarted(boolean silent) {
-        if (!isWorkDone(updater)) {
-            return;
+        if (isWorkDone(updater)) {
+            (updater = new Updater(gui, silent)).execute();
         }
-        (updater = new Updater(gui, silent)).execute();
     }
 
     @Override

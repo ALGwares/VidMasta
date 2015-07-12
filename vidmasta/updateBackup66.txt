@@ -1,4 +1,4 @@
-207
+208
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -700,4 +700,7 @@ vlc
 .*\.((3g2)|(3ga)|(3gp)|(3gp2)|(3gpp)|(669)|(a52)|(aac)|(ac3)|(adt)|(adts)|(aif)|(aifc)|(aiff)|(amr)|(amv)|(aob)|(ape)|(asf)|(asx)|(au)|(avi)|(b4s)|(bik)|(bin)|(caf)|(cda)|(cue)|(divx)|(drc)|(dts)|(dv)|(f4v)|(flac)|(flv)|(gvi)|(gxf)|(ifo)|(it)|(m1v)|(m2t)|(m2ts)|(m2v)|(m3u)|(m3u8)|(m4a)|(m4p)|(m4v)|(mid)|(mka)|(mkv)|(mlp)|(mod)|(mov)|(mp1)|(mp2)|(mp2v)|(mp3)|(mp4)|(mp4v)|(mpa)|(mpc)|(mpe)|(mpeg)|(mpeg1)|(mpeg2)|(mpeg4)|(mpg)|(mpga)|(mpv2)|(mts)|(mtv)|(mxf)|(nsv)|(nuv)|(oga)|(ogg)|(ogm)|(ogv)|(ogx)|(oma)|(opus)|(pls)|(qcp)|(ra)|(ram)|(rec)|(rm)|(rmbv)|(rmi)|(rpl)|(s3m)|(sdp)|(snd)|(spx)|(thp)|(tod)|(ts)|(tta)|(tts)|(vlc)|(vlt)|(vob)|(voc)|(vqf)|(vro)|(w64)|(wav)|(webm)|(wma)|(wmv)|(wsz)|(wv)|(wvx)|(xa)|(xesc)|(xm)|(xspf))
 https://sites.google.com/site/algwares/vidmasta
 http://tpbcrawler.appspot.com/fetch?id=
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-5.2.1-Java6.exe/download
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-5.2.1-Java6.dmg/download
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-5.2.1-Java6.tgz/download
 eof
