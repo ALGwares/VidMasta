@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.08.02   | VidMasta 19.7
+
+CHANGE: UI   | Removed unnecessary connection error message that is sometimes shown
+
+
+
+
 2015.07.12   | VidMasta 19.6
 
 CHANGE: UI   | Added watch on device popup menu item to watch movies and TV shows on PS3, Xbox, TV, mobile, tablet, and more

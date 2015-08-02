@@ -48,23 +48,28 @@ public class VideoSearch {
         return Regex.isMatch(Regex.match(sourceCode, 584), typeRegexIndex);
     }
 
-    public static String searchEngineQuery(String query, int regexIndex) throws Exception {
-        String encodedQuery = URLEncoder.encode(query, Constant.UTF8);
+    public static String getTitleLink(String title, String year) throws Exception {
+        String encodedQuery = URLEncoder.encode(Regex.clean(title) + (year.isEmpty() ? "" : ' ' + year) + Str.get(76), Constant.UTF8);
         List<String> engines = new ArrayList<String>(searchEngines);
+        boolean noResultFound = false;
 
         for (int i = NUM_SEARCH_ENGINES; i > 0; i--) {
             String searchEngine = engines.get(rand.nextInt(i));
             try {
-                String result = Regex.firstMatch(Connection.getSourceCode(searchEngine + encodedQuery, DomainType.SEARCH_ENGINE), regexIndex);
+                String result = Regex.firstMatch(Connection.getSourceCode(searchEngine + encodedQuery, DomainType.SEARCH_ENGINE), 619);
                 if (!result.isEmpty() && !(result = URLDecoder.decode(result, Constant.UTF8)).isEmpty()) {
-                    return result;
+                    return Str.get(96) + result;
                 }
+                noResultFound = true;
             } catch (ConnectionException e) {
                 if (i == 1) {
+                    if (noResultFound) {
+                        return null;
+                    }
                     throw e;
                 }
                 if (Debug.DEBUG) {
-                    Debug.println("Retrying search query: " + e.URL);
+                    Debug.println("Retrying search query (" + encodedQuery + "): " + e.URL);
                 }
             }
             engines.remove(searchEngine);
@@ -73,18 +78,9 @@ public class VideoSearch {
         return null;
     }
 
-    public static String getTitleLink(String title, String year) throws Exception {
-        String link = searchEngineQuery(Regex.clean(title) + (year.isEmpty() ? "" : ' ' + year) + Str.get(76), 619);
-        return link == null ? null : Str.get(96) + link;
-    }
-
     public static TitleParts getImdbTitleParts(String sourceCode) {
-        return getImdbTitleParts(sourceCode, 98);
-    }
-
-    public static TitleParts getImdbTitleParts(String sourceCode, int startRegexIndex) {
         TitleParts titleParts = new TitleParts();
-        titleParts.title = Regex.match(sourceCode, startRegexIndex);
+        titleParts.title = Regex.match(sourceCode, 98);
         Pattern yearPattern = Regex.pattern(100);
         int titleEndIndex = -1;
 
