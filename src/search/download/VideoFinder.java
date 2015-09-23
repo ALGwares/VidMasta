@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
@@ -519,7 +520,16 @@ public class VideoFinder extends AbstractSwingWorker {
     private void findAltDownloadLink() throws Exception {
         guiListener.altVideoDownloadStarted();
 
-        String[] results = Regex.split(Connection.getSourceCode(Str.get(video.IS_TV_SHOW ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO), Constant.STD_NEWLINE);
+        String sourceCode;
+        try {
+            sourceCode = Connection.getSourceCode(Str.get(video.IS_TV_SHOW ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO);
+        } catch (Exception e) {
+            error(e);
+            findAlt2DownloadLink(true);
+            return;
+        }
+
+        String[] results = Regex.split(sourceCode, Constant.STD_NEWLINE);
         for (int i = 0; i < results.length; i += 5) {
             if (!results[i].trim().equals(video.title) || !results[i + 1].trim().equals(video.year)) {
                 continue;
@@ -557,14 +567,14 @@ public class VideoFinder extends AbstractSwingWorker {
             break;
         }
 
-        findAlt2DownloadLink();
+        findAlt2DownloadLink(true);
     }
 
-    private void findAlt2DownloadLink() throws Exception {
+    private void findAlt2DownloadLink(boolean singleOrderByMode) throws Exception {
         if (!isCancelled() && torrents.isEmpty()) {
             torrents = new CopyOnWriteArrayList<Torrent>();
             torrentFinders = new ArrayList<TorrentFinder>(1);
-            addFinder(video.title, "", false, false, false, null, true);
+            addFinder(video.title, "", false, false, false, null, true, singleOrderByMode);
             RunnableUtil.runAndWaitFor(torrentFinders);
         }
     }
@@ -614,10 +624,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
         addTVFinders(seasonAndEpisodes);
 
-        if (!PREFETCH) {
-            RunnableUtil.runAndWaitFor(torrentFinders);
-            findAlt2DownloadLink();
-        }
+        findDownloadLink();
         return true;
     }
 
@@ -664,10 +671,7 @@ public class VideoFinder extends AbstractSwingWorker {
             }
         }
 
-        if (!PREFETCH) {
-            RunnableUtil.runAndWaitFor(torrentFinders);
-            findAlt2DownloadLink();
-        }
+        findDownloadLink();
     }
 
     private void addTVFinders(Iterable<String> seasonAndEpisodes) {
@@ -701,21 +705,48 @@ public class VideoFinder extends AbstractSwingWorker {
             if (Debug.DEBUG) {
                 Debug.println('\'' + currTitle + "' added to download links to query for");
             }
-            addFinder(currTitle, "", true, isOldTitle, false, boxSet, false);
+            addFinder(currTitle, "", true, isOldTitle, false, boxSet, false, false);
         }
     }
 
     private void addFinder(String dirtyTitle, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix) {
-        addFinder(dirtyTitle, seasonAndEpisode, ignoreYear, isOldTitle, isTitlePrefix, null, false);
+        addFinder(dirtyTitle, seasonAndEpisode, ignoreYear, isOldTitle, isTitlePrefix, null, false, false);
     }
 
     private void addFinder(String dirtyTitle, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, List<BoxSetVideo> boxSet,
-            boolean altSearch) {
+            boolean altSearch, boolean singleOrderByMode) {
         Video vid = new Video(video.ID, dirtyTitle, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
         vid.season = video.season;
         vid.episode = video.episode;
-        torrentFinders.add(new TorrentFinder(guiListener, torrents, vid, seasonAndEpisode, isDownload1, magnetLinkOnly(), ignoreYear, isOldTitle, isTitlePrefix,
-                new TorrentSearchState(searchState), boxSet, altSearch));
+        torrentFinders.add(new TorrentFinder(guiListener, torrentFinders, torrents, vid, seasonAndEpisode, isDownload1, magnetLinkOnly(), ignoreYear, isOldTitle,
+                isTitlePrefix, new TorrentSearchState(searchState), boxSet, altSearch, singleOrderByMode));
+    }
+
+    private void findDownloadLink() throws Exception {
+        if (PREFETCH) {
+            return;
+        }
+
+        boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+        try {
+            RunnableUtil.runAndWaitFor(torrentFinders);
+        } catch (CancellationException e) {
+            if (Debug.DEBUG) {
+                Debug.println(e);
+            }
+        }
+        if (isCancelled()) {
+            return;
+        }
+
+        if (!isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
+            Collection<TorrentFinder> newTorrentFinders = new ArrayList<TorrentFinder>(torrentFinders.size());
+            for (TorrentFinder torrentFinder : torrentFinders) {
+                newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
+            }
+            RunnableUtil.runAndWaitFor(newTorrentFinders);
+        }
+        findAlt2DownloadLink(false);
     }
 
     private void updateOldTitleAndSummaryHelper() throws Exception {

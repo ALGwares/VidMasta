@@ -36,6 +36,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.StrUpdateListener.UpdateListener;
@@ -49,6 +52,7 @@ public class Connection {
     private static final Collection<Long> cache = new ConcurrentSkipListSet<Long>();
     private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
     private static final AtomicBoolean downloadLinkInfoFail = new AtomicBoolean();
+    private static boolean downloadLinkInfoDeproxied;
     private static volatile String downloadLinkInfoFailUrl;
 
     public static void init(GuiListener listener) {
@@ -65,23 +69,41 @@ public class Connection {
                 }
             }
         });
-        Authenticator.setDefault(new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                String msg = Str.str("loginRequested", getShortUrl(getRequestingURL().toString(), false));
-                String prompt = getRequestingPrompt().trim();
-                if (!prompt.isEmpty()) {
-                    msg += ' ' + Str.str("websiteMsg") + ' ' + prompt;
+        try {
+            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
                 }
-                if (guiListener.isAuthorizationConfirmed(msg)) {
-                    char[] password = guiListener.getAuthorizationPassword();
-                    PasswordAuthentication passwordAuthentication = new PasswordAuthentication(guiListener.getAuthorizationUsername(), password);
-                    Arrays.fill(password, '\0');
-                    return passwordAuthentication;
-                }
-                return null;
+            });
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
             }
-        });
+        }
+        try {
+            Authenticator.setDefault(new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    String msg = Str.str("loginRequested", getShortUrl(getRequestingURL().toString(), false));
+                    String prompt = getRequestingPrompt().trim();
+                    if (!prompt.isEmpty()) {
+                        msg += ' ' + Str.str("websiteMsg") + ' ' + prompt;
+                    }
+                    if (guiListener.isAuthorizationConfirmed(msg)) {
+                        char[] password = guiListener.getAuthorizationPassword();
+                        PasswordAuthentication passwordAuthentication = new PasswordAuthentication(guiListener.getAuthorizationUsername(), password);
+                        Arrays.fill(password, '\0');
+                        return passwordAuthentication;
+                    }
+                    return null;
+                }
+            });
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
     }
 
     public static String getUpdateFile(String file) throws Exception {
@@ -197,7 +219,7 @@ public class Connection {
                     if (showStatus) {
                         unsetStatusBar();
                     }
-                    IO.close(connection, br);
+                    IO.close(br);
                 }
 
                 return source.toString();
@@ -218,12 +240,46 @@ public class Connection {
     }
 
     private static String deproxyDownloadLinkInfoProxyUrl(String downloadLinkInfoProxyUrl) {
-        return downloadLinkInfoProxyUrl.startsWith(Str.get(466)) ? Str.get(467) + downloadLinkInfoProxyUrl.substring(Str.get(466).length()) : null;
+        return !downloadLinkInfoProxyUrl.startsWith(Str.get(467)) && downloadLinkInfoProxyUrl.startsWith(Str.get(466)) ? Str.get(467)
+                + downloadLinkInfoProxyUrl.substring(Str.get(466).length()) : null;
     }
 
-    public static void failDownloadLinkInfo() {
-        downloadLinkInfoFail.set(true);
-        selectNextDownloadLinkInfoProxy();
+    public static boolean deproxyDownloadLinkInfo() {
+        downloadLinkInfoProxyLock.lock();
+        try {
+            if (downloadLinkInfoDeproxied) {
+                return false;
+            }
+
+            Str.addListener(new UpdateListener() {
+                @Override
+                public void update(String[] strs) {
+                    int downloadLinkInfoUrlLen = strs[518].length();
+                    for (String indexToUpdate : Regex.split(strs[671], ",")) {
+                        int indexToUpdateNum = Integer.parseInt(indexToUpdate);
+                        strs[indexToUpdateNum] = strs[467] + strs[indexToUpdateNum].substring(downloadLinkInfoUrlLen);
+                    }
+                }
+            });
+            Str.update();
+
+            if (Debug.DEBUG) {
+                Debug.print(new ConnectionException("Download link info deproxied."));
+            }
+
+            return (downloadLinkInfoDeproxied = true);
+        } finally {
+            downloadLinkInfoProxyLock.unlock();
+        }
+    }
+
+    public static boolean isDownloadLinkInfoDeproxied() {
+        downloadLinkInfoProxyLock.lock();
+        try {
+            return downloadLinkInfoDeproxied;
+        } finally {
+            downloadLinkInfoProxyLock.unlock();
+        }
     }
 
     private static void selectNextDownloadLinkInfoProxy() {
@@ -330,11 +386,11 @@ public class Connection {
         }
     }
 
-    public static void removeDownloadLinkInfoProxyUrlFromCache(String downloadLinkInfoProxyUrl) {
-        removeFromCache(downloadLinkInfoProxyUrl);
-        String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(downloadLinkInfoProxyUrl);
-        if (downloadLinkInfoUrl != null) {
-            removeFromCache(downloadLinkInfoUrl);
+    public static void removeDownloadLinkInfoFromCache(String url) {
+        removeFromCache(url);
+        String url2 = deproxyDownloadLinkInfoProxyUrl(url);
+        if (url2 != null) {
+            removeFromCache(url2);
         }
     }
 
@@ -416,7 +472,7 @@ public class Connection {
                     if (showStatus) {
                         unsetStatusBar();
                     }
-                    IO.close(connection, is, os);
+                    IO.close(is, os);
                 }
                 return null;
             }
@@ -504,7 +560,7 @@ public class Connection {
                 if (showStatus) {
                     unsetStatusBar();
                 }
-                IO.close(connection, is);
+                IO.close(is);
             }
         }
 

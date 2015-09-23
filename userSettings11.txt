@@ -3,7 +3,7 @@
 20
 0
 infinity
-15
+30
 English
 English
 true

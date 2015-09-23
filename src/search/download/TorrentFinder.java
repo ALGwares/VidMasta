@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import javax.swing.SwingWorker;
 import listener.DomainType;
@@ -27,21 +28,23 @@ import util.Regex;
 public class TorrentFinder extends SwingWorker<Object, Object> {
 
     private GuiListener guiListener;
+    private Iterable<? extends Future<?>> cohort;
     private Collection<Torrent> torrents;
     private Video video;
     private String seasonAndEpisode;
-    private boolean orderByLeechers, magnetLinkOnly, ignoreYear, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch, altSearch;
-    private final int MAX_NUM_ATTEMPTS = Integer.parseInt(Str.get(176)), COUNTER1_MAX = Integer.parseInt(Str.get(168));
-    private final int COUNTER2_MAX1 = Integer.parseInt(Str.get(170)), COUNTER2_MAX2 = Integer.parseInt(Str.get(336));
-    private int attemptNum, counter1, counter2, counter2Max;
+    private boolean orderByLeechers, magnetLinkOnly, ignoreYear, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch, altSearch, singleOrderByMode;
+    private final int maxNumAttempts, counter1Max, counter2Max;
+    private int attemptNum, counter1, counter2;
     private String categorySearch, prevUrl;
     private TorrentSearchState searchState;
     private List<BoxSetVideo> boxSet;
     private static final Map<String, Boolean> savedTorrents = new ConcurrentHashMap<String, Boolean>(16);
 
-    TorrentFinder(GuiListener guiListener, Collection<Torrent> torrents, Video video, String seasonAndEpisode, boolean orderByLeechers, boolean magnetLinkOnly,
-            boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, TorrentSearchState searchState, List<BoxSetVideo> boxSet, boolean altSearch) {
+    TorrentFinder(GuiListener guiListener, Iterable<? extends Future<?>> cohort, Collection<Torrent> torrents, Video video, String seasonAndEpisode,
+            boolean orderByLeechers, boolean magnetLinkOnly, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, TorrentSearchState searchState,
+            List<BoxSetVideo> boxSet, boolean altSearch, boolean singleOrderByMode) {
         this.guiListener = guiListener;
+        this.cohort = cohort;
         this.torrents = torrents;
         this.video = video;
         this.seasonAndEpisode = seasonAndEpisode;
@@ -53,12 +56,32 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         this.searchState = searchState;
         this.boxSet = boxSet;
         categorySearch = Str.get(video.IS_TV_SHOW ? 658 : 659);
-        counter2Max = (boxSet == null ? COUNTER2_MAX1 : COUNTER2_MAX2);
+        maxNumAttempts = Integer.parseInt(Str.get(176));
+        counter1Max = Integer.parseInt(Str.get(168));
+        counter2Max = Integer.parseInt(Str.get(boxSet == null ? 170 : 336));
         this.altSearch = altSearch;
+        this.singleOrderByMode = singleOrderByMode;
     }
 
-    private boolean isCancelled2() {
-        return isCancelled() || Connection.downloadLinkInfoFail();
+    TorrentFinder(TorrentFinder torrentFinder, Iterable<? extends Future<?>> cohort) {
+        guiListener = torrentFinder.guiListener;
+        this.cohort = cohort;
+        torrents = torrentFinder.torrents;
+        video = torrentFinder.video;
+        seasonAndEpisode = torrentFinder.seasonAndEpisode;
+        orderByLeechers = torrentFinder.orderByLeechers;
+        magnetLinkOnly = torrentFinder.magnetLinkOnly;
+        ignoreYear = torrentFinder.ignoreYear;
+        isOldTitle = torrentFinder.isOldTitle;
+        isTitlePrefix = torrentFinder.isTitlePrefix;
+        searchState = torrentFinder.searchState;
+        boxSet = torrentFinder.boxSet;
+        categorySearch = torrentFinder.categorySearch;
+        maxNumAttempts = torrentFinder.maxNumAttempts;
+        counter1Max = torrentFinder.counter1Max;
+        counter2Max = torrentFinder.counter2Max;
+        altSearch = torrentFinder.altSearch;
+        singleOrderByMode = torrentFinder.singleOrderByMode;
     }
 
     @Override
@@ -90,6 +113,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
             } catch (Exception e) {
                 if (!isCancelled()) {
                     guiListener.error(e);
+                    possiblyInconsistent = false;
                 }
             }
 
@@ -97,9 +121,9 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 return null;
             }
 
-            if (possiblyInconsistent && ++attemptNum < MAX_NUM_ATTEMPTS) {
+            if (possiblyInconsistent && ++attemptNum < maxNumAttempts) {
                 if (prevUrl != null) {
-                    Connection.removeDownloadLinkInfoProxyUrlFromCache(prevUrl);
+                    Connection.removeDownloadLinkInfoFromCache(prevUrl);
                 }
                 continue;
             }
@@ -114,7 +138,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     public Torrent getTorrent(boolean prefetch, boolean generalSearch) throws Exception {
         String urlForm = Str.get(33), urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (ignoreYear ? "" : (' ' + video.year)) + seasonAndEpisode,
                 Constant.UTF8) + (generalSearch ? Str.get(657) : categorySearch);
-        if (isCancelled2()) {
+        if (isCancelled()) {
             return null;
         }
 
@@ -129,9 +153,12 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         }
 
         if (!Regex.firstMatch(sourceCode, 146).isEmpty() || Regex.firstMatch(sourceCode, 504).isEmpty()) {
-            Connection.removeDownloadLinkInfoProxyUrlFromCache(prevUrl);
-            if (!prefetch && !isCancelled2()) {
-                Connection.failDownloadLinkInfo();
+            Connection.removeDownloadLinkInfoFromCache(prevUrl);
+            if (Connection.deproxyDownloadLinkInfo()) {
+                for (Future<?> future : cohort) {
+                    future.cancel(true);
+                }
+                return null;
             }
             throw new ConnectionException(Connection.serverError(urlForm));
         }
@@ -155,7 +182,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         while (counter2 != counter2Max) {
             Torrent torrent = getTorrent(39, sourceCode);
 
-            if (counter1 == COUNTER1_MAX || isCancelled()) {
+            if (counter1 == counter1Max || isCancelled()) {
                 return null;
             }
             if (torrent != null) {
@@ -196,7 +223,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
 
     private Torrent getTorrent(int urlIndex, String sourceCode) throws Exception {
         Matcher titleMatcher = Regex.matcher(48, sourceCode);
-        while (!titleMatcher.hitEnd() && counter1 != COUNTER1_MAX) {
+        while (!titleMatcher.hitEnd() && counter1 != counter1Max) {
             if (isCancelled()) {
                 return null;
             }
@@ -212,11 +239,11 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
             possiblyInconsistent = false;
 
             String torrentID = Regex.match(Regex.firstMatch(videoStr, 460), 461);
-            Boolean prevOrderByLeechers = savedTorrents.get(torrentID);
+            Boolean prevOrderByLeechers;
             boolean isBoxSet;
-            if ((prevOrderByLeechers != null && orderByLeechers != prevOrderByLeechers) || VideoSearch.isUploadYearTooOld(videoStr, 1, Integer.parseInt(
-                    video.year)) || !VideoSearch.isRightFormat(titleName, searchState.format) || (!(isBoxSet = !Regex.firstMatch(Regex.replaceAll(titleName, 220),
-                            video.IS_TV_SHOW ? 207 : 208).isEmpty()) && boxSet != null)) {
+            if ((!singleOrderByMode && (prevOrderByLeechers = savedTorrents.get(torrentID)) != null && orderByLeechers != prevOrderByLeechers)
+                    || VideoSearch.isUploadYearTooOld(videoStr, 1, Integer.parseInt(video.year)) || !VideoSearch.isRightFormat(titleName, searchState.format)
+                    || (!(isBoxSet = !Regex.firstMatch(Regex.replaceAll(titleName, 220), video.IS_TV_SHOW ? 207 : 208).isEmpty()) && boxSet != null)) {
                 continue;
             }
 
@@ -312,10 +339,24 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     }
 
     private boolean isRightSeason(String title) {
-        String titleName = Regex.replaceAll(title, 222);
         int season = Integer.parseInt(video.season);
+        String seasonRomanNumeral = getRomanNumeral(season), titleName = Regex.replaceAll(title, 222);
         if (Debug.DEBUG) {
-            Debug.print("Desired Season (" + titleName + "): " + season);
+            Debug.print("Desired Season (" + titleName + "): " + season + " (" + seasonRomanNumeral + ')');
+        }
+
+        Matcher numListMatcher = Regex.matcher(216, titleName);
+        while (!numListMatcher.hitEnd()) {
+            if (numListMatcher.find()) {
+                for (String num : Regex.split(numListMatcher.group().trim(), 705)) {
+                    if ((Regex.isMatch(num, "\\d++") && season == Integer.parseInt(num)) || num.equalsIgnoreCase(seasonRomanNumeral)) {
+                        if (Debug.DEBUG) {
+                            Debug.println("\tCorrect Season!");
+                        }
+                        return true;
+                    }
+                }
+            }
         }
 
         Matcher seasonMatcher = Regex.matcher(215, titleName);
@@ -324,26 +365,15 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 continue;
             }
 
-            Matcher numListMatcher = Regex.matcher(216, titleName);
-            while (!numListMatcher.hitEnd()) {
-                if (numListMatcher.find()) {
-                    if (Debug.DEBUG) {
-                        Debug.println("\tPossibly in list of seasons: '" + titleName + '\'');
-                    }
-                    return true;
-                }
-            }
-
             String seasonNum = Regex.replaceAll(seasonMatcher.group(), 217);
             if (Debug.DEBUG) {
                 Debug.print("\tseasonNum: '" + seasonNum + '\'');
             }
             if (Regex.isMatch(seasonNum, 219)) {
-                String correctSeasonNum = getRomanNumeral(season);
                 if (Debug.DEBUG) {
-                    Debug.print("\tcorrectSeasonNum: '" + correctSeasonNum + '\'');
+                    Debug.print("\tcorrectSeasonNum: '" + seasonRomanNumeral + '\'');
                 }
-                if (!seasonNum.equalsIgnoreCase(correctSeasonNum)) {
+                if (!seasonNum.equalsIgnoreCase(seasonRomanNumeral)) {
                     if (Debug.DEBUG) {
                         Debug.println("\tWrong Season!");
                     }

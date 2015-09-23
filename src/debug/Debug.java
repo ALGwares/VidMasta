@@ -1,5 +1,9 @@
 package debug;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+
 public class Debug {
 
     public static final boolean DEBUG = true;
@@ -18,7 +22,9 @@ public class Debug {
 
     public static void print(Throwable t) {
         if (DEBUG) {
-            t.printStackTrace();
+            Writer writer = new StringWriter();
+            t.printStackTrace(new PrintWriter(writer));
+            System.out.println("\n" + writer.toString());
         }
     }
 

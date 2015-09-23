@@ -127,8 +127,8 @@ public class RegularSearcher extends AbstractSearcher {
             VideoSearch.saveImage(video);
         }
 
-        allVideos.add(video.ID);
         allBufferVideos.add(video.ID);
+        allVideos.add(video.ID);
         guiListener.newResult(VideoSearch.toTableRow(guiListener, video, true));
         incrementProgress();
         isInitialSearchSuccessful = true;

@@ -148,7 +148,8 @@ public class IO {
         try {
             Writer writer = new StringWriter();
             t.printStackTrace(new PrintWriter(writer));
-            write(fileName, Calendar.getInstance().getTime() + IOConstant.NEWLINE + writer + IOConstant.NEWLINE, true);
+            write(fileName, Calendar.getInstance().getTime() + IOConstant.NEWLINE + "System Environment: " + System.getenv() + IOConstant.NEWLINE
+                    + "System Properties: " + System.getProperties() + IOConstant.NEWLINE + writer + IOConstant.NEWLINE, true);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -264,13 +265,6 @@ public class IO {
                     }
                 }
             }
-        }
-    }
-
-    public static void close(HttpURLConnection connection, Closeable... closeables) {
-        close(closeables);
-        if (connection != null) {
-            connection.disconnect();
         }
     }
 

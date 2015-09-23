@@ -42,20 +42,6 @@ public class Str extends I18nStr {
         return hashCode;
     }
 
-    public static String capitalize(String str) {
-        char[] chars = str.toCharArray();
-        boolean capitalizeNext = true;
-        for (int i = 0; i < chars.length; i++) {
-            if (chars[i] == ' ') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                chars[i] = Character.toTitleCase(chars[i]);
-                capitalizeNext = false;
-            }
-        }
-        return new String(chars);
-    }
-
     private Str() {
     }
 }

@@ -98,6 +98,18 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
+    protected void initCurrVideos() throws Exception {
+        boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+        String currSource = currSourceCode, prevSource = prevSourceCode;
+        super.initCurrVideos();
+        if (!isCancelled() && !isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
+            currSourceCode = currSource;
+            prevSourceCode = prevSource;
+            super.initCurrVideos();
+        }
+    }
+
+    @Override
     protected boolean addCurrVideos() {
         if (currSearchPage >= titleNames.size()) {
             return false;
@@ -144,9 +156,11 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     protected void fail(String url) throws Exception {
-        Connection.removeDownloadLinkInfoProxyUrlFromCache(url);
+        Connection.removeDownloadLinkInfoFromCache(url);
+        if (Connection.deproxyDownloadLinkInfo()) {
+            return;
+        }
         if (!isCancelled()) {
-            Connection.failDownloadLinkInfo();
             if (backupMode()) {
                 return;
             }

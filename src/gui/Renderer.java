@@ -17,6 +17,7 @@ public class Renderer implements ListCellRenderer, UIResource {
     private final ListCellRenderer renderer;
     private final Entry<String, String>[] modelView;
 
+    @SuppressWarnings("unchecked")
     public Renderer(ListCellRenderer renderer, String[] model) {
         this.renderer = renderer;
         modelView = new Entry[model.length];

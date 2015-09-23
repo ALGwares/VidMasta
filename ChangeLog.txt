@@ -1,6 +1,18 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.09.24   | VidMasta 19.8
+
+CHANGE: CORE | Improved play and download performance
+CHANGE: CORE | Improved play and download error handling
+CHANGE: CORE | Improved search performance
+CHANGE: CORE | Improved search error handling
+CHANGE: CORE | Added playback of summary using VLC media player for Windows
+CHANGE: UI   | Improved backup mode transition
+
+
+
+
 2015.08.02   | VidMasta 19.7
 
 CHANGE: UI   | Removed unnecessary connection error message that is sometimes shown

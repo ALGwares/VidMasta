@@ -208,11 +208,9 @@ public class SplashScreen extends JFrame {
         resultsLabel.setText(bundle.getString("results") + " " + 0);
         resultsLabel.setEnabled(false);
 
-        searchButton.setFont(new Font("Tahoma", 0, 12));
         searchButton.setText(bundle.getString("GUI.searchButton.text"));
         searchButton.setEnabled(false);
 
-        stopButton.setFont(new Font("Tahoma", 0, 12));
         stopButton.setText(bundle.getString("GUI.stopButton.text"));
         stopButton.setEnabled(false);
 
@@ -257,11 +255,9 @@ public class SplashScreen extends JFrame {
         hd1080CheckBox.setText(Constant.HD1080);
         hd1080CheckBox.setEnabled(false);
 
-        popularMoviesButton.setFont(new Font("Tahoma", 0, 12));
         popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text"));
         popularMoviesButton.setEnabled(false);
 
-        popularTVShowsButton.setFont(new Font("Tahoma", 0, 12));
         popularTVShowsButton.setText(bundle.getString("GUI.popularTVShowsButton.text"));
         popularTVShowsButton.setEnabled(false);
 

@@ -10,14 +10,14 @@ import java.util.regex.Pattern;
 
 public class I18nStr {
 
-    private static volatile String ctrl;
+    private static volatile String ctrl = "ctrl+";
 
     public static void localeChanged() {
         ctrl = KeyEvent.getKeyModifiersText(KeyEvent.CTRL_MASK).toLowerCase(locale()) + '+';
     }
 
     public static Locale locale() {
-        return I18n.locale;
+        return I18n.locale();
     }
 
     public static String str(String key) {

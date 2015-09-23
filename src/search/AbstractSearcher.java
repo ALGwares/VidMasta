@@ -30,8 +30,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     private boolean isNewSearch = true;
     protected Set<String> allVideos, allBufferVideos;
     protected List<Video> videoBuffer;
-    protected String currSourceCode;
-    private String prevSourceCode;
+    protected String currSourceCode, prevSourceCode;
     private SwingWorker<?, ?> prefetcher;
     private final int SLEEP = Integer.parseInt(Str.get(166));
 
@@ -131,6 +130,9 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
     private void restore() {
         restoreToPrev();
+        for (Video video : videoBuffer) {
+            allBufferVideos.remove(video.ID);
+        }
         videoBuffer.clear();
         guiListener.moreResults(hasNextSearchPage());
     }
@@ -187,10 +189,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         if (numResultsLeft >= 0 && numVideos > numResultsLeft) {
             numVideos = numResultsLeft;
         }
-        List<Video> subList = videoBuffer.subList(0, numVideos);
-        Iterable<Video> videos = new ArrayList<Video>(subList);
-        subList.clear();
-
+        Collection<Video> videos = videoBuffer.subList(0, numVideos);
         Collection<SearcherHelper> searchHelpers = new ArrayList<SearcherHelper>(numVideos);
 
         for (Video video : videos) {
@@ -202,12 +201,13 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             return;
         }
 
+        videos.clear();
         if (videoBuffer.isEmpty()) {
             currSearchPage++;
         }
     }
 
-    private void initCurrVideos() throws Exception {
+    protected void initCurrVideos() throws Exception {
         if (addCurrVideos()) {
             return;
         }

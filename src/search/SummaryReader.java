@@ -31,6 +31,7 @@ import util.Constant;
 import util.IO;
 import util.Regex;
 import util.RunnableUtil;
+import util.VideoPlayer;
 
 public class SummaryReader extends AbstractSwingWorker {
 
@@ -62,11 +63,9 @@ public class SummaryReader extends AbstractSwingWorker {
 
     public void readSummary() throws Exception {
         IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
-        swfName = Str.hashCode(video.ID);
-        String swfSpeechPath = Constant.TEMP_DIR + swfName + Constant.SWF;
-        File swfSpeech = new File(swfSpeechPath), swfPage = new File(Constant.TEMP_DIR + swfName + Constant.HTML);
-        if (swfSpeech.exists() && swfPage.exists()) {
-            browse(swfPage);
+        File swfSpeech = new File(Constant.TEMP_DIR + (swfName = Str.hashCode(video.ID)) + Constant.SWF);
+        if (swfSpeech.exists()) {
+            browse(swfSpeech);
             return;
         }
 
@@ -94,11 +93,7 @@ public class SummaryReader extends AbstractSwingWorker {
 
         convertMoviesToAudioClip().encodeToFile(swfSpeech);
 
-        String imagePath;
-        IO.write(swfPage, Str.get(479).replace(Str.get(480), swfSpeechPath).replace(Str.get(481), Regex.cleanWeirdChars(video.title) + " (" + video.year
-                + ')').replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video))).exists() ? imagePath : Constant.PROGRAM_DIR
-                                + "noPosterBig.jpg"));
-        browse(swfPage);
+        browse(swfSpeech);
     }
 
     private Movie convertMoviesToAudioClip() throws Exception {
@@ -132,7 +127,19 @@ public class SummaryReader extends AbstractSwingWorker {
         return audioClip;
     }
 
-    private void browse(File swfPage) throws Exception {
+    private void browse(File swfSpeech) throws Exception {
+        if (VideoPlayer.open(704, swfSpeech, true, true)) {
+            return;
+        }
+
+        File swfPage = new File(Constant.TEMP_DIR + swfName + Constant.HTML);
+        if (!swfPage.exists()) {
+            String imagePath;
+            IO.write(swfPage, Str.get(479).replace(Str.get(480), swfSpeech.getPath()).replace(Str.get(481), Regex.cleanWeirdChars(video.title) + " (" + video.year
+                    + ')').replace(Str.get(482), (new File(imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video))).exists() ? imagePath
+                                    : Constant.PROGRAM_DIR + "noPosterBig.jpg"));
+        }
+
         guiListener.browserNotification(DomainType.VIDEO_INFO);
         IO.browse(swfPage);
     }
