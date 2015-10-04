@@ -148,9 +148,11 @@ public class VideoSearch {
                     if (seasonNum >= 1 && seasonNum <= 100) {
                         titleParts.season = String.format(Constant.TV_EPISODE_FORMAT, seasonNum);
                     }
-                    int episodeNum = Integer.parseInt(seasonAndEpisode[1]);
-                    if (episodeNum >= 0 && episodeNum <= 300) {
-                        titleParts.episode = String.format(Constant.TV_EPISODE_FORMAT, episodeNum);
+                    for (int i = 1; i < seasonAndEpisode.length; i++) {
+                        int episodeNum = Integer.parseInt(seasonAndEpisode[i]);
+                        if (episodeNum >= 0 && episodeNum <= 300) {
+                            titleParts.episodes.add(String.format(Constant.TV_EPISODE_FORMAT, episodeNum));
+                        }
                     }
                 }
                 indexes.add(tvBoxSetAndEpisodeMatcher.start());
@@ -171,7 +173,7 @@ public class VideoSearch {
 
         titleParts.title = titleName.substring(0, Collections.min(indexes)).trim();
         if (Debug.DEBUG) {
-            Debug.println('\'' + titleParts.title + "' '" + titleParts.year + "' '" + titleParts.season + "' '" + titleParts.episode + "' '" + titleName + '\'');
+            Debug.println('\'' + titleParts.title + "' '" + titleParts.year + "' '" + titleParts.season + "' '" + titleParts.episodes + "' '" + titleName + '\'');
         }
         return titleParts;
     }

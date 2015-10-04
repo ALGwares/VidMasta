@@ -1578,7 +1578,7 @@
               <ResourceString bundle="i18n/Bundle.properties" key="GUI.proxyDownloadLinkInfoCheckBox.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="Str.str(&quot;forExample&quot;, Str.get(577))" type="code"/>
+              <Connection code="Str.str(&quot;forExample&quot;, Str.get(713))" type="code"/>
             </Property>
           </Properties>
         </Component>
@@ -4175,7 +4175,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="titleLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="titleTextField" pref="776" max="32767" attributes="0"/>
+                              <Component id="titleTextField" pref="784" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="typeLabel" min="-2" max="-2" attributes="0"/>
@@ -4198,11 +4198,11 @@
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Component id="genreLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="genreScrollPane" pref="323" max="32767" attributes="0"/>
+                      <Component id="genreScrollPane" pref="317" max="32767" attributes="0"/>
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="searchButton" max="32767" attributes="1"/>
-                          <Component id="stopButton" max="32767" attributes="2"/>
+                          <Component id="searchButton" linkSize="180" min="-2" max="-2" attributes="1"/>
+                          <Component id="stopButton" linkSize="180" min="-2" max="-2" attributes="2"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
@@ -4226,8 +4226,8 @@
                           <Group type="102" attributes="0">
                               <Component id="progressBarLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="progressBar" pref="383" max="32767" attributes="0"/>
-                              <EmptySpace pref="135" max="32767" attributes="0"/>
+                              <Component id="progressBar" pref="382" max="32767" attributes="0"/>
+                              <EmptySpace pref="136" max="32767" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="dvdCheckBox" linkSize="64" min="-2" max="-2" attributes="2"/>
                                   <Component id="hqVideoTypeCheckBox" linkSize="64" alignment="0" min="-2" max="-2" attributes="2"/>
@@ -4242,7 +4242,7 @@
                               <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Component id="closeBoxButton" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="separate" max="32767" attributes="0"/>
-                              <Component id="loadMoreResultsButton" max="32767" attributes="0"/>
+                              <Component id="loadMoreResultsButton" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -4262,7 +4262,7 @@
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
                   <Group type="103" alignment="1" groupAlignment="3" attributes="0">
-                      <Component id="popularMoviesButton" linkSize="98" alignment="3" min="-2" pref="28" max="-2" attributes="0"/>
+                      <Component id="popularMoviesButton" linkSize="98" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="popularTVShowsButton" linkSize="98" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="loadingLabel" alignment="1" min="-2" max="-2" attributes="0"/>
@@ -4291,14 +4291,14 @@
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="searchButton" linkSize="67" min="-2" pref="25" max="-2" attributes="0"/>
+                      <Component id="searchButton" linkSize="67" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Component id="stopButton" linkSize="67" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="genreScrollPane" alignment="0" min="-2" pref="64" max="-2" attributes="1"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="resultsScrollPane" pref="486" max="32767" attributes="0"/>
+              <Component id="resultsScrollPane" pref="491" max="32767" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="readSummaryButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>

@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.10.04   | VidMasta 19.9
+
+CHANGE: CORE | Upgraded from Java 6 to Java 7 for TLS 1.2 support which fixes some HTTPS connection issues and improves security
+CHANGE: CORE | Improved accuracy of TV show episode download link searches
+CHANGE: UI   | Improved some button sizing and re-sizing
+CHANGE: UI   | Improved playlist item right-click selection
+
+
+
+
 2015.09.24   | VidMasta 19.8
 
 CHANGE: CORE | Improved play and download performance

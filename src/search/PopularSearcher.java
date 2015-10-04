@@ -125,7 +125,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     @Override
     protected String getUrl(int page) {
-        return Str.get(650) + Str.get(isTVShow ? 651 : 652) + (page == 0 ? Str.get(653) : Str.get(654) + (page + Integer.parseInt(Str.get(655)))) + Str.get(656);
+        return Str.get(714) + Str.get(isTVShow ? 651 : 652) + (page == 0 ? Str.get(653) : Str.get(654) + (page + Integer.parseInt(Str.get(655)))) + Str.get(656);
     }
 
     @Override
@@ -183,7 +183,7 @@ public class PopularSearcher extends AbstractSearcher {
         Video video = new Video(titleParts.title.toLowerCase(Locale.ENGLISH) + titleParts.year, titleParts.title, titleParts.year, isTVShow, false);
         if (allBufferVideos.add(video.ID)) {
             video.season = titleParts.season;
-            video.episode = titleParts.episode;
+            video.episode = (titleParts.episodes.isEmpty() ? "" : titleParts.episodes.get(titleParts.episodes.size() - 1));
             videoBuffer.add(video);
         }
     }

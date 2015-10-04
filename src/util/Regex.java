@@ -24,8 +24,7 @@ public class Regex {
     private static volatile Map<String, String> weirdCharReplacements, badStrReplacements;
 
     static {
-        int initialCapacity = Integer.parseInt(Str.get(164));
-        cache = new ConcurrentHashMap<String, Pattern>(initialCapacity * 24, 0.75f, initialCapacity);
+        cache = new ConcurrentHashMap<String, Pattern>(800, 0.75f, 30);
         initReplacements();
         (languages = new TreeMap<String, String>()).put(Constant.ANY, Constant.ANY);
         init(languages, 234);

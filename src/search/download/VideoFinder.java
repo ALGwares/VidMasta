@@ -283,7 +283,7 @@ public class VideoFinder extends AbstractSwingWorker {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
                     }
-                    TorrentFinder.saveTorrent(torrent.ID, contentType == ContentType.DOWNLOAD1);
+                    TorrentFinder.saveOrdering(torrent.ID, video.season, video.episode, contentType == ContentType.DOWNLOAD1);
 
                     if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                         saveTorrent(torrent);

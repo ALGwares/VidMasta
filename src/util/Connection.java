@@ -162,7 +162,7 @@ public class Connection {
             protected String call() throws Exception {
                 HttpURLConnection connection = null;
                 BufferedReader br = null;
-                StringBuilder source = new StringBuilder(262144);
+                StringBuilder source = new StringBuilder(8192);
                 try {
                     Proxy proxy = getProxy(domainType);
                     String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
@@ -210,7 +210,7 @@ public class Connection {
                         if (downloadLinkInfoUrl != null) {
                             selectNextDownloadLinkInfoProxy();
                             return getSourceCode(downloadLinkInfoUrl, domainType, showStatus, emptyOK);
-                        } else if (url.startsWith(Str.get(467))) {
+                        } else if (url.startsWith(Str.get(716))) {
                             downloadLinkInfoFail.set(true);
                         }
                     }
@@ -240,8 +240,8 @@ public class Connection {
     }
 
     private static String deproxyDownloadLinkInfoProxyUrl(String downloadLinkInfoProxyUrl) {
-        return !downloadLinkInfoProxyUrl.startsWith(Str.get(467)) && downloadLinkInfoProxyUrl.startsWith(Str.get(466)) ? Str.get(467)
-                + downloadLinkInfoProxyUrl.substring(Str.get(466).length()) : null;
+        return !downloadLinkInfoProxyUrl.startsWith(Str.get(716)) && downloadLinkInfoProxyUrl.startsWith(Str.get(708)) ? Str.get(716)
+                + downloadLinkInfoProxyUrl.substring(Str.get(708).length()) : null;
     }
 
     public static boolean deproxyDownloadLinkInfo() {
@@ -254,10 +254,10 @@ public class Connection {
             Str.addListener(new UpdateListener() {
                 @Override
                 public void update(String[] strs) {
-                    int downloadLinkInfoUrlLen = strs[518].length();
-                    for (String indexToUpdate : Regex.split(strs[671], ",")) {
+                    int downloadLinkInfoUrlLen = strs[712].length();
+                    for (String indexToUpdate : Regex.split(strs[717], ",")) {
                         int indexToUpdateNum = Integer.parseInt(indexToUpdate);
-                        strs[indexToUpdateNum] = strs[467] + strs[indexToUpdateNum].substring(downloadLinkInfoUrlLen);
+                        strs[indexToUpdateNum] = strs[716] + strs[indexToUpdateNum].substring(downloadLinkInfoUrlLen);
                     }
                 }
             });
@@ -283,7 +283,7 @@ public class Connection {
     }
 
     private static void selectNextDownloadLinkInfoProxy() {
-        String proxies = Str.get(516);
+        String proxies = Str.get(711);
         if (proxies.isEmpty()) {
             return;
         }
@@ -306,24 +306,24 @@ public class Connection {
 
     private static void updateDownloadLinkInfoProxy(String[] strs) throws Exception {
         File proxyIndexFile;
-        if (strs[516].isEmpty() || !(proxyIndexFile = new File(Constant.APP_DIR + Constant.DOWNLOAD_LINK_INFO_PROXY_INDEX)).exists()) {
+        if (strs[711].isEmpty() || !(proxyIndexFile = new File(Constant.APP_DIR + Constant.DOWNLOAD_LINK_INFO_PROXY_INDEX)).exists()) {
             return;
         }
 
         int proxyIndex = Integer.parseInt(IO.read(proxyIndexFile));
-        String[] proxies = Regex.split(strs[516], Constant.SEPARATOR1);
+        String[] proxies = Regex.split(strs[711], Constant.SEPARATOR1);
         String nextProxy = proxies[proxyIndex >= proxies.length ? 0 : proxyIndex];
-        downloadLinkInfoFailUrl = strs[518];
+        downloadLinkInfoFailUrl = strs[712];
         int downloadLinkInfoFailUrlLen = downloadLinkInfoFailUrl.length();
 
-        for (String indexToUpdate : Regex.split(strs[671], ",")) {
+        for (String indexToUpdate : Regex.split(strs[717], ",")) {
             int indexToUpdateNum = Integer.parseInt(indexToUpdate);
             strs[indexToUpdateNum] = nextProxy + strs[indexToUpdateNum].substring(downloadLinkInfoFailUrlLen);
         }
     }
 
     public static String downloadLinkInfoFailUrl() {
-        return downloadLinkInfoFailUrl == null ? Str.get(505) : downloadLinkInfoFailUrl;
+        return downloadLinkInfoFailUrl == null ? Str.get(710) : downloadLinkInfoFailUrl;
     }
 
     public static boolean downloadLinkInfoFail() {
@@ -368,7 +368,7 @@ public class Connection {
     public static void checkConnectionResponse(HttpURLConnection connection, String url) throws IOException {
         if (!Regex.isMatch(String.valueOf(connection.getResponseCode()), 599)) {
             if (Debug.DEBUG) {
-                Debug.println("'" + url + "' response: '" + connection.getResponseMessage() + "'");
+                Debug.println(url + " response: " + connection.getResponseCode() + " " + connection.getResponseMessage() + " " + connection.getHeaderFields());
             }
             throw new IOException(error(url));
         }

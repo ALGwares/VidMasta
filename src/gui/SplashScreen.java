@@ -106,6 +106,7 @@ public class SplashScreen extends JFrame {
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
         statusBarTextField = new JTextField();
+        exitBackupModeButton = new JButton();
         connectionIssueButton = new JButton();
         startDateTextField = new JTextField();
         endDateTextField = new JTextField();
@@ -287,6 +288,9 @@ public class SplashScreen extends JFrame {
         statusBarTextField.setText(INITIALIZING + percentFormat.format(0.0) + DONE);
         statusBarTextField.setBorder(BorderFactory.createEtchedBorder());
 
+        exitBackupModeButton.setBorderPainted(false);
+        exitBackupModeButton.setEnabled(false);
+
         connectionIssueButton.setText(null);
         connectionIssueButton.setBorderPainted(false);
         connectionIssueButton.setEnabled(false);
@@ -338,26 +342,6 @@ public class SplashScreen extends JFrame {
                         .addGroup(layout.createParallelGroup(Alignment.TRAILING)
                                 .addComponent(resultsScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1309, Short.MAX_VALUE)
                                 .addGroup(Alignment.LEADING, layout.createSequentialGroup()
-                                        .addComponent(progressBarLabel)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)
-                                        .addPreferredGap(ComponentPlacement.RELATED, 146, Short.MAX_VALUE)
-                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(dvdCheckBox)
-                                                .addComponent(hqVideoTypeCheckBox))
-                                        .addGap(0, 0, 0)
-                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(hd720CheckBox)
-                                                .addComponent(hd1080CheckBox))
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(linkProgressBar, GroupLayout.PREFERRED_SIZE, 258, GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(closeBoxButton)
-                                        .addGap(18, 18, Short.MAX_VALUE)
-                                        .addComponent(loadMoreResultsButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(resultsLabel))
-                                .addGroup(Alignment.LEADING, layout.createSequentialGroup()
                                         .addComponent(popularMoviesButton)
                                         .addPreferredGap(ComponentPlacement.UNRELATED)
                                         .addComponent(popularTVShowsButton)
@@ -370,7 +354,7 @@ public class SplashScreen extends JFrame {
                                                         .addPreferredGap(ComponentPlacement.RELATED)
                                                         .addComponent(titleLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 775, Short.MAX_VALUE))
+                                                        .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 784, Short.MAX_VALUE))
                                                 .addGroup(layout.createSequentialGroup()
                                                         .addComponent(typeLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -382,33 +366,58 @@ public class SplashScreen extends JFrame {
                                                         .addGap(18, 18, 18)
                                                         .addComponent(releasedLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(startDateTextField)
+                                                        .addComponent(startDateTextField, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                         .addGap(7, 7, 7)
                                                         .addComponent(releasedToLabel)
                                                         .addGap(6, 6, 6)
-                                                        .addComponent(endDateTextField)))
+                                                        .addComponent(endDateTextField, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                                         .addGap(18, 18, 18)
                                         .addComponent(genreLabel)
                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 322, Short.MAX_VALUE)
+                                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 317, Short.MAX_VALUE)
                                         .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(searchButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(stopButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addGroup(Alignment.LEADING, layout.createSequentialGroup()
-                                        .addComponent(readSummaryButton)
+                                                .addComponent(searchButton)
+                                                .addComponent(stopButton)))
+                                .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(Alignment.TRAILING)
+                                                .addGroup(layout.createSequentialGroup()
+                                                        .addComponent(readSummaryButton)
+                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(watchTrailerButton)
+                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(playButton)
+                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(downloadLink1Button)
+                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(downloadLink2Button)
+                                                        .addGap(18, 18, 18)
+                                                        .addComponent(exitBackupModeButton)
+                                                        .addGap(18, 18, 18)
+                                                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE)
+                                                        .addGap(137, 137, 137))
+                                                .addGroup(layout.createSequentialGroup()
+                                                        .addComponent(progressBarLabel)
+                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)
+                                                        .addPreferredGap(ComponentPlacement.RELATED, 136, Short.MAX_VALUE)
+                                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                                                .addComponent(dvdCheckBox)
+                                                                .addComponent(hqVideoTypeCheckBox))
+                                                        .addGap(0, 0, 0)
+                                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                                                .addComponent(hd720CheckBox)
+                                                                .addComponent(hd1080CheckBox))
+                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(linkProgressBar, GroupLayout.PREFERRED_SIZE, 258, GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(closeBoxButton)
+                                                        .addGap(18, 18, Short.MAX_VALUE)
+                                                        .addComponent(loadMoreResultsButton)))
                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(watchTrailerButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(playButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(downloadLink1Button)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(downloadLink2Button)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 581, Short.MAX_VALUE)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(connectionIssueButton)))
+                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                                .addComponent(resultsLabel, Alignment.TRAILING)
+                                                .addComponent(connectionIssueButton, Alignment.TRAILING))))
                         .addContainerGap())
         );
 
@@ -420,12 +429,14 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchTrailerButton});
 
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{searchButton, stopButton});
+
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(Alignment.TRAILING)
                                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                        .addComponent(popularMoviesButton, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(popularMoviesButton)
                                         .addComponent(popularTVShowsButton))
                                 .addComponent(loadingLabel))
                         .addGap(18, 18, 18)
@@ -448,12 +459,12 @@ public class SplashScreen extends JFrame {
                                                 .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                                 .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
                                 .addGroup(layout.createSequentialGroup()
-                                        .addComponent(searchButton, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(searchButton)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(stopButton))
                                 .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE)
+                        .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE)
                         .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                 .addComponent(readSummaryButton)
@@ -462,7 +473,8 @@ public class SplashScreen extends JFrame {
                                 .addComponent(downloadLink2Button)
                                 .addComponent(connectionIssueButton)
                                 .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(playButton))
+                                .addComponent(playButton)
+                                .addComponent(exitBackupModeButton))
                         .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(Alignment.CENTER)
                                 .addComponent(resultsLabel)
@@ -510,6 +522,7 @@ public class SplashScreen extends JFrame {
     JCheckBox dvdCheckBox;
     JMenu editMenu;
     JTextField endDateTextField;
+    JButton exitBackupModeButton;
     JMenu fileMenu;
     JTextField findTextField;
     JLabel genreLabel;

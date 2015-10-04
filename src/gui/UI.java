@@ -124,7 +124,7 @@ public class UI {
                     return;
                 }
 
-                if (oneSelectedRowMode || syncTable.getSelectedRow() == -1) {
+                if (oneSelectedRowMode || syncTable.getSelectedRowCount() <= 1) {
                     syncTable.clearSelection();
                     syncTable.changeSelection(row, col, false, false);
                 }

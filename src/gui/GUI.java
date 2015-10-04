@@ -1991,7 +1991,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.init(proxyComboBox, Str.str("noProxy"));
 
         proxyDownloadLinkInfoCheckBox.setText(bundle.getString("GUI.proxyDownloadLinkInfoCheckBox.text")); // NOI18N
-        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(577)));
+        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(713)));
 
         proxyUseForLabel.setText(bundle.getString("GUI.proxyUseForLabel.text")); // NOI18N
 
@@ -4043,7 +4043,7 @@ public class GUI extends JFrame implements GuiListener {
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(titleLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 776, Short.MAX_VALUE))
+                                .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 784, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(typeLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
@@ -4063,11 +4063,11 @@ public class GUI extends JFrame implements GuiListener {
                         .addGap(18, 18, 18)
                         .addComponent(genreLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
+                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 317, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                            .addComponent(searchButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(stopButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(searchButton)
+                            .addComponent(stopButton)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
@@ -4088,8 +4088,8 @@ public class GUI extends JFrame implements GuiListener {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(progressBarLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
-                                .addPreferredGap(ComponentPlacement.RELATED, 135, Short.MAX_VALUE)
+                                .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)
+                                .addPreferredGap(ComponentPlacement.RELATED, 136, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                     .addComponent(dvdCheckBox)
                                     .addComponent(hqVideoTypeCheckBox))
@@ -4102,7 +4102,7 @@ public class GUI extends JFrame implements GuiListener {
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(closeBoxButton)
                                 .addGap(18, 18, Short.MAX_VALUE)
-                                .addComponent(loadMoreResultsButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addComponent(loadMoreResultsButton)))
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addComponent(resultsLabel, Alignment.TRAILING)
@@ -4118,12 +4118,14 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchTrailerButton});
 
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {searchButton, stopButton});
+
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(Alignment.TRAILING)
                     .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(popularMoviesButton, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(popularMoviesButton)
                         .addComponent(popularTVShowsButton))
                     .addComponent(loadingLabel))
                 .addGap(18, 18, 18)
@@ -4146,12 +4148,12 @@ public class GUI extends JFrame implements GuiListener {
                             .addComponent(startDateChooser, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                             .addComponent(endDateChooser, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(searchButton, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(searchButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(stopButton))
                     .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE)
+                .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE)
                 .addPreferredGap(ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(readSummaryButton)
@@ -5460,6 +5462,7 @@ public class GUI extends JFrame implements GuiListener {
             movieSubtitleDialog.setVisible(true);
         }
     }
+
     private void resultsTableMouseClicked(MouseEvent evt) {//GEN-FIRST:event_resultsTableMouseClicked
         if (evt.getClickCount() == 2 && resultsSyncTable.getSelectedRows().length == 1) {
             readSummaryButtonActionPerformed(null);
@@ -6164,7 +6167,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void watchOnDeviceMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchOnDeviceMenuItemActionPerformed
         try {
-            Connection.browse(Str.get(Constant.WINDOWS ? 701 : (Constant.MAC ? 702 : 703)));
+            Connection.browse(Str.get(Constant.WINDOWS ? 718 : (Constant.MAC ? 719 : 720)));
         } catch (Exception e) {
             showException(e);
         }
@@ -8196,7 +8199,7 @@ public class GUI extends JFrame implements GuiListener {
         yesButton.setToolTipText(Str.str("GUI.yesButton.toolTipText"));
 
         anyTitleCheckBox.setText(anyTitleCheckBox.getText() + " ");
-        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(577)));
+        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(713)));
         proxyVideoInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(578)));
         proxySearchEnginesCheckBox.setToolTipText(Str.str("forExample", Str.get(579)));
         proxyTrailersCheckBox.setToolTipText(Str.str("forExample", Str.get(580)));
