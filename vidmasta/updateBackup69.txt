@@ -1,4 +1,4 @@
-219
+223
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -145,8 +145,8 @@ EMPTY
 EMPTY
 EMPTY
 There was an error processing this request
-((Oops, looks like something went wrong\! Please)|(Could not connect to caching server))
-((Oops, looks like something went wrong\! Please)|(Could not connect to caching server))
+(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")
+(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")
 http://torrents.thepiratebay.se/
 /
 http://kat.unbanthe.net/comments/index/torrent/
@@ -705,6 +705,21 @@ http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-5.2.1-Java6.tgz/download
 true
 ((and)|&|(&amp;)|\s)+?
+http://kat.unbanthe.net/usearch/
+http://kat.unbanthe.net
+http://kat.unbanthe.net
+http://kat.unbanthe.net/usearch/
+http://kat.unbanthe.net
+http://kat.unbanthe.net:::http://kat.unbanthe.org:::http://kickass.unblock.al
+http://kat.unbanthe.net
+http://kat.unbanthe.net
+http://kat.unbanthe.net/
+http://kat.unbanthe.net/comments/index/torrent/
+https://kat.cr
+706,707,708,709,710,712,714,715
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-5.2.3-Java7.exe/download
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-5.2.3-Java7.dmg/download
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-5.2.3-Java7.tgz/download
 https://kat.unbanthe.net/usearch/
 https://kat.unbanthe.net
 https://kat.unbanthe.net
@@ -716,8 +731,5 @@ https://kat.unbanthe.net
 https://kat.unbanthe.net/
 https://kat.unbanthe.net/comments/index/torrent/
 https://kat.cr
-706,707,708,709,710,712,714,715
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-5.2.3-Java7.exe/download
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-5.2.3-Java7.dmg/download
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-5.2.3-Java7.tgz/download
+721,722,723,724,725,727,729,730
 eof

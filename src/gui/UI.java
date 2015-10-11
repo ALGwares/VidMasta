@@ -640,7 +640,7 @@ public class UI {
 
     public static String about() {
         return "<html><head></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Constant.APP_TITLE + "<br><br>" + Str.str("version") + ' '
-                + Str.getNumFormat().format(Constant.APP_VERSION) + "<br><br>" + Str.str("createdBy") + "</font></td></tr></table></body></html>";
+                + Str.getNumFormat("0.0").format(Constant.APP_VERSION) + "<br><br>" + Str.str("createdBy") + "</font></td></tr></table></body></html>";
     }
 
     public static void run(boolean wait, Runnable runnable) {

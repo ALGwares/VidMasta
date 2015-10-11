@@ -1991,7 +1991,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.init(proxyComboBox, Str.str("noProxy"));
 
         proxyDownloadLinkInfoCheckBox.setText(bundle.getString("GUI.proxyDownloadLinkInfoCheckBox.text")); // NOI18N
-        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(713)));
+        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(728)));
 
         proxyUseForLabel.setText(bundle.getString("GUI.proxyUseForLabel.text")); // NOI18N
 
@@ -4083,8 +4083,7 @@ public class GUI extends JFrame implements GuiListener {
                                 .addGap(18, 18, 18)
                                 .addComponent(exitBackupModeButton)
                                 .addGap(18, 18, 18)
-                                .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE)
-                                .addGap(137, 137, 137))
+                                .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 540, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(progressBarLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
@@ -7084,6 +7083,12 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         usePeerBlock = true;
+
+        if (!WindowsUtil.canRunProgramsAsAdmin()) {
+            msg(Str.str("adminPermissionsNeededForPeerBlock"), Constant.ERROR_MSG);
+            return;
+        }
+
         try {
             File peerBlock = new File(Constant.APP_DIR + Constant.PEER_BLOCK_VERSION);
             if (!peerBlock.exists()) {
@@ -8199,7 +8204,7 @@ public class GUI extends JFrame implements GuiListener {
         yesButton.setToolTipText(Str.str("GUI.yesButton.toolTipText"));
 
         anyTitleCheckBox.setText(anyTitleCheckBox.getText() + " ");
-        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(713)));
+        proxyDownloadLinkInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(728)));
         proxyVideoInfoCheckBox.setToolTipText(Str.str("forExample", Str.get(578)));
         proxySearchEnginesCheckBox.setToolTipText(Str.str("forExample", Str.get(579)));
         proxyTrailersCheckBox.setToolTipText(Str.str("forExample", Str.get(580)));

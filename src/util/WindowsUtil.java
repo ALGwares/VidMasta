@@ -16,6 +16,19 @@ public class WindowsUtil {
         }
     }
 
+    public static boolean canRunProgramsAsAdmin() {
+        try {
+            String adminPermissionsTesterProgram = Constant.PROGRAM_DIR + "adminPermissionsTester" + Constant.EXE;
+            addMicrosoftRegistryEntry("Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "SZ", adminPermissionsTesterProgram, "RUNASADMIN");
+            return (new ProcessBuilder(adminPermissionsTesterProgram)).start().waitFor() == 0;
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+            return false;
+        }
+    }
+
     public static boolean isProcessRunning(String process) {
         BufferedReader br = null;
         try {

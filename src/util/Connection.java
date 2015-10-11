@@ -36,9 +36,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.StrUpdateListener.UpdateListener;
@@ -69,18 +66,6 @@ public class Connection {
                 }
             }
         });
-        try {
-            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        }
         try {
             Authenticator.setDefault(new Authenticator() {
                 @Override
@@ -210,7 +195,7 @@ public class Connection {
                         if (downloadLinkInfoUrl != null) {
                             selectNextDownloadLinkInfoProxy();
                             return getSourceCode(downloadLinkInfoUrl, domainType, showStatus, emptyOK);
-                        } else if (url.startsWith(Str.get(716))) {
+                        } else if (url.startsWith(Str.get(731))) {
                             downloadLinkInfoFail.set(true);
                         }
                     }
@@ -240,8 +225,8 @@ public class Connection {
     }
 
     private static String deproxyDownloadLinkInfoProxyUrl(String downloadLinkInfoProxyUrl) {
-        return !downloadLinkInfoProxyUrl.startsWith(Str.get(716)) && downloadLinkInfoProxyUrl.startsWith(Str.get(708)) ? Str.get(716)
-                + downloadLinkInfoProxyUrl.substring(Str.get(708).length()) : null;
+        return !downloadLinkInfoProxyUrl.startsWith(Str.get(731)) && downloadLinkInfoProxyUrl.startsWith(Str.get(723)) ? Str.get(731)
+                + downloadLinkInfoProxyUrl.substring(Str.get(723).length()) : null;
     }
 
     public static boolean deproxyDownloadLinkInfo() {
@@ -254,10 +239,10 @@ public class Connection {
             Str.addListener(new UpdateListener() {
                 @Override
                 public void update(String[] strs) {
-                    int downloadLinkInfoUrlLen = strs[712].length();
-                    for (String indexToUpdate : Regex.split(strs[717], ",")) {
+                    int downloadLinkInfoUrlLen = strs[727].length();
+                    for (String indexToUpdate : Regex.split(strs[732], ",")) {
                         int indexToUpdateNum = Integer.parseInt(indexToUpdate);
-                        strs[indexToUpdateNum] = strs[716] + strs[indexToUpdateNum].substring(downloadLinkInfoUrlLen);
+                        strs[indexToUpdateNum] = strs[731] + strs[indexToUpdateNum].substring(downloadLinkInfoUrlLen);
                     }
                 }
             });
@@ -283,7 +268,7 @@ public class Connection {
     }
 
     private static void selectNextDownloadLinkInfoProxy() {
-        String proxies = Str.get(711);
+        String proxies = Str.get(726);
         if (proxies.isEmpty()) {
             return;
         }
@@ -306,24 +291,24 @@ public class Connection {
 
     private static void updateDownloadLinkInfoProxy(String[] strs) throws Exception {
         File proxyIndexFile;
-        if (strs[711].isEmpty() || !(proxyIndexFile = new File(Constant.APP_DIR + Constant.DOWNLOAD_LINK_INFO_PROXY_INDEX)).exists()) {
+        if (strs[726].isEmpty() || !(proxyIndexFile = new File(Constant.APP_DIR + Constant.DOWNLOAD_LINK_INFO_PROXY_INDEX)).exists()) {
             return;
         }
 
         int proxyIndex = Integer.parseInt(IO.read(proxyIndexFile));
-        String[] proxies = Regex.split(strs[711], Constant.SEPARATOR1);
+        String[] proxies = Regex.split(strs[726], Constant.SEPARATOR1);
         String nextProxy = proxies[proxyIndex >= proxies.length ? 0 : proxyIndex];
-        downloadLinkInfoFailUrl = strs[712];
+        downloadLinkInfoFailUrl = strs[727];
         int downloadLinkInfoFailUrlLen = downloadLinkInfoFailUrl.length();
 
-        for (String indexToUpdate : Regex.split(strs[717], ",")) {
+        for (String indexToUpdate : Regex.split(strs[732], ",")) {
             int indexToUpdateNum = Integer.parseInt(indexToUpdate);
             strs[indexToUpdateNum] = nextProxy + strs[indexToUpdateNum].substring(downloadLinkInfoFailUrlLen);
         }
     }
 
     public static String downloadLinkInfoFailUrl() {
-        return downloadLinkInfoFailUrl == null ? Str.get(710) : downloadLinkInfoFailUrl;
+        return downloadLinkInfoFailUrl == null ? Str.get(725) : downloadLinkInfoFailUrl;
     }
 
     public static boolean downloadLinkInfoFail() {
@@ -725,9 +710,10 @@ public class Connection {
             @Override
             public void run() {
                 try {
-                    setStatusBar(Str.str("updateError") + ' ' + ExceptionUtil.toString(e));
+                    String msg = Str.str("updateError") + ' ' + ExceptionUtil.toString(e);
+                    setStatusBar(msg);
                     try {
-                        Thread.sleep(3000);
+                        Thread.sleep(Regex.split(msg, " ").length * 400L);
                     } catch (InterruptedException e2) {
                         if (Debug.DEBUG) {
                             Debug.print(e2);

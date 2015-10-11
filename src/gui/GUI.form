@@ -1578,7 +1578,7 @@
               <ResourceString bundle="i18n/Bundle.properties" key="GUI.proxyDownloadLinkInfoCheckBox.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="Str.str(&quot;forExample&quot;, Str.get(713))" type="code"/>
+              <Connection code="Str.str(&quot;forExample&quot;, Str.get(728))" type="code"/>
             </Property>
           </Properties>
         </Component>
@@ -4220,8 +4220,7 @@
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="exitBackupModeButton" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="findTextField" pref="403" max="32767" attributes="0"/>
-                              <EmptySpace min="-2" pref="137" max="-2" attributes="0"/>
+                              <Component id="findTextField" pref="540" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
                               <Component id="progressBarLabel" min="-2" max="-2" attributes="0"/>

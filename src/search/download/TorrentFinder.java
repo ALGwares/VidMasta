@@ -136,7 +136,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     }
 
     public Torrent getTorrent(boolean prefetch, boolean generalSearch) throws Exception {
-        String urlForm = Str.get(706), urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (ignoreYear ? "" : (' ' + video.year)) + seasonAndEpisode,
+        String urlForm = Str.get(721), urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (ignoreYear ? "" : (' ' + video.year)) + seasonAndEpisode,
                 Constant.UTF8) + (generalSearch ? Str.get(657) : categorySearch);
         if (isCancelled()) {
             return null;
@@ -173,14 +173,14 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
             return null;
         }
 
-        sourceCode = Connection.getSourceCode(Str.get(707) + firstPageLink, DomainType.DOWNLOAD_LINK_INFO, !prefetch);
+        sourceCode = Connection.getSourceCode(Str.get(722) + firstPageLink, DomainType.DOWNLOAD_LINK_INFO, !prefetch);
         if (prefetch) {
             return null;
         }
 
         int currPageNum = Integer.parseInt(Str.get(662));
         while (counter2 != counter2Max) {
-            Torrent torrent = getTorrent(707, sourceCode);
+            Torrent torrent = getTorrent(722, sourceCode);
 
             if (counter1 == counter1Max || isCancelled()) {
                 return null;
@@ -204,7 +204,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 query = URLEncoder.encode(query, Constant.UTF8);
             }
 
-            sourceCode = Connection.getSourceCode(Str.get(709) + query + Str.get(492) + currPageNum + Regex.match(nextPageLink, 493),
+            sourceCode = Connection.getSourceCode(Str.get(724) + query + Str.get(492) + currPageNum + Regex.match(nextPageLink, 493),
                     DomainType.DOWNLOAD_LINK_INFO);
         }
 
@@ -327,7 +327,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 extensions = "";
             }
 
-            return new Torrent(torrentID, magnet.MAGNET_LINK, Regex.htmlToPlainText(titleName), torrent, extensions, Str.get(715) + Regex.match(Regex.firstMatch(
+            return new Torrent(torrentID, magnet.MAGNET_LINK, Regex.htmlToPlainText(titleName), torrent, extensions, Str.get(730) + Regex.match(Regex.firstMatch(
                     videoStr, 675), 676) + Str.get(678), !Regex.match(videoStr, 74).isEmpty(), numSourcesNum, sizeInGiB);
         }
         return null;

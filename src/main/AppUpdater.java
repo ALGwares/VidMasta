@@ -2,6 +2,7 @@ package main;
 
 import debug.Debug;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +16,7 @@ import util.ExceptionUtil;
 import util.IO;
 import util.Regex;
 import util.UpdateException;
+import util.WindowsUtil;
 
 class AppUpdater {
 
@@ -46,7 +48,7 @@ class AppUpdater {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            IO.fileOp(update, IO.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(update, IO.RM_FILE);
             return;
         }
 
@@ -57,7 +59,15 @@ class AppUpdater {
             if (Long.parseLong(updateStrs[1]) != IO.checksum(installer)) {
                 throw new UpdateException("auto-setup installer is corrupt");
             }
-            IO.write(Constant.APP_DIR + INSTALL, updateStrs[2].replace(Str.get(347), Str.get(348) + IO.parentDir(Constant.PROGRAM_DIR) + Str.get(349)));
+
+            if (Constant.WINDOWS && !WindowsUtil.canRunProgramsAsAdmin()) {
+                if (Debug.DEBUG) {
+                    Debug.println("You must run VidMasta as an administrator to automatically install update.");
+                }
+                return;
+            }
+
+            IO.write(installerScript, updateStrs[2].replace(Str.get(347), Str.get(348) + IO.parentDir(Constant.PROGRAM_DIR) + Str.get(349)));
 
             StringBuilder installCmd = new StringBuilder(128);
             for (String cmdPart : cmd) {
@@ -70,9 +80,9 @@ class AppUpdater {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            IO.fileOp(update, IO.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(update, IO.RM_FILE);
             IO.fileOp(installerScript, IO.RM_FILE_NOW_AND_ON_EXIT);
-            IO.fileOp(installer, IO.RM_FILE_NOW_AND_ON_EXIT);
+            IO.fileOp(installer, IO.RM_FILE);
         }
     }
 
@@ -113,13 +123,13 @@ class AppUpdater {
             }
 
             double newAppVersion = Double.parseDouble(appUpdateStrs[0]);
-            if (Constant.APP_VERSION >= newAppVersion || (new File(Constant.APP_DIR + APP_UPDATE)).exists()) {
+            if (Constant.APP_VERSION >= newAppVersion) {
                 return;
             }
 
             String installerLink, installerChecksum, installerSuffix;
             if (Constant.WINDOWS) {
-                installerLink = appUpdateStrs[3];
+                installerLink = Regex.firstMatch(appUpdateStrs[appUpdateStrs.length - 1], "(?<=\\<\\!\\-\\-).+?(?=\\-\\-\\>)"); // Workaround
                 installerChecksum = appUpdateStrs[4];
                 installerSuffix = Constant.EXE;
             } else {
@@ -128,16 +138,27 @@ class AppUpdater {
                 installerSuffix = Constant.JAR;
             }
 
-            String installer = Constant.APP_DIR + "auto-vidmasta-setup-" + newAppVersion + installerSuffix;
-            Connection.saveData(installerLink, installer, DomainType.UPDATE, false);
+            String installerPath = Constant.APP_DIR + "auto-vidmasta-setup-" + newAppVersion + installerSuffix;
+            File installer = new File(installerPath);
+            if (!installer.exists()) {
+                Connection.saveData(installerLink, installerPath, DomainType.UPDATE, false);
+            }
+            if (Long.parseLong(installerChecksum) != IO.checksum(installer)) {
+                IO.fileOp(installer, IO.RM_FILE);
+                throw new UpdateException("auto-setup installer is corrupt");
+            }
 
             StringBuilder installerXml = new StringBuilder(512);
-            for (int i = 7; i < appUpdateStrs.length; i++) {
+            for (int i = 7; i < appUpdateStrs.length - 1; i++) { // Skip last index as part of a workaround
                 installerXml.append(appUpdateStrs[i]).append(Constant.NEWLINE);
             }
 
             IO.write(Constant.APP_DIR + APP_UPDATE, (installerSuffix.equals(Constant.JAR) ? Constant.JAVA + Constant.SEPARATOR2 + Constant.JAR_OPTION
-                    + Constant.SEPARATOR2 : "") + installer + Constant.SEPARATOR1 + installerChecksum + Constant.SEPARATOR1 + installerXml.toString().trim());
+                    + Constant.SEPARATOR2 : "") + installerPath + Constant.SEPARATOR1 + installerChecksum + Constant.SEPARATOR1 + installerXml.toString().trim());
+
+            if (Constant.WINDOWS && !WindowsUtil.canRunProgramsAsAdmin()) {
+                throw new IOException(Str.str("adminPermissionsNeededForUpdate"));
+            }
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);

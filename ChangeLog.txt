@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.10.10   | VidMasta 20.0
+
+CHANGE: CORE | Tweaked HTTPS connection configuration introduced in VidMasta 19.9 to improve TLS 1.2 compatibility
+CHANGE: CORE | Added permissions checks before trying to start PeerBlock or perform an automatic update for Windows User Account Control (UAC) compatibility
+
+
+
+
 2015.10.04   | VidMasta 19.9
 
 CHANGE: CORE | Upgraded from Java 6 to Java 7 for TLS 1.2 support which fixes some HTTPS connection issues and improves security
