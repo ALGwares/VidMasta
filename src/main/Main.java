@@ -428,6 +428,10 @@ public class Main implements WorkerListener {
     }
 
     @Override
+    public void reloadGroup(PlaylistItem playlistItem) {
+    }
+
+    @Override
     public FormattedNum playlistItemSize(long size) {
         return null;
     }

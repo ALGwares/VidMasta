@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.10.15   | VidMasta 20.1
+
+CHANGE: UI   | Added ability to re-add removed playlist items without re-playing/re-downloading via a right-click popup menu item "Reload Group"
+CHANGE: UI   | Fixed bug with playlist window sometimes hiding modal dialogs
+CHANGE: CORE | Added permissions check when trying to add Java system preferences for Windows User Account Control (UAC) compatibility
+
+
+
+
 2015.10.10   | VidMasta 20.0
 
 CHANGE: CORE | Tweaked HTTPS connection configuration introduced in VidMasta 19.9 to improve TLS 1.2 compatibility

@@ -57,6 +57,8 @@ public interface WorkerListener {
 
     void stream(String magnetLink, String name);
 
+    void reloadGroup(PlaylistItem playlistItem);
+
     FormattedNum playlistItemSize(long size);
 
     FormattedNum playlistItemProgress(double progress);

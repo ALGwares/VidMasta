@@ -879,6 +879,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistCopyMenuItem = new JMenuItem();
         playlistTablePopupMenuSeparator2 = new Separator();
         playlistRemoveMenuItem = new JMenuItem();
+        playlistReloadGroupMenuItem = new JMenuItem();
         activationDialog = new JDialog();
         activationUpgradeButton = new JButton();
         activationUpgradeLabel = new JLabel();
@@ -3154,6 +3155,15 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         playlistTablePopupMenu.add(playlistRemoveMenuItem);
+
+        playlistReloadGroupMenuItem.setText(bundle.getString("GUI.playlistReloadGroupMenuItem.text")); // NOI18N
+        playlistReloadGroupMenuItem.setEnabled(false);
+        playlistReloadGroupMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistReloadGroupMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistReloadGroupMenuItem);
 
         activationDialog.setTitle(bundle.getString("GUI.activationDialog.title")); // NOI18N
         activationDialog.setAlwaysOnTop(true);
@@ -6190,6 +6200,13 @@ public class GUI extends JFrame implements GuiListener {
         enableVideoFormats(enable);
     }//GEN-LAST:event_exitBackupModeButtonActionPerformed
 
+    private void playlistReloadGroupMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistReloadGroupMenuItemActionPerformed
+        PlaylistItem playlistItem = selectedPlaylistItem();
+        if (playlistItem != null) {
+            workerListener.reloadGroup(playlistItem);
+        }
+    }//GEN-LAST:event_playlistReloadGroupMenuItemActionPerformed
+
     private void playlistKeyPressed(KeyEvent evt) {
         if (!evt.isControlDown()) {
             return;
@@ -7466,7 +7483,9 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public boolean showPlaylist(final PlaylistItem selectedPlaylistItem) {
-        UI.show(playlistFrame);
+        synchronized (optionDialogLock) {
+            UI.show(playlistFrame);
+        }
         restorePlaylist(false);
         boolean selected = UI.run(new Callable<Boolean>() {
             @Override
@@ -7509,10 +7528,12 @@ public class GUI extends JFrame implements GuiListener {
         if (playlistItem == null) {
             playlistPlayButton.setIcon(playIcon);
             playlistPlayMenuItem.setText(Str.str("play"));
-            UI.enable(false, playlistOpenMenuItem, playlistPlayButton, playlistPlayMenuItem);
+            UI.enable(false, playlistReloadGroupMenuItem, playlistOpenMenuItem, playlistPlayButton, playlistPlayMenuItem);
             return;
         }
-        playlistOpenMenuItem.setEnabled(playlistItem.canOpen());
+        boolean canOpen = playlistItem.canOpen();
+        playlistReloadGroupMenuItem.setEnabled(canOpen);
+        playlistOpenMenuItem.setEnabled(canOpen);
         boolean play = playlistItem.canPlay(), active = playlistItem.isActive();
         playlistPlayButton.setIcon(play ? playIcon : stopIcon);
         playlistPlayMenuItem.setText(Str.str(play ? "play" : "stop"));
@@ -8069,6 +8090,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistPlayButton.setToolTipText(Str.ctrlStr("GUI.playlistPlayButton.toolTipText"));
         playlistPlayMenuItem.setToolTipText(Str.ctrlStr("GUI.playlistPlayMenuItem.toolTipText"));
         playlistPlayWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.playlistPlayWithDefaultAppCheckBoxMenuItem.text"));
+        playlistReloadGroupMenuItem.setText(Str.str("GUI.playlistReloadGroupMenuItem.text"));
         playlistRemoveButton.setToolTipText(Str.str("GUI.playlistRemoveButton.toolTipText"));
         playlistRemoveMenuItem.setText(Str.str("GUI.playlistRemoveMenuItem.text"));
         playlistSaveFolderMenuItem.setText(Str.str("GUI.playlistSaveFolderMenuItem.text"));
@@ -8479,6 +8501,7 @@ public class GUI extends JFrame implements GuiListener {
     JButton playlistPlayButton;
     JMenuItem playlistPlayMenuItem;
     JCheckBoxMenuItem playlistPlayWithDefaultAppCheckBoxMenuItem;
+    JMenuItem playlistReloadGroupMenuItem;
     JButton playlistRemoveButton;
     JMenuItem playlistRemoveMenuItem;
     JMenuItem playlistSaveFolderMenuItem;

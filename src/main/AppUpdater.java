@@ -97,9 +97,10 @@ class AppUpdater {
             double version = Double.parseDouble(appUpdateStrs[0]);
             if (Constant.APP_VERSION < version) {
                 guiListener.updateMsg("<html><head><title></title></head><body><font face=\"tahoma\" size=\"4\">" + Str.htmlLinkStr("newAppVersion",
-                        Constant.WINDOWS ? appUpdateStrs[1] : appUpdateStrs[2], Str.getNumFormat().format(version)) + "</font></body></html>");
+                        Constant.WINDOWS ? appUpdateStrs[1] : appUpdateStrs[2], Str.getNumFormat(Constant.VERSION_FORMAT).format(version))
+                        + "</font></body></html>");
             } else if (showConfirmation) {
-                guiListener.msg(Str.str("appUpToDate", Str.getNumFormat().format(Constant.APP_VERSION)), Constant.INFO_MSG);
+                guiListener.msg(Str.str("appUpToDate", Str.getNumFormat(Constant.VERSION_FORMAT).format(Constant.APP_VERSION)), Constant.INFO_MSG);
             }
         } catch (Exception e) {
             if (Debug.DEBUG) {
