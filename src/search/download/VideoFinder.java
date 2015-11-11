@@ -283,7 +283,11 @@ public class VideoFinder extends AbstractSwingWorker {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
                     }
-                    TorrentFinder.saveOrdering(torrent.ID, video.season, video.episode, contentType == ContentType.DOWNLOAD1);
+                    boolean orderByLeechers = (contentType == ContentType.DOWNLOAD1);
+                    TorrentFinder.saveOrdering(torrent.ID, video.season, video.episode, orderByLeechers);
+                    if (String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season)) {
+                        TorrentFinder.saveOrdering(torrent.ID, Constant.ANY, video.episode, orderByLeechers);
+                    }
 
                     if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                         saveTorrent(torrent);
@@ -600,13 +604,19 @@ public class VideoFinder extends AbstractSwingWorker {
             return false;
         }
 
-        Collection<String> seasonAndEpisodes = new ArrayList<String>(3);
+        Collection<String> seasonAndEpisodes = new ArrayList<String>(5);
         if (video.season.equals(Constant.ANY) && video.episode.equals(Constant.ANY)) {
             seasonAndEpisodes.add("");
         } else if (!video.season.equals(Constant.ANY) && video.episode.equals(Constant.ANY)) {
             seasonAndEpisodes.add(" season " + Integer.valueOf(video.season));
         } else if (video.season.equals(Constant.ANY) && !video.episode.equals(Constant.ANY)) {
-            Collections.addAll(seasonAndEpisodes, " e" + video.episode, " episode " + Integer.valueOf(video.episode));
+            Integer episode = Integer.valueOf(video.episode);
+            String episodeNum = episode.toString();
+            Collections.addAll(seasonAndEpisodes, " e" + video.episode, " episode " + episodeNum, ' ' + String.format("%03d", episode));
+            if (!episodeNum.equals(video.episode)) {
+                seasonAndEpisodes.add(' ' + video.episode);
+            }
+            seasonAndEpisodes.add(' ' + episodeNum);
         } else {
             String seasonNum = Integer.valueOf(video.season).toString();
             Collections.addAll(seasonAndEpisodes, " s" + video.season + 'e' + video.episode, ' ' + seasonNum + 'x' + video.episode);

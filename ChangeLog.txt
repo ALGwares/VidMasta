@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.11.11   | VidMasta 20.2
+
+CHANGE: CORE | Improved accuracy and performance of play and download link searches
+CHANGE: CORE | Updated list of untrusty IPs that are automatically filtered
+
+
+
+
 2015.10.15   | VidMasta 20.1
 
 CHANGE: UI   | Added ability to re-add removed playlist items without re-playing/re-downloading via a right-click popup menu item "Reload Group"

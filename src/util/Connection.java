@@ -188,7 +188,11 @@ public class Connection {
                         throw e;
                     }
                     if (Debug.DEBUG) {
-                        Debug.print(e);
+                        if (isIgnorable(e)) {
+                            Debug.println(e);
+                        } else {
+                            Debug.print(e);
+                        }
                     }
                     if (domainType == DomainType.DOWNLOAD_LINK_INFO && showStatus && !isIgnorable(e)) {
                         String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(url);

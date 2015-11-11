@@ -266,7 +266,11 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 boolean anyEpisode = video.episode.equals(Constant.ANY);
                 if (video.season.equals(Constant.ANY)) {
                     if (!anyEpisode && episode(titleName, 626).isEmpty()) {
-                        continue;
+                        String name = Regex.replaceFirst(titleName, Str.get(733) + Integer.valueOf(video.episode) + Str.get(734), " E" + video.episode + ' ');
+                        if (name.equals(titleName)) {
+                            continue;
+                        }
+                        titleName = name;
                     }
                 } else if (anyEpisode) {
                     if (isBoxSet && !isRightSeason(titleName)) {
@@ -421,6 +425,11 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         }
 
         TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);
+        if (Regex.replaceAll(Regex.htmlToPlainText(titleParts.title.replace(':', ' ')), 339).trim().equalsIgnoreCase(Regex.replaceAll(Regex.htmlToPlainText(
+                Regex.replaceAll(video.title, 103).replace(':', ' ')), 339).trim())) {
+            return true;
+        }
+
         String titleLink = VideoSearch.getTitleLink(titleParts.title, titleParts.year);
         if (titleLink == null) {
             return false;

@@ -1,4 +1,4 @@
-223
+224
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -732,4 +732,6 @@ https://kat.unbanthe.net/
 https://kat.unbanthe.net/comments/index/torrent/
 https://kat.cr
 721,722,723,724,725,727,729,730
+(\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
+(\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z)
 eof

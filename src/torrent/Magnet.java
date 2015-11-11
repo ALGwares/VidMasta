@@ -49,6 +49,8 @@ public class Magnet extends Thread {
     private static final Object saveTorrentLock = new Object(), azureusConfigLock = new Object();
     private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
     private static final AtomicBoolean isAzureusConfigured = new AtomicBoolean();
+    private static final String VUZE_DIR = Constant.APP_DIR + "vuze" + Constants.AZUREUS_VERSION.replace(".", "") + Constant.FILE_SEPARATOR + "vuze"
+            + Constant.FILE_SEPARATOR, IP_FILTER_TOGGLE = "Ip Filter Enabled";
     private static volatile AzureusCore core;
     public final String MAGNET_LINK;
     public final File TORRENT;
@@ -126,6 +128,10 @@ public class Magnet extends Thread {
                     return;
                 }
                 IO.write(TORRENT, torrentBytes);
+
+                if (!COConfigurationManager.getBooleanParameter(IP_FILTER_TOGGLE)) {
+                    COConfigurationManager.setParameter(IP_FILTER_TOGGLE, true);
+                }
             }
 
             if (Debug.DEBUG) {
@@ -158,6 +164,10 @@ public class Magnet extends Thread {
         ipFilterInitializerStartSignal.countDown();
     }
 
+    public static boolean canFilterIpsWithoutBlocking() {
+        return IO.listFiles(VUZE_DIR + "torrents").length != 0;
+    }
+
     // Intentionally un-synchronized because a caller is the event dispatch thread
     public static void startAzureus(final GuiListener guiListener) {
         if (core != null) {
@@ -183,17 +193,17 @@ public class Magnet extends Thread {
             System.setProperty("azureus.security.manager.install", "0");
             System.setProperty("azureus.security.manager.permitexit", "1");
             System.setProperty("MULTI_INSTANCE", String.valueOf(true));
-            String vuzeDir = Constant.APP_DIR + "vuze" + Constants.AZUREUS_VERSION.replace(".", "") + Constant.FILE_SEPARATOR + "vuze" + Constant.FILE_SEPARATOR;
-            IO.fileOp(vuzeDir, IO.MK_DIR);
-            System.setProperty("azureus.install.path", vuzeDir);
-            System.setProperty("azureus.config.path", vuzeDir);
-            System.setProperty("azureus.portable.root", vuzeDir);
-            SystemProperties.setUserPath(vuzeDir);
+            boolean canFilterIpsWithoutBlocking = canFilterIpsWithoutBlocking();
+            IO.fileOp(VUZE_DIR, IO.MK_DIR);
+            System.setProperty("azureus.install.path", VUZE_DIR);
+            System.setProperty("azureus.config.path", VUZE_DIR);
+            System.setProperty("azureus.portable.root", VUZE_DIR);
+            SystemProperties.setUserPath(VUZE_DIR);
 
             COConfigurationManager.initialise();
             COConfigurationManager.setParameter("max active torrents", 256);
             COConfigurationManager.setParameter("max downloads", 256);
-            COConfigurationManager.setParameter("Ip Filter Enabled", true);
+            COConfigurationManager.setParameter(IP_FILTER_TOGGLE, canFilterIpsWithoutBlocking);
             COConfigurationManager.setParameter("Ip Filter Allow", false);
             COConfigurationManager.setParameter("Ip Filter Enable Banning", true);
             COConfigurationManager.setParameter("Ip Filter Ban Block Limit", (long) Integer.MAX_VALUE);

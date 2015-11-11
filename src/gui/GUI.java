@@ -7084,6 +7084,9 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void startPeerBlock() {
+        if (!workerListener.canFilterIpsWithoutBlocking()) {
+            return;
+        }
         boolean canShowPeerBlock = peerBlockNotificationCheckBoxMenuItem.isSelected();
         if (!Constant.WINDOWS_XP_AND_HIGHER || (!usePeerBlock && !canShowPeerBlock) || (new File(Constant.APP_DIR + Constant.PEER_BLOCK + "Running")).exists()) {
             return;

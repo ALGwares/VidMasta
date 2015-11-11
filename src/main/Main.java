@@ -420,6 +420,11 @@ public class Main implements WorkerListener {
     }
 
     @Override
+    public boolean canFilterIpsWithoutBlocking() {
+        return Magnet.canFilterIpsWithoutBlocking();
+    }
+
+    @Override
     public void initPlaylist() throws Exception {
     }
 

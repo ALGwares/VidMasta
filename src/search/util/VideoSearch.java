@@ -108,8 +108,7 @@ public class VideoSearch {
     public static TitleParts getTitleParts(String title, boolean isTVShow) {
         TitleParts titleParts = new TitleParts();
         String titleName = Regex.replaceAll(title, 103);
-        Collection<Integer> indexes = new ArrayList<Integer>(5);
-        indexes.add(titleName.length());
+        Collection<Integer> indexes = new ArrayList<Integer>(4);
 
         Matcher typeMatcher = Regex.matcher(105, titleName);
         while (!typeMatcher.hitEnd()) {
@@ -171,7 +170,9 @@ public class VideoSearch {
             }
         }
 
-        titleParts.title = titleName.substring(0, Collections.min(indexes)).trim();
+        if (indexes.isEmpty() || (titleParts.title = titleName.substring(0, Collections.min(indexes)).trim()).isEmpty()) {
+            titleParts.title = titleName.trim();
+        }
         if (Debug.DEBUG) {
             Debug.println('\'' + titleParts.title + "' '" + titleParts.year + "' '" + titleParts.season + "' '" + titleParts.episodes + "' '" + titleName + '\'');
         }
