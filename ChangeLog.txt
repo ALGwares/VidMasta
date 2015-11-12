@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.11.11   | VidMasta 20.3
+
+CHANGE: CORE | Improved accuracy of play and download link searches
+
+
+
+
 2015.11.11   | VidMasta 20.2
 
 CHANGE: CORE | Improved accuracy and performance of play and download link searches
