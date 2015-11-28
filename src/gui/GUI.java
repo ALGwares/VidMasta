@@ -6101,11 +6101,11 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_playlistFrameWindowClosing
 
     private void activationButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationButtonActionPerformed
-        workerListener.license(activationTextField.getText().trim(), false);
+        workerListener.license(activationTextField.getText().trim());
     }//GEN-LAST:event_activationButtonActionPerformed
 
     private void activationUpgradeButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationUpgradeButtonActionPerformed
-        workerListener.license(null, false);
+        workerListener.license(null);
     }//GEN-LAST:event_activationUpgradeButtonActionPerformed
 
     private void activationDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_activationDialogWindowClosing
@@ -7868,11 +7868,6 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void licenseActivation() {
-        workerListener.license(null, true);
-    }
-
-    @Override
     public void showLicenseActivation() {
         activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this);
         resultsToBackground(true);
@@ -7880,21 +7875,18 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void licenseActivated(boolean alert, String activationCode) {
+    public void licenseActivated(String activationCode) {
+        workerListener.licenseActivated();
         activationTextField.setForeground(new Color(21, 138, 12));
         activationTextField.setText(activationCode);
-        if (alert) {
-            activationDialog.setVisible(false);
-            showMsg(Str.str("activationSuccessful"), Constant.INFO_MSG);
-        }
+        activationDialog.setVisible(false);
+        showMsg(Str.str("activationSuccessful"), Constant.INFO_MSG);
     }
 
     @Override
-    public void licenseDeactivated(boolean alert) {
+    public void licenseDeactivated() {
         activationTextField.setForeground(Color.BLACK);
-        if (alert) {
-            showMsg(Str.str("activationFailed"), Constant.ERROR_MSG);
-        }
+        showMsg(Str.str("activationFailed"), Constant.ERROR_MSG);
     }
 
     @Override

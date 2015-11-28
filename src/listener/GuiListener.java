@@ -213,13 +213,11 @@ public interface GuiListener {
 
     String invisibleSeparator();
 
-    void licenseActivation();
-
     void showLicenseActivation();
 
-    void licenseActivated(boolean alert, String activationCode);
+    void licenseActivated(String activationCode);
 
-    void licenseDeactivated(boolean alert);
+    void licenseDeactivated();
 
     void licenseActivationStarted();
 

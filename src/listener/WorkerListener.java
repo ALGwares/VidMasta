@@ -69,5 +69,7 @@ public interface WorkerListener {
 
     void changeLocale(Locale locale);
 
-    void license(String activationCode, boolean check);
+    void license(String activationCode);
+
+    void licenseActivated();
 }

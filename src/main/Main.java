@@ -67,6 +67,7 @@ public class Main implements WorkerListener {
     private VideoFinder summaryFinder, trailerFinder, torrentFinder;
     private ProxyListDownloader proxyDownloader;
     private SubtitleFinder subtitleFinder;
+    private AbstractSwingWorker streamingTorrentReloader;
     private Prefetcher prefetcher;
     private SummaryReader summaryReader;
     private Video summaryReaderVideo;
@@ -459,7 +460,11 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void license(String activationCode, boolean check) {
+    public void license(String activationCode) {
+    }
+
+    @Override
+    public void licenseActivated() {
     }
 
     private void startPrefetcher(VideoFinder videoFinder) {

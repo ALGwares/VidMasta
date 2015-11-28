@@ -425,8 +425,8 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         }
 
         TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);
-        if (Regex.replaceAll(Regex.htmlToPlainText(titleParts.title.replace(':', ' ')), 339).trim().equalsIgnoreCase(Regex.replaceAll(Regex.htmlToPlainText(
-                Regex.replaceAll(video.title, 103).replace(':', ' ')), 339).trim()) && (titleParts.year.isEmpty() || titleParts.year.equals(video.year))) {
+        if ((titleParts.year.isEmpty() || titleParts.year.equals(video.year)) && Regex.replaceAll(Regex.htmlToPlainText(titleParts.title.replace(':', ' ')),
+                339).trim().equalsIgnoreCase(Regex.replaceAll(Regex.htmlToPlainText(Regex.replaceAll(video.title, 103).replace(':', ' ')), 339).trim())) {
             return true;
         }
 
