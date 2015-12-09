@@ -96,7 +96,7 @@ public class Connection {
     }
 
     public static String getUpdateFile(String file, boolean showStatus) throws Exception {
-        return getSourceCode(file, DomainType.UPDATE, showStatus, true, false, true).trim();
+        return getSourceCode(file, DomainType.UPDATE, showStatus, true, false, IOException.class).trim();
     }
 
     public static String getSourceCode(String url, DomainType domainType) throws Exception {
@@ -107,7 +107,7 @@ public class Connection {
         return getSourceCode(url, domainType, showStatus, false);
     }
 
-    public static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK) throws Exception {
+    public static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, Class<?>... throwables) throws Exception {
         if (url == null || url.isEmpty()) {
             if (Debug.DEBUG) {
                 Debug.println("Internal error: the URL is null or empty.");
@@ -128,17 +128,17 @@ public class Connection {
                     Debug.print(e);
                 }
                 IO.fileOp(sourceCodePath, IO.RM_FILE);
-                addToCache(sourceCode = getSourceCode(url, domainType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
+                addToCache(sourceCode = getSourceCode(url, domainType, showStatus, emptyOK, true, throwables), sourceCodePath, urlHashCode);
             }
         } else {
-            addToCache(sourceCode = getSourceCode(url, domainType, showStatus, emptyOK, true, false), sourceCodePath, urlHashCode);
+            addToCache(sourceCode = getSourceCode(url, domainType, showStatus, emptyOK, true, throwables), sourceCodePath, urlHashCode);
         }
 
         return sourceCode;
     }
 
     public static String getSourceCode(final String url, final DomainType domainType, final boolean showStatus, final boolean emptyOK, final boolean compress,
-            final boolean throwIOException) throws Exception {
+            final Class<?>... throwables) throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);
         }
@@ -184,21 +184,19 @@ public class Connection {
                     }
                 } catch (IOException e) {
                     IO.consumeErrorStream(connection);
-                    if (throwIOException) {
-                        throw e;
-                    }
-                    if (Debug.DEBUG) {
-                        if (isIgnorable(e)) {
-                            Debug.println(e);
-                        } else {
-                            Debug.print(e);
+                    for (Class<?> throwable : throwables) {
+                        if (throwable.isInstance(e)) {
+                            throw e;
                         }
                     }
-                    if (domainType == DomainType.DOWNLOAD_LINK_INFO && showStatus && !isIgnorable(e)) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                    if (domainType == DomainType.DOWNLOAD_LINK_INFO && showStatus) {
                         String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(url);
                         if (downloadLinkInfoUrl != null) {
                             selectNextDownloadLinkInfoProxy();
-                            return getSourceCode(downloadLinkInfoUrl, domainType, showStatus, emptyOK);
+                            return getSourceCode(downloadLinkInfoUrl, domainType, showStatus, emptyOK, throwables);
                         } else if (url.startsWith(Str.get(731))) {
                             downloadLinkInfoFail.set(true);
                         }
@@ -214,10 +212,6 @@ public class Connection {
                 return source.toString();
             }
         }).runAndWaitFor();
-    }
-
-    public static boolean isIgnorable(Throwable t) {
-        return t instanceof FileNotFoundException && Regex.isMatch(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND), 599);
     }
 
     public static String error(String url) {
@@ -355,11 +349,12 @@ public class Connection {
     }
 
     public static void checkConnectionResponse(HttpURLConnection connection, String url) throws IOException {
-        if (!Regex.isMatch(String.valueOf(connection.getResponseCode()), 599)) {
+        int responseCode = connection.getResponseCode();
+        if (!Regex.isMatch(String.valueOf(responseCode), 737)) {
             if (Debug.DEBUG) {
-                Debug.println(url + " response: " + connection.getResponseCode() + " " + connection.getResponseMessage() + " " + connection.getHeaderFields());
+                Debug.println(url + " response: " + responseCode + " " + connection.getResponseMessage() + " " + connection.getHeaderFields());
             }
-            throw new IOException(error(url));
+            throw responseCode == HttpURLConnection.HTTP_NOT_FOUND ? new FileNotFoundException(error(url)) : new IOException(error(url));
         }
     }
 

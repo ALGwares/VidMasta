@@ -2195,7 +2195,7 @@
         </Container>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.ButtonGroup" name="autoDownloadersButtonGroup">
+    <Component class="javax.swing.ButtonGroup" name="downloaderButtonGroup">
     </Component>
     <Container class="javax.swing.JDialog" name="portDialog">
       <Properties>
@@ -3416,14 +3416,14 @@
             <AuxValue name="JavaCodeGenerator_LayoutCodePre" type="java.lang.String" value="splashScreen.progress();"/>
           </AuxValues>
           <SubComponents>
-            <Menu class="javax.swing.JMenu" name="useProfileMenu">
+            <Menu class="javax.swing.JMenu" name="profileMenu">
               <Properties>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="i18n/Bundle.properties" key="GUI.useProfileMenu.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                  <ResourceString bundle="i18n/Bundle.properties" key="GUI.profileMenu.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
               <Events>
-                <EventHandler event="menuSelected" listener="javax.swing.event.MenuListener" parameters="javax.swing.event.MenuEvent" handler="useProfileMenuMenuSelected"/>
+                <EventHandler event="menuSelected" listener="javax.swing.event.MenuListener" parameters="javax.swing.event.MenuEvent" handler="profileMenuMenuSelected"/>
               </Events>
               <SubComponents>
                 <MenuItem class="javax.swing.JMenuItem" name="profile0MenuItem">
@@ -3556,7 +3556,7 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="profile9MenuItemActionPerformed"/>
                   </Events>
                 </MenuItem>
-                <MenuItem class="javax.swing.JPopupMenu$Separator" name="useProfileMenuSeparator1">
+                <MenuItem class="javax.swing.JPopupMenu$Separator" name="profileMenuSeparator1">
                 </MenuItem>
                 <MenuItem class="javax.swing.JMenuItem" name="editProfilesMenuItem">
                   <Properties>
@@ -4022,30 +4022,6 @@
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="downloadMenuSeparator4">
             </MenuItem>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="downloadWithDefaultAppCheckBoxMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="i18n/Bundle.properties" key="GUI.downloadWithDefaultAppCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                </Property>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadWithDefaultAppCheckBoxMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="autoDownloadingCheckBoxMenuItem">
-              <Properties>
-                <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="i18n/Bundle.properties" key="GUI.autoDownloadingCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                </Property>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="i18n/Bundle.properties" key="GUI.autoDownloadingCheckBoxMenuItem.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                </Property>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="autoDownloadingCheckBoxMenuItemActionPerformed"/>
-              </Events>
-            </MenuItem>
             <Menu class="javax.swing.JMenu" name="downloaderMenu">
               <Properties>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
@@ -4053,18 +4029,32 @@
                 </Property>
               </Properties>
               <SubComponents>
-                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="defaultRadioButtonMenuItem">
+                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="webBrowserAppDownloaderRadioButtonMenuItem">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="i18n/Bundle.properties" key="GUI.defaultRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                      <ResourceString bundle="i18n/Bundle.properties" key="GUI.webBrowserAppDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
                 </MenuItem>
-                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="customRadioButtonMenuItem">
+                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="webBrowserAltAppDownloaderRadioButtonMenuItem">
                   <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="i18n/Bundle.properties" key="GUI.customRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                      <ResourceString bundle="i18n/Bundle.properties" key="GUI.webBrowserAltAppDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                    </Property>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="defaultApplicationDownloaderRadioButtonMenuItem">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                      <ResourceString bundle="i18n/Bundle.properties" key="GUI.defaultApplicationDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                    </Property>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="noDownloaderRadioButtonMenuItem">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                      <ResourceString bundle="i18n/Bundle.properties" key="GUI.noDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
                 </MenuItem>

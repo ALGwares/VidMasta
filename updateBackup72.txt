@@ -1,4 +1,4 @@
-226
+229
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -145,8 +145,8 @@ EMPTY
 EMPTY
 EMPTY
 There was an error processing this request
-(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")
-(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")
+(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
+(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
 http://torrents.thepiratebay.se/
 /
 http://kat.unbanthe.net/comments/index/torrent/
@@ -515,7 +515,7 @@ http://kat.unbanthe.net
 ,
 title\s*+=\s*+"Release name"[^>]+?>
 <
-http://kat.unbanthe.net:::http://kat.unbanthe.org:::http://kickass.unblock.al
+http://kat.unbanthe.net:::http://kat.unbanthe.org
 33,39,41,47,117,466,491,505,518
 http://kat.unbanthe.net
 http://www.imdb.com/title/tt
@@ -710,7 +710,7 @@ http://kat.unbanthe.net
 http://kat.unbanthe.net
 http://kat.unbanthe.net/usearch/
 http://kat.unbanthe.net
-http://kat.unbanthe.net:::http://kat.unbanthe.org:::http://kickass.unblock.al
+http://kat.unbanthe.net:::http://kat.unbanthe.org
 http://kat.unbanthe.net
 http://kat.unbanthe.net
 http://kat.unbanthe.net/
@@ -725,7 +725,7 @@ https://kat.unbanthe.net
 https://kat.unbanthe.net
 https://kat.unbanthe.net/usearch/
 https://kat.unbanthe.net
-https://kat.unbanthe.net:::https://kat.unbanthe.org:::https://kickass.unblock.al
+https://kat.unbanthe.net:::https://kat.unbanthe.org
 https://kat.unbanthe.net
 https://kat.unbanthe.net
 https://kat.unbanthe.net/
@@ -736,4 +736,5 @@ https://kat.cr
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z)
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C333F
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C343F
+200
 eof

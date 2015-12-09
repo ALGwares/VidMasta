@@ -427,6 +427,8 @@ public class Main implements WorkerListener {
 
     @Override
     public void initPlaylist() throws Exception {
+        Magnet.startAzureus(gui);
+        Magnet.waitForAzureusToStart();
     }
 
     @Override

@@ -201,7 +201,8 @@ public class GUI extends JFrame implements GuiListener {
     private int findTitleRow = -2;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
-    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
+    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), dummyMenuItem4 = new JMenuItem(),
+            dummyMenuItem5 = new JMenuItem(), dummyMenuItem6 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
     JComboBox dummyComboBox = new JComboBox();
 
     public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
@@ -458,7 +459,8 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        UI.add(autoDownloadersButtonGroup, defaultRadioButtonMenuItem, customRadioButtonMenuItem);
+        UI.add(downloaderButtonGroup, webBrowserAppDownloaderRadioButtonMenuItem, webBrowserAltAppDownloaderRadioButtonMenuItem,
+                defaultApplicationDownloaderRadioButtonMenuItem, noDownloaderRadioButtonMenuItem);
 
         loadingIcon = UI.icon("loading.gif");
         notLoadingIcon = UI.icon("notLoading.gif");
@@ -806,7 +808,7 @@ public class GUI extends JFrame implements GuiListener {
         commentsDialog = new JDialog();
         commentsScrollPane = new JScrollPane();
         commentsTextPane = new JTextPane();
-        autoDownloadersButtonGroup = new ButtonGroup();
+        downloaderButtonGroup = new ButtonGroup();
         portDialog = new JDialog();
         portLabel = new JLabel();
         portTextField = new JTextField();
@@ -930,7 +932,7 @@ public class GUI extends JFrame implements GuiListener {
         findTextField = new JTextField();
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
-        useProfileMenu = new JMenu();
+        profileMenu = new JMenu();
         profile0MenuItem = new JMenuItem();
         profile1MenuItem = new JMenuItem();
         profile2MenuItem = new JMenuItem();
@@ -941,7 +943,7 @@ public class GUI extends JFrame implements GuiListener {
         profile7MenuItem = new JMenuItem();
         profile8MenuItem = new JMenuItem();
         profile9MenuItem = new JMenuItem();
-        useProfileMenuSeparator1 = new Separator();
+        profileMenuSeparator1 = new Separator();
         editProfilesMenuItem = new JMenuItem();
         fileMenuSeparator1 = new Separator();
         printMenuItem = new JMenuItem();
@@ -998,11 +1000,11 @@ public class GUI extends JFrame implements GuiListener {
         downloadMenuSeparator3 = new Separator();
         portMenuItem = new JMenuItem();
         downloadMenuSeparator4 = new Separator();
-        downloadWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
-        autoDownloadingCheckBoxMenuItem = new JCheckBoxMenuItem();
         downloaderMenu = new JMenu();
-        defaultRadioButtonMenuItem = new JRadioButtonMenuItem();
-        customRadioButtonMenuItem = new JRadioButtonMenuItem();
+        webBrowserAppDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
+        webBrowserAltAppDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
+        defaultApplicationDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
+        noDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         helpMenu = new JMenu();
         faqMenuItem = new JMenuItem();
         helpMenuSeparator1 = new Separator();
@@ -3575,14 +3577,14 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.setText(bundle.getString("GUI.fileMenu.text")); // NOI18N
         splashScreen.progress();
 
-        useProfileMenu.setText(bundle.getString("GUI.useProfileMenu.text")); // NOI18N
-        useProfileMenu.addMenuListener(new MenuListener() {
+        profileMenu.setText(bundle.getString("GUI.profileMenu.text")); // NOI18N
+        profileMenu.addMenuListener(new MenuListener() {
             public void menuCanceled(MenuEvent evt) {
             }
             public void menuDeselected(MenuEvent evt) {
             }
             public void menuSelected(MenuEvent evt) {
-                useProfileMenuMenuSelected(evt);
+                profileMenuMenuSelected(evt);
             }
         });
 
@@ -3593,7 +3595,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile0MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile0MenuItem);
+        profileMenu.add(profile0MenuItem);
 
         profile1MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_MASK));
         profile1MenuItem.setText(bundle.getString("GUI.profile1MenuItem.text")); // NOI18N
@@ -3602,7 +3604,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile1MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile1MenuItem);
+        profileMenu.add(profile1MenuItem);
 
         profile2MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_MASK));
         profile2MenuItem.setText(bundle.getString("GUI.profile2MenuItem.text")); // NOI18N
@@ -3611,7 +3613,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile2MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile2MenuItem);
+        profileMenu.add(profile2MenuItem);
 
         profile3MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_MASK));
         profile3MenuItem.setText(bundle.getString("GUI.profile3MenuItem.text")); // NOI18N
@@ -3620,7 +3622,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile3MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile3MenuItem);
+        profileMenu.add(profile3MenuItem);
 
         profile4MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.CTRL_MASK));
         profile4MenuItem.setText(bundle.getString("GUI.profile4MenuItem.text")); // NOI18N
@@ -3629,7 +3631,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile4MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile4MenuItem);
+        profileMenu.add(profile4MenuItem);
 
         profile5MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5, InputEvent.CTRL_MASK));
         profile5MenuItem.setText(bundle.getString("GUI.profile5MenuItem.text")); // NOI18N
@@ -3638,7 +3640,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile5MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile5MenuItem);
+        profileMenu.add(profile5MenuItem);
 
         profile6MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_6, InputEvent.CTRL_MASK));
         profile6MenuItem.setText(bundle.getString("GUI.profile6MenuItem.text")); // NOI18N
@@ -3647,7 +3649,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile6MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile6MenuItem);
+        profileMenu.add(profile6MenuItem);
 
         profile7MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_7, InputEvent.CTRL_MASK));
         profile7MenuItem.setText(bundle.getString("GUI.profile7MenuItem.text")); // NOI18N
@@ -3656,7 +3658,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile7MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile7MenuItem);
+        profileMenu.add(profile7MenuItem);
 
         profile8MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_8, InputEvent.CTRL_MASK));
         profile8MenuItem.setText(bundle.getString("GUI.profile8MenuItem.text")); // NOI18N
@@ -3665,7 +3667,7 @@ public class GUI extends JFrame implements GuiListener {
                 profile8MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile8MenuItem);
+        profileMenu.add(profile8MenuItem);
 
         profile9MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_9, InputEvent.CTRL_MASK));
         profile9MenuItem.setText(bundle.getString("GUI.profile9MenuItem.text")); // NOI18N
@@ -3674,8 +3676,8 @@ public class GUI extends JFrame implements GuiListener {
                 profile9MenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(profile9MenuItem);
-        useProfileMenu.add(useProfileMenuSeparator1);
+        profileMenu.add(profile9MenuItem);
+        profileMenu.add(profileMenuSeparator1);
 
         editProfilesMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.CTRL_MASK));
         editProfilesMenuItem.setText(bundle.getString("GUI.editProfilesMenuItem.text")); // NOI18N
@@ -3684,9 +3686,9 @@ public class GUI extends JFrame implements GuiListener {
                 editProfilesMenuItemActionPerformed(evt);
             }
         });
-        useProfileMenu.add(editProfilesMenuItem);
+        profileMenu.add(editProfilesMenuItem);
 
-        fileMenu.add(useProfileMenu);
+        fileMenu.add(profileMenu);
         fileMenu.add(fileMenuSeparator1);
 
         printMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
@@ -3963,32 +3965,20 @@ public class GUI extends JFrame implements GuiListener {
         downloadMenu.add(portMenuItem);
         downloadMenu.add(downloadMenuSeparator4);
 
-        downloadWithDefaultAppCheckBoxMenuItem.setText(bundle.getString("GUI.downloadWithDefaultAppCheckBoxMenuItem.text")); // NOI18N
-        downloadWithDefaultAppCheckBoxMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                downloadWithDefaultAppCheckBoxMenuItemActionPerformed(evt);
-            }
-        });
-        downloadMenu.add(downloadWithDefaultAppCheckBoxMenuItem);
-
-        autoDownloadingCheckBoxMenuItem.setSelected(true);
-        autoDownloadingCheckBoxMenuItem.setText(bundle.getString("GUI.autoDownloadingCheckBoxMenuItem.text")); // NOI18N
-        autoDownloadingCheckBoxMenuItem.setToolTipText(bundle.getString("GUI.autoDownloadingCheckBoxMenuItem.toolTipText")); // NOI18N
-        autoDownloadingCheckBoxMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                autoDownloadingCheckBoxMenuItemActionPerformed(evt);
-            }
-        });
-        downloadMenu.add(autoDownloadingCheckBoxMenuItem);
-
         downloaderMenu.setText(bundle.getString("GUI.downloaderMenu.text")); // NOI18N
 
-        defaultRadioButtonMenuItem.setSelected(true);
-        defaultRadioButtonMenuItem.setText(bundle.getString("GUI.defaultRadioButtonMenuItem.text")); // NOI18N
-        downloaderMenu.add(defaultRadioButtonMenuItem);
+        webBrowserAppDownloaderRadioButtonMenuItem.setSelected(true);
+        webBrowserAppDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text")); // NOI18N
+        downloaderMenu.add(webBrowserAppDownloaderRadioButtonMenuItem);
 
-        customRadioButtonMenuItem.setText(bundle.getString("GUI.customRadioButtonMenuItem.text")); // NOI18N
-        downloaderMenu.add(customRadioButtonMenuItem);
+        webBrowserAltAppDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.webBrowserAltAppDownloaderRadioButtonMenuItem.text")); // NOI18N
+        downloaderMenu.add(webBrowserAltAppDownloaderRadioButtonMenuItem);
+
+        defaultApplicationDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.defaultApplicationDownloaderRadioButtonMenuItem.text")); // NOI18N
+        downloaderMenu.add(defaultApplicationDownloaderRadioButtonMenuItem);
+
+        noDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.noDownloaderRadioButtonMenuItem.text")); // NOI18N
+        downloaderMenu.add(noDownloaderRadioButtonMenuItem);
 
         downloadMenu.add(downloaderMenu);
 
@@ -5360,7 +5350,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_profileSetButtonActionPerformed
 
-    void useProfileMenuMenuSelected(MenuEvent evt) {//GEN-FIRST:event_useProfileMenuMenuSelected
+    void profileMenuMenuSelected(MenuEvent evt) {//GEN-FIRST:event_profileMenuMenuSelected
         profile0MenuItem.setText((String) profileComboBox.getItemAt(0));
         profile1MenuItem.setText((String) profileComboBox.getItemAt(1));
         profile2MenuItem.setText((String) profileComboBox.getItemAt(2));
@@ -5371,7 +5361,7 @@ public class GUI extends JFrame implements GuiListener {
         profile7MenuItem.setText((String) profileComboBox.getItemAt(7));
         profile8MenuItem.setText((String) profileComboBox.getItemAt(8));
         profile9MenuItem.setText((String) profileComboBox.getItemAt(9));
-    }//GEN-LAST:event_useProfileMenuMenuSelected
+    }//GEN-LAST:event_profileMenuMenuSelected
 
     void profileRenameButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileRenameButtonActionPerformed
         profileDialog.setVisible(false);
@@ -5800,18 +5790,6 @@ public class GUI extends JFrame implements GuiListener {
     private void movieSubtitleDownloadMatch2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_movieSubtitleDownloadMatch2ButtonActionPerformed
         startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, false);
     }//GEN-LAST:event_movieSubtitleDownloadMatch2ButtonActionPerformed
-
-    private void downloadWithDefaultAppCheckBoxMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadWithDefaultAppCheckBoxMenuItemActionPerformed
-        if (downloadWithDefaultAppCheckBoxMenuItem.isSelected()) {
-            autoDownloadingCheckBoxMenuItem.setSelected(false);
-        }
-    }//GEN-LAST:event_downloadWithDefaultAppCheckBoxMenuItemActionPerformed
-
-    private void autoDownloadingCheckBoxMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_autoDownloadingCheckBoxMenuItemActionPerformed
-        if (autoDownloadingCheckBoxMenuItem.isSelected()) {
-            downloadWithDefaultAppCheckBoxMenuItem.setSelected(false);
-        }
-    }//GEN-LAST:event_autoDownloadingCheckBoxMenuItemActionPerformed
 
     private void whitelistedListKeyPressed(KeyEvent evt) {//GEN-FIRST:event_whitelistedListKeyPressed
         int key = evt.getKeyCode();
@@ -6430,7 +6408,7 @@ public class GUI extends JFrame implements GuiListener {
                     settings = defaultSettings;
                 }
                 int i = -1;
-                changeLocale(settings[Constant.SETTINGS_LEN - 1]);
+                changeLocale(settings[Constant.SETTINGS_LEN - 2]);
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
                 i += restoreButtons(settings, i, buttonSet1());
                 ++i; // Backward compatibility
@@ -6446,8 +6424,7 @@ public class GUI extends JFrame implements GuiListener {
                     }
                 }
                 viewedPortBefore = Boolean.parseBoolean(settings[++i]);
-                autoDownloadersButtonGroup.setSelected(Boolean.parseBoolean(settings[++i]) ? defaultRadioButtonMenuItem.getModel()
-                        : customRadioButtonMenuItem.getModel(), true);
+                ++i; // Backward compatibility
 
                 restoreSize(GUI.this, settings[++i]);
                 i += restoreWindows(settings, i, windows());
@@ -6457,7 +6434,7 @@ public class GUI extends JFrame implements GuiListener {
                 restoreList("languageList", settings[++i], languageList);
                 restoreList("countryList", settings[++i], countryList);
 
-                i += restoreButtons(settings, i, downloadWithDefaultAppCheckBoxMenuItem, feedCheckBoxMenuItem);
+                i += restoreButtons(settings, i, dummyMenuItem5 /* Backward compatibility */, feedCheckBoxMenuItem);
 
                 proxyImportFile = getPath(settings, ++i);
                 proxyExportFile = getPath(settings, ++i);
@@ -6474,7 +6451,13 @@ public class GUI extends JFrame implements GuiListener {
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
                 i += restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */,
                         playlistShowNonVideoItemsCheckBoxMenuItem, playDefaultAppMenuItem);
-                restoreColumnWidths(settings, i, resultsTable, yearCol, ratingCol);
+                i += restoreColumnWidths(settings, i, resultsTable, yearCol, ratingCol);
+                ++i; // language
+
+                int downloader = Integer.parseInt(settings[++i]);
+                downloaderButtonGroup.setSelected((downloader == 0 ? webBrowserAppDownloaderRadioButtonMenuItem : (downloader == 1
+                        ? webBrowserAltAppDownloaderRadioButtonMenuItem : (downloader == 2 ? defaultApplicationDownloaderRadioButtonMenuItem
+                                : noDownloaderRadioButtonMenuItem))).getModel(), true);
 
                 if (!updateSettings) {
                     return;
@@ -6501,7 +6484,7 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(port.isEmpty() ? Constant.NULL : port).append(Constant.NEWLINE);
             saveButtons(settings, portRandomizeCheckBox);
             settings.append(viewedPortBefore).append(Constant.NEWLINE);
-            saveButtons(settings, defaultRadioButtonMenuItem);
+            saveButtons(settings, dummyMenuItem6 /* Backward compatibility */);
 
             settings.append(saveSize(GUI.this));
             for (Window window : windows()) {
@@ -6512,7 +6495,7 @@ public class GUI extends JFrame implements GuiListener {
             saveList(settings, "blacklist", blacklistListModel.toArray());
             saveList(settings, "languageList", languageList.getSelectedValues());
             saveList(settings, "countryList", countryList.getSelectedValues());
-            saveButtons(settings, downloadWithDefaultAppCheckBoxMenuItem, feedCheckBoxMenuItem);
+            saveButtons(settings, dummyMenuItem5 /* Backward compatibility */, feedCheckBoxMenuItem);
             savePaths(settings, proxyImportFile, proxyExportFile, torrentDir, subtitleDir);
             saveComboBoxes(settings, dummyComboBox); // Backward compatibility
             saveComboBoxes(settings, timeoutDownloadLinkComboBox);
@@ -6531,7 +6514,9 @@ public class GUI extends JFrame implements GuiListener {
                     break;
                 }
             }
-            settings.append(language);
+            settings.append(language).append(Constant.NEWLINE);
+            settings.append(webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? 0 : (webBrowserAltAppDownloaderRadioButtonMenuItem.isSelected() ? 1
+                    : (defaultApplicationDownloaderRadioButtonMenuItem.isSelected() ? 2 : 3)));
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -6546,7 +6531,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         private AbstractButton[] buttonSet2() {
-            return new AbstractButton[]{autoDownloadingCheckBoxMenuItem, updateCheckBoxMenuItem, dummyMenuItem /* Backward compatibility */,
+            return new AbstractButton[]{dummyMenuItem4 /* Backward compatibility */, updateCheckBoxMenuItem, dummyMenuItem /* Backward compatibility */,
                 proxyDownloadLinkInfoCheckBox, proxyVideoInfoCheckBox, proxySearchEnginesCheckBox, proxyTrailersCheckBox,
                 dummyMenuItem3 /* Backward compatibility */, proxyUpdatesCheckBox, proxySubtitlesCheckBox, browserNotificationCheckBoxMenuItem};
         }
@@ -7691,8 +7676,9 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public String getAutoDownloader() {
-        return Str.get(defaultRadioButtonMenuItem.isSelected() ? 393 : 394);
+    public String getWebBrowserAppDownloader() {
+        return webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(394) : (webBrowserAltAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(393)
+                : null);
     }
 
     @Override
@@ -7711,13 +7697,8 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public boolean canAutoDownload() {
-        return autoDownloadingCheckBoxMenuItem.isSelected();
-    }
-
-    @Override
     public boolean canDownloadWithDefaultApp() {
-        return downloadWithDefaultAppCheckBoxMenuItem.isSelected();
+        return defaultApplicationDownloaderRadioButtonMenuItem.isSelected();
     }
 
     @Override
@@ -7970,8 +7951,6 @@ public class GUI extends JFrame implements GuiListener {
         authenticationMessageLabel.setText(Str.str("GUI.authenticationMessageLabel.text"));
         authenticationPasswordLabel.setText(Str.str("GUI.authenticationPasswordLabel.text"));
         authenticationUsernameLabel.setText(Str.str("GUI.authenticationUsernameLabel.text"));
-        autoDownloadingCheckBoxMenuItem.setText(Str.str("GUI.autoDownloadingCheckBoxMenuItem.text"));
-        autoDownloadingCheckBoxMenuItem.setToolTipText(Str.str("GUI.autoDownloadingCheckBoxMenuItem.toolTipText"));
         blacklistedLabel.setText(Str.str("GUI.blacklistedLabel.text"));
         blacklistedToWhitelistedButton.setToolTipText(Str.str("GUI.blacklistedToWhitelistedButton.toolTipText"));
         browserNotificationCheckBoxMenuItem.setText(Str.str("GUI.browserNotificationCheckBoxMenuItem.text"));
@@ -7989,9 +7968,8 @@ public class GUI extends JFrame implements GuiListener {
         copySummaryLinkMenuItem.setText(Str.str("GUI.copySummaryLinkMenuItem.text"));
         copyTrailerLinkMenuItem.setText(Str.str("GUI.copyTrailerLinkMenuItem.text"));
         countryLabel.setText(Str.str("GUI.countryLabel.text"));
-        customRadioButtonMenuItem.setText(Str.str("GUI.customRadioButtonMenuItem.text"));
         cutMenuItem.setText(Str.str("GUI.cutMenuItem.text"));
-        defaultRadioButtonMenuItem.setText(Str.str("GUI.defaultRadioButtonMenuItem.text"));
+        defaultApplicationDownloaderRadioButtonMenuItem.setText(Str.str("GUI.defaultApplicationDownloaderRadioButtonMenuItem.text"));
         deleteMenuItem.setText(Str.str("GUI.deleteMenuItem.text"));
         downloadLink1Button.setText(Str.str("GUI.downloadLink1Button.text"));
         downloadLink1Button.setToolTipText(Str.str("GUI.downloadLink1Button.toolTipText"));
@@ -8008,7 +7986,6 @@ public class GUI extends JFrame implements GuiListener {
         downloadSizeLabel.setToolTipText(Str.str("GUI.downloadSizeLabel.toolTipText"));
         downloadSizeMenuItem.setText(Str.str("GUI.downloadSizeMenuItem.text"));
         downloadSizeToLabel.setText(Str.str("GUI.downloadSizeToLabel.text"));
-        downloadWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.downloadWithDefaultAppCheckBoxMenuItem.text"));
         downloaderMenu.setText(Str.str("GUI.downloaderMenu.text"));
         dvdCheckBox.setToolTipText(Str.str("GUI.dvdCheckBox.toolTipText"));
         editMenu.setText(Str.str("GUI.editMenu.text"));
@@ -8066,6 +8043,7 @@ public class GUI extends JFrame implements GuiListener {
         msgOKButton.setText(Str.str("GUI.msgOKButton.text"));
         noButton.setText(Str.str("GUI.noButton.text"));
         noButton.setToolTipText(Str.str("GUI.noButton.toolTipText"));
+        noDownloaderRadioButtonMenuItem.setText(Str.str("GUI.noDownloaderRadioButtonMenuItem.text"));
         optionalMsgCheckBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
         pasteMenuItem.setText(Str.str("GUI.pasteMenuItem.text"));
         peerBlockNotificationCheckBoxMenuItem.setText(Str.str("GUI.peerBlockNotificationCheckBoxMenuItem.text"));
@@ -8110,6 +8088,7 @@ public class GUI extends JFrame implements GuiListener {
         printMenuItem.setText(Str.str("GUI.printMenuItem.text"));
         profileClearButton.setText(Str.str("GUI.profileClearButton.text"));
         profileDialog.setTitle(Str.str("GUI.profileDialog.title"));
+        profileMenu.setText(Str.str("GUI.profileMenu.text"));
         profileNameChangeCancelButton.setText(Str.str("GUI.profileNameChangeCancelButton.text"));
         profileNameChangeDialog.setTitle(Str.str("GUI.profileNameChangeDialog.title"));
         profileNameChangeLabel.setText(Str.str("GUI.profileNameChangeLabel.text"));
@@ -8206,7 +8185,6 @@ public class GUI extends JFrame implements GuiListener {
         typeLabel.setToolTipText(Str.str("GUI.typeLabel.toolTipText"));
         updateCheckBoxMenuItem.setText(Str.str("GUI.updateCheckBoxMenuItem.text"));
         updateMenuItem.setText(Str.str("GUI.updateMenuItem.text"));
-        useProfileMenu.setText(Str.str("GUI.useProfileMenu.text"));
         viewMenu.setText(Str.str("GUI.viewMenu.text"));
         viewNewHighQualityMoviesMenuItem.setText(Str.str("GUI.viewNewHighQualityMoviesMenuItem.text"));
         watchOnDeviceMenuItem.setText(Str.str("GUI.watchOnDeviceMenuItem.text"));
@@ -8215,6 +8193,8 @@ public class GUI extends JFrame implements GuiListener {
         watchTrailerButton.setToolTipText(Str.str("GUI.watchTrailerButton.toolTipText"));
         watchTrailerCancelMenuItem.setText(Str.str("GUI.watchTrailerCancelMenuItem.text"));
         watchTrailerMenuItem.setText(Str.str("GUI.watchTrailerMenuItem.text"));
+        webBrowserAltAppDownloaderRadioButtonMenuItem.setText(Str.str("GUI.webBrowserAltAppDownloaderRadioButtonMenuItem.text"));
+        webBrowserAppDownloaderRadioButtonMenuItem.setText(Str.str("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text"));
         whitelistLabel.setText(Str.str("GUI.whitelistLabel.text"));
         whitelistedToBlacklistedButton.setToolTipText(Str.str("GUI.whitelistedToBlacklistedButton.toolTipText"));
         yesButton.setText(Str.str("GUI.yesButton.text"));
@@ -8342,8 +8322,6 @@ public class GUI extends JFrame implements GuiListener {
     JLabel authenticationPasswordLabel;
     JLabel authenticationUsernameLabel;
     JTextField authenticationUsernameTextField;
-    ButtonGroup autoDownloadersButtonGroup;
-    JCheckBoxMenuItem autoDownloadingCheckBoxMenuItem;
     JLabel blacklistedLabel;
     JList blacklistedList;
     JScrollPane blacklistedScrollPane;
@@ -8370,9 +8348,8 @@ public class GUI extends JFrame implements GuiListener {
     JList countryList;
     JScrollPane countryScrollPane;
     JTextField customExtensionTextField;
-    JRadioButtonMenuItem customRadioButtonMenuItem;
     JMenuItem cutMenuItem;
-    JRadioButtonMenuItem defaultRadioButtonMenuItem;
+    JRadioButtonMenuItem defaultApplicationDownloaderRadioButtonMenuItem;
     JMenuItem deleteMenuItem;
     JButton downloadLink1Button;
     JMenuItem downloadLink1MenuItem;
@@ -8391,7 +8368,7 @@ public class GUI extends JFrame implements GuiListener {
     JLabel downloadSizeLabel;
     JMenuItem downloadSizeMenuItem;
     JLabel downloadSizeToLabel;
-    JCheckBoxMenuItem downloadWithDefaultAppCheckBoxMenuItem;
+    ButtonGroup downloaderButtonGroup;
     JMenu downloaderMenu;
     JRadioButtonMenuItem dutchRadioButtonMenuItem;
     JCheckBox dvdCheckBox;
@@ -8474,6 +8451,7 @@ public class GUI extends JFrame implements GuiListener {
     JButton msgOKButton;
     JScrollPane msgScrollPane;
     JButton noButton;
+    JRadioButtonMenuItem noDownloaderRadioButtonMenuItem;
     JCheckBox optionalMsgCheckBox;
     JPanel optionalMsgPanel;
     JTextArea optionalMsgTextArea;
@@ -8534,6 +8512,8 @@ public class GUI extends JFrame implements GuiListener {
     JButton profileClearButton;
     JComboBox profileComboBox;
     JDialog profileDialog;
+    JMenu profileMenu;
+    Separator profileMenuSeparator1;
     JButton profileNameChangeCancelButton;
     JDialog profileNameChangeDialog;
     JLabel profileNameChangeLabel;
@@ -8661,8 +8641,6 @@ public class GUI extends JFrame implements GuiListener {
     JLabel typeLabel;
     JCheckBoxMenuItem updateCheckBoxMenuItem;
     JMenuItem updateMenuItem;
-    JMenu useProfileMenu;
-    Separator useProfileMenuSeparator1;
     JMenu viewMenu;
     Separator viewMenuSeparator1;
     JMenuItem viewNewHighQualityMoviesMenuItem;
@@ -8671,6 +8649,8 @@ public class GUI extends JFrame implements GuiListener {
     JPopupMenu watchTrailerButtonPopupMenu;
     JMenuItem watchTrailerCancelMenuItem;
     JMenuItem watchTrailerMenuItem;
+    JRadioButtonMenuItem webBrowserAltAppDownloaderRadioButtonMenuItem;
+    JRadioButtonMenuItem webBrowserAppDownloaderRadioButtonMenuItem;
     JLabel whitelistLabel;
     JList whitelistedList;
     JScrollPane whitelistedScrollPane;

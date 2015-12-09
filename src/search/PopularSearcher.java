@@ -190,7 +190,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     @Override
     protected void checkVideoes(String url) throws Exception {
-        if (currSearchPage == 0 && videoBuffer.isEmpty()) {
+        if ((currSearchPage - titleNames.size()) == 0 && videoBuffer.isEmpty()) {
             fail(url);
         }
     }

@@ -164,15 +164,13 @@ public interface GuiListener {
 
     String getMaxDownloadSize();
 
-    String getAutoDownloader();
+    String getWebBrowserAppDownloader();
 
     String[] getWhitelistedFileExts();
 
     String[] getBlacklistedFileExts();
 
     boolean canShowSafetyWarning();
-
-    boolean canAutoDownload();
 
     boolean canDownloadWithDefaultApp();
 

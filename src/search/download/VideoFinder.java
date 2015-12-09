@@ -389,7 +389,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         if (torrent.FILE == null || !torrent.FILE.exists()) {
-            if (guiListener.canAutoDownload()) {
+            if (guiListener.getWebBrowserAppDownloader() != null) {
                 if (searchState.blacklistedFileExts.length != 0) {
                     torrentDownloadError(torrent);
                 }
@@ -421,8 +421,9 @@ public class VideoFinder extends AbstractSwingWorker {
             IO.write(torrent.FILE, torrentFile);
         }
 
-        if (guiListener.canAutoDownload()) {
-            browseDownloadURL(guiListener.getAutoDownloader() + URLEncoder.encode(torrentFilePath, Constant.UTF8));
+        String webBrowserAppDownloader = guiListener.getWebBrowserAppDownloader();
+        if (webBrowserAppDownloader != null) {
+            browseDownloadURL(webBrowserAppDownloader + URLEncoder.encode(torrentFilePath, Constant.UTF8));
         } else if (guiListener.canDownloadWithDefaultApp()) {
             startPeerBlock();
             try {

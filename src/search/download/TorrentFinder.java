@@ -2,6 +2,7 @@ package search.download;
 
 import debug.Debug;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.List;
@@ -144,12 +145,13 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
 
         String sourceCode;
         try {
-            sourceCode = Connection.getSourceCode(prevUrl = urlForm + urlFormOptions, DomainType.DOWNLOAD_LINK_INFO, !prefetch);
-        } catch (ConnectionException e) {
-            if (Connection.isIgnorable(e.getCause())) {
-                return null;
+            sourceCode = Connection.getSourceCode(prevUrl = urlForm + urlFormOptions, DomainType.DOWNLOAD_LINK_INFO, !prefetch, false,
+                    FileNotFoundException.class);
+        } catch (FileNotFoundException e) {
+            if (Debug.DEBUG) {
+                Debug.println(e);
             }
-            throw e;
+            return null;
         }
 
         if (!Regex.firstMatch(sourceCode, 146).isEmpty() || Regex.firstMatch(sourceCode, 504).isEmpty()) {

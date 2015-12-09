@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2015.12.08   | VidMasta 20.5
+
+CHANGE: CORE | Improved play and download error handling
+CHANGE: CORE | Improved search error handling
+CHANGE: UI   | Clarified downloader selection under the download menu
+
+
+
+
 2015.11.28   | VidMasta 20.4
 
 CHANGE: CORE | Improved performance of play and download link searches
