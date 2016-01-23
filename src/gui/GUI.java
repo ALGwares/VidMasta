@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -54,7 +55,6 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -124,6 +124,8 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.RootPaneUI;
@@ -197,8 +199,7 @@ public class GUI extends JFrame implements GuiListener {
     boolean usePeerBlock;
     private volatile Thread timedMsgThread;
     final Object timedMsgLock = new Object();
-    private final List<String> findTitles = new CopyOnWriteArrayList<String>();
-    private int findTitleRow = -2;
+    private final FindControl findControl, playlistFindControl;
     private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
     JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), dummyMenuItem4 = new JMenuItem(),
@@ -218,8 +219,8 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        hideFindTextField();
-        AutoCompleteDecorator.decorate(findTextField, findTitles, false);
+        findControl = new FindControl(findTextField);
+        playlistFindControl = new FindControl(playlistFindTextField);
 
         splashScreen.progress();
 
@@ -288,8 +289,8 @@ public class GUI extends JFrame implements GuiListener {
                 }
                 show(textComponentPopupMenu, evt);
             }
-        }, titleTextField, findTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField,
-                portTextField, optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
+        }, titleTextField, findTextField, playlistFindTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField, portTextField,
+                optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
                 authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField, activationTextField);
 
         UI.addMouseListener(new AbstractPopupListener() {
@@ -454,6 +455,18 @@ public class GUI extends JFrame implements GuiListener {
             @Override
             public int compare(FormattedNum progress1, FormattedNum progress2) {
                 return Double.valueOf(progress1.val().doubleValue()).compareTo(progress2.val().doubleValue());
+            }
+        });
+
+        playlistSyncTable.tableModel.addTableModelListener(new TableModelListener() {
+            private final Map<String, List<String>> cache = new HashMap<String, List<String>>(100);
+
+            @Override
+            public void tableChanged(TableModelEvent evt) {
+                playlistFindControl.clearFindables();
+                for (Object row : playlistSyncTable.tableModel.getDataVector()) {
+                    playlistFindControl.addFindable((String) ((List<?>) row).get(playlistNameCol), cache);
+                }
             }
         });
 
@@ -636,7 +649,7 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        hideFindTextField();
+        findControl.hide();
         isTVShowSearch = false;
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) popularMoviesResultsPerSearchComboBox.getSelectedItem());
@@ -869,6 +882,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistScrollPane = new JScrollPane();
         playlistTable = new JTable();
         playlistPlayButton = new JButton();
+        playlistFindTextField = new JTextField();
         playlistMoveUpButton = new JButton();
         playlistMoveDownButton = new JButton();
         playlistRemoveButton = new JButton();
@@ -3022,6 +3036,12 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
+        playlistFindTextField.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistFindTextFieldKeyPressed(evt);
+            }
+        });
+
         playlistMoveUpButton.setText(null);
         playlistMoveUpButton.setToolTipText(bundle.getString("GUI.playlistMoveUpButton.toolTipText")); // NOI18N
         playlistMoveUpButton.setEnabled(false);
@@ -3076,7 +3096,9 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 880, Short.MAX_VALUE)
                     .addGroup(playlistFrameLayout.createSequentialGroup()
                         .addComponent(playlistPlayButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
+                        .addComponent(playlistFindTextField)
+                        .addGap(18, 18, 18)
                         .addComponent(playlistMoveUpButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(playlistMoveDownButton)
@@ -3087,15 +3109,19 @@ public class GUI extends JFrame implements GuiListener {
         playlistFrameLayout.setVerticalGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(playlistFrameLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE)
                 .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addGroup(playlistFrameLayout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(playlistPlayButton)
-                    .addComponent(playlistMoveUpButton)
-                    .addComponent(playlistMoveDownButton)
-                    .addComponent(playlistRemoveButton))
+                .addGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(playlistFindTextField, GroupLayout.PREFERRED_SIZE, 19, GroupLayout.PREFERRED_SIZE)
+                    .addGroup(playlistFrameLayout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(playlistPlayButton)
+                        .addComponent(playlistMoveUpButton)
+                        .addComponent(playlistMoveDownButton)
+                        .addComponent(playlistRemoveButton)))
                 .addContainerGap())
         );
+
+        playlistFrameLayout.linkSize(SwingConstants.VERTICAL, new Component[] {playlistFindTextField, playlistMoveDownButton, playlistMoveUpButton, playlistPlayButton, playlistRemoveButton});
 
         playlistPlayMenuItem.setToolTipText(bundle.getString("GUI.playlistPlayMenuItem.toolTipText")); // NOI18N
         playlistPlayMenuItem.setEnabled(false);
@@ -4293,7 +4319,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void searchButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-        hideFindTextField();
+        findControl.hide();
 
         int numResultsPerSearch = Integer.parseInt((String) regularResultsPerSearchComboBox.getSelectedItem());
         isTVShowSearch = Constant.TV_SHOW.equals(typeComboBox.getSelectedItem());
@@ -4342,13 +4368,13 @@ public class GUI extends JFrame implements GuiListener {
     void faqMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_faqMenuItemActionPerformed
         faqEditorPane.setSelectionStart(0);
         faqEditorPane.setSelectionEnd(0);
-        faqFrame.setVisible(true);
+        UI.setVisible(faqFrame);
     }//GEN-LAST:event_faqMenuItemActionPerformed
 
     void aboutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         aboutEditorPane.setSelectionStart(0);
         aboutEditorPane.setSelectionEnd(0);
-        aboutDialog.setVisible(true);
+        UI.setVisible(aboutDialog);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
     void exitMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
@@ -4459,7 +4485,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void timeoutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_timeoutMenuItemActionPerformed
         resultsToBackground(true);
-        timeoutDialog.setVisible(true);
+        UI.setVisible(timeoutDialog);
     }//GEN-LAST:event_timeoutMenuItemActionPerformed
 
     void tvSubmitButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubmitButtonActionPerformed
@@ -4481,7 +4507,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void resultsPerSearchMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_resultsPerSearchMenuItemActionPerformed
         resultsToBackground(true);
-        resultsPerSearchDialog.setVisible(true);
+        UI.setVisible(resultsPerSearchDialog);
     }//GEN-LAST:event_resultsPerSearchMenuItemActionPerformed
 
     void genreListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_genreListValueChanged
@@ -4516,7 +4542,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_popularMoviesButtonActionPerformed
 
     private void doPopularVideosSearch(boolean isPopularTVShows) {
-        hideFindTextField();
+        findControl.hide();
         isTVShowSearch = isPopularTVShows;
         isRegularSearcher = false;
         int numResultsPerSearch = Integer.parseInt((String) (isPopularTVShows ? popularTVShowsResultsPerSearchComboBox.getSelectedItem()
@@ -4528,7 +4554,7 @@ public class GUI extends JFrame implements GuiListener {
     void downloadSizeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadSizeMenuItemActionPerformed
         resultsToBackground(true);
         updateDownloadSizeComboBoxes();
-        downloadSizeDialog.setVisible(true);
+        UI.setVisible(downloadSizeDialog);
     }//GEN-LAST:event_downloadSizeMenuItemActionPerformed
 
     void maxDownloadSizeComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_maxDownloadSizeComboBoxActionPerformed
@@ -4542,7 +4568,7 @@ public class GUI extends JFrame implements GuiListener {
     void fileExtensionsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_fileExtensionsMenuItemActionPerformed
         resultsToBackground(true);
         customExtensionTextField.requestFocusInWindow();
-        extensionsDialog.setVisible(true);
+        UI.setVisible(extensionsDialog);
     }//GEN-LAST:event_fileExtensionsMenuItemActionPerformed
 
     void whitelistedToBlacklistedButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_whitelistedToBlacklistedButtonActionPerformed
@@ -4608,7 +4634,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void editProfilesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_editProfilesMenuItemActionPerformed
         resultsToBackground(true);
-        profileDialog.setVisible(true);
+        UI.setVisible(profileDialog);
     }//GEN-LAST:event_editProfilesMenuItemActionPerformed
 
     void closeBoxButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_closeBoxButtonActionPerformed
@@ -4688,7 +4714,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_safetyEditorPaneHyperlinkUpdate
 
     private SelectedTableRow selectedRow() {
-        hideFindTextField();
+        findControl.hide();
         SelectedTableRow row = new SelectedTableRow();
         JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
         viewport.scrollRectToVisible(rectangle(viewport, resultsSyncTable.getCellRect(row.VIEW_VAL, 0, true)));
@@ -4744,7 +4770,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void languageCountryMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryMenuItemActionPerformed
         resultsToBackground(true);
-        languageCountryDialog.setVisible(true);
+        UI.setVisible(languageCountryDialog);
     }//GEN-LAST:event_languageCountryMenuItemActionPerformed
 
     void languageListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_languageListValueChanged
@@ -4826,6 +4852,8 @@ public class GUI extends JFrame implements GuiListener {
         }
         if (popupTextComponent == findTextField) {
             findTextFieldKeyPressed(null);
+        } else if (popupTextComponent == playlistFindTextField) {
+            playlistFindTextFieldKeyPressed(null);
         } else if (popupTextComponent == titleTextField || popupTextComponent == startDateTextField || popupTextComponent == endDateTextField) {
             searchButtonActionPerformed(null);
         }
@@ -4912,8 +4940,8 @@ public class GUI extends JFrame implements GuiListener {
         textComponentCopyMenuItem.setVisible(isReadable);
         textComponentPasteMenuItem.setVisible(isEditable);
         textComponentDeleteMenuItem.setVisible(isEditable);
-        textComponentPasteSearchMenuItem.setVisible(popupTextComponent == findTextField || popupTextComponent == titleTextField
-                || popupTextComponent == startDateTextField || popupTextComponent == endDateTextField);
+        textComponentPasteSearchMenuItem.setVisible(popupTextComponent == findTextField || popupTextComponent == playlistFindTextField
+                || popupTextComponent == titleTextField || popupTextComponent == startDateTextField || popupTextComponent == endDateTextField);
 
         if (popupTextComponent.getCaret().isSelectionVisible() && popupTextComponent.getSelectedText() != null) {
             if (!textComponentCutMenuItem.isEnabled()) {
@@ -4964,7 +4992,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void proxyMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
         resultsToBackground(true);
-        proxyDialog.setVisible(true);
+        UI.setVisible(proxyDialog);
     }//GEN-LAST:event_proxyMenuItemActionPerformed
 
     void proxyOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyOKButtonActionPerformed
@@ -4983,7 +5011,7 @@ public class GUI extends JFrame implements GuiListener {
         enableProxyButtons(false);
         proxyDialog.setVisible(false);
         addProxiesTextArea.setText("");
-        addProxiesDialog.setVisible(true);
+        UI.setVisible(addProxiesDialog);
     }//GEN-LAST:event_proxyAddButtonActionPerformed
 
     void addProxiesCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_addProxiesCancelButtonActionPerformed
@@ -5023,7 +5051,7 @@ public class GUI extends JFrame implements GuiListener {
             removeProxiesListModel.addElement(proxyComboBox.getItemAt(i));
         }
 
-        removeProxiesDialog.setVisible(true);
+        UI.setVisible(removeProxiesDialog);
     }//GEN-LAST:event_proxyRemoveButtonActionPerformed
 
     private void restoreProxyDialog(boolean addButtonPressed) {
@@ -5035,7 +5063,7 @@ public class GUI extends JFrame implements GuiListener {
             removeProxiesRemoveButton.setEnabled(true);
         }
         enableProxyButtons(true);
-        proxyDialog.setVisible(true);
+        UI.setVisible(proxyDialog);
     }
 
     void removeProxiesRemoveButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_removeProxiesRemoveButtonActionPerformed
@@ -5174,7 +5202,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         enableProxyButtons(true);
-        proxyDialog.setVisible(true);
+        UI.setVisible(proxyDialog);
     }//GEN-LAST:event_proxyImportButtonActionPerformed
 
     void proxyExportButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyExportButtonActionPerformed
@@ -5209,7 +5237,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         enableProxyButtons(true);
-        proxyDialog.setVisible(true);
+        UI.setVisible(proxyDialog);
     }//GEN-LAST:event_proxyExportButtonActionPerformed
 
     void msgOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_msgOKButtonActionPerformed
@@ -5367,7 +5395,7 @@ public class GUI extends JFrame implements GuiListener {
         profileDialog.setVisible(false);
         profileNameChangeTextField.setText("");
         profileNameChangeTextField.requestFocusInWindow();
-        profileNameChangeDialog.setVisible(true);
+        UI.setVisible(profileNameChangeDialog);
     }//GEN-LAST:event_profileRenameButtonActionPerformed
 
     void profileNameChangeOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileNameChangeOKButtonActionPerformed
@@ -5388,17 +5416,17 @@ public class GUI extends JFrame implements GuiListener {
         preferences.put("GUI.profile" + profile + "MenuItem.text", profileName);
 
         profileNameChangeDialog.setVisible(false);
-        profileDialog.setVisible(true);
+        UI.setVisible(profileDialog);
     }//GEN-LAST:event_profileNameChangeOKButtonActionPerformed
 
     void profileNameChangeCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileNameChangeCancelButtonActionPerformed
         profileNameChangeDialog.setVisible(false);
-        profileDialog.setVisible(true);
+        UI.setVisible(profileDialog);
     }//GEN-LAST:event_profileNameChangeCancelButtonActionPerformed
 
     void profileNameChangeDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_profileNameChangeDialogWindowClosing
         profileNameChangeDialog.setVisible(false);
-        profileDialog.setVisible(true);
+        UI.setVisible(profileDialog);
     }//GEN-LAST:event_profileNameChangeDialogWindowClosing
 
     void profileClearButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileClearButtonActionPerformed
@@ -5419,7 +5447,7 @@ public class GUI extends JFrame implements GuiListener {
         if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK) {
             msgDialogWindowClosing(null);
         } else {
-            msgDialog.setVisible(true);
+            UI.setVisible(msgDialog);
         }
     }//GEN-LAST:event_connectionIssueButtonActionPerformed
 
@@ -5455,10 +5483,10 @@ public class GUI extends JFrame implements GuiListener {
                 subtitleEpisodes.remove(-1);
             }
             tvSubtitleDownloadMatch1Button.requestFocusInWindow();
-            tvSubtitleDialog.setVisible(true);
+            UI.setVisible(tvSubtitleDialog);
         } else {
             movieSubtitleDownloadMatch1Button.requestFocusInWindow();
-            movieSubtitleDialog.setVisible(true);
+            UI.setVisible(movieSubtitleDialog);
         }
     }
 
@@ -5474,7 +5502,7 @@ public class GUI extends JFrame implements GuiListener {
             portRandomizeCheckBox.setSelected(false);
         }
         viewedPortBefore = true;
-        portDialog.setVisible(true);
+        UI.setVisible(portDialog);
     }//GEN-LAST:event_portMenuItemActionPerformed
 
     private void portOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_portOkButtonActionPerformed
@@ -5506,103 +5534,18 @@ public class GUI extends JFrame implements GuiListener {
         startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, true);
     }//GEN-LAST:event_movieSubtitleDownloadMatch1ButtonActionPerformed
 
-    private void hideFindTextField() {
-        if (findTextField.isEnabled()) {
-            findTextField.setEnabled(false);
-            findTextField.setText(null);
-            Color bgColor = getBackground();
-            findTextField.setBackground(bgColor);
-            findTextField.setForeground(bgColor);
-            findTextField.setBorder(null);
-            findTitleRow = -2;
-        }
-    }
-
     private void findMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findMenuItemActionPerformed
-        if (findTextField.isEnabled()) {
-            findTextField.requestFocusInWindow();
-            findTextField.selectAll();
-        } else {
-            findTextField.setBorder(titleTextField.getBorder());
-            findTextField.setForeground(titleTextField.getForeground());
-            findTextField.requestFocusInWindow();
-            findTextField.setEnabled(true);
-        }
+        findControl.show();
     }//GEN-LAST:event_findMenuItemActionPerformed
 
-    private void updateFindTitles(String currTitle) {
-        String title = Regex.htmlToPlainText(currTitle);
-        findTitles.addAll(Arrays.asList(title, Regex.replaceFirst(title, 327), title = Regex.clean(title), Regex.replaceFirst(title, 327)));
-    }
-
     private void findTextFieldKeyPressed(KeyEvent evt) {//GEN-FIRST:event_findTextFieldKeyPressed
-        int selectedRow = resultsSyncTable.getSelectedRow(), key = KeyEvent.VK_UNDEFINED;
-        if (evt != null) {
-            if ((key = evt.getKeyCode()) == KeyEvent.VK_ENTER && selectedRow == findTitleRow) {
+        findControl.find(evt, new Runnable() {
+            @Override
+            public void run() {
                 readSummaryButtonActionPerformed(null);
-                return;
-            } else if (key == KeyEvent.VK_ESCAPE) {
-                hideFindTextField();
-                return;
             }
-        }
-
-        String text = findTextField.getText().toLowerCase(Locale.ENGLISH);
-        if (text.isEmpty()) {
-            return;
-        }
-
-        boolean continueFind = (findTitleRow != -2 && selectedRow != -1 && (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_UP));
-        int numTitles = findTitles.size();
-        List<Integer> foundRows = new ArrayList<Integer>((numTitles / 16) + 1);
-        for (int i = 0; i < numTitles; i += 4) {
-            for (int j = i, k = i + 4; j < k; j++) {
-                if (!findTitles.get(j).toLowerCase(Locale.ENGLISH).startsWith(text)) {
-                    continue;
-                }
-                int foundRow = resultsSyncTable.convertRowIndexToView(i / 4);
-                if (continueFind) {
-                    if (foundRow != findTitleRow) {
-                        foundRows.add(foundRow);
-                    }
-                } else {
-                    setFindTitleRow(foundRow);
-                    return;
-                }
-            }
-        }
-
-        if (foundRows.isEmpty()) {
-            return;
-        }
-
-        Collections.sort(foundRows);
-        int numFoundRows = foundRows.size();
-        if (key == KeyEvent.VK_DOWN) {
-            for (int i = 0; i < numFoundRows; i++) {
-                int foundRow = foundRows.get(i);
-                if (foundRow > findTitleRow) {
-                    setFindTitleRow(foundRow);
-                    return;
-                }
-            }
-            setFindTitleRow(foundRows.get(0));
-        } else {
-            for (int i = numFoundRows - 1; i > -1; i--) {
-                int foundRow = foundRows.get(i);
-                if (foundRow < findTitleRow) {
-                    setFindTitleRow(foundRow);
-                    return;
-                }
-            }
-            setFindTitleRow(foundRows.get(numFoundRows - 1));
-        }
+        }, resultsSyncTable);
     }//GEN-LAST:event_findTextFieldKeyPressed
-
-    private void setFindTitleRow(int row) {
-        resultsSyncTable.changeSelection(row, 0, false, false);
-        findTitleRow = row;
-    }
 
     private void summaryCloseButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_summaryCloseButtonKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -5920,7 +5863,7 @@ public class GUI extends JFrame implements GuiListener {
             if (isConfirmed(Str.str("invalidPortPart1", port) + ' ' + Str.str("invalidPortPart2") + ' ' + Str.str("invalidPortPart3") + ' ' + Str.str(
                     "invalidPortPart4"))) {
                 resultsToBackground(true);
-                portDialog.setVisible(true);
+                UI.setVisible(portDialog);
             } else {
                 portTextField.setText(null);
                 portRandomizeCheckBox.setSelected(true);
@@ -5962,6 +5905,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void playlistPlayButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistPlayButtonActionPerformed
+        playlistFindControl.hide();
         boolean force = forcePlay;
         forcePlay = false;
         PlaylistItem playlistItem = selectedPlaylistItem();
@@ -5990,6 +5934,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_playlistMoveUpButtonActionPerformed
 
     private void playlistMove(boolean up) {
+        playlistFindControl.hide();
         synchronized (playlistSyncTable.lock) {
             int numRows = UI.getUnfilteredRowCount(playlistSyncTable.table);
             int[] rows;
@@ -6020,6 +5965,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_playlistMoveDownMenuItemActionPerformed
 
     private void playlistRemoveButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistRemoveButtonActionPerformed
+        playlistFindControl.hide();
         synchronized (playlistSyncTable.lock) {
             int[] viewRows = playlistSyncTable.table.getSelectedRows();
             if (viewRows.length == 0) {
@@ -6065,6 +6011,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_playlistCopyMenuItemActionPerformed
 
     private void playlistOpenMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistOpenMenuItemActionPerformed
+        playlistFindControl.hide();
         PlaylistItem playlistItem = selectedPlaylistItem();
         if (playlistItem != null) {
             playlistItem.open();
@@ -6153,6 +6100,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_languageCountryOkButtonActionPerformed
 
     private void watchOnDeviceMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchOnDeviceMenuItemActionPerformed
+        findControl.hide();
         try {
             Connection.browse(Str.get(Constant.WINDOWS ? 718 : (Constant.MAC ? 719 : 720)));
         } catch (Exception e) {
@@ -6179,11 +6127,21 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_exitBackupModeButtonActionPerformed
 
     private void playlistReloadGroupMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistReloadGroupMenuItemActionPerformed
+        playlistFindControl.hide();
         PlaylistItem playlistItem = selectedPlaylistItem();
         if (playlistItem != null) {
             workerListener.reloadGroup(playlistItem);
         }
     }//GEN-LAST:event_playlistReloadGroupMenuItemActionPerformed
+
+    private void playlistFindTextFieldKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistFindTextFieldKeyPressed
+        playlistFindControl.find(evt, new Runnable() {
+            @Override
+            public void run() {
+                playlistPlayButtonActionPerformed(null);
+            }
+        }, playlistSyncTable);
+    }//GEN-LAST:event_playlistFindTextFieldKeyPressed
 
     private void playlistKeyPressed(KeyEvent evt) {
         if (!evt.isControlDown()) {
@@ -6196,6 +6154,8 @@ public class GUI extends JFrame implements GuiListener {
         } else if (key == KeyEvent.VK_N) {
             playlistShowNonVideoItemsCheckBoxMenuItem.setSelected(!playlistShowNonVideoItemsCheckBoxMenuItem.isSelected());
             playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
+        } else if (key == KeyEvent.VK_F) {
+            playlistFindControl.show();
         } else if (key == KeyEvent.VK_W) {
             UI.show(this);
         }
@@ -6884,7 +6844,7 @@ public class GUI extends JFrame implements GuiListener {
                     timedMsgLabel.setText(msg);
                     timedMsgDialog.pack();
                     timedMsgDialog.setLocationRelativeTo(GUI.this);
-                    timedMsgDialog.setVisible(true);
+                    UI.setVisible(timedMsgDialog);
                     try {
                         Thread.sleep(Regex.split(msg, " ").length * 400L);
                         timedMsgDialog.setVisible(false);
@@ -6949,7 +6909,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void showSafetyDialog() {
         Window alwaysOnTopFocus = resultsToBackground();
-        safetyDialog.setVisible(true);
+        UI.setVisible(safetyDialog);
         resultsToForeground(alwaysOnTopFocus);
     }
 
@@ -6998,7 +6958,7 @@ public class GUI extends JFrame implements GuiListener {
                 "</td></tr></table></body>"));
         summaryEditorPane.setSelectionStart(0);
         summaryEditorPane.setSelectionEnd(0);
-        summaryDialog.setVisible(true);
+        UI.setVisible(summaryDialog);
         summaryCloseButton.requestFocusInWindow();
     }
 
@@ -7281,7 +7241,7 @@ public class GUI extends JFrame implements GuiListener {
             downloadLinkEpisodes.clear();
             subtitleEpisodes.clear();
         }
-        findTitles.clear();
+        findControl.clearFindables();
     }
 
     @Override
@@ -7348,7 +7308,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         posterImagePaths.add((String) result[imageCol]);
-        updateFindTitles((String) result[currTitleCol]);
+        findControl.addFindable((String) result[currTitleCol]);
     }
 
     @Override
@@ -7356,7 +7316,7 @@ public class GUI extends JFrame implements GuiListener {
         for (Object[] result : results) {
             resultsSyncTable.addRow(result);
             posterImagePaths.add((String) result[imageCol]);
-            updateFindTitles((String) result[currTitleCol]);
+            findControl.addFindable((String) result[currTitleCol]);
         }
     }
 
@@ -7852,7 +7812,7 @@ public class GUI extends JFrame implements GuiListener {
     public void showLicenseActivation() {
         activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this);
         resultsToBackground(true);
-        activationDialog.setVisible(true);
+        UI.setVisible(activationDialog);
     }
 
     @Override
@@ -8462,6 +8422,7 @@ public class GUI extends JFrame implements GuiListener {
     JCheckBoxMenuItem playlistAutoOpenCheckBoxMenuItem;
     JMenuItem playlistCopyMenuItem;
     JFileChooser playlistFileChooser;
+    JTextField playlistFindTextField;
     JFrame playlistFrame;
     JMenu playlistMenu;
     JMenuItem playlistMenuItem;

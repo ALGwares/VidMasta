@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.01.22   | VidMasta 20.6
+
+CHANGE: CORE | Fixed subtitle downloading connection issue causing subtitles to not be found
+CHANGE: UI   | Added find functionality (ctrl+f) to playlist
+CHANGE: UI   | Prevented always-on-top windows from hiding modal dialogs
+
+
+
+
 2015.12.08   | VidMasta 20.5
 
 CHANGE: CORE | Improved play and download error handling

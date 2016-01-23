@@ -33,7 +33,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
     private boolean isTVShow, isTVShowAndMovie, stopped;
     private final boolean firstMatch;
     private VideoStrExportListener strExportListener;
-    private String subtitleLink;
+    private String subtitleLink, prevUrl;
     private static final Map<Long, String> cache = new HashMap<Long, String>(8);
 
     public SubtitleFinder(GuiListener guiListener, String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener) {
@@ -112,28 +112,28 @@ public class SubtitleFinder extends AbstractSwingWorker {
         }
     }
 
-    private String getSourceCode(String urlStr) throws Exception {
-        String url = urlStr, source;
+    private String getSourceCode(String url) throws Exception {
+        String source;
         try {
-            source = Connection.getSourceCode(url, DomainType.SUBTITLE);
+            source = Connection.getSourceCode(prevUrl = url, DomainType.SUBTITLE);
         } catch (ConnectionException e) {
             // Handle server's unencoded redirect URL bug
-            if (e.URL == null || e.URL.equals(url)) {
+            if (e.URL == null || e.URL.equals(prevUrl)) {
                 throw e;
             }
             String titleName = Regex.match(e.URL, 510);
             if (!titleName.equals(URLDecoder.decode(titleName, Constant.UTF8))) {
                 throw e;
             }
-            source = Connection.getSourceCode(url = e.URL.replace(Str.get(512) + titleName, Str.get(512) + URLEncoder.encode(titleName, Constant.UTF8)),
+            source = Connection.getSourceCode(prevUrl = e.URL.replace(Str.get(512) + titleName, Str.get(512) + URLEncoder.encode(titleName, Constant.UTF8)),
                     DomainType.SUBTITLE);
         }
 
         if (!Regex.firstMatch(source, 453).isEmpty()) {
-            Connection.removeFromCache(url);
+            Connection.removeFromCache(prevUrl);
             if (!isCancelled()) {
                 searchStopped();
-                guiListener.msg(Connection.serverError(url), Constant.ERROR_MSG);
+                guiListener.msg(Connection.serverError(prevUrl), Constant.ERROR_MSG);
             }
             throw new ConnectionException();
         }
@@ -247,7 +247,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
             IO.fileOp(subtitleDir, IO.MK_DIR);
             try {
                 try {
-                    Connection.saveData(url, subtitleZip, DomainType.SUBTITLE);
+                    Connection.saveData(url, subtitleZip, DomainType.SUBTITLE, true, prevUrl);
                 } catch (Exception e) {
                     if (Debug.DEBUG) {
                         Debug.print(e);

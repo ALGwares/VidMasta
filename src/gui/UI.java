@@ -3,6 +3,8 @@ package gui;
 import debug.Debug;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -27,6 +29,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -397,8 +401,27 @@ public class UI {
                 }
             }
         }
-        frame.setVisible(true);
+        setVisible(frame);
         deiconify(frame);
+    }
+
+    public static void setVisible(final Window window) {
+        if (window.isAlwaysOnTop()) {
+            for (final Window currWindow : Window.getWindows()) {
+                if (currWindow.isVisible() && currWindow instanceof Dialog && ((Dialog) currWindow).getModalityType() == ModalityType.APPLICATION_MODAL) {
+                    window.setAlwaysOnTop(false);
+                    currWindow.addComponentListener(new ComponentAdapter() {
+                        @Override
+                        public void componentHidden(ComponentEvent evt) {
+                            currWindow.removeComponentListener(this);
+                            window.setAlwaysOnTop(true);
+                        }
+                    });
+                    break;
+                }
+            }
+        }
+        window.setVisible(true);
     }
 
     public static boolean deiconifyThenIsShowing(Frame frame) {

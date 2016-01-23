@@ -160,7 +160,7 @@ public class Connection {
                         return "";
                     }
 
-                    setConnectionProperties(connection, compress);
+                    setConnectionProperties(connection, compress, null);
                     br = new BufferedReader(new InputStreamReader(connect(connection), Constant.UTF8));
                     if (isCancelled()) {
                         return "";
@@ -332,17 +332,16 @@ public class Connection {
         return is;
     }
 
-    public static void setConnectionProperties(HttpURLConnection connection) {
-        setConnectionProperties(connection, false);
-    }
-
-    public static void setConnectionProperties(HttpURLConnection connection, boolean compress) {
+    public static void setConnectionProperties(HttpURLConnection connection, boolean compress, String referer) {
         connection.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1;q=0.9, us-ascii;q=0.8, *;q=0.7");
         connection.setRequestProperty("Accept-Language", "en-US, en-GB;q=0.9, en;q=0.8, *;q=0.7");
         if (compress) {
             connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
         }
         connection.setRequestProperty("User-Agent", Str.get(301));
+        if (referer != null) {
+            connection.setRequestProperty("Referer", referer);
+        }
         int timeout = guiListener.getTimeout() * 1000;
         connection.setConnectTimeout(timeout);
         connection.setReadTimeout(timeout);
@@ -399,6 +398,11 @@ public class Connection {
     }
 
     public static void saveData(final String url, final String outputPath, final DomainType domainType, final boolean showStatus) throws Exception {
+        saveData(url, outputPath, domainType, showStatus, null);
+    }
+
+    public static void saveData(final String url, final String outputPath, final DomainType domainType, final boolean showStatus, final String referer)
+            throws Exception {
         if (Debug.DEBUG) {
             Debug.println(url);
         }
@@ -421,7 +425,7 @@ public class Connection {
                         return null;
                     }
 
-                    setConnectionProperties(connection);
+                    setConnectionProperties(connection, false, referer);
                     is = connection.getInputStream();
                     if (isCancelled()) {
                         return null;
@@ -518,7 +522,7 @@ public class Connection {
                     return "";
                 }
 
-                setConnectionProperties(connection);
+                setConnectionProperties(connection, false, null);
                 is = connection.getInputStream();
                 if (callingWorker.isCancelled()) {
                     return "";

@@ -237,8 +237,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 if (contentType != ContentType.DOWNLOAD3) {
                     if (video.IS_TV_SHOW && torrents.isEmpty() && !video.episode.isEmpty() && !Constant.ANY.equals(video.episode)
                             && String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season) && !Connection.downloadLinkInfoFail()) { // Assumes TV show with
-                        // season 1 just released and download listed with 'episode #' in name; worst case is false positive of newer season and with desired
-                        // episode
+                        // season 1 just released and download listed with 'episode #' in name; worst case is false positive of newer season with desired episode
                         torrentFinders.clear();
                         String prevSeason = video.season;
                         try {

@@ -3009,7 +3009,9 @@
                       <Component id="playlistScrollPane" pref="880" max="32767" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="playlistPlayButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="32767" attributes="0"/>
+                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                          <Component id="playlistFindTextField" max="32767" attributes="0"/>
+                          <EmptySpace type="separate" max="-2" attributes="0"/>
                           <Component id="playlistMoveUpButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="playlistMoveDownButton" min="-2" max="-2" attributes="0"/>
@@ -3025,13 +3027,16 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" max="-2" attributes="0"/>
-                  <Component id="playlistScrollPane" pref="288" max="32767" attributes="0"/>
+                  <Component id="playlistScrollPane" pref="287" max="32767" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="playlistPlayButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="playlistMoveUpButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="playlistMoveDownButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="playlistRemoveButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="playlistFindTextField" linkSize="181" alignment="0" min="-2" pref="19" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="playlistPlayButton" linkSize="181" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="playlistMoveUpButton" linkSize="181" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="playlistMoveDownButton" linkSize="181" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="playlistRemoveButton" linkSize="181" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -3136,6 +3141,11 @@
             <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="playlistPlayButtonMousePressed"/>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistPlayButtonActionPerformed"/>
             <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistPlayButtonKeyPressed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JTextField" name="playlistFindTextField">
+          <Events>
+            <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="playlistFindTextFieldKeyPressed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JButton" name="playlistMoveUpButton">
