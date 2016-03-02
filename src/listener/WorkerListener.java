@@ -29,8 +29,6 @@ public interface WorkerListener {
 
     boolean areWorkersDone();
 
-    boolean isLinkProgressDone();
-
     String getSafetyComments();
 
     void summarySearchStarted(int row, Video video, VideoStrExportListener strExportListener);

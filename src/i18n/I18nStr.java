@@ -32,7 +32,7 @@ public class I18nStr {
         return replace(str(key), replacements);
     }
 
-    private static String replace(String str, Object... replacements) {
+    public static String replace(String str, Object... replacements) {
         String result = str;
         for (Object replacement : replacements) {
             result = result.replaceFirst("999", Matcher.quoteReplacement(replacement.toString()));

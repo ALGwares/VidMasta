@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
@@ -60,7 +61,6 @@ import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
-import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
@@ -285,35 +285,35 @@ public class UI {
         return true;
     }
 
-    public static boolean isMaxSize(Dimension size) {
-        Rectangle screenBounds = getUsableScreenBounds();
+    public static boolean isMaxSize(Component component, Dimension size) {
+        Rectangle screenBounds = getUsableScreenBounds(component);
         return size.width >= screenBounds.width && size.height >= screenBounds.height;
     }
 
     public static void centerOnScreen(Window window) {
-        window.setLocation(screenCenter(window.getSize()));
+        window.setLocation(screenCenter(window));
     }
 
-    public static Point screenCenter(Dimension windowSize) {
-        Rectangle screenBounds = getUsableScreenBounds();
-        if (windowSize.height > screenBounds.height) {
-            windowSize.height = screenBounds.height;
+    public static Point screenCenter(Component component) {
+        Dimension componentSize = component.getSize();
+        Rectangle screenBounds = getUsableScreenBounds(component);
+        if (componentSize.height > screenBounds.height) {
+            componentSize.height = screenBounds.height;
         }
-        if (windowSize.width > screenBounds.width) {
-            windowSize.width = screenBounds.width;
+        if (componentSize.width > screenBounds.width) {
+            componentSize.width = screenBounds.width;
         }
-        return new Point((screenBounds.width - windowSize.width) / 2, (screenBounds.height - windowSize.height) / 2);
+        return new Point((screenBounds.width - componentSize.width) / 2, (screenBounds.height - componentSize.height) / 2);
     }
 
-    public static Rectangle getUsableScreenBounds() {
-        GraphicsConfiguration graphicsConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+    public static Rectangle getUsableScreenBounds(Component component) {
+        GraphicsConfiguration graphicsConfig = component.getGraphicsConfiguration();
+        if (graphicsConfig == null) {
+            graphicsConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        }
         Rectangle bounds = graphicsConfig.getBounds();
         Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsConfig);
-        bounds.y += insets.top;
-        bounds.x += insets.left;
-        bounds.height -= (insets.top + insets.bottom);
-        bounds.width -= (insets.left + insets.right);
-        return bounds;
+        return new Rectangle(insets.left, insets.top, bounds.width - (insets.left + insets.right), bounds.height - (insets.top + insets.bottom));
     }
 
     public static BufferedImage image(Icon icon) {
@@ -343,6 +343,47 @@ public class UI {
 
     public static void setIcon(AbstractButton button, String name) {
         button.setIcon(icon(name + ".png"));
+    }
+
+    public static void updateToggleButton(AbstractButton button, String nameKey, boolean init) {
+        String name = Str.str(nameKey);
+        button.setName(name);
+        if (init) {
+            button.putClientProperty(Constant.STOP_KEY, new AtomicBoolean());
+        } else {
+            button.setText(isStop(button) ? Str.str(Constant.STOP_KEY) : name);
+        }
+    }
+
+    public static boolean isStop(AbstractButton button) {
+        return ((AtomicBoolean) button.getClientProperty(Constant.STOP_KEY)).get();
+    }
+
+    public static void enable(AbstractButton[] primaryButtons, Boolean startPrimary, Component[] secondaryComponents,
+            Boolean enableSecondary) {
+        enable(primaryButtons, true, startPrimary, null, null, secondaryComponents, enableSecondary, null, null);
+    }
+
+    public static void enable(AbstractButton[] primaryButtons, Boolean enablePrimary, Boolean startPrimary, AbstractButton primaryButtons2,
+            Boolean enablePrimary2, Component[] secondaryComponents, Boolean enableSecondary, Component[] secondaryComponents2, Boolean enableSecondary2) {
+        if (enablePrimary2 != null) {
+            enable(enablePrimary2, primaryButtons2);
+        }
+        if (enablePrimary != null) {
+            enable(enablePrimary, primaryButtons);
+        }
+        if (startPrimary != null) {
+            for (AbstractButton primaryButton : primaryButtons) {
+                ((AtomicBoolean) primaryButton.getClientProperty(Constant.STOP_KEY)).set(!startPrimary);
+                primaryButton.setText(startPrimary ? primaryButton.getName() : Str.str(Constant.STOP_KEY));
+            }
+        }
+        if (secondaryComponents2 != null && enableSecondary2 != null) {
+            enable(enableSecondary2, secondaryComponents2);
+        }
+        if (enableSecondary != null) {
+            enable(enableSecondary, secondaryComponents);
+        }
     }
 
     public static void enable(boolean enable, Component... components) {
@@ -408,7 +449,7 @@ public class UI {
     public static void setVisible(final Window window) {
         if (window.isAlwaysOnTop()) {
             for (final Window currWindow : Window.getWindows()) {
-                if (currWindow.isVisible() && currWindow instanceof Dialog && ((Dialog) currWindow).getModalityType() == ModalityType.APPLICATION_MODAL) {
+                if (currWindow.isVisible() && currWindow instanceof Dialog && ((Dialog) currWindow).getModalityType() != ModalityType.MODELESS) {
                     window.setAlwaysOnTop(false);
                     currWindow.addComponentListener(new ComponentAdapter() {
                         @Override
@@ -620,11 +661,6 @@ public class UI {
         }
     }
 
-    public static void setVal(JProgressBar progressBar, int val) {
-        progressBar.setValue(val);
-        progressBar.setString(Str.percent(val / (double) progressBar.getMaximum(), 0));
-    }
-
     public static String[] items(int min, int max, int increment, boolean pad, String head, String tail) {
         List<String> items = new ArrayList<String>(102);
         if (head != null) {
@@ -703,6 +739,25 @@ public class UI {
                 Debug.print(e);
             }
             return null;
+        }
+    }
+
+    public static void resize(AbstractComponent component, String... referenceTexts) {
+        component.component.setMinimumSize(null);
+        component.component.setPreferredSize(null);
+        Dimension minSize = new Dimension();
+        String text = component.getText();
+        for (String referenceText : referenceTexts) {
+            component.setText(referenceText);
+            Dimension preferredSize = component.component.getPreferredSize();
+            if (preferredSize != null && preferredSize.width > minSize.width) {
+                minSize = new Dimension(preferredSize);
+            }
+        }
+        component.setText(text);
+        if (minSize.width > 0) {
+            component.component.setMinimumSize(minSize);
+            component.component.setPreferredSize(minSize);
         }
     }
 

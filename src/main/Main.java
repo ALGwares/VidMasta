@@ -26,6 +26,7 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -88,8 +89,13 @@ public class Main implements WorkerListener {
         });
     }
 
-    private Main(SplashScreen splashScreen) throws Exception {
-        gui = new GUI(this, splashScreen);
+    private Main(final SplashScreen splashScreen) throws Exception {
+        gui = UI.run(new Callable<GuiListener>() {
+            @Override
+            public GuiListener call() throws Exception {
+                return new GUI(Main.this, splashScreen);
+            }
+        });
     }
 
     public static void init() {
@@ -150,24 +156,34 @@ public class Main implements WorkerListener {
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                if (!splashScreen.isVisible()) {
-                    System.exit(0);
+                try {
+                    if (!splashScreen.isVisible()) {
+                        System.exit(0);
+                    }
+                    if ((splashScreen.getExtendedState() & Frame.ICONIFIED) == Frame.ICONIFIED) {
+                        gui.setExtendedState(gui.getExtendedState() | Frame.ICONIFIED);
+                    }
+                    Rectangle splashScreenBounds = splashScreen.getBounds();
+                    if (!splashScreenBounds.equals(initialSplashScreenBounds)) {
+                        gui.setBounds(splashScreenBounds);
+                    }
+                    gui.setVisible(true);
+                    gui.resizeContent();
+                    gui.setInitialFocus();
+                    splashScreen.setVisible(false);
+                    gui.maximize();
+                    gui.startPosterCacher();
+                    gui.showFeed(true);
+                    splashScreen.dispose();
+                    mainFrame = gui;
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                    JOptionPane.showMessageDialog(null, ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
+                    IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+                    System.exit(-1);
                 }
-                if ((splashScreen.getExtendedState() & Frame.ICONIFIED) == Frame.ICONIFIED) {
-                    gui.setExtendedState(gui.getExtendedState() | Frame.ICONIFIED);
-                }
-                Rectangle splashScreenBounds = splashScreen.getBounds();
-                if (!splashScreenBounds.equals(initialSplashScreenBounds)) {
-                    gui.setBounds(splashScreenBounds);
-                }
-                gui.setVisible(true);
-                splashScreen.setVisible(false);
-                gui.maximize();
-                gui.setInitialFocus();
-                gui.startPosterCacher();
-                gui.showFeed(true);
-                splashScreen.dispose();
-                mainFrame = gui;
             }
         });
 
@@ -288,11 +304,6 @@ public class Main implements WorkerListener {
     @Override
     public boolean areWorkersDone() {
         return isSummarySearchDone() && isTrailerSearchDone() && isTorrentSearchDone() && areSearchersDone();
-    }
-
-    @Override
-    public boolean isLinkProgressDone() {
-        return torrentFinder == null || torrentFinder.isLinkProgressDone();
     }
 
     @Override
@@ -515,9 +526,8 @@ public class Main implements WorkerListener {
         try {
             String classNamePrefix = "de.javasoft.plaf.synthetica.Synthetica", rootPaneUIClass = classNamePrefix + "RootPaneUI", anonymousInnerClass1 = "$1";
             ModClass.mod(Constant.PROGRAM_DIR + "lib" + Constant.FILE_SEPARATOR + "libs" + Constant.JAR, new ModClass(rootPaneUIClass, new byte[]{0, 2, 4, -84, 0},
-                    new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{77, 16, 16, 96, -75},
-                            new byte[]{77, 16, 0, 96, -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6},
-                            new byte[]{0, 29, -102, 0, 6}));
+                    new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{14, 16, 16, 96, -75}, new byte[]{14, 16, 0, 96,
+                        -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6}, new byte[]{0, 29, -102, 0, 6}));
             UIManager.put("Synthetica.text.antialias", true);
             UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
             UIManager.put("Synthetica.translucency4DisabledIcons.enabled", true);

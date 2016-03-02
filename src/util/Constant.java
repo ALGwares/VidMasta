@@ -13,7 +13,7 @@ public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 20.6;
+    public static final double APP_VERSION = 20.7;
     public static final String VERSION_FORMAT = "0.0";
     public static final boolean WINDOWS_XP_AND_HIGHER;
     public static final int MAX_SUBDIRECTORIES = 100;
@@ -27,6 +27,7 @@ public class Constant implements IOConstant {
     public static final String OLD_TITLE_COL = "2", SUMMARY_COL = "3", IMAGE_LINK_COL = "4", IS_TV_SHOW_COL = "5", IS_TV_SHOW_AND_MOVIE_COL = "6";
     public static final String PLAYLIST_ITEM_COL = "0";
     public static final String SEASON_COL = "7", EPISODE_COL = "8";
+    public static final String STOP_KEY = "stop";
     public static final String TV_EPISODE_FORMAT = "%02d", RATING_FORMAT = "#.0", NO_RATING = "-";
     public static final String ZERO_WIDTH_SPACE;
     public static final String GENRE_HTML_ID = "genre", STORYLINE_HTML_ID = "storyline";

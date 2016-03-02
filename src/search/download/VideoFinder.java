@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
 import listener.ContentType;
 import listener.DomainType;
@@ -38,12 +37,12 @@ public class VideoFinder extends AbstractSwingWorker {
 
     final GuiListener guiListener;
     public final ContentType CONTENT_TYPE;
+    private ContentType downloadType;
     public final int ROW;
     private final VideoStrExportListener strExportListener;
     final Video video;
     public final boolean PREFETCH, PLAY;
     public final String TITLE;
-    final AtomicBoolean isLinkProgressDone = new AtomicBoolean();
     private boolean isDownload1, cancelTVSelection, playAutoStart = true, startPeerblock = true;
     private String oldTitle, export;
     private static volatile SwingWorker<?, ?> episodeFinder;
@@ -122,7 +121,6 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void resetDownloadVideoFinder() {
-        isLinkProgressDone.set(false);
         torrents.clear();
         if (torrentFinders == null) {
             torrentFinders = new ArrayList<TorrentFinder>(12);
@@ -130,10 +128,6 @@ public class VideoFinder extends AbstractSwingWorker {
             torrentFinders.clear();
         }
         startPeerblock = false;
-    }
-
-    public boolean isLinkProgressDone() {
-        return isLinkProgressDone.get();
     }
 
     public void prefetch() throws Exception {
@@ -159,14 +153,8 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private void linkProgressDone() {
-        isLinkProgressDone.set(true);
-        guiListener.enableLinkProgress(false);
-    }
-
     private void startPeerBlock() {
-        guiListener.enableTorrentSearchStop(false);
-        linkProgressDone();
+        guiListener.enable(false, null, true, downloadType);
         if (startPeerblock) {
             try {
                 guiListener.startPeerBlock();
@@ -178,12 +166,6 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private void downloadStopped() {
-        guiListener.enableTorrentSearchStop(false);
-        guiListener.videoDownloadStopped();
-        linkProgressDone();
-    }
-
     private void error(Exception e) {
         if (!isCancelled()) {
             guiListener.error(e);
@@ -192,37 +174,33 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void search(ContentType contentType) {
         if (contentType == ContentType.SUMMARY) {
-            guiListener.readSummaryStarted();
-            guiListener.enableSummarySearchStop(true);
+            guiListener.enable(true, false, false, contentType);
             try {
                 findSummary();
             } catch (Exception e) {
                 error(e);
             }
-            guiListener.enableSummarySearchStop(false);
-            guiListener.readSummaryStopped();
+            guiListener.enable(contentType);
         } else if (contentType == ContentType.TRAILER) {
-            guiListener.watchTrailerStarted();
-            guiListener.enableTrailerSearchStop(true);
+            guiListener.enable(true, false, false, contentType);
             try {
                 findTrailer();
             } catch (Exception e) {
                 error(e);
             }
-            guiListener.enableTrailerSearchStop(false);
-            guiListener.watchTrailerStopped();
+            guiListener.enable(contentType);
         } else {
             isDownload1 = (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD3);
+            downloadType = (PLAY ? null : (isDownload1 ? ContentType.DOWNLOAD1 : ContentType.DOWNLOAD2));
             searchState = new TorrentSearchState(guiListener);
-            guiListener.enableDownload(false);
-            guiListener.enableTorrentSearchStop(true);
+            guiListener.enable(true, false, false, downloadType);
 
             try {
                 if (contentType == ContentType.DOWNLOAD3) {
                     findAltDownloadLink();
                 } else if (video.IS_TV_SHOW) {
                     if (!findTVDownloadLink(true)) {
-                        downloadStopped();
+                        guiListener.enable(downloadType);
                         return;
                     }
                 } else {
@@ -230,7 +208,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (isCancelled()) {
-                    downloadStopped();
+                    guiListener.enable(downloadType);
                     return;
                 }
 
@@ -243,7 +221,7 @@ public class VideoFinder extends AbstractSwingWorker {
                         try {
                             video.season = Constant.ANY;
                             if (!findTVDownloadLink(false) || isCancelled()) {
-                                downloadStopped();
+                                guiListener.enable(downloadType);
                                 return;
                             }
                         } finally {
@@ -261,7 +239,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (isCancelled()) {
-                    downloadStopped();
+                    guiListener.enable(downloadType);
                     return;
                 }
 
@@ -274,8 +252,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (torrent == null) {
-                    guiListener.enableTorrentSearchStop(false);
-                    linkProgressDone();
+                    guiListener.enable(false, null, true, downloadType);
                     guiListener.msg(Str.str(("download" + (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent()) ? ""
                             : ((isDownload1 ? "1" : "2") + (PLAY ? "Play" : "")))) + "LinkNotFound"), Constant.INFO_MSG);
                 } else {
@@ -318,7 +295,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 error(e);
             }
 
-            downloadStopped();
+            guiListener.enable(downloadType);
         }
     }
 
@@ -539,7 +516,6 @@ public class VideoFinder extends AbstractSwingWorker {
                 continue;
             }
 
-            guiListener.enableLinkProgress(true);
             Magnet.waitForAzureusToStart();
             if (isCancelled()) {
                 return;
@@ -589,7 +565,6 @@ public class VideoFinder extends AbstractSwingWorker {
                 return false;
             }
 
-            guiListener.enableLinkProgress(true);
             Magnet.waitForAzureusToStart();
             if (isCancelled()) {
                 return false;
@@ -640,7 +615,6 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void findMovieDownloadLink() throws Exception {
         if (!PREFETCH) {
-            guiListener.enableLinkProgress(true);
             Magnet.waitForAzureusToStart();
             if (isCancelled()) {
                 return;

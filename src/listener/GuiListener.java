@@ -10,25 +10,9 @@ public interface GuiListener {
 
     void error(Exception e);
 
-    void readSummaryStarted();
+    void enable(Boolean enablePrimary, Boolean enableSecondary, Boolean startPrimary, ContentType contentType);
 
-    void readSummaryStopped();
-
-    void watchTrailerStarted();
-
-    void watchTrailerStopped();
-
-    void enableDownload(boolean enable);
-
-    void enableSummarySearchStop(boolean enable);
-
-    void enableTrailerSearchStop(boolean enable);
-
-    void enableTorrentSearchStop(boolean enable);
-
-    void enableLinkProgress(boolean enable);
-
-    void videoDownloadStopped();
+    void enable(ContentType contentType);
 
     void altVideoDownloadStarted();
 
@@ -84,13 +68,9 @@ public interface GuiListener {
 
     void searchStarted();
 
-    void newSearch(int maxProgress, boolean isTVShow);
-
-    boolean oldSearch(int maxProgress);
+    void newSearch(boolean isTVShow);
 
     void searchStopped();
-
-    void searchProgressMaxOut();
 
     void moreResults(boolean areMoreResults);
 
@@ -98,9 +78,7 @@ public interface GuiListener {
 
     void newResults(Iterable<Object[]> results);
 
-    void searchNumResultsUpdate(int numResults);
-
-    void searchProgressIncrement();
+    void searchProgressUpdate(int numResults, double progress);
 
     boolean newPlaylistItems(List<Object[]> items, int insertRow, int primaryItemIndex);
 

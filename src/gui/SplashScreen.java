@@ -1,6 +1,7 @@
 package gui;
 
 import i18n.Bundle;
+import i18n.I18nStr;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -21,7 +22,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -35,6 +35,7 @@ public class SplashScreen extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private static final int MAX_PROGRESS = 50;
+
     private final ResourceBundle bundle;
     private final NumberFormat percentFormat;
     private final String INITIALIZING, DONE;
@@ -51,7 +52,6 @@ public class SplashScreen extends JFrame {
 
         initComponents();
 
-        UI.setIcon(closeBoxButton, "closeBox");
         loadingLabel.setIcon(UI.icon("loading.gif"));
         UI.setIcon(connectionIssueButton, "noWarning");
 
@@ -60,10 +60,9 @@ public class SplashScreen extends JFrame {
         findTextField.setBackground(bgColor);
         findTextField.setForeground(bgColor);
 
-        Dimension windowSize = new Dimension(1022, 680);
-        setSize(windowSize);
+        setSize(new Dimension(1022, 680));
         setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
-        setLocation(UI.screenCenter(windowSize));
+        setLocation(UI.screenCenter(this));
     }
 
     void progress() {
@@ -79,26 +78,19 @@ public class SplashScreen extends JFrame {
         ratingLabel = new JLabel();
         resultsScrollPane = new JScrollPane();
         resultsTable = new JTable();
-        progressBar = new JProgressBar();
-        progressBarLabel = new JLabel();
-        resultsLabel = new JLabel();
         searchButton = new JButton();
-        stopButton = new JButton();
-        anyTitleCheckBox = new JCheckBox();
         genreScrollPane = new JScrollPane();
         genreList = new JList();
         loadMoreResultsButton = new JButton();
         typeLabel = new JLabel();
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
-        linkProgressBar = new JProgressBar();
         hqVideoTypeCheckBox = new JCheckBox();
         dvdCheckBox = new JCheckBox();
         hd720CheckBox = new JCheckBox();
         hd1080CheckBox = new JCheckBox();
         popularMoviesButton = new JButton();
         popularTVShowsButton = new JButton();
-        closeBoxButton = new JButton();
         loadingLabel = new JLabel();
         readSummaryButton = new JButton();
         watchTrailerButton = new JButton();
@@ -106,6 +98,7 @@ public class SplashScreen extends JFrame {
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
         statusBarTextField = new JTextField();
+        searchProgressTextField = new JTextField();
         exitBackupModeButton = new JButton();
         connectionIssueButton = new JButton();
         startDateTextField = new JTextField();
@@ -199,30 +192,10 @@ public class SplashScreen extends JFrame {
             resultsTable.getColumnModel().getColumn(3).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title3"));
         }
 
-        progressBar.setEnabled(false);
-        progressBar.setStringPainted(true);
-
-        progressBarLabel.setLabelFor(progressBar);
-        progressBarLabel.setText(bundle.getString("GUI.progressBarLabel.text"));
-        progressBarLabel.setEnabled(false);
-
-        resultsLabel.setText(bundle.getString("results") + " " + 0);
-        resultsLabel.setEnabled(false);
-
         searchButton.setText(bundle.getString("GUI.searchButton.text"));
         searchButton.setEnabled(false);
 
-        stopButton.setText(bundle.getString("GUI.stopButton.text"));
-        stopButton.setEnabled(false);
-
-        anyTitleCheckBox.setText(bundle.getString("GUI.anyTitleCheckBox.text") + " ");
-        anyTitleCheckBox.setBorder(null);
-        anyTitleCheckBox.setEnabled(false);
-        anyTitleCheckBox.setFocusPainted(false);
-        anyTitleCheckBox.setMargin(new Insets(2, 0, 2, 2));
-
         genreScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-
         genreList.setEnabled(false);
         genreList.setListData(new String[]{bundle.getString("any")});
         genreScrollPane.setViewportView(genreList);
@@ -240,31 +213,27 @@ public class SplashScreen extends JFrame {
         releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text"));
         releasedToLabel.setEnabled(false);
 
-        linkProgressBar.setEnabled(false);
-        linkProgressBar.setRequestFocusEnabled(false);
-        linkProgressBar.setString(bundle.getString("GUI.linkProgressBar.string"));
-
         hqVideoTypeCheckBox.setText(Constant.HQ);
         hqVideoTypeCheckBox.setEnabled(false);
+        hqVideoTypeCheckBox.setMargin(new Insets(0, 0, 0, 0));
 
         dvdCheckBox.setText(Constant.DVD);
         dvdCheckBox.setEnabled(false);
+        dvdCheckBox.setMargin(new Insets(0, 0, 0, 0));
 
         hd720CheckBox.setText(Constant.HD720);
         hd720CheckBox.setEnabled(false);
+        hd720CheckBox.setMargin(new Insets(0, 0, 0, 0));
 
         hd1080CheckBox.setText(Constant.HD1080);
         hd1080CheckBox.setEnabled(false);
+        hd1080CheckBox.setMargin(new Insets(0, 0, 0, 0));
 
         popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text"));
         popularMoviesButton.setEnabled(false);
 
         popularTVShowsButton.setText(bundle.getString("GUI.popularTVShowsButton.text"));
         popularTVShowsButton.setEnabled(false);
-
-        closeBoxButton.setText(null);
-        closeBoxButton.setEnabled(false);
-        closeBoxButton.setMargin(new Insets(0, 0, 0, 0));
 
         loadingLabel.setText(null);
 
@@ -288,8 +257,18 @@ public class SplashScreen extends JFrame {
         statusBarTextField.setText(INITIALIZING + percentFormat.format(0.0) + DONE);
         statusBarTextField.setBorder(BorderFactory.createEtchedBorder());
 
+        searchProgressTextField.setEditable(false);
+        searchProgressTextField.setFont(new Font("Verdana", 0, 10));
+        searchProgressTextField.setHorizontalAlignment(JTextField.RIGHT);
+        searchProgressTextField.setText(' ' + I18nStr.replace(bundle.getString("results"), 0, I18nStr.percent(0, 0)) + ' ');
+        UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + I18nStr.replace(bundle.getString("results"), 11111, I18nStr.percent(1, 0)) + ' ',
+                searchProgressTextField.getText());
+        searchProgressTextField.setBorder(BorderFactory.createEtchedBorder());
+
         exitBackupModeButton.setBorderPainted(false);
         exitBackupModeButton.setEnabled(false);
+        exitBackupModeButton.setMinimumSize(new Dimension(0, 0));
+        exitBackupModeButton.setMaximumSize(new Dimension(0, 0));
 
         connectionIssueButton.setText(null);
         connectionIssueButton.setBorderPainted(false);
@@ -336,26 +315,45 @@ public class SplashScreen extends JFrame {
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING)
-                .addComponent(statusBarTextField, GroupLayout.DEFAULT_SIZE, 1329, Short.MAX_VALUE)
                 .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(resultsScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1309, Short.MAX_VALUE)
-                                .addGroup(Alignment.LEADING, layout.createSequentialGroup()
-                                        .addComponent(popularMoviesButton)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(popularTVShowsButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(loadingLabel))
+                                .addComponent(resultsScrollPane, Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(readSummaryButton)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(watchTrailerButton)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(playButton)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(downloadLink1Button)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(downloadLink2Button)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(exitBackupModeButton)
+                                        .addGap(2, 2, 2)
+                                        .addComponent(hqVideoTypeCheckBox)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(dvdCheckBox)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(hd720CheckBox)
+                                        .addGap(0, 0, 0)
+                                        .addComponent(hd1080CheckBox)
+                                        .addGap(0, 0, Short.MAX_VALUE)
+                                        .addComponent(loadMoreResultsButton))
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                                 .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(anyTitleCheckBox)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                                        .addComponent(popularMoviesButton)
+                                                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                                                        .addComponent(popularTVShowsButton)
+                                                        .addGap(18, 18, 18)
+                                                        .addComponent(findTextField))
+                                                .addGroup(layout.createSequentialGroup()
                                                         .addComponent(titleLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(titleTextField, GroupLayout.DEFAULT_SIZE, 784, Short.MAX_VALUE))
-                                                .addGroup(layout.createSequentialGroup()
+                                                        .addComponent(titleTextField))
+                                                .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                                                         .addComponent(typeLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
                                                         .addComponent(typeComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -374,146 +372,90 @@ public class SplashScreen extends JFrame {
                                         .addGap(18, 18, 18)
                                         .addComponent(genreLabel)
                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 317, Short.MAX_VALUE)
+                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                                .addGroup(layout.createSequentialGroup()
+                                                        .addGap(0, 0, Short.MAX_VALUE)
+                                                        .addComponent(connectionIssueButton))
+                                                .addComponent(genreScrollPane))
                                         .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(searchButton)
-                                                .addComponent(stopButton)))
-                                .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(Alignment.TRAILING)
-                                                .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(readSummaryButton)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(watchTrailerButton)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(playButton)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(downloadLink1Button)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(downloadLink2Button)
-                                                        .addGap(18, 18, 18)
-                                                        .addComponent(exitBackupModeButton)
-                                                        .addGap(18, 18, 18)
-                                                        .addComponent(findTextField, GroupLayout.DEFAULT_SIZE, 540, Short.MAX_VALUE))
-                                                .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(progressBarLabel)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(progressBar, GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)
-                                                        .addPreferredGap(ComponentPlacement.RELATED, 136, Short.MAX_VALUE)
-                                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                                .addComponent(dvdCheckBox)
-                                                                .addComponent(hqVideoTypeCheckBox))
-                                                        .addGap(0, 0, 0)
-                                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                                .addComponent(hd720CheckBox)
-                                                                .addComponent(hd1080CheckBox))
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(linkProgressBar, GroupLayout.PREFERRED_SIZE, 258, GroupLayout.PREFERRED_SIZE)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(closeBoxButton)
-                                                        .addGap(18, 18, Short.MAX_VALUE)
-                                                        .addComponent(loadMoreResultsButton)))
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(resultsLabel, Alignment.TRAILING)
-                                                .addComponent(connectionIssueButton, Alignment.TRAILING))))
+                                                .addComponent(searchButton, Alignment.TRAILING)
+                                                .addComponent(loadingLabel, Alignment.TRAILING))))
                         .addContainerGap())
+                .addGroup(layout.createSequentialGroup()
+                        .addComponent(statusBarTextField)
+                        .addGap(0, 0, 0)
+                        .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
-
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{dvdCheckBox, hqVideoTypeCheckBox});
-
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{hd1080CheckBox, hd720CheckBox});
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchTrailerButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{searchButton, stopButton});
-
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addGroup(layout.createParallelGroup(Alignment.TRAILING)
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                .addComponent(loadingLabel)
+                                .addComponent(connectionIssueButton)
                                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                         .addComponent(popularMoviesButton)
-                                        .addComponent(popularTVShowsButton))
-                                .addComponent(loadingLabel))
-                        .addGap(18, 18, 18)
+                                        .addComponent(popularTVShowsButton)
+                                        .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                                .addComponent(anyTitleCheckBox)
                                                 .addComponent(titleLabel)
                                                 .addComponent(titleTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                                 .addComponent(genreLabel))
                                         .addGap(18, 18, 18)
-                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(typeComboBox)
-                                                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                                        .addComponent(typeLabel)
-                                                        .addComponent(ratingLabel)
-                                                        .addComponent(ratingComboBox)
-                                                        .addComponent(releasedLabel)
-                                                        .addComponent(releasedToLabel))
-                                                .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                                .addGroup(layout.createSequentialGroup()
-                                        .addComponent(searchButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(stopButton))
+                                        .addGroup(layout.createParallelGroup(Alignment.TRAILING)
+                                                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                                        .addComponent(typeComboBox)
+                                                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                                                                .addComponent(typeLabel)
+                                                                .addComponent(ratingLabel)
+                                                                .addComponent(ratingComboBox)
+                                                                .addComponent(releasedLabel))
+                                                        .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                .addComponent(releasedToLabel)))
+                                .addComponent(searchButton)
                                 .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 491, Short.MAX_VALUE)
+                        .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
                         .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                .addComponent(readSummaryButton)
-                                .addComponent(watchTrailerButton)
-                                .addComponent(downloadLink1Button)
-                                .addComponent(downloadLink2Button)
-                                .addComponent(connectionIssueButton)
-                                .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(playButton)
-                                .addComponent(exitBackupModeButton))
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(Alignment.CENTER)
-                                .addComponent(resultsLabel)
-                                .addComponent(loadMoreResultsButton)
-                                .addComponent(closeBoxButton)
-                                .addComponent(linkProgressBar, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGroup(layout.createSequentialGroup()
-                                        .addComponent(hd720CheckBox)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(hd1080CheckBox))
-                                .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                .addComponent(exitBackupModeButton, Alignment.TRAILING)
+                                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                                        .addComponent(readSummaryButton)
+                                        .addComponent(watchTrailerButton)
+                                        .addComponent(downloadLink1Button)
+                                        .addComponent(downloadLink2Button)
+                                        .addComponent(playButton)
                                         .addComponent(hqVideoTypeCheckBox)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(dvdCheckBox))
-                                .addComponent(progressBar, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(progressBarLabel))
+                                        .addComponent(dvdCheckBox)
+                                        .addComponent(hd720CheckBox)
+                                        .addComponent(hd1080CheckBox)
+                                        .addComponent(loadMoreResultsButton)))
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                                .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
         );
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{anyTitleCheckBox, endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{genreLabel, ratingLabel, releasedLabel});
-
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{progressBarLabel, resultsLabel});
-
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{linkProgressBar, loadMoreResultsButton, progressBar});
-
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{searchButton, stopButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchTrailerButton});
 
-        setSize(new Dimension(1337, 773));
-        setLocationRelativeTo(null);
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{searchProgressTextField, statusBarTextField});
     }
 
-    JCheckBox anyTitleCheckBox;
-    JButton closeBoxButton;
     JButton connectionIssueButton;
     JButton downloadLink1Button;
     JButton downloadLink2Button;
@@ -531,7 +473,6 @@ public class SplashScreen extends JFrame {
     JCheckBox hd720CheckBox;
     JMenu helpMenu;
     JCheckBox hqVideoTypeCheckBox;
-    JProgressBar linkProgressBar;
     JButton loadMoreResultsButton;
     JLabel loadingLabel;
     JMenuBar menuBar;
@@ -539,21 +480,18 @@ public class SplashScreen extends JFrame {
     JMenu playlistMenu;
     JButton popularMoviesButton;
     JButton popularTVShowsButton;
-    JProgressBar progressBar;
-    JLabel progressBarLabel;
     JComboBox ratingComboBox;
     JLabel ratingLabel;
     JButton readSummaryButton;
     JLabel releasedLabel;
     JLabel releasedToLabel;
-    JLabel resultsLabel;
     JScrollPane resultsScrollPane;
     JTable resultsTable;
     JButton searchButton;
     JMenu searchMenu;
+    JTextField searchProgressTextField;
     JTextField startDateTextField;
     JTextField statusBarTextField;
-    JButton stopButton;
     JLabel titleLabel;
     JTextField titleTextField;
     JComboBox typeComboBox;

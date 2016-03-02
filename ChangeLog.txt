@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.03.02   | VidMasta 20.7
+
+CHANGE: UI   | Simplified user interface
+CHANGE: UI   | Fixed bug where window maximization sometimes does not work
+
+
+
+
 2016.01.22   | VidMasta 20.6
 
 CHANGE: CORE | Fixed subtitle downloading connection issue causing subtitles to not be found

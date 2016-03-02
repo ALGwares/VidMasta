@@ -65,7 +65,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected Object doInBackground() {
         guiListener.searchStarted();
         if (isNewSearch && isNewSearch()) {
-            guiListener.newSearch(numResultsPerSearch, isTVShow);
+            guiListener.newSearch(isTVShow);
             numResults.set(0);
             numSearchResults.set(0);
 
@@ -78,7 +78,8 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             }
 
             isNewSearch = false;
-        } else if (guiListener.oldSearch(numResultsPerSearch)) {
+        } else if (numSearchResults.get() == numResultsPerSearch) {
+            guiListener.searchProgressUpdate(numResults.get(), 0);
             numSearchResults.set(0);
         }
 
@@ -118,7 +119,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         }
 
         if (!isCancelled()) {
-            guiListener.searchProgressMaxOut();
+            guiListener.searchProgressUpdate(numResults.get(), 1);
         }
 
         if (isCancelled()) {
@@ -279,9 +280,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     }
 
     protected void incrementProgress() {
-        guiListener.searchNumResultsUpdate(numResults.incrementAndGet());
-        numSearchResults.incrementAndGet();
-        guiListener.searchProgressIncrement();
+        guiListener.searchProgressUpdate(numResults.incrementAndGet(), numSearchResults.incrementAndGet() / (double) numResultsPerSearch);
     }
 
     @Override

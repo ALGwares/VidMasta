@@ -227,6 +227,7 @@
         </Property>
       </Properties>
       <AuxValues>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JFrame() {&#xd;&#xa;            private static final long serialVersionUID = 1L;&#xd;&#xa;&#xd;&#xa;            @Override&#xd;&#xa;            public void setMaximizedBounds(Rectangle bounds) {&#xd;&#xa;                super.setMaximizedBounds(bounds == null ? null : UI.getUsableScreenBounds(faqFrame));&#xd;&#xa;            }&#xd;&#xa;        }"/>
         <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
       </AuxValues>
 
@@ -2931,63 +2932,6 @@
         </MenuItem>
       </SubComponents>
     </Container>
-    <Container class="javax.swing.JPopupMenu" name="readSummaryButtonPopupMenu">
-
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-        <Property name="useNullLayout" type="boolean" value="true"/>
-      </Layout>
-      <SubComponents>
-        <MenuItem class="javax.swing.JMenuItem" name="readSummaryCancelMenuItem">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.readSummaryCancelMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="readSummaryCancelMenuItemActionPerformed"/>
-          </Events>
-        </MenuItem>
-      </SubComponents>
-    </Container>
-    <Container class="javax.swing.JPopupMenu" name="watchTrailerButtonPopupMenu">
-
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-        <Property name="useNullLayout" type="boolean" value="true"/>
-      </Layout>
-      <SubComponents>
-        <MenuItem class="javax.swing.JMenuItem" name="watchTrailerCancelMenuItem">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.watchTrailerCancelMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="watchTrailerCancelMenuItemActionPerformed"/>
-          </Events>
-        </MenuItem>
-      </SubComponents>
-    </Container>
-    <Container class="javax.swing.JPopupMenu" name="downloadLinkButtonPopupMenu">
-
-      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
-        <Property name="useNullLayout" type="boolean" value="true"/>
-      </Layout>
-      <SubComponents>
-        <MenuItem class="javax.swing.JMenuItem" name="downloadLinkCancelMenuItem">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.downloadLinkCancelMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadLinkCancelMenuItemActionPerformed"/>
-          </Events>
-        </MenuItem>
-      </SubComponents>
-    </Container>
     <Container class="javax.swing.JFrame" name="playlistFrame">
       <Properties>
         <Property name="defaultCloseOperation" type="int" value="0"/>
@@ -2999,6 +2943,9 @@
       <Events>
         <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="playlistFrameWindowClosing"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JFrame() {&#xd;&#xa;            private static final long serialVersionUID = 1L;&#xd;&#xa;&#xd;&#xa;            @Override&#xd;&#xa;            public void setMaximizedBounds(Rectangle bounds) {&#xd;&#xa;                super.setMaximizedBounds(bounds == null ? null : UI.getUsableScreenBounds(playlistFrame));&#xd;&#xa;            }&#xd;&#xa;        };"/>
+      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -4143,7 +4090,7 @@
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="menuBar" type="java.lang.String" value="menuBar"/>
-    <SyntheticProperty name="formSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,3,5,0,0,5,57"/>
+    <SyntheticProperty name="formSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,3,5,0,0,4,-120"/>
     <SyntheticProperty name="formSizePolicy" type="int" value="0"/>
     <SyntheticProperty name="generateSize" type="boolean" value="true"/>
     <SyntheticProperty name="generateCenter" type="boolean" value="true"/>
@@ -4167,28 +4114,48 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="statusBarTextField" alignment="0" pref="1329" max="32767" attributes="0"/>
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="resultsScrollPane" alignment="0" pref="1309" max="32767" attributes="2"/>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="popularMoviesButton" linkSize="99" min="-2" max="-2" attributes="2"/>
-                      <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
-                      <Component id="popularTVShowsButton" linkSize="99" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
-                      <Component id="loadingLabel" min="-2" max="-2" attributes="0"/>
+                  <Component id="resultsScrollPane" alignment="0" max="32767" attributes="2"/>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Component id="readSummaryButton" linkSize="154" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Component id="watchTrailerButton" linkSize="154" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Component id="playButton" linkSize="154" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <Component id="downloadLink1Button" linkSize="154" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="downloadLink2Button" linkSize="154" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="exitBackupModeButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
+                      <Component id="hqVideoTypeCheckBox" min="-2" max="-2" attributes="2"/>
+                      <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                      <Component id="dvdCheckBox" min="-2" max="-2" attributes="2"/>
+                      <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                      <Component id="hd720CheckBox" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                      <Component id="hd1080CheckBox" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <Component id="loadMoreResultsButton" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="anyTitleCheckBox" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="titleLabel" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="titleTextField" pref="784" max="32767" attributes="0"/>
+                              <Component id="popularMoviesButton" linkSize="99" min="-2" max="-2" attributes="2"/>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                              <Component id="popularTVShowsButton" linkSize="99" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="findTextField" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
+                              <Component id="titleLabel" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="titleTextField" max="32767" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="1" attributes="0">
                               <Component id="typeLabel" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Component id="typeComboBox" max="32767" attributes="0"/>
@@ -4209,138 +4176,92 @@
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Component id="genreLabel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="genreScrollPane" pref="317" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              <Component id="connectionIssueButton" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="genreScrollPane" max="32767" attributes="0"/>
+                      </Group>
                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="searchButton" linkSize="180" min="-2" max="-2" attributes="1"/>
-                          <Component id="stopButton" linkSize="180" min="-2" max="-2" attributes="2"/>
-                      </Group>
-                  </Group>
-                  <Group type="102" alignment="1" attributes="0">
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="readSummaryButton" linkSize="154" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="watchTrailerButton" linkSize="154" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="playButton" linkSize="154" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="downloadLink1Button" linkSize="154" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="downloadLink2Button" linkSize="154" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="exitBackupModeButton" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="findTextField" pref="540" max="32767" attributes="0"/>
-                          </Group>
-                          <Group type="102" attributes="0">
-                              <Component id="progressBarLabel" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="progressBar" pref="382" max="32767" attributes="0"/>
-                              <EmptySpace pref="136" max="32767" attributes="0"/>
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="dvdCheckBox" linkSize="64" min="-2" max="-2" attributes="2"/>
-                                  <Component id="hqVideoTypeCheckBox" linkSize="64" alignment="0" min="-2" max="-2" attributes="2"/>
-                              </Group>
-                              <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="hd720CheckBox" linkSize="76" min="-2" max="-2" attributes="0"/>
-                                  <Component id="hd1080CheckBox" linkSize="76" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="linkProgressBar" min="-2" pref="258" max="-2" attributes="0"/>
-                              <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="closeBoxButton" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace type="separate" max="32767" attributes="0"/>
-                              <Component id="loadMoreResultsButton" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="resultsLabel" alignment="1" min="-2" max="-2" attributes="0"/>
-                          <Component id="connectionIssueButton" alignment="1" min="-2" max="-2" attributes="0"/>
+                          <Component id="searchButton" alignment="1" min="-2" max="-2" attributes="1"/>
+                          <Component id="loadingLabel" alignment="1" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+          </Group>
+          <Group type="102" alignment="0" attributes="0">
+              <Component id="statusBarTextField" max="32767" attributes="0"/>
+              <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
+              <Component id="searchProgressTextField" min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
-              <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="1" attributes="0">
-                  <Group type="103" alignment="1" groupAlignment="3" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="loadingLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="connectionIssueButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                       <Component id="popularMoviesButton" linkSize="98" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="popularTVShowsButton" linkSize="98" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="findTextField" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="loadingLabel" alignment="1" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="anyTitleCheckBox" linkSize="11" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="titleLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="titleTextField" linkSize="11" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="genreLabel" linkSize="12" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="typeComboBox" linkSize="11" max="32767" attributes="1"/>
-                          <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                              <Component id="typeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="ratingLabel" linkSize="12" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="ratingComboBox" linkSize="11" alignment="3" max="32767" attributes="1"/>
-                              <Component id="releasedLabel" linkSize="12" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="releasedToLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="typeComboBox" linkSize="11" max="32767" attributes="1"/>
+                              <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                                  <Component id="typeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="ratingLabel" linkSize="12" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="ratingComboBox" linkSize="11" alignment="3" max="32767" attributes="1"/>
+                                  <Component id="releasedLabel" linkSize="12" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="startDateChooser" linkSize="11" alignment="1" min="-2" max="-2" attributes="0"/>
+                              <Component id="endDateChooser" linkSize="11" alignment="1" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="startDateChooser" linkSize="11" alignment="1" min="-2" max="-2" attributes="0"/>
-                          <Component id="endDateChooser" linkSize="11" alignment="1" min="-2" max="-2" attributes="0"/>
+                          <Component id="releasedToLabel" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="searchButton" linkSize="67" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="stopButton" linkSize="67" min="-2" max="-2" attributes="0"/>
-                  </Group>
+                  <Component id="searchButton" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Component id="genreScrollPane" alignment="0" min="-2" pref="64" max="-2" attributes="1"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="resultsScrollPane" pref="491" max="32767" attributes="0"/>
+              <Component id="resultsScrollPane" pref="552" max="32767" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="exitBackupModeButton" alignment="1" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="readSummaryButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="watchTrailerButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="downloadLink1Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="downloadLink2Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="playButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="hqVideoTypeCheckBox" alignment="3" min="-2" max="-2" attributes="1"/>
+                      <Component id="dvdCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="hd720CheckBox" alignment="3" min="-2" max="-2" attributes="1"/>
+                      <Component id="hd1080CheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="loadMoreResultsButton" alignment="3" min="-2" max="-2" attributes="1"/>
+                  </Group>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="readSummaryButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="watchTrailerButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="downloadLink1Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="downloadLink2Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="connectionIssueButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="findTextField" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="playButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="exitBackupModeButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="statusBarTextField" linkSize="182" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="searchProgressTextField" linkSize="182" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="2" attributes="0">
-                  <Component id="resultsLabel" linkSize="13" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="loadMoreResultsButton" linkSize="41" alignment="2" min="-2" max="-2" attributes="1"/>
-                  <Component id="closeBoxButton" alignment="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="linkProgressBar" linkSize="41" alignment="2" max="32767" attributes="1"/>
-                  <Group type="102" alignment="2" attributes="0">
-                      <Component id="hd720CheckBox" min="-2" max="-2" attributes="1"/>
-                      <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="hd1080CheckBox" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="2" attributes="0">
-                      <Component id="hqVideoTypeCheckBox" min="-2" max="-2" attributes="1"/>
-                      <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                      <Component id="dvdCheckBox" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Component id="progressBar" linkSize="41" alignment="2" min="-2" pref="21" max="-2" attributes="0"/>
-                  <Component id="progressBarLabel" linkSize="13" alignment="2" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="statusBarTextField" min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -4566,31 +4487,6 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JProgressBar" name="progressBar">
-      <Properties>
-        <Property name="stringPainted" type="boolean" value="true"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JLabel" name="progressBarLabel">
-      <Properties>
-        <Property name="labelFor" type="java.awt.Component" editor="org.netbeans.modules.form.ComponentChooserEditor">
-          <ComponentRef name="progressBar"/>
-        </Property>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.progressBarLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JLabel" name="resultsLabel">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="bundle.getString(&quot;results&quot;) + &quot; &quot; + 0" type="code"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.resultsLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JButton" name="searchButton">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
@@ -4603,43 +4499,6 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="searchButtonActionPerformed"/>
       </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="stopButton">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.stopButton.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.stopButton.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="enabled" type="boolean" value="false"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="stopButtonActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JCheckBox" name="anyTitleCheckBox">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.anyTitleCheckBox.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.anyTitleCheckBox.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-          <Border info="null"/>
-        </Property>
-        <Property name="focusPainted" type="boolean" value="false"/>
-        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
-          <Insets value="[2, 0, 2, 2]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="anyTitleCheckBoxActionPerformed"/>
-      </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="anyTitleCheckBox.setText(anyTitleCheckBox.getText() + &quot; &quot;);"/>
-      </AuxValues>
     </Component>
     <Container class="javax.swing.JScrollPane" name="genreScrollPane">
 
@@ -4697,14 +4556,6 @@
         </Property>
       </Properties>
     </Component>
-    <Component class="javax.swing.JProgressBar" name="linkProgressBar">
-      <Properties>
-        <Property name="requestFocusEnabled" type="boolean" value="false"/>
-        <Property name="string" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.linkProgressBar.string" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JCheckBox" name="hqVideoTypeCheckBox">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
@@ -4712,6 +4563,9 @@
         </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="i18n/Bundle.properties" key="GUI.hqVideoTypeCheckBox.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[0, 0, 0, 0]"/>
         </Property>
       </Properties>
       <Events>
@@ -4726,6 +4580,9 @@
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="i18n/Bundle.properties" key="GUI.dvdCheckBox.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
         </Property>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[0, 0, 0, 0]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dvdCheckBoxActionPerformed"/>
@@ -4739,6 +4596,9 @@
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="i18n/Bundle.properties" key="GUI.hd720CheckBox.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
         </Property>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[0, 0, 0, 0]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hd720CheckBoxActionPerformed"/>
@@ -4751,6 +4611,9 @@
         </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="i18n/Bundle.properties" key="GUI.hd1080CheckBox.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[0, 0, 0, 0]"/>
         </Property>
       </Properties>
       <Events>
@@ -4781,23 +4644,6 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="popularTVShowsButtonActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="closeBoxButton">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="null" type="code"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.closeBoxButton.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="enabled" type="boolean" value="false"/>
-        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
-          <Insets value="[0, 0, 0, 0]"/>
-        </Property>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="closeBoxButtonActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="loadingLabel">
@@ -4892,6 +4738,26 @@
           </Border>
         </Property>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="searchProgressTextField">
+      <Properties>
+        <Property name="editable" type="boolean" value="false"/>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Verdana" size="10" style="0"/>
+        </Property>
+        <Property name="horizontalAlignment" type="int" value="4"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="null" type="code"/>
+        </Property>
+        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+          <Border info="org.netbeans.modules.form.compat2.border.EtchedBorderInfo">
+            <EtchetBorder/>
+          </Border>
+        </Property>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="searchProgressUpdate(0, 0);"/>
+      </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="exitBackupModeButton">
       <Properties>
