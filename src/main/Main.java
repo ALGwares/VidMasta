@@ -365,7 +365,7 @@ public class Main implements WorkerListener {
     public void summarySearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
         if (isSummarySearchDone()) {
             summaryReaderVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
-            startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener, false));
+            startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener));
             summaryFinder.execute();
         }
     }
@@ -373,16 +373,16 @@ public class Main implements WorkerListener {
     @Override
     public void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
         if (isTrailerSearchDone()) {
-            startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener, false));
+            startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener));
             trailerFinder.execute();
         }
     }
 
     @Override
-    public void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play) {
+    public void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
         if (isTorrentSearchDone()) {
             Magnet.startAzureus(gui);
-            startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener, play));
+            startPrefetcher(torrentFinder = new VideoFinder(gui, contentType, row, video, strExportListener));
             torrentFinder.execute();
         }
     }

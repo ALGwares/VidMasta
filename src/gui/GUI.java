@@ -163,7 +163,7 @@ public class GUI extends JFrame implements GuiListener {
     private static final Preferences preferences = Preferences.userNodeForPackage(GUI.class);
 
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isTVShowSubtitle, forcePlay;
+    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
     private FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
@@ -212,6 +212,7 @@ public class GUI extends JFrame implements GuiListener {
 
         initComponents();
         updateToggleButtons(true);
+        UI.initToggleButton(summaryTextToSpeechButton, "speaker.png");
         initFileNameExtensionFilters();
 
         dummyComboBox.setEditable(true);
@@ -458,8 +459,8 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        UI.add(downloaderButtonGroup, webBrowserAppDownloaderRadioButtonMenuItem, webBrowserAltAppDownloaderRadioButtonMenuItem,
-                defaultApplicationDownloaderRadioButtonMenuItem, noDownloaderRadioButtonMenuItem);
+        UI.add(downloaderButtonGroup, playlistDownloaderRadioButtonMenuItem, webBrowserAppDownloaderRadioButtonMenuItem,
+                webBrowserAltAppDownloaderRadioButtonMenuItem, defaultApplicationDownloaderRadioButtonMenuItem, noDownloaderRadioButtonMenuItem);
 
         loadingIcon = UI.icon("loading.gif");
         notLoadingIcon = UI.icon("notLoading.gif");
@@ -471,7 +472,6 @@ public class GUI extends JFrame implements GuiListener {
         warningIcon = UI.icon("warning.png");
         connectionIssueButton.setIcon(noWarningIcon);
         UI.setIcon(trashCanButton, "trashCan");
-        UI.setIcon(summaryTextToSpeechButton, "speaker");
         playIcon = UI.icon("play.png");
         stopIcon = UI.icon("stop.png");
         play(null);
@@ -598,26 +598,32 @@ public class GUI extends JFrame implements GuiListener {
         UI.updateToggleButton(popularMoviesButton, "GUI.popularMoviesButton.text", init);
         UI.updateToggleButton(readSummaryButton, "GUI.readSummaryButton.text", init);
         UI.updateToggleButton(watchTrailerButton, "GUI.watchTrailerButton.text", init);
-        UI.updateToggleButton(playButton, "GUI.playButton.text", init);
         UI.updateToggleButton(downloadLink1Button, "GUI.downloadLink1Button.text", init);
         UI.updateToggleButton(downloadLink2Button, "GUI.downloadLink2Button.text", init);
+        UI.updateToggleButton(movieSubtitleDownloadMatch1Button, "GUI.movieSubtitleDownloadMatch1Button.text", init);
+        UI.updateToggleButton(movieSubtitleDownloadMatch2Button, "GUI.movieSubtitleDownloadMatch2Button.text", init);
+        UI.updateToggleButton(tvSubtitleDownloadMatch1Button, "GUI.tvSubtitleDownloadMatch1Button.text", init);
+        UI.updateToggleButton(tvSubtitleDownloadMatch2Button, "GUI.tvSubtitleDownloadMatch2Button.text", init);
     }
 
     public void resizeContent() {
         String stop = Str.str(Constant.STOP_KEY), popularMovies = popularMoviesButton.getName(), popularTVShows = popularTVShowsButton.getName(), readSummary
-                = readSummaryButton.getName(), watchTrailer = watchTrailerButton.getName(), play = playButton.getName(), downloadLink1
-                = downloadLink1Button.getName(), downloadLink2 = downloadLink2Button.getName();
+                = readSummaryButton.getName(), watchTrailer = watchTrailerButton.getName(), downloadLink1 = downloadLink1Button.getName(), downloadLink2
+                = downloadLink2Button.getName();
         UI.resize(AbstractComponent.newInstance(searchButton), stop, searchButton.getName());
         UI.resize(AbstractComponent.newInstance(popularTVShowsButton), popularMovies, stop, popularTVShows);
         UI.resize(AbstractComponent.newInstance(popularMoviesButton), popularTVShows, stop, popularMovies);
-        UI.resize(AbstractComponent.newInstance(readSummaryButton), watchTrailer, play, downloadLink1, downloadLink2, stop, readSummary);
-        UI.resize(AbstractComponent.newInstance(watchTrailerButton), readSummary, play, downloadLink1, downloadLink2, stop, watchTrailer);
-        UI.resize(AbstractComponent.newInstance(playButton), readSummary, watchTrailer, downloadLink1, downloadLink2, stop, play);
-        UI.resize(AbstractComponent.newInstance(downloadLink1Button), readSummary, watchTrailer, play, downloadLink2, stop, downloadLink1);
-        UI.resize(AbstractComponent.newInstance(downloadLink2Button), readSummary, watchTrailer, play, downloadLink1, stop, downloadLink2);
+        UI.resize(AbstractComponent.newInstance(readSummaryButton), watchTrailer, downloadLink1, downloadLink2, stop, readSummary);
+        UI.resize(AbstractComponent.newInstance(watchTrailerButton), readSummary, downloadLink1, downloadLink2, stop, watchTrailer);
+        UI.resize(AbstractComponent.newInstance(downloadLink1Button), readSummary, watchTrailer, downloadLink2, stop, downloadLink1);
+        UI.resize(AbstractComponent.newInstance(downloadLink2Button), readSummary, watchTrailer, downloadLink1, stop, downloadLink2);
         UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + Str.str("results", 11111, Str.percent(1, 0)) + ' ',
                 searchProgressTextField.getText());
         resizeExitBackupModeButton();
+        for (AbstractButton button : new AbstractButton[]{movieSubtitleDownloadMatch1Button, movieSubtitleDownloadMatch2Button, tvSubtitleDownloadMatch1Button,
+            tvSubtitleDownloadMatch2Button}) {
+            UI.resize(AbstractComponent.newInstance(button), stop, button.getName());
+        }
     }
 
     private void resizeExitBackupModeButton() {
@@ -770,7 +776,6 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenu = new JPopupMenu();
         readSummaryMenuItem = new JMenuItem();
         watchTrailerMenuItem = new JMenuItem();
-        playMenuItem = new JMenuItem();
         downloadLink1MenuItem = new JMenuItem();
         downloadLink2MenuItem = new JMenuItem();
         tablePopupMenuSeparator1 = new Separator();
@@ -872,7 +877,6 @@ public class GUI extends JFrame implements GuiListener {
         tvSubtitleEpisodeComboBox = new JComboBox();
         tvSubtitleDownloadMatch1Button = new JButton();
         tvSubtitleDownloadMatch2Button = new JButton();
-        tvSubtitleCancelButton = new JButton();
         tvSubtitleLoadingLabel = new JLabel();
         movieSubtitleDialog = new JDialog();
         movieSubtitleLanguageLabel = new JLabel();
@@ -881,7 +885,6 @@ public class GUI extends JFrame implements GuiListener {
         movieSubtitleFormatComboBox = new JComboBox();
         movieSubtitleDownloadMatch1Button = new JButton();
         movieSubtitleDownloadMatch2Button = new JButton();
-        movieSubtitleCancelButton = new JButton();
         movieSubtitleLoadingLabel = new JLabel();
         timedMsgDialog = new JDialog();
         timedMsgLabel = new JLabel();
@@ -960,7 +963,6 @@ public class GUI extends JFrame implements GuiListener {
         loadingLabel = new JLabel();
         readSummaryButton = new JButton();
         watchTrailerButton = new JButton();
-        playButton = new JButton();
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
         statusBarTextField = new JTextField();
@@ -1041,6 +1043,7 @@ public class GUI extends JFrame implements GuiListener {
         portMenuItem = new JMenuItem();
         downloadMenuSeparator4 = new Separator();
         downloaderMenu = new JMenu();
+        playlistDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         webBrowserAppDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         webBrowserAltAppDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         defaultApplicationDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
@@ -1126,11 +1129,6 @@ public class GUI extends JFrame implements GuiListener {
 
         summaryDialog.setTitle(bundle.getString("GUI.summaryDialog.title")); // NOI18N
         summaryDialog.setAlwaysOnTop(true);
-        summaryDialog.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent evt) {
-                summaryDialogWindowClosing(evt);
-            }
-        });
 
         summaryCloseButton.setText(bundle.getString("GUI.summaryCloseButton.text")); // NOI18N
         summaryCloseButton.addActionListener(new ActionListener() {
@@ -1158,6 +1156,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
+        summaryLoadingLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         summaryLoadingLabel.setText(null);
 
         GroupLayout summaryDialogLayout = new GroupLayout(summaryDialog.getContentPane());
@@ -1765,15 +1764,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         tablePopupMenu.add(watchTrailerMenuItem);
-
-        playMenuItem.setText(bundle.getString("GUI.playMenuItem.text")); // NOI18N
-        playMenuItem.setEnabled(false);
-        playMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playMenuItemActionPerformed(evt);
-            }
-        });
-        tablePopupMenu.add(playMenuItem);
 
         downloadLink1MenuItem.setText(bundle.getString("GUI.downloadLink1MenuItem.text")); // NOI18N
         downloadLink1MenuItem.setEnabled(false);
@@ -2620,15 +2610,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        tvSubtitleCancelButton.setText(bundle.getString("GUI.tvSubtitleCancelButton.text")); // NOI18N
-        tvSubtitleCancelButton.setToolTipText(bundle.getString("GUI.tvSubtitleCancelButton.toolTipText")); // NOI18N
-        tvSubtitleCancelButton.setEnabled(false);
-        tvSubtitleCancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                tvSubtitleCancelButtonActionPerformed(evt);
-            }
-        });
-
         tvSubtitleLoadingLabel.setText(null);
 
         GroupLayout tvSubtitleDialogLayout = new GroupLayout(tvSubtitleDialog.getContentPane());
@@ -2640,11 +2621,11 @@ public class GUI extends JFrame implements GuiListener {
                     .addGroup(tvSubtitleDialogLayout.createSequentialGroup()
                         .addComponent(tvSubtitleLanguageLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(tvSubtitleLanguageComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(tvSubtitleLanguageComboBox, 0, 164, Short.MAX_VALUE)
                         .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addComponent(tvSubtitleFormatLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(tvSubtitleFormatComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(tvSubtitleFormatComboBox, 0, 164, Short.MAX_VALUE)
                         .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addComponent(tvSubtitleSeasonLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -2657,9 +2638,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(tvSubtitleDownloadMatch1Button)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(tvSubtitleDownloadMatch2Button)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(tvSubtitleCancelButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 218, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(tvSubtitleLoadingLabel)))
                 .addContainerGap())
         );
@@ -2682,14 +2661,13 @@ public class GUI extends JFrame implements GuiListener {
                 .addGroup(tvSubtitleDialogLayout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(tvSubtitleDownloadMatch1Button)
                     .addComponent(tvSubtitleDownloadMatch2Button)
-                    .addComponent(tvSubtitleCancelButton)
                     .addComponent(tvSubtitleLoadingLabel))
                 .addContainerGap())
         );
 
         tvSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {tvSubtitleEpisodeComboBox, tvSubtitleFormatComboBox, tvSubtitleLanguageComboBox, tvSubtitleSeasonComboBox});
 
-        tvSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {tvSubtitleCancelButton, tvSubtitleDownloadMatch1Button, tvSubtitleDownloadMatch2Button});
+        tvSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {tvSubtitleDownloadMatch1Button, tvSubtitleDownloadMatch2Button});
 
         splashScreen.progress();
 
@@ -2730,15 +2708,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        movieSubtitleCancelButton.setText(bundle.getString("GUI.movieSubtitleCancelButton.text")); // NOI18N
-        movieSubtitleCancelButton.setToolTipText(bundle.getString("GUI.movieSubtitleCancelButton.toolTipText")); // NOI18N
-        movieSubtitleCancelButton.setEnabled(false);
-        movieSubtitleCancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                movieSubtitleCancelButtonActionPerformed(evt);
-            }
-        });
-
         movieSubtitleLoadingLabel.setText(null);
 
         GroupLayout movieSubtitleDialogLayout = new GroupLayout(movieSubtitleDialog.getContentPane());
@@ -2759,9 +2728,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(movieSubtitleDownloadMatch1Button)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(movieSubtitleDownloadMatch2Button)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(movieSubtitleCancelButton)
-                        .addGap(18, 18, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.RELATED, 95, Short.MAX_VALUE)
                         .addComponent(movieSubtitleLoadingLabel)))
                 .addContainerGap())
         );
@@ -2777,12 +2744,11 @@ public class GUI extends JFrame implements GuiListener {
                 .addGroup(movieSubtitleDialogLayout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(movieSubtitleDownloadMatch1Button)
                     .addComponent(movieSubtitleDownloadMatch2Button)
-                    .addComponent(movieSubtitleCancelButton)
                     .addComponent(movieSubtitleLoadingLabel))
                 .addContainerGap())
         );
 
-        movieSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {movieSubtitleCancelButton, movieSubtitleDownloadMatch1Button, movieSubtitleDownloadMatch2Button});
+        movieSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {movieSubtitleDownloadMatch1Button, movieSubtitleDownloadMatch2Button});
 
         movieSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox});
 
@@ -3505,15 +3471,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        playButton.setText(bundle.getString("GUI.playButton.text")); // NOI18N
-        playButton.setToolTipText(bundle.getString("GUI.playButton.toolTipText")); // NOI18N
-        playButton.setEnabled(false);
-        playButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playButtonActionPerformed(evt);
-            }
-        });
-
         downloadLink1Button.setText(bundle.getString("GUI.downloadLink1Button.text")); // NOI18N
         downloadLink1Button.setToolTipText(bundle.getString("GUI.downloadLink1Button.toolTipText")); // NOI18N
         downloadLink1Button.setEnabled(false);
@@ -3961,7 +3918,10 @@ public class GUI extends JFrame implements GuiListener {
 
         downloaderMenu.setText(bundle.getString("GUI.downloaderMenu.text")); // NOI18N
 
-        webBrowserAppDownloaderRadioButtonMenuItem.setSelected(true);
+        playlistDownloaderRadioButtonMenuItem.setSelected(true);
+        playlistDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.playlistDownloaderRadioButtonMenuItem.text")); // NOI18N
+        downloaderMenu.add(playlistDownloaderRadioButtonMenuItem);
+
         webBrowserAppDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text")); // NOI18N
         downloaderMenu.add(webBrowserAppDownloaderRadioButtonMenuItem);
 
@@ -4028,8 +3988,6 @@ public class GUI extends JFrame implements GuiListener {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(watchTrailerButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(playButton)
-                        .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(downloadLink1Button)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(downloadLink2Button)
@@ -4043,7 +4001,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(hd720CheckBox)
                         .addGap(0, 0, 0)
                         .addComponent(hd1080CheckBox)
-                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGap(0, 162, Short.MAX_VALUE)
                         .addComponent(loadMoreResultsButton))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -4094,7 +4052,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -4137,7 +4095,6 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(watchTrailerButton)
                         .addComponent(downloadLink1Button)
                         .addComponent(downloadLink2Button)
-                        .addComponent(playButton)
                         .addComponent(hqVideoTypeCheckBox)
                         .addComponent(dvdCheckBox)
                         .addComponent(hd720CheckBox)
@@ -4155,7 +4112,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchTrailerButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {searchProgressTextField, statusBarTextField});
 
@@ -4267,6 +4224,15 @@ public class GUI extends JFrame implements GuiListener {
         if (UI.isStop(button)) {
             button.setEnabled(false);
             workerListener.torrentSearchStopped();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean stopSubtitleSearch(AbstractButton button) {
+        if (UI.isStop(button)) {
+            button.setEnabled(false);
+            workerListener.subtitleSearchStopped();
             return true;
         }
         return false;
@@ -4552,7 +4518,6 @@ public class GUI extends JFrame implements GuiListener {
 
     void summaryCloseButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_summaryCloseButtonActionPerformed
         summaryDialog.setVisible(false);
-        workerListener.summaryReadStopped();
     }//GEN-LAST:event_summaryCloseButtonActionPerformed
 
     void timeoutButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_timeoutButtonActionPerformed
@@ -4585,7 +4550,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.enable(enable, findSubtitleMenuItem, emailEverythingMenuItem, copySubtitleLinkMenuItem);
         boolean isTorrentSearchDone = workerListener.isTorrentSearchDone(), isTrailerSearchDone = workerListener.isTrailerSearchDone(),
                 isSummarySearchDone = workerListener.isSummarySearchDone();
-        enable(isTorrentSearchDone ? enable : null, enable, null, ContentType.DOWNLOAD3);
+        enable(isTorrentSearchDone ? enable : null, enable, null, null);
         enable(isTrailerSearchDone ? enable : null, enable, null, ContentType.TRAILER);
         UI.enable(enable, emailSummaryLinkMenuItem, copySummaryLinkMenuItem, copyPosterImageMenuItem, copySelectionMenuItem);
         enable(isSummarySearchDone ? enable : null, enable, null, ContentType.SUMMARY);
@@ -4600,7 +4565,7 @@ public class GUI extends JFrame implements GuiListener {
             emailEverythingMenuItem.setEnabled(enable);
         }
         copySubtitleLinkMenuItem.setEnabled(enable);
-        enable(isTorrentSearchDone ? enable : null, isTorrentSearchDone, null, ContentType.DOWNLOAD3);
+        enable(isTorrentSearchDone ? enable : null, isTorrentSearchDone, null, null);
         enable(isTrailerSearchDone ? enable : null, isTrailerSearchDone, null, ContentType.TRAILER);
         UI.enable(enable, emailSummaryLinkMenuItem, copySummaryLinkMenuItem, copyPosterImageMenuItem);
         enable(isSummarySearchDone ? enable : null, isSummarySearchDone, null, ContentType.SUMMARY);
@@ -4688,24 +4653,24 @@ public class GUI extends JFrame implements GuiListener {
         workerListener.trailerSearchStarted(row.VAL, row.video, strExportListener);
     }
 
-    private void downloadLinkActionPerformed(ContentType downloadContentType, SelectedTableRow row, VideoStrExportListener strExportListener, boolean play) {
+    private void downloadLinkActionPerformed(ContentType downloadContentType, SelectedTableRow row, VideoStrExportListener strExportListener) {
         if (row.video.IS_TV_SHOW && !downloadLinkEpisodes.add(row.VAL)) {
             row.video.season = "";
             row.video.episode = "";
         }
-        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? ContentType.DOWNLOAD3 : downloadContentType, row.VAL, row.video, strExportListener,
-                play);
+        workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? ContentType.DOWNLOAD3 : downloadContentType, row.VAL, row.video,
+                strExportListener);
     }
 
     void downloadLink1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink1ButtonActionPerformed
         if (!stopTorrentSearch(downloadLink1Button)) {
-            downloadLinkActionPerformed(ContentType.DOWNLOAD1, selectedRow(), null, false);
+            downloadLinkActionPerformed(ContentType.DOWNLOAD1, selectedRow(), null);
         }
     }//GEN-LAST:event_downloadLink1ButtonActionPerformed
 
     void downloadLink2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink2ButtonActionPerformed
         if (!stopTorrentSearch(downloadLink2Button)) {
-            downloadLinkActionPerformed(ContentType.DOWNLOAD2, selectedRow(), null, false);
+            downloadLinkActionPerformed(ContentType.DOWNLOAD2, selectedRow(), null);
         }
     }//GEN-LAST:event_downloadLink2ButtonActionPerformed
 
@@ -5453,29 +5418,23 @@ public class GUI extends JFrame implements GuiListener {
         portDialog.setVisible(false);
     }//GEN-LAST:event_portOkButtonActionPerformed
 
-    private void tvSubtitleCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleCancelButtonActionPerformed
-        tvSubtitleCancelButton.setEnabled(false);
-        workerListener.subtitleSearchStopped();
-    }//GEN-LAST:event_tvSubtitleCancelButtonActionPerformed
-
     private void startSubtitleSearch(JComboBox format, JComboBox language, JComboBox season, JComboBox episode, boolean firstMatch) {
         subtitleVideo.season = (season == null ? "" : (String) season.getSelectedItem());
         subtitleVideo.episode = (episode == null ? "" : (String) episode.getSelectedItem());
         workerListener.subtitleSearchStarted((String) format.getSelectedItem(), Regex.subtitleLanguages.get((String) language.getSelectedItem()), subtitleVideo,
-                firstMatch, subtitleStrExportListener);
+                isSubtitleMatch1 = firstMatch, subtitleStrExportListener);
     }
 
     private void tvSubtitleDownloadMatch1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleDownloadMatch1ButtonActionPerformed
-        startSubtitleSearch(tvSubtitleFormatComboBox, tvSubtitleLanguageComboBox, tvSubtitleSeasonComboBox, tvSubtitleEpisodeComboBox, true);
+        if (!stopSubtitleSearch(tvSubtitleDownloadMatch1Button)) {
+            startSubtitleSearch(tvSubtitleFormatComboBox, tvSubtitleLanguageComboBox, tvSubtitleSeasonComboBox, tvSubtitleEpisodeComboBox, true);
+        }
     }//GEN-LAST:event_tvSubtitleDownloadMatch1ButtonActionPerformed
 
-    private void movieSubtitleCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_movieSubtitleCancelButtonActionPerformed
-        movieSubtitleCancelButton.setEnabled(false);
-        workerListener.subtitleSearchStopped();
-    }//GEN-LAST:event_movieSubtitleCancelButtonActionPerformed
-
     private void movieSubtitleDownloadMatch1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_movieSubtitleDownloadMatch1ButtonActionPerformed
-        startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, true);
+        if (!stopSubtitleSearch(movieSubtitleDownloadMatch1Button)) {
+            startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, true);
+        }
     }//GEN-LAST:event_movieSubtitleDownloadMatch1ButtonActionPerformed
 
     private void findMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findMenuItemActionPerformed
@@ -5504,12 +5463,14 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_resultsTableKeyPressed
 
     private void summaryTextToSpeechButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_summaryTextToSpeechButtonActionPerformed
+        if (UI.isStop(summaryTextToSpeechButton)) {
+            summaryTextToSpeechButton.setEnabled(false);
+            workerListener.summaryReadStopped();
+            return;
+        }
+
         workerListener.summaryReadStarted(summaryEditorPane.getText());
     }//GEN-LAST:event_summaryTextToSpeechButtonActionPerformed
-
-    private void summaryDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_summaryDialogWindowClosing
-        workerListener.summaryReadStopped();
-    }//GEN-LAST:event_summaryDialogWindowClosing
 
     private void authenticationUsernameTextFieldAncestorAdded(AncestorEvent evt) {//GEN-FIRST:event_authenticationUsernameTextFieldAncestorAdded
         if (authenticationUsernameTextField.getText().isEmpty()) {
@@ -5671,11 +5632,15 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_tvSubtitleLanguageComboBoxActionPerformed
 
     private void tvSubtitleDownloadMatch2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleDownloadMatch2ButtonActionPerformed
-        startSubtitleSearch(tvSubtitleFormatComboBox, tvSubtitleLanguageComboBox, tvSubtitleSeasonComboBox, tvSubtitleEpisodeComboBox, false);
+        if (!stopSubtitleSearch(tvSubtitleDownloadMatch2Button)) {
+            startSubtitleSearch(tvSubtitleFormatComboBox, tvSubtitleLanguageComboBox, tvSubtitleSeasonComboBox, tvSubtitleEpisodeComboBox, false);
+        }
     }//GEN-LAST:event_tvSubtitleDownloadMatch2ButtonActionPerformed
 
     private void movieSubtitleDownloadMatch2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_movieSubtitleDownloadMatch2ButtonActionPerformed
-        startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, false);
+        if (!stopSubtitleSearch(movieSubtitleDownloadMatch2Button)) {
+            startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, false);
+        }
     }//GEN-LAST:event_movieSubtitleDownloadMatch2ButtonActionPerformed
 
     private void whitelistedListKeyPressed(KeyEvent evt) {//GEN-FIRST:event_whitelistedListKeyPressed
@@ -5736,7 +5701,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void downloadLinkExportActionPerformed(ContentType downloadContentType, boolean exportToEmail) {
         SelectedTableRow row = selectedRow();
-        downloadLinkActionPerformed(downloadContentType, row, row.strExportListener(exportToEmail), false);
+        downloadLinkActionPerformed(downloadContentType, row, row.strExportListener(exportToEmail));
     }
 
     private void copyDownloadLink1MenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyDownloadLink1MenuItemActionPerformed
@@ -5765,7 +5730,7 @@ public class GUI extends JFrame implements GuiListener {
         VideoStrExportListener strExportListener = row.strExportListener(true, true, 6);
         readSummaryActionPerformed(row, strExportListener);
         exportPosterImage(row, strExportListener);
-        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, strExportListener, false);
+        downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, strExportListener);
         watchTrailerActionPerformed(row, strExportListener);
         exportSummaryLink(row, strExportListener);
     }//GEN-LAST:event_emailEverythingMenuItemActionPerformed
@@ -5801,16 +5766,6 @@ public class GUI extends JFrame implements GuiListener {
             workerListener.portChanged(portNum);
         }
     }//GEN-LAST:event_portDialogComponentHidden
-
-    private void playButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
-        if (!stopTorrentSearch(playButton)) {
-            downloadLinkActionPerformed(ContentType.DOWNLOAD1, selectedRow(), null, true);
-        }
-    }//GEN-LAST:event_playButtonActionPerformed
-
-    private void playMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playMenuItemActionPerformed
-        playButtonActionPerformed(evt);
-    }//GEN-LAST:event_playMenuItemActionPerformed
 
     private void playlistMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMenuItemActionPerformed
         UI.show(playlistFrame);
@@ -5968,6 +5923,9 @@ public class GUI extends JFrame implements GuiListener {
         if (!isVisible()) {
             setVisible(true);
         }
+        downloadMenu.doClick();
+        downloaderMenu.doClick();
+        webBrowserAppDownloaderRadioButtonMenuItem.setArmed(true);
     }//GEN-LAST:event_activationDialogWindowClosing
 
     private void playlistPlayButtonMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayButtonMousePressed
@@ -6300,7 +6258,7 @@ public class GUI extends JFrame implements GuiListener {
                     settings = defaultSettings;
                 }
                 int i = -1;
-                changeLocale(settings[Constant.SETTINGS_LEN - 2]);
+                changeLocale(settings[Constant.SETTINGS_LEN - 3]);
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
                 i += restoreButtons(settings, i, buttonSet1());
                 ++i; // Backward compatibility
@@ -6345,11 +6303,12 @@ public class GUI extends JFrame implements GuiListener {
                         playlistShowNonVideoItemsCheckBoxMenuItem, playDefaultAppMenuItem);
                 i += restoreColumnWidths(settings, i, resultsTable, yearCol, ratingCol);
                 ++i; // language
+                ++i; // Backward compatibility
 
                 int downloader = Integer.parseInt(settings[++i]);
-                downloaderButtonGroup.setSelected((downloader == 0 ? webBrowserAppDownloaderRadioButtonMenuItem : (downloader == 1
-                        ? webBrowserAltAppDownloaderRadioButtonMenuItem : (downloader == 2 ? defaultApplicationDownloaderRadioButtonMenuItem
-                                : noDownloaderRadioButtonMenuItem))).getModel(), true);
+                downloaderButtonGroup.setSelected((downloader == 0 ? playlistDownloaderRadioButtonMenuItem : (downloader == 1
+                        ? webBrowserAppDownloaderRadioButtonMenuItem : (downloader == 2 ? webBrowserAltAppDownloaderRadioButtonMenuItem : (downloader == 3
+                                        ? defaultApplicationDownloaderRadioButtonMenuItem : noDownloaderRadioButtonMenuItem)))).getModel(), true);
 
                 if (!updateSettings) {
                     return;
@@ -6407,8 +6366,9 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
             settings.append(language).append(Constant.NEWLINE);
-            settings.append(webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? 0 : (webBrowserAltAppDownloaderRadioButtonMenuItem.isSelected() ? 1
-                    : (defaultApplicationDownloaderRadioButtonMenuItem.isSelected() ? 2 : 3)));
+            settings.append(0).append(Constant.NEWLINE); // Backward compatibility
+            settings.append(playlistDownloaderRadioButtonMenuItem.isSelected() ? 0 : (webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? 1
+                    : (webBrowserAltAppDownloaderRadioButtonMenuItem.isSelected() ? 2 : (defaultApplicationDownloaderRadioButtonMenuItem.isSelected() ? 3 : 4))));
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -6691,27 +6651,21 @@ public class GUI extends JFrame implements GuiListener {
             primaryButtons1 = new AbstractButton[]{watchTrailerButton};
             secondaryComponents1 = new Component[]{watchTrailerMenuItem, emailTrailerLinkMenuItem, copyTrailerLinkMenuItem};
         } else {
-            if (contentType == ContentType.DOWNLOAD1) {
+            if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD3) {
                 primaryButtons1 = new AbstractButton[]{downloadLink1Button};
-                secondaryComponents1 = new Component[]{downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem, playButton, playMenuItem};
+                secondaryComponents1 = new Component[]{downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem};
                 secondaryComponents2 = new Component[]{downloadLink2Button, downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem};
             } else if (contentType == ContentType.DOWNLOAD2) {
                 primaryButtons1 = new AbstractButton[]{downloadLink2Button};
                 enablePrimary1 = (isAltSearch ? Boolean.FALSE : enablePrimary);
-                secondaryComponents1 = new Component[]{downloadLink1Button, downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem,
-                    playButton, playMenuItem};
-                secondaryComponents2 = new Component[]{downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem};
-            } else if (contentType == ContentType.DOWNLOAD3) {
-                primaryButtons1 = new AbstractButton[]{downloadLink1Button, playButton};
-                primaryButtons2 = downloadLink2Button;
-                enablePrimary2 = (isAltSearch ? Boolean.FALSE : enablePrimary);
-                secondaryComponents1 = new Component[]{downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem, playMenuItem};
+                secondaryComponents1 = new Component[]{downloadLink1Button, downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem};
                 secondaryComponents2 = new Component[]{downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem};
             } else {
-                primaryButtons1 = new AbstractButton[]{playButton};
-                secondaryComponents1 = new Component[]{downloadLink1Button, downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem,
-                    playMenuItem};
-                secondaryComponents2 = new Component[]{downloadLink2Button, downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem};
+                primaryButtons1 = new AbstractButton[]{downloadLink1Button};
+                primaryButtons2 = downloadLink2Button;
+                enablePrimary2 = (isAltSearch ? Boolean.FALSE : enablePrimary);
+                secondaryComponents1 = new Component[]{downloadLink1MenuItem, emailDownloadLink1MenuItem, copyDownloadLink1MenuItem};
+                secondaryComponents2 = new Component[]{downloadLink2MenuItem, emailDownloadLink2MenuItem, copyDownloadLink2MenuItem};
             }
             enableSecondary2 = (isAltSearch ? Boolean.FALSE : enableSecondary);
         }
@@ -7544,6 +7498,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public boolean canDownloadWithPlaylist() {
+        return playlistDownloaderRadioButtonMenuItem.isSelected();
+    }
+
+    @Override
     public String getWebBrowserAppDownloader() {
         return webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(394) : (webBrowserAltAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(393)
                 : null);
@@ -7652,12 +7611,30 @@ public class GUI extends JFrame implements GuiListener {
     public void subtitleSearchStarted() {
         if (isTVShowSubtitle) {
             tvSubtitleLoadingLabel.setIcon(loadingIcon);
-            tvSubtitleCancelButton.setEnabled(true);
-            UI.enable(false, tvSubtitleDownloadMatch2Button, tvSubtitleDownloadMatch1Button);
+
+            Component secondaryComponent;
+            AbstractButton primaryButton;
+            if (isSubtitleMatch1) {
+                secondaryComponent = tvSubtitleDownloadMatch2Button;
+                primaryButton = tvSubtitleDownloadMatch1Button;
+            } else {
+                secondaryComponent = tvSubtitleDownloadMatch1Button;
+                primaryButton = tvSubtitleDownloadMatch2Button;
+            }
+            UI.enable(new AbstractButton[]{primaryButton}, false, new Component[]{secondaryComponent}, false);
         } else {
             movieSubtitleLoadingLabel.setIcon(loadingIcon);
-            movieSubtitleCancelButton.setEnabled(true);
-            UI.enable(false, movieSubtitleDownloadMatch2Button, movieSubtitleDownloadMatch1Button);
+
+            Component secondaryComponent;
+            AbstractButton primaryButton;
+            if (isSubtitleMatch1) {
+                secondaryComponent = movieSubtitleDownloadMatch2Button;
+                primaryButton = movieSubtitleDownloadMatch1Button;
+            } else {
+                secondaryComponent = movieSubtitleDownloadMatch1Button;
+                primaryButton = movieSubtitleDownloadMatch2Button;
+            }
+            UI.enable(new AbstractButton[]{primaryButton}, false, new Component[]{secondaryComponent}, false);
         }
     }
 
@@ -7665,26 +7642,26 @@ public class GUI extends JFrame implements GuiListener {
     public void subtitleSearchStopped() {
         if (isTVShowSubtitle) {
             tvSubtitleDialog.setVisible(false);
-            tvSubtitleCancelButton.setEnabled(false);
-            UI.enable(true, tvSubtitleDownloadMatch2Button, tvSubtitleDownloadMatch1Button);
+            UI.enable(new AbstractButton[]{isSubtitleMatch1 ? tvSubtitleDownloadMatch1Button : tvSubtitleDownloadMatch2Button}, true, new Component[]{
+                tvSubtitleDownloadMatch2Button, tvSubtitleDownloadMatch1Button}, true);
             tvSubtitleLoadingLabel.setIcon(notLoadingIcon);
         } else {
             movieSubtitleDialog.setVisible(false);
-            movieSubtitleCancelButton.setEnabled(false);
-            UI.enable(true, movieSubtitleDownloadMatch2Button, movieSubtitleDownloadMatch1Button);
+            UI.enable(new AbstractButton[]{isSubtitleMatch1 ? movieSubtitleDownloadMatch1Button : movieSubtitleDownloadMatch2Button}, true, new Component[]{
+                movieSubtitleDownloadMatch2Button, movieSubtitleDownloadMatch1Button}, true);
             movieSubtitleLoadingLabel.setIcon(notLoadingIcon);
         }
     }
 
     @Override
     public void summaryReadStarted() {
-        summaryTextToSpeechButton.setEnabled(false);
+        UI.enable(new AbstractButton[]{summaryTextToSpeechButton}, false, null, null);
         summaryLoadingLabel.setIcon(loadingIcon);
     }
 
     @Override
     public void summaryReadStopped() {
-        summaryTextToSpeechButton.setEnabled(true);
+        UI.enable(new AbstractButton[]{summaryTextToSpeechButton}, true, null, null);
         summaryLoadingLabel.setIcon(notLoadingIcon);
     }
 
@@ -7892,12 +7869,8 @@ public class GUI extends JFrame implements GuiListener {
         listSelectAllMenuItem.setText(Str.str("GUI.listSelectAllMenuItem.text"));
         loadMoreResultsButton.setText(Str.str("GUI.loadMoreResultsButton.text"));
         loadMoreResultsButton.setToolTipText(Str.str("GUI.loadMoreResultsButton.toolTipText"));
-        movieSubtitleCancelButton.setText(Str.str("GUI.movieSubtitleCancelButton.text"));
-        movieSubtitleCancelButton.setToolTipText(Str.str("GUI.movieSubtitleCancelButton.toolTipText"));
         movieSubtitleDialog.setTitle(Str.str("GUI.movieSubtitleDialog.title"));
-        movieSubtitleDownloadMatch1Button.setText(Str.str("GUI.movieSubtitleDownloadMatch1Button.text"));
         movieSubtitleDownloadMatch1Button.setToolTipText(Str.str("GUI.movieSubtitleDownloadMatch1Button.toolTipText"));
-        movieSubtitleDownloadMatch2Button.setText(Str.str("GUI.movieSubtitleDownloadMatch2Button.text"));
         movieSubtitleDownloadMatch2Button.setToolTipText(Str.str("GUI.movieSubtitleDownloadMatch2Button.toolTipText"));
         movieSubtitleFormatLabel.setText(Str.str("GUI.movieSubtitleFormatLabel.text"));
         movieSubtitleLanguageLabel.setText(Str.str("GUI.movieSubtitleLanguageLabel.text"));
@@ -7908,10 +7881,9 @@ public class GUI extends JFrame implements GuiListener {
         optionalMsgCheckBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
         pasteMenuItem.setText(Str.str("GUI.pasteMenuItem.text"));
         peerBlockNotificationCheckBoxMenuItem.setText(Str.str("GUI.peerBlockNotificationCheckBoxMenuItem.text"));
-        playButton.setToolTipText(Str.str("GUI.playButton.toolTipText"));
-        playMenuItem.setText(Str.str("GUI.playMenuItem.text"));
         playlistAutoOpenCheckBoxMenuItem.setText(Str.str("GUI.playlistAutoOpenCheckBoxMenuItem.text"));
         playlistCopyMenuItem.setText(Str.str("GUI.playlistCopyMenuItem.text"));
+        playlistDownloaderRadioButtonMenuItem.setText(Str.str("GUI.playlistDownloaderRadioButtonMenuItem.text"));
         playlistFrame.setTitle(Str.str("GUI.playlistFrame.title"));
         playlistMenu.setText(Str.str("GUI.playlistMenu.text"));
         playlistMenuItem.setText(Str.str("GUI.playlistMenuItem.text"));
@@ -8019,12 +7991,8 @@ public class GUI extends JFrame implements GuiListener {
         tvSelectionLabel.setText(Str.str("GUI.tvSelectionLabel.text"));
         tvSubmitButton.setText(Str.str("GUI.tvSubmitButton.text"));
         tvSubmitButton.setToolTipText(Str.str("GUI.tvSubmitButton.toolTipText"));
-        tvSubtitleCancelButton.setText(Str.str("GUI.tvSubtitleCancelButton.text"));
-        tvSubtitleCancelButton.setToolTipText(Str.str("GUI.tvSubtitleCancelButton.toolTipText"));
         tvSubtitleDialog.setTitle(Str.str("GUI.tvSubtitleDialog.title"));
-        tvSubtitleDownloadMatch1Button.setText(Str.str("GUI.tvSubtitleDownloadMatch1Button.text"));
         tvSubtitleDownloadMatch1Button.setToolTipText(Str.str("GUI.tvSubtitleDownloadMatch1Button.toolTipText"));
-        tvSubtitleDownloadMatch2Button.setText(Str.str("GUI.tvSubtitleDownloadMatch2Button.text"));
         tvSubtitleDownloadMatch2Button.setToolTipText(Str.str("GUI.tvSubtitleDownloadMatch2Button.toolTipText"));
         tvSubtitleEpisodeLabel.setText(Str.str("GUI.tvSubtitleEpisodeLabel.text"));
         tvSubtitleEpisodeLabel.setToolTipText(Str.str("GUI.tvSubtitleEpisodeLabel.toolTipText"));
@@ -8280,7 +8248,6 @@ public class GUI extends JFrame implements GuiListener {
     JComboBox maxDownloadSizeComboBox;
     JMenuBar menuBar;
     JComboBox minDownloadSizeComboBox;
-    JButton movieSubtitleCancelButton;
     JDialog movieSubtitleDialog;
     JButton movieSubtitleDownloadMatch1Button;
     JButton movieSubtitleDownloadMatch2Button;
@@ -8300,10 +8267,9 @@ public class GUI extends JFrame implements GuiListener {
     JTextArea optionalMsgTextArea;
     JMenuItem pasteMenuItem;
     JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
-    JButton playButton;
-    JMenuItem playMenuItem;
     JCheckBoxMenuItem playlistAutoOpenCheckBoxMenuItem;
     JMenuItem playlistCopyMenuItem;
+    JRadioButtonMenuItem playlistDownloaderRadioButtonMenuItem;
     JFileChooser playlistFileChooser;
     JTextField playlistFindTextField;
     JFrame playlistFrame;
@@ -8463,7 +8429,6 @@ public class GUI extends JFrame implements GuiListener {
     JComboBox tvSeasonComboBox;
     JLabel tvSelectionLabel;
     JButton tvSubmitButton;
-    JButton tvSubtitleCancelButton;
     JDialog tvSubtitleDialog;
     JButton tvSubtitleDownloadMatch1Button;
     JButton tvSubtitleDownloadMatch2Button;

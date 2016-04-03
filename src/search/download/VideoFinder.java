@@ -37,13 +37,13 @@ public class VideoFinder extends AbstractSwingWorker {
 
     final GuiListener guiListener;
     public final ContentType CONTENT_TYPE;
-    private ContentType downloadType;
+    private ContentType currContentType;
     public final int ROW;
     private final VideoStrExportListener strExportListener;
     final Video video;
-    public final boolean PREFETCH, PLAY;
+    public final boolean PREFETCH;
     public final String TITLE;
-    private boolean isDownload1, cancelTVSelection, playAutoStart = true, startPeerblock = true;
+    private boolean isDownload1, play, startPeerblock = true;
     private String oldTitle, export;
     private static volatile SwingWorker<?, ?> episodeFinder;
     private Collection<Torrent> torrents;
@@ -52,23 +52,21 @@ public class VideoFinder extends AbstractSwingWorker {
     private static volatile CommentsFinder commentsFinder;
     private static final Object tvChoicesLock = new Object();
 
-    public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play) {
-        this(guiListener, contentType, row, video, strExportListener, play, false);
+    public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
+        this(guiListener, contentType, row, video, strExportListener, false);
     }
 
     public VideoFinder(ContentType contentType, VideoFinder finder) {
-        this(finder.guiListener, contentType, finder.ROW, finder.video, null, false, true);
+        this(finder.guiListener, contentType, finder.ROW, finder.video, null, true);
     }
 
-    private VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play,
-            boolean prefetch) {
+    private VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean prefetch) {
         this.guiListener = guiListener;
         CONTENT_TYPE = contentType;
         ROW = row;
         this.video = video;
         TITLE = Regex.clean(video.title);
         this.strExportListener = strExportListener;
-        PLAY = play;
         PREFETCH = prefetch;
         if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD2) {
             torrents = new CopyOnWriteArrayList<Torrent>();
@@ -87,13 +85,7 @@ public class VideoFinder extends AbstractSwingWorker {
         ContentType export2ContentType = null;
         String export1 = export;
 
-        if (strExportListener == null) {
-            if (PLAY && !cancelTVSelection && !isCancelled() && (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3)
-                    && !Connection.downloadLinkInfoFail()) {
-                resetDownloadVideoFinder();
-                search(ContentType.DOWNLOAD2);
-            }
-        } else {
+        if (strExportListener != null) {
             isCancelled = isCancelled();
             if (strExportListener.exportSecondaryContent()) {
                 if (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3) {
@@ -154,7 +146,7 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void startPeerBlock() {
-        guiListener.enable(false, null, true, downloadType);
+        guiListener.enable(false, null, true, currContentType);
         if (startPeerblock) {
             try {
                 guiListener.startPeerBlock();
@@ -173,34 +165,35 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void search(ContentType contentType) {
-        if (contentType == ContentType.SUMMARY) {
-            guiListener.enable(true, false, false, contentType);
+        currContentType = contentType;
+        if (currContentType == ContentType.SUMMARY) {
+            guiListener.enable(true, false, false, currContentType);
             try {
                 findSummary();
             } catch (Exception e) {
                 error(e);
             }
-            guiListener.enable(contentType);
-        } else if (contentType == ContentType.TRAILER) {
-            guiListener.enable(true, false, false, contentType);
+            guiListener.enable(currContentType);
+        } else if (currContentType == ContentType.TRAILER) {
+            guiListener.enable(true, false, false, currContentType);
             try {
                 findTrailer();
             } catch (Exception e) {
                 error(e);
             }
-            guiListener.enable(contentType);
+            guiListener.enable(currContentType);
         } else {
-            isDownload1 = (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD3);
-            downloadType = (PLAY ? null : (isDownload1 ? ContentType.DOWNLOAD1 : ContentType.DOWNLOAD2));
+            isDownload1 = (currContentType == ContentType.DOWNLOAD1 || currContentType == ContentType.DOWNLOAD3);
+            play = guiListener.canDownloadWithPlaylist();
             searchState = new TorrentSearchState(guiListener);
-            guiListener.enable(true, false, false, downloadType);
+            guiListener.enable(true, false, false, currContentType);
 
             try {
-                if (contentType == ContentType.DOWNLOAD3) {
+                if (currContentType == ContentType.DOWNLOAD3) {
                     findAltDownloadLink();
                 } else if (video.IS_TV_SHOW) {
                     if (!findTVDownloadLink(true)) {
-                        guiListener.enable(downloadType);
+                        guiListener.enable(currContentType);
                         return;
                     }
                 } else {
@@ -208,11 +201,11 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (isCancelled()) {
-                    guiListener.enable(downloadType);
+                    guiListener.enable(currContentType);
                     return;
                 }
 
-                if (contentType != ContentType.DOWNLOAD3) {
+                if (currContentType != ContentType.DOWNLOAD3) {
                     if (video.IS_TV_SHOW && torrents.isEmpty() && !video.episode.isEmpty() && !Constant.ANY.equals(video.episode)
                             && String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season) && !Connection.downloadLinkInfoFail()) { // Assumes TV show with
                         // season 1 just released and download listed with 'episode #' in name; worst case is false positive of newer season with desired episode
@@ -221,7 +214,7 @@ public class VideoFinder extends AbstractSwingWorker {
                         try {
                             video.season = Constant.ANY;
                             if (!findTVDownloadLink(false) || isCancelled()) {
-                                guiListener.enable(downloadType);
+                                guiListener.enable(currContentType);
                                 return;
                             }
                         } finally {
@@ -239,7 +232,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (isCancelled()) {
-                    guiListener.enable(downloadType);
+                    guiListener.enable(currContentType);
                     return;
                 }
 
@@ -252,14 +245,14 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (torrent == null) {
-                    guiListener.enable(false, null, true, downloadType);
-                    guiListener.msg(Str.str(("download" + (!PLAY && (strExportListener == null || !strExportListener.exportSecondaryContent()) ? ""
-                            : ((isDownload1 ? "1" : "2") + (PLAY ? "Play" : "")))) + "LinkNotFound"), Constant.INFO_MSG);
+                    guiListener.enable(false, null, true, currContentType);
+                    guiListener.msg(Str.str(("download" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? ""
+                            : (isDownload1 ? "1" : "2"))) + "LinkNotFound"), Constant.INFO_MSG);
                 } else {
                     if (Debug.DEBUG) {
                         Debug.println("Selected torrent: " + torrent);
                     }
-                    boolean orderByLeechers = (contentType == ContentType.DOWNLOAD1);
+                    boolean orderByLeechers = (currContentType == ContentType.DOWNLOAD1);
                     TorrentFinder.saveOrdering(torrent.ID, video.season, video.episode, orderByLeechers);
                     if (String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season)) {
                         TorrentFinder.saveOrdering(torrent.ID, Constant.ANY, video.episode, orderByLeechers);
@@ -295,7 +288,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 error(e);
             }
 
-            guiListener.enable(downloadType);
+            guiListener.enable(currContentType);
         }
     }
 
@@ -425,8 +418,8 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private boolean tvChoices() {
         synchronized (tvChoicesLock) {
-            if ((strExportListener == null || strExportListener.showTVChoices()) && (!PLAY || isDownload1)) {
-                cancelTVSelection = guiListener.tvChoices(video.season, video.episode);
+            if (strExportListener == null || strExportListener.showTVChoices()) {
+                boolean cancelTVSelection = guiListener.tvChoices(video.season, video.episode);
                 if (strExportListener != null) {
                     strExportListener.setEpisode(guiListener.getSeason(), guiListener.getEpisode());
                 }
@@ -495,7 +488,7 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private boolean magnetLinkOnly() {
-        return (PLAY && guiListener.getDownloadLinkTimeout() == 0) || strExportListener != null;
+        return (play && guiListener.getDownloadLinkTimeout() == 0) || strExportListener != null;
     }
 
     private void findAltDownloadLink() throws Exception {

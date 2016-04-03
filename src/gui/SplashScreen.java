@@ -62,7 +62,7 @@ public class SplashScreen extends JFrame {
 
         setSize(new Dimension(1022, 680));
         setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
-        setLocation(UI.screenCenter(this));
+        UI.centerOnScreen(this);
     }
 
     void progress() {
@@ -94,7 +94,6 @@ public class SplashScreen extends JFrame {
         loadingLabel = new JLabel();
         readSummaryButton = new JButton();
         watchTrailerButton = new JButton();
-        playButton = new JButton();
         downloadLink1Button = new JButton();
         downloadLink2Button = new JButton();
         statusBarTextField = new JTextField();
@@ -243,9 +242,6 @@ public class SplashScreen extends JFrame {
         watchTrailerButton.setText(bundle.getString("GUI.watchTrailerButton.text"));
         watchTrailerButton.setEnabled(false);
 
-        playButton.setText(bundle.getString("GUI.playButton.text"));
-        playButton.setEnabled(false);
-
         downloadLink1Button.setText(bundle.getString("GUI.downloadLink1Button.text"));
         downloadLink1Button.setEnabled(false);
 
@@ -324,8 +320,6 @@ public class SplashScreen extends JFrame {
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(watchTrailerButton)
                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(playButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(downloadLink1Button)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(downloadLink2Button)
@@ -339,7 +333,7 @@ public class SplashScreen extends JFrame {
                                         .addComponent(hd720CheckBox)
                                         .addGap(0, 0, 0)
                                         .addComponent(hd1080CheckBox)
-                                        .addGap(0, 0, Short.MAX_VALUE)
+                                        .addGap(0, 162, Short.MAX_VALUE)
                                         .addComponent(loadMoreResultsButton))
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -390,7 +384,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, downloadLink2Button, playButton, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, downloadLink2Button, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -433,7 +427,6 @@ public class SplashScreen extends JFrame {
                                         .addComponent(watchTrailerButton)
                                         .addComponent(downloadLink1Button)
                                         .addComponent(downloadLink2Button)
-                                        .addComponent(playButton)
                                         .addComponent(hqVideoTypeCheckBox)
                                         .addComponent(dvdCheckBox)
                                         .addComponent(hd720CheckBox)
@@ -451,7 +444,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, findTextField, playButton, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchTrailerButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{searchProgressTextField, statusBarTextField});
     }
@@ -476,7 +469,6 @@ public class SplashScreen extends JFrame {
     JButton loadMoreResultsButton;
     JLabel loadingLabel;
     JMenuBar menuBar;
-    JButton playButton;
     JMenu playlistMenu;
     JButton popularMoviesButton;
     JButton popularTVShowsButton;

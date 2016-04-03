@@ -142,6 +142,8 @@ public interface GuiListener {
 
     String getMaxDownloadSize();
 
+    boolean canDownloadWithPlaylist();
+
     String getWebBrowserAppDownloader();
 
     String[] getWhitelistedFileExts();

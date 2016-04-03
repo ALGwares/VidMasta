@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.04.03   | VidMasta 20.8
+
+CHANGE: UI   | Simplified user interface
+
+
+
+
 2016.03.02   | VidMasta 20.7
 
 CHANGE: UI   | Simplified user interface

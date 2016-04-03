@@ -296,24 +296,29 @@ public class UI {
 
     public static Point screenCenter(Component component) {
         Dimension componentSize = component.getSize();
-        Rectangle screenBounds = getUsableScreenBounds(component);
+        Rectangle screenBounds = getUsableScreenBounds(component, true);
         if (componentSize.height > screenBounds.height) {
             componentSize.height = screenBounds.height;
         }
         if (componentSize.width > screenBounds.width) {
             componentSize.width = screenBounds.width;
         }
-        return new Point((screenBounds.width - componentSize.width) / 2, (screenBounds.height - componentSize.height) / 2);
+        return new Point(screenBounds.x + ((screenBounds.width - componentSize.width) / 2), screenBounds.y + ((screenBounds.height - componentSize.height) / 2));
     }
 
     public static Rectangle getUsableScreenBounds(Component component) {
+        return getUsableScreenBounds(component, false);
+    }
+
+    public static Rectangle getUsableScreenBounds(Component component, boolean usePoint) {
         GraphicsConfiguration graphicsConfig = component.getGraphicsConfiguration();
         if (graphicsConfig == null) {
             graphicsConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
         }
         Rectangle bounds = graphicsConfig.getBounds();
         Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsConfig);
-        return new Rectangle(insets.left, insets.top, bounds.width - (insets.left + insets.right), bounds.height - (insets.top + insets.bottom));
+        Point point = (usePoint ? new Point(bounds.x, bounds.y) : new Point(insets.left, insets.top));
+        return new Rectangle(point.x, point.y, bounds.width - (insets.left + insets.right), bounds.height - (insets.top + insets.bottom));
     }
 
     public static BufferedImage image(Icon icon) {
@@ -355,6 +360,14 @@ public class UI {
         }
     }
 
+    public static void initToggleButton(AbstractButton button, String startIconName) {
+        Icon startIcon = icon(startIconName);
+        button.setIcon(startIcon);
+        button.putClientProperty(Constant.STOP_KEY, new AtomicBoolean());
+        button.putClientProperty(Constant.STOP_ICON_KEY, icon("cancel.png"));
+        button.putClientProperty(Constant.START_ICON_KEY, startIcon);
+    }
+
     public static boolean isStop(AbstractButton button) {
         return ((AtomicBoolean) button.getClientProperty(Constant.STOP_KEY)).get();
     }
@@ -375,7 +388,12 @@ public class UI {
         if (startPrimary != null) {
             for (AbstractButton primaryButton : primaryButtons) {
                 ((AtomicBoolean) primaryButton.getClientProperty(Constant.STOP_KEY)).set(!startPrimary);
-                primaryButton.setText(startPrimary ? primaryButton.getName() : Str.str(Constant.STOP_KEY));
+                Object icon = primaryButton.getClientProperty(startPrimary ? Constant.START_ICON_KEY : Constant.STOP_ICON_KEY);
+                if (icon == null) {
+                    primaryButton.setText(startPrimary ? primaryButton.getName() : Str.str(Constant.STOP_KEY));
+                } else {
+                    primaryButton.setIcon((Icon) icon);
+                }
             }
         }
         if (secondaryComponents2 != null && enableSecondary2 != null) {

@@ -32,8 +32,7 @@ public class WindowsUtil {
     public static boolean isProcessRunning(String process) {
         BufferedReader br = null;
         try {
-            Process tasklist = (new ProcessBuilder("tasklist")).start();
-            br = new BufferedReader(new InputStreamReader(tasklist.getInputStream(), Constant.UTF8));
+            br = new BufferedReader(new InputStreamReader((new ProcessBuilder("tasklist")).start().getInputStream(), Constant.UTF8));
             String line, processName = process + Constant.EXE;
             while ((line = br.readLine()) != null) {
                 if (line.startsWith(processName)) {

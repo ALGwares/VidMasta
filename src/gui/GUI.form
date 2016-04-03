@@ -120,9 +120,6 @@
         </Property>
         <Property name="alwaysOnTop" type="boolean" value="true"/>
       </Properties>
-      <Events>
-        <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="summaryDialogWindowClosing"/>
-      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
       </AuxValues>
@@ -209,6 +206,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="summaryLoadingLabel">
           <Properties>
+            <Property name="horizontalAlignment" type="int" value="4"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="null" type="code"/>
             </Property>
@@ -1133,17 +1131,6 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="watchTrailerMenuItemActionPerformed"/>
-          </Events>
-        </MenuItem>
-        <MenuItem class="javax.swing.JMenuItem" name="playMenuItem">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.playMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playMenuItemActionPerformed"/>
           </Events>
         </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="downloadLink1MenuItem">
@@ -2373,11 +2360,11 @@
                       <Group type="102" attributes="0">
                           <Component id="tvSubtitleLanguageLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Component id="tvSubtitleLanguageComboBox" max="32767" attributes="0"/>
+                          <Component id="tvSubtitleLanguageComboBox" pref="164" max="32767" attributes="0"/>
                           <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
                           <Component id="tvSubtitleFormatLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Component id="tvSubtitleFormatComboBox" max="32767" attributes="0"/>
+                          <Component id="tvSubtitleFormatComboBox" pref="164" max="32767" attributes="0"/>
                           <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
                           <Component id="tvSubtitleSeasonLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -2391,9 +2378,7 @@
                           <Component id="tvSubtitleDownloadMatch1Button" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="tvSubtitleDownloadMatch2Button" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Component id="tvSubtitleCancelButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace pref="218" max="32767" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
                           <Component id="tvSubtitleLoadingLabel" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -2419,7 +2404,6 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="tvSubtitleDownloadMatch1Button" linkSize="158" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="tvSubtitleDownloadMatch2Button" linkSize="158" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="tvSubtitleCancelButton" linkSize="158" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="tvSubtitleLoadingLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -2518,20 +2502,6 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tvSubtitleDownloadMatch2ButtonActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="tvSubtitleCancelButton">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.tvSubtitleCancelButton.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.tvSubtitleCancelButton.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tvSubtitleCancelButtonActionPerformed"/>
-          </Events>
-        </Component>
         <Component class="javax.swing.JLabel" name="tvSubtitleLoadingLabel">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
@@ -2571,9 +2541,7 @@
                           <Component id="movieSubtitleDownloadMatch1Button" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="movieSubtitleDownloadMatch2Button" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Component id="movieSubtitleCancelButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="separate" max="32767" attributes="0"/>
+                          <EmptySpace pref="95" max="32767" attributes="0"/>
                           <Component id="movieSubtitleLoadingLabel" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -2595,7 +2563,6 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="movieSubtitleDownloadMatch1Button" linkSize="160" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="movieSubtitleDownloadMatch2Button" linkSize="160" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="movieSubtitleCancelButton" linkSize="160" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="movieSubtitleLoadingLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -2658,20 +2625,6 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="movieSubtitleDownloadMatch2ButtonActionPerformed"/>
-          </Events>
-        </Component>
-        <Component class="javax.swing.JButton" name="movieSubtitleCancelButton">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.movieSubtitleCancelButton.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.movieSubtitleCancelButton.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="enabled" type="boolean" value="false"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="movieSubtitleCancelButtonActionPerformed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="movieSubtitleLoadingLabel">
@@ -3986,9 +3939,16 @@
                 </Property>
               </Properties>
               <SubComponents>
-                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="webBrowserAppDownloaderRadioButtonMenuItem">
+                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="playlistDownloaderRadioButtonMenuItem">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
+                    <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                      <ResourceString bundle="i18n/Bundle.properties" key="GUI.playlistDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                    </Property>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JRadioButtonMenuItem" name="webBrowserAppDownloaderRadioButtonMenuItem">
+                  <Properties>
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.webBrowserAppDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
@@ -4122,9 +4082,7 @@
                       <Component id="readSummaryButton" linkSize="154" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Component id="watchTrailerButton" linkSize="154" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="playButton" linkSize="154" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="downloadLink1Button" linkSize="154" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="downloadLink2Button" linkSize="154" min="-2" max="-2" attributes="0"/>
@@ -4138,7 +4096,7 @@
                       <Component id="hd720CheckBox" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
                       <Component id="hd1080CheckBox" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="162" max="32767" attributes="0"/>
                       <Component id="loadMoreResultsButton" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
@@ -4249,7 +4207,6 @@
                       <Component id="watchTrailerButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="downloadLink1Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="downloadLink2Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="playButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="hqVideoTypeCheckBox" alignment="3" min="-2" max="-2" attributes="1"/>
                       <Component id="dvdCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="hd720CheckBox" alignment="3" min="-2" max="-2" attributes="1"/>
@@ -4679,20 +4636,6 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="watchTrailerButtonActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="playButton">
-      <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.playButton.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="i18n/Bundle.properties" key="GUI.playButton.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-        </Property>
-        <Property name="enabled" type="boolean" value="false"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playButtonActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="downloadLink1Button">

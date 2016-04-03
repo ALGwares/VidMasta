@@ -35,7 +35,7 @@ public interface WorkerListener {
 
     void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
-    void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean play);
+    void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
 
     void proxyListDownloadStarted();
 
