@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.04.11   | VidMasta 20.9
+
+CHANGE: CORE | Added playback of trailer using VLC media player for Windows
+CHANGE: UI   | Added support for entering year only for released dates search criteria
+
+
+
+
 2016.04.03   | VidMasta 20.8
 
 CHANGE: UI   | Simplified user interface

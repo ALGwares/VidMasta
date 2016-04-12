@@ -203,6 +203,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), dummyMenuItem4 = new JMenuItem(),
             dummyMenuItem5 = new JMenuItem(), dummyMenuItem6 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
     JComboBox dummyComboBox = new JComboBox();
+    ButtonGroup trailerPlayerButtonGroup2;
 
     public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
         this.workerListener = workerListener;
@@ -459,6 +460,9 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
+        UI.add(trailerPlayerButtonGroup, trailerMediaPlayerRadioButtonMenuItem, trailerMediaPlayer1080RadioButtonMenuItem,
+                trailerMediaPlayer720RadioButtonMenuItem, trailerMediaPlayer480RadioButtonMenuItem, trailerMediaPlayer360RadioButtonMenuItem,
+                trailerMediaPlayer240RadioButtonMenuItem, trailerWebBrowserPlayerRadioButtonMenuItem);
         UI.add(downloaderButtonGroup, playlistDownloaderRadioButtonMenuItem, webBrowserAppDownloaderRadioButtonMenuItem,
                 webBrowserAltAppDownloaderRadioButtonMenuItem, defaultApplicationDownloaderRadioButtonMenuItem, noDownloaderRadioButtonMenuItem);
 
@@ -575,13 +579,17 @@ public class GUI extends JFrame implements GuiListener {
         if (Constant.WINDOWS_XP_AND_HIGHER) {
             peerBlockMenuItem = peerBlockNotificationCheckBoxMenuItem;
             playDefaultAppMenuItem = playlistPlayWithDefaultAppCheckBoxMenuItem;
+            trailerPlayerButtonGroup2 = trailerPlayerButtonGroup;
         } else {
             peerBlockMenuItem = new JMenuItem();
             peerBlockNotificationCheckBoxMenuItem.setSelected(false);
             usePeerBlock = false;
             playDefaultAppMenuItem = new JMenuItem();
             playlistPlayWithDefaultAppCheckBoxMenuItem.setSelected(true);
-            for (JComponent component : new JComponent[]{peerBlockNotificationCheckBoxMenuItem, playlistPlayWithDefaultAppCheckBoxMenuItem}) {
+            trailerPlayerButtonGroup2 = new ButtonGroup();
+            UI.select(trailerPlayerButtonGroup, 6);
+            for (JComponent component : new JComponent[]{peerBlockNotificationCheckBoxMenuItem, playlistPlayWithDefaultAppCheckBoxMenuItem, searchMenuSeparator7,
+                trailerPlayerMenu}) {
                 component.setEnabled(false);
                 component.setVisible(false);
             }
@@ -939,6 +947,7 @@ public class GUI extends JFrame implements GuiListener {
         activationButton = new JButton();
         activationLoadingLabel = new JLabel();
         languageButtonGroup = new ButtonGroup();
+        trailerPlayerButtonGroup = new ButtonGroup();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -969,8 +978,8 @@ public class GUI extends JFrame implements GuiListener {
         searchProgressTextField = new JTextField();
         exitBackupModeButton = new JButton();
         connectionIssueButton = new JButton();
-        startDateChooser = new JDateChooser(new JCalendar(null, null, true, true), null, null, null);
-        endDateChooser = new JDateChooser(new JCalendar(null, null, true, true), null, null, null);
+        startDateChooser = new DateChooser();
+        endDateChooser = new DateChooser();
         findTextField = new JTextField();
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
@@ -1025,6 +1034,15 @@ public class GUI extends JFrame implements GuiListener {
         browserNotificationCheckBoxMenuItem = new JCheckBoxMenuItem();
         searchMenuSeparator6 = new Separator();
         emailWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
+        searchMenuSeparator7 = new Separator();
+        trailerPlayerMenu = new JMenu();
+        trailerMediaPlayerRadioButtonMenuItem = new JRadioButtonMenuItem();
+        trailerMediaPlayer1080RadioButtonMenuItem = new JRadioButtonMenuItem();
+        trailerMediaPlayer720RadioButtonMenuItem = new JRadioButtonMenuItem();
+        trailerMediaPlayer480RadioButtonMenuItem = new JRadioButtonMenuItem();
+        trailerMediaPlayer360RadioButtonMenuItem = new JRadioButtonMenuItem();
+        trailerMediaPlayer240RadioButtonMenuItem = new JRadioButtonMenuItem();
+        trailerWebBrowserPlayerRadioButtonMenuItem = new JRadioButtonMenuItem();
         playlistMenu = new JMenu();
         playlistMenuItem = new JMenuItem();
         playlistMenuSeparator1 = new Separator();
@@ -3832,6 +3850,40 @@ public class GUI extends JFrame implements GuiListener {
         emailWithDefaultAppCheckBoxMenuItem.setSelected(true);
         emailWithDefaultAppCheckBoxMenuItem.setText(bundle.getString("GUI.emailWithDefaultAppCheckBoxMenuItem.text")); // NOI18N
         searchMenu.add(emailWithDefaultAppCheckBoxMenuItem);
+        searchMenu.add(searchMenuSeparator7);
+
+        trailerPlayerMenu.setText(bundle.getString("GUI.trailerPlayerMenu.text")); // NOI18N
+
+        trailerMediaPlayerRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+        trailerMediaPlayerRadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayerRadioButtonMenuItem.text")); // NOI18N
+        trailerPlayerMenu.add(trailerMediaPlayerRadioButtonMenuItem);
+
+        trailerMediaPlayer1080RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_MASK));
+        trailerMediaPlayer1080RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer1080RadioButtonMenuItem.text")); // NOI18N
+        trailerPlayerMenu.add(trailerMediaPlayer1080RadioButtonMenuItem);
+
+        trailerMediaPlayer720RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_MASK));
+        trailerMediaPlayer720RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer720RadioButtonMenuItem.text")); // NOI18N
+        trailerPlayerMenu.add(trailerMediaPlayer720RadioButtonMenuItem);
+
+        trailerMediaPlayer480RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_MASK));
+        trailerMediaPlayer480RadioButtonMenuItem.setSelected(true);
+        trailerMediaPlayer480RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer480RadioButtonMenuItem.text")); // NOI18N
+        trailerPlayerMenu.add(trailerMediaPlayer480RadioButtonMenuItem);
+
+        trailerMediaPlayer360RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_J, InputEvent.CTRL_MASK));
+        trailerMediaPlayer360RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer360RadioButtonMenuItem.text")); // NOI18N
+        trailerPlayerMenu.add(trailerMediaPlayer360RadioButtonMenuItem);
+
+        trailerMediaPlayer240RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, InputEvent.CTRL_MASK));
+        trailerMediaPlayer240RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer240RadioButtonMenuItem.text")); // NOI18N
+        trailerPlayerMenu.add(trailerMediaPlayer240RadioButtonMenuItem);
+
+        trailerWebBrowserPlayerRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_MASK));
+        trailerWebBrowserPlayerRadioButtonMenuItem.setText(bundle.getString("GUI.trailerWebBrowserPlayerRadioButtonMenuItem.text")); // NOI18N
+        trailerPlayerMenu.add(trailerWebBrowserPlayerRadioButtonMenuItem);
+
+        searchMenu.add(trailerPlayerMenu);
 
         menuBar.add(searchMenu);
 
@@ -4247,13 +4299,7 @@ public class GUI extends JFrame implements GuiListener {
 
         int numResultsPerSearch = Integer.parseInt((String) regularResultsPerSearchComboBox.getSelectedItem());
         isTVShowSearch = Constant.TV_SHOW.equals(typeComboBox.getSelectedItem());
-        Calendar startDate = startDateChooser.getCalendar(), endDate = endDateChooser.getCalendar();
-        if (startDate != null) {
-            startDate = (Calendar) startDate.clone();
-        }
-        if (endDate != null) {
-            endDate = (Calendar) endDate.clone();
-        }
+        Calendar startDate = ((DateChooser) startDateChooser).getTime(), endDate = ((DateChooser) endDateChooser).getTime();
 
         String title = titleTextField.getText().trim(), minRating = (String) ratingComboBox.getSelectedItem();
         String[] genres = UI.selectAnyIfNoSelectionAndCopy(genreList), languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries
@@ -6258,7 +6304,7 @@ public class GUI extends JFrame implements GuiListener {
                     settings = defaultSettings;
                 }
                 int i = -1;
-                changeLocale(settings[Constant.SETTINGS_LEN - 3]);
+                changeLocale(settings[Constant.SETTINGS_LEN - 4]);
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
                 i += restoreButtons(settings, i, buttonSet1());
                 ++i; // Backward compatibility
@@ -6305,10 +6351,8 @@ public class GUI extends JFrame implements GuiListener {
                 ++i; // language
                 ++i; // Backward compatibility
 
-                int downloader = Integer.parseInt(settings[++i]);
-                downloaderButtonGroup.setSelected((downloader == 0 ? playlistDownloaderRadioButtonMenuItem : (downloader == 1
-                        ? webBrowserAppDownloaderRadioButtonMenuItem : (downloader == 2 ? webBrowserAltAppDownloaderRadioButtonMenuItem : (downloader == 3
-                                        ? defaultApplicationDownloaderRadioButtonMenuItem : noDownloaderRadioButtonMenuItem)))).getModel(), true);
+                UI.select(downloaderButtonGroup, Integer.parseInt(settings[++i]));
+                UI.select(trailerPlayerButtonGroup2, Integer.parseInt(settings[++i]));
 
                 if (!updateSettings) {
                     return;
@@ -6367,8 +6411,8 @@ public class GUI extends JFrame implements GuiListener {
             }
             settings.append(language).append(Constant.NEWLINE);
             settings.append(0).append(Constant.NEWLINE); // Backward compatibility
-            settings.append(playlistDownloaderRadioButtonMenuItem.isSelected() ? 0 : (webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? 1
-                    : (webBrowserAltAppDownloaderRadioButtonMenuItem.isSelected() ? 2 : (defaultApplicationDownloaderRadioButtonMenuItem.isSelected() ? 3 : 4))));
+            settings.append(UI.selectedIndex(downloaderButtonGroup)).append(Constant.NEWLINE);
+            settings.append(UI.selectedIndex(trailerPlayerButtonGroup2));
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -7478,6 +7522,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public int getTrailerPlayer() {
+        return UI.selectedIndex(trailerPlayerButtonGroup);
+    }
+
+    @Override
     public String getFormat() {
         for (AbstractButton button : new AbstractButton[]{hqVideoTypeCheckBox, dvdCheckBox, hd720CheckBox, hd1080CheckBox}) {
             if (button.isSelected()) {
@@ -7985,6 +8034,14 @@ public class GUI extends JFrame implements GuiListener {
         timeoutMenuItem.setText(Str.str("GUI.timeoutMenuItem.text"));
         titleLabel.setText(Str.str("GUI.titleLabel.text"));
         titleLabel.setToolTipText(Str.str("GUI.titleLabel.toolTipText"));
+        trailerMediaPlayer1080RadioButtonMenuItem.setText(Str.str("GUI.trailerMediaPlayer1080RadioButtonMenuItem.text"));
+        trailerMediaPlayer240RadioButtonMenuItem.setText(Str.str("GUI.trailerMediaPlayer240RadioButtonMenuItem.text"));
+        trailerMediaPlayer360RadioButtonMenuItem.setText(Str.str("GUI.trailerMediaPlayer360RadioButtonMenuItem.text"));
+        trailerMediaPlayer480RadioButtonMenuItem.setText(Str.str("GUI.trailerMediaPlayer480RadioButtonMenuItem.text"));
+        trailerMediaPlayer720RadioButtonMenuItem.setText(Str.str("GUI.trailerMediaPlayer720RadioButtonMenuItem.text"));
+        trailerMediaPlayerRadioButtonMenuItem.setText(Str.str("GUI.trailerMediaPlayerRadioButtonMenuItem.text"));
+        trailerPlayerMenu.setText(Str.str("GUI.trailerPlayerMenu.text"));
+        trailerWebBrowserPlayerRadioButtonMenuItem.setText(Str.str("GUI.trailerWebBrowserPlayerRadioButtonMenuItem.text"));
         tvCancelButton.setText(Str.str("GUI.tvCancelButton.text"));
         tvCancelButton.setToolTipText(Str.str("GUI.tvCancelButton.toolTipText"));
         tvDialog.setTitle(Str.str("GUI.tvDialog.title"));
@@ -8384,6 +8441,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator searchMenuSeparator4;
     Separator searchMenuSeparator5;
     Separator searchMenuSeparator6;
+    Separator searchMenuSeparator7;
     JTextField searchProgressTextField;
     JLabel seasonLabel;
     JMenuItem selectAllMenuItem;
@@ -8421,6 +8479,15 @@ public class GUI extends JFrame implements GuiListener {
     JLabel titleLabel;
     JTextField titleTextField;
     JFileChooser torrentFileChooser;
+    JRadioButtonMenuItem trailerMediaPlayer1080RadioButtonMenuItem;
+    JRadioButtonMenuItem trailerMediaPlayer240RadioButtonMenuItem;
+    JRadioButtonMenuItem trailerMediaPlayer360RadioButtonMenuItem;
+    JRadioButtonMenuItem trailerMediaPlayer480RadioButtonMenuItem;
+    JRadioButtonMenuItem trailerMediaPlayer720RadioButtonMenuItem;
+    JRadioButtonMenuItem trailerMediaPlayerRadioButtonMenuItem;
+    ButtonGroup trailerPlayerButtonGroup;
+    JMenu trailerPlayerMenu;
+    JRadioButtonMenuItem trailerWebBrowserPlayerRadioButtonMenuItem;
     JButton trashCanButton;
     JRadioButtonMenuItem turkishRadioButtonMenuItem;
     JButton tvCancelButton;

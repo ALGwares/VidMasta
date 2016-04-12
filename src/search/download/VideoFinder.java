@@ -32,6 +32,7 @@ import util.ExceptionUtil;
 import util.IO;
 import util.Regex;
 import util.RunnableUtil;
+import util.VideoPlayer;
 
 public class VideoFinder extends AbstractSwingWorker {
 
@@ -462,8 +463,13 @@ public class VideoFinder extends AbstractSwingWorker {
                 export = link;
                 return;
             }
-            guiListener.browserNotification(DomainType.TRAILER);
-            Connection.browse(link);
+
+            int player = guiListener.getTrailerPlayer();
+            if (player == 6 || !VideoPlayer.open(738, link, player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1 ? 1080
+                    : -1)))))) {
+                guiListener.browserNotification(DomainType.TRAILER);
+                Connection.browse(link);
+            }
         }
     }
 

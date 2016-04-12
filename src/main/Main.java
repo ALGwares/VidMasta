@@ -68,7 +68,6 @@ public class Main implements WorkerListener {
     private VideoFinder summaryFinder, trailerFinder, torrentFinder;
     private ProxyListDownloader proxyDownloader;
     private SubtitleFinder subtitleFinder;
-    private AbstractSwingWorker streamingTorrentReloader;
     private Prefetcher prefetcher;
     private SummaryReader summaryReader;
     private Video summaryReaderVideo;

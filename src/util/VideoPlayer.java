@@ -35,21 +35,34 @@ public class VideoPlayer {
     }
 
     public static boolean open(int canOpenIndex, File file, boolean playAndExit, boolean startMinimized) {
+        String filePath;
+        return canOpen(canOpenIndex) && (filePath = file.getPath()).length() < 255 && Regex.isMatch(file.getName(), 698) && open(filePath, playAndExit,
+                startMinimized, null);
+    }
+
+    public static boolean open(int canOpenIndex, String url, int quality) {
+        return canOpen(canOpenIndex) && open(url, false, false, quality);
+    }
+
+    private static boolean canOpen(int canOpenIndex) {
+        return Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && (new File(Constant.APP_DIR + Str.get(697))).exists();
+    }
+
+    private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality) {
         try {
-            String filePath;
-            if (Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && (new File(Constant.APP_DIR + Str.get(697))).exists()
-                    && (filePath = file.getPath()).length() < 255 && Regex.isMatch(file.getName(), 698)) {
-                List<String> args = new ArrayList<String>(4);
-                Collections.addAll(args, Constant.APP_DIR + Str.get(695).replace(Str.get(696), Constant.FILE_SEPARATOR), filePath);
-                if (playAndExit) {
-                    args.add("--play-and-exit");
-                }
-                if (startMinimized) {
-                    args.add("--qt-start-minimized");
-                }
-                (new ProcessBuilder(args)).start();
-                return true;
+            List<String> args = new ArrayList<String>(5);
+            Collections.addAll(args, Constant.APP_DIR + Str.get(695).replace(Str.get(696), Constant.FILE_SEPARATOR), location);
+            if (playAndExit) {
+                args.add("--play-and-exit");
             }
+            if (startMinimized) {
+                args.add("--qt-start-minimized");
+            }
+            if (quality != null) {
+                args.add("--preferred-resolution=" + quality);
+            }
+            (new ProcessBuilder(args)).start();
+            return true;
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);

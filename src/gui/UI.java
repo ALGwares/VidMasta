@@ -42,6 +42,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -49,6 +50,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultRowSorter;
@@ -776,6 +778,34 @@ public class UI {
         if (minSize.width > 0) {
             component.component.setMinimumSize(minSize);
             component.component.setPreferredSize(minSize);
+        }
+    }
+
+    public static int selectedIndex(ButtonGroup buttonGroup) {
+        Enumeration<AbstractButton> buttons = buttonGroup.getElements();
+        ButtonModel selectedButtonModel = buttonGroup.getSelection();
+        int selectedIndex = -1;
+
+        while (buttons.hasMoreElements()) {
+            selectedIndex++;
+            if (buttons.nextElement().getModel() == selectedButtonModel) {
+                break;
+            }
+        }
+
+        return selectedIndex;
+    }
+
+    public static void select(ButtonGroup buttonGroup, int index) {
+        Enumeration<AbstractButton> buttons = buttonGroup.getElements();
+        int currIndex = -1;
+
+        while (buttons.hasMoreElements()) {
+            AbstractButton button = buttons.nextElement();
+            if (++currIndex == index) {
+                buttonGroup.setSelected(button.getModel(), true);
+                return;
+            }
         }
     }
 

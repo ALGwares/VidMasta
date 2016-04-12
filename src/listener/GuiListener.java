@@ -136,6 +136,8 @@ public interface GuiListener {
 
     boolean canAutoOpenPlaylistItem();
 
+    int getTrailerPlayer();
+
     String getFormat();
 
     String getMinDownloadSize();
