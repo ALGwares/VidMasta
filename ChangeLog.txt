@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.04.14   | VidMasta 21.0
+
+CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows
+
+
+
+
 2016.04.11   | VidMasta 20.9
 
 CHANGE: CORE | Added playback of trailer using VLC media player for Windows

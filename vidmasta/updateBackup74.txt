@@ -1,4 +1,4 @@
-239
+241
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -301,7 +301,7 @@ EMPTY
 SPACE
 30
 Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
-((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(pw)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
+((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(la)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
 ...
 EMPTY
 ((?i)(https?+://(www\.)?+))
@@ -717,19 +717,19 @@ http://kat.unbanthe.net/
 http://kat.unbanthe.net/comments/index/torrent/
 https://kat.cr
 706,707,708,709,710,712,714,715
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-6.2.1-Java7.exe/download
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-6.2.1-Java7.dmg/download
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-6.2.1-Java7.tgz/download
-https://kickass.unblocked.pw/usearch/
-https://kickass.unblocked.pw
-https://kickass.unblocked.pw
-https://kickass.unblocked.pw/usearch/
-https://kickass.unblocked.pw
-https://kickass.unblocked.pw:::https://kickass.unblocked.sx:::https://kickass.unblocked.pe
-https://kickass.unblocked.pw
-https://kickass.unblocked.pw
-https://kickass.unblocked.pw/
-https://kickass.unblocked.pw/comments/index/torrent/
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-6.2.2-Java7.exe/download
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-6.2.2-Java7.dmg/download
+http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-6.2.2-Java7.tgz/download
+https://kickass.unblocked.la/usearch/
+https://kickass.unblocked.la
+https://kickass.unblocked.la
+https://kickass.unblocked.la/usearch/
+https://kickass.unblocked.la
+https://kickass.unblocked.la:::https://kickass.unblocked.sx:::https://kickass.unblocked.pe
+https://kickass.unblocked.la
+https://kickass.unblocked.la
+https://kickass.unblocked.la/
+https://kickass.unblocked.la/comments/index/torrent/
 https://kat.cr
 721,722,723,724,725,727,729,730
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
@@ -738,4 +738,5 @@ https://kat.cr
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C343F
 200
 true
+(?i)Couldn't extract youtube video URL
 eof

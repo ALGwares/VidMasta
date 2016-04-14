@@ -1,10 +1,13 @@
 package util;
 
 import debug.Debug;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.SwingWorker;
 import listener.DomainType;
 import str.Str;
 
@@ -37,21 +40,21 @@ public class VideoPlayer {
     public static boolean open(int canOpenIndex, File file, boolean playAndExit, boolean startMinimized) {
         String filePath;
         return canOpen(canOpenIndex) && (filePath = file.getPath()).length() < 255 && Regex.isMatch(file.getName(), 698) && open(filePath, playAndExit,
-                startMinimized, null);
+                startMinimized, null, null);
     }
 
-    public static boolean open(int canOpenIndex, String url, int quality) {
-        return canOpen(canOpenIndex) && open(url, false, false, quality);
+    public static boolean open(int canOpenIndex, String url, int quality, Runnable errorAction) {
+        return canOpen(canOpenIndex) && open(url, false, false, quality, errorAction);
     }
 
     private static boolean canOpen(int canOpenIndex) {
         return Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && (new File(Constant.APP_DIR + Str.get(697))).exists();
     }
 
-    private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality) {
+    private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, final Runnable errorAction) {
         try {
             List<String> args = new ArrayList<String>(5);
-            Collections.addAll(args, Constant.APP_DIR + Str.get(695).replace(Str.get(696), Constant.FILE_SEPARATOR), location);
+            Collections.addAll(args, Constant.APP_DIR + Str.get(695).replace(Str.get(696), Constant.FILE_SEPARATOR), location, "--no-one-instance");
             if (playAndExit) {
                 args.add("--play-and-exit");
             }
@@ -61,7 +64,39 @@ public class VideoPlayer {
             if (quality != null) {
                 args.add("--preferred-resolution=" + quality);
             }
-            (new ProcessBuilder(args)).start();
+
+            ProcessBuilder videoPlayerBuilder = new ProcessBuilder(args);
+            if (errorAction != null) {
+                videoPlayerBuilder.redirectErrorStream(true);
+            }
+            final Process videoPlayer = videoPlayerBuilder.start();
+            if (errorAction != null) {
+                (new SwingWorker<Object, Object>() {
+                    @Override
+                    protected Object doInBackground() {
+                        BufferedReader br = null;
+                        try {
+                            br = new BufferedReader(new InputStreamReader(videoPlayer.getInputStream(), Constant.UTF8));
+                            String line;
+                            while ((line = br.readLine()) != null) {
+                                if (!Regex.firstMatch(line, Str.get(739)).isEmpty()) {
+                                    videoPlayer.destroy();
+                                    errorAction.run();
+                                    return null;
+                                }
+                            }
+                        } catch (Exception e) {
+                            if (Debug.DEBUG) {
+                                Debug.print(e);
+                            }
+                        } finally {
+                            IO.close(br);
+                        }
+                        return null;
+                    }
+                }).execute();
+            }
+
             return true;
         } catch (Exception e) {
             if (Debug.DEBUG) {

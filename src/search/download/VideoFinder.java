@@ -447,7 +447,7 @@ public class VideoFinder extends AbstractSwingWorker {
         } else {
             seasonStr = "";
         }
-        String link = getTrailerLink(seasonStr);
+        final String link = getTrailerLink(seasonStr);
 
         if (PREFETCH || isCancelled()) {
             return;
@@ -465,10 +465,21 @@ public class VideoFinder extends AbstractSwingWorker {
             }
 
             int player = guiListener.getTrailerPlayer();
+            Runnable browseLink = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        guiListener.browserNotification(DomainType.TRAILER);
+                        Connection.browse(link);
+                    } catch (Exception e) {
+                        error(e);
+                    }
+                }
+            };
+
             if (player == 6 || !VideoPlayer.open(738, link, player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1 ? 1080
-                    : -1)))))) {
-                guiListener.browserNotification(DomainType.TRAILER);
-                Connection.browse(link);
+                    : -1)))), browseLink)) {
+                browseLink.run();
             }
         }
     }
