@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.04.18   | VidMasta 21.1
+
+CHANGE: CORE | Automatically closed media player after trailer is finished playing
+CHANGE: UI   | Added ability to block being able to re-download specific download links via the playlist's right-click popup menu item "Ban Group"
+
+
+
+
 2016.04.14   | VidMasta 21.0
 
 CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows

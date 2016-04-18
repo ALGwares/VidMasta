@@ -80,6 +80,8 @@ public interface GuiListener {
 
     void searchProgressUpdate(int numResults, double progress);
 
+    boolean unbanDownload(Long downloadID, String downloadName);
+
     boolean newPlaylistItems(List<Object[]> items, int insertRow, int primaryItemIndex);
 
     int newPlaylistItem(Object[] item, int insertRow);

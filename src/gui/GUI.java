@@ -54,6 +54,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -106,7 +107,6 @@ import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.RootPaneContainer;
 import javax.swing.RowFilter;
-import javax.swing.RowFilter.Entry;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
@@ -166,6 +166,7 @@ public class GUI extends JFrame implements GuiListener {
     private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
+    private final Set<Long> bannedDownloadIDs = new CopyOnWriteArraySet<Long>();
     private FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
     DefaultListModel blacklistListModel, whitelistListModel;
@@ -597,6 +598,13 @@ public class GUI extends JFrame implements GuiListener {
         settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS);
         playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
 
+        String downloadIDs = preferences.get(Constant.BANNED_DOWNLOAD_IDS, "").trim();
+        if (!downloadIDs.isEmpty()) {
+            for (String downloadID : downloadIDs.split(Constant.STD_NEWLINE)) {
+                bannedDownloadIDs.add(Long.valueOf(downloadID));
+            }
+        }
+
         splashScreen.progress();
     }
 
@@ -939,6 +947,8 @@ public class GUI extends JFrame implements GuiListener {
         playlistTablePopupMenuSeparator2 = new Separator();
         playlistRemoveMenuItem = new JMenuItem();
         playlistReloadGroupMenuItem = new JMenuItem();
+        playlistTablePopupMenuSeparator3 = new Separator();
+        playlistBanGroupMenuItem = new JMenuItem();
         activationDialog = new JDialog();
         activationUpgradeButton = new JButton();
         activationUpgradeLabel = new JLabel();
@@ -3175,6 +3185,14 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         playlistTablePopupMenu.add(playlistReloadGroupMenuItem);
+        playlistTablePopupMenu.add(playlistTablePopupMenuSeparator3);
+
+        playlistBanGroupMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistBanGroupMenuItemActionPerformed(evt);
+            }
+        });
+        playlistTablePopupMenu.add(playlistBanGroupMenuItem);
 
         activationDialog.setTitle(bundle.getString("GUI.activationDialog.title")); // NOI18N
         activationDialog.setAlwaysOnTop(true);
@@ -4187,6 +4205,12 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
         }
+
+        StringBuilder downloadIDs = new StringBuilder(96);
+        for (Long downloadID : bannedDownloadIDs) {
+            downloadIDs.append(downloadID).append(Constant.STD_NEWLINE);
+        }
+        preferences.put(Constant.BANNED_DOWNLOAD_IDS, downloadIDs.toString().trim());
     }
 
     public void savePlaylist() {
@@ -6079,6 +6103,23 @@ public class GUI extends JFrame implements GuiListener {
         }, playlistSyncTable);
     }//GEN-LAST:event_playlistFindTextFieldKeyPressed
 
+    private void playlistBanGroupMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistBanGroupMenuItemActionPerformed
+        playlistFindControl.hide();
+        PlaylistItem playlistItem = selectedPlaylistItem();
+        if (playlistItem == null) {
+            return;
+        }
+
+        Long downloadID = playlistItem.groupDownloadID();
+        String textKey = "banGroup";
+        if (bannedDownloadIDs.add(downloadID)) {
+            textKey = "un" + textKey;
+        } else {
+            bannedDownloadIDs.remove(downloadID);
+        }
+        playlistBanGroupMenuItem.setText(Str.str(textKey));
+    }//GEN-LAST:event_playlistBanGroupMenuItemActionPerformed
+
     private void playlistKeyPressed(KeyEvent evt) {
         if (!evt.isControlDown()) {
             return;
@@ -7290,6 +7331,18 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public boolean unbanDownload(Long downloadID, String downloadName) {
+        if (bannedDownloadIDs.contains(downloadID)) {
+            if (isConfirmed(Str.str("banDownloadConfirm", downloadName))) {
+                bannedDownloadIDs.remove(downloadID);
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public void removePlaylistItem(final PlaylistItem playlistItem) {
         UI.run(true, new Runnable() {
             @Override
@@ -7382,12 +7435,13 @@ public class GUI extends JFrame implements GuiListener {
         if (playlistItem == null) {
             playlistPlayButton.setIcon(playIcon);
             playlistPlayMenuItem.setText(Str.str("play"));
-            UI.enable(false, playlistReloadGroupMenuItem, playlistOpenMenuItem, playlistPlayButton, playlistPlayMenuItem);
+            playlistBanGroupMenuItem.setText(Str.str("banGroup"));
+            UI.enable(false, playlistBanGroupMenuItem, playlistReloadGroupMenuItem, playlistOpenMenuItem, playlistPlayButton, playlistPlayMenuItem);
             return;
         }
-        boolean canOpen = playlistItem.canOpen();
-        playlistReloadGroupMenuItem.setEnabled(canOpen);
-        playlistOpenMenuItem.setEnabled(canOpen);
+        playlistBanGroupMenuItem.setText(Str.str((bannedDownloadIDs.contains(playlistItem.groupDownloadID()) ? "un" : "") + "banGroup"));
+        playlistBanGroupMenuItem.setEnabled(true);
+        UI.enable(playlistItem.canOpen(), playlistReloadGroupMenuItem, playlistOpenMenuItem);
         boolean play = playlistItem.canPlay(), active = playlistItem.isActive();
         playlistPlayButton.setIcon(play ? playIcon : stopIcon);
         playlistPlayMenuItem.setText(Str.str(play ? "play" : Constant.STOP_KEY));
@@ -8325,6 +8379,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem pasteMenuItem;
     JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
     JCheckBoxMenuItem playlistAutoOpenCheckBoxMenuItem;
+    JMenuItem playlistBanGroupMenuItem;
     JMenuItem playlistCopyMenuItem;
     JRadioButtonMenuItem playlistDownloaderRadioButtonMenuItem;
     JFileChooser playlistFileChooser;
@@ -8351,6 +8406,7 @@ public class GUI extends JFrame implements GuiListener {
     JPopupMenu playlistTablePopupMenu;
     Separator playlistTablePopupMenuSeparator1;
     Separator playlistTablePopupMenuSeparator2;
+    Separator playlistTablePopupMenuSeparator3;
     JButton popularMoviesButton;
     JPopupMenu popularMoviesButtonPopupMenu;
     JComboBox popularMoviesResultsPerSearchComboBox;

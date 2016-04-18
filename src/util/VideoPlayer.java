@@ -44,7 +44,7 @@ public class VideoPlayer {
     }
 
     public static boolean open(int canOpenIndex, String url, int quality, Runnable errorAction) {
-        return canOpen(canOpenIndex) && open(url, false, false, quality, errorAction);
+        return canOpen(canOpenIndex) && open(url, true, false, quality, errorAction);
     }
 
     private static boolean canOpen(int canOpenIndex) {

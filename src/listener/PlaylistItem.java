@@ -24,5 +24,7 @@ public interface PlaylistItem {
 
     int groupIndex();
 
+    Long groupDownloadID();
+
     String name();
 }

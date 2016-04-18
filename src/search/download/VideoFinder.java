@@ -358,6 +358,10 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
+        if (!guiListener.unbanDownload(Str.hashCode(torrent.MAGNET_LINK), torrent.NAME)) {
+            return;
+        }
+
         if (torrent.FILE == null || !torrent.FILE.exists()) {
             if (guiListener.getWebBrowserAppDownloader() != null) {
                 if (searchState.blacklistedFileExts.length != 0) {
