@@ -585,6 +585,7 @@ public class UI {
         (menuItem = new MenuItem()).addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
                 try {
                     SystemTray.getSystemTray().remove(trayIcon);
                 } catch (Exception e) {
@@ -592,7 +593,6 @@ public class UI {
                         Debug.print(e);
                     }
                 }
-                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
             }
         });
         trayPopupMenu.add(menuItem);

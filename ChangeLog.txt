@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.04.24   | VidMasta 21.2
+
+CHANGE: UI   | Closed playlist window to system tray when active
+
+
+
+
 2016.04.18   | VidMasta 21.1
 
 CHANGE: CORE | Automatically closed media player after trailer is finished playing

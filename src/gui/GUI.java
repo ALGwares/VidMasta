@@ -17,8 +17,10 @@ import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
+import java.awt.TrayIcon.MessageType;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -5559,21 +5561,7 @@ public class GUI extends JFrame implements GuiListener {
         if (UI.trayIcon(playlistFrame) != null) {
             return;
         }
-        if (!playlistFrame.isShowing()) {
-            System.exit(0);
-        }
-
-        boolean isPlaylistActive = false;
-        synchronized (playlistSyncTable.lock) {
-            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
-                if (((PlaylistItem) playlistSyncTable.tableModel.getValueAt(row, playlistItemCol)).isActive()) {
-                    isPlaylistActive = true;
-                    break;
-                }
-            }
-        }
-
-        if (!isPlaylistActive) {
+        if (!playlistFrame.isShowing() || !isPlaylistActive()) {
             System.exit(0);
         }
     }//GEN-LAST:event_formWindowClosing
@@ -5974,11 +5962,38 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_playlistOpenMenuItemActionPerformed
 
+    private boolean isPlaylistActive() {
+        boolean isPlaylistActive = false;
+        synchronized (playlistSyncTable.lock) {
+            for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
+                if (((PlaylistItem) playlistSyncTable.tableModel.getValueAt(row, playlistItemCol)).isActive()) {
+                    isPlaylistActive = true;
+                    break;
+                }
+            }
+        }
+        return isPlaylistActive;
+    }
+
+    private void closePlaylistFrameToTray() {
+        if (playlistTrayIcon != null && UI.trayIcon(playlistFrame) == null && isPlaylistActive()) {
+            try {
+                SystemTray.getSystemTray().add(playlistTrayIcon);
+                playlistTrayIcon.displayMessage(Str.str("buffering"), playlistTrayIcon.getToolTip(), MessageType.INFO);
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+            }
+        }
+    }
+
     private void playlistFrameWindowClosing(WindowEvent evt) {//GEN-FIRST:event_playlistFrameWindowClosing
         playlistFrame.setVisible(false);
         if (UI.trayIcon(this) == null && !isVisible()) {
             System.exit(0);
         }
+        closePlaylistFrameToTray();
     }//GEN-LAST:event_playlistFrameWindowClosing
 
     private void activationButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationButtonActionPerformed
@@ -6847,6 +6862,7 @@ public class GUI extends JFrame implements GuiListener {
         if (permanent) {
             summaryDialog.setVisible(false);
             playlistFrame.setVisible(false);
+            closePlaylistFrameToTray();
         } else {
             summaryDialog.setAlwaysOnTop(false);
             playlistFrame.setAlwaysOnTop(false);
