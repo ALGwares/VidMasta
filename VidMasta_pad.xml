@@ -7,7 +7,7 @@
     <MASTER_PAD_INFO>Portable Application Description, or PAD for short, is a data set that is used by shareware authors to disseminate information to anyone interested in their software products. To find out more go to http://www.asp-shareware.org/pad</MASTER_PAD_INFO>
   </MASTER_PAD_VERSION_INFO>
   <RoboSoft>
-    <Company_UIN>CMP-00F11F34E8B</Company_UIN>
+    <Company_UIN>CMP-010419D92FD</Company_UIN>
     <Company_Description></Company_Description>
     <Product_UIN>APP-00F11FD8D97</Product_UIN>
     <Search_String>VidMasta</Search_String>
@@ -89,9 +89,6 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <Dynamic_PAD>
-    <Dynamic_Distributive>N</Dynamic_Distributive>
-  </Dynamic_PAD>
   <Press_Release>
     <Headline>VidMasta 21.0 Released</Headline>
     <Summary>VidMasta 21.0 Released</Summary>
@@ -100,13 +97,16 @@
     <Press_Release>VidMasta 21.0 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
-  <ASBMPlannerID1stRound>16</ASBMPlannerID1stRound>
+  <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
   <Issues>11</Issues>
+  <Dynamic_PAD>
+    <Dynamic_Distributive>N</Dynamic_Distributive>
+  </Dynamic_PAD>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>21.0</Program_Version>
+    <Program_Version>21.2</Program_Version>
     <Program_Release_Month>04</Program_Release_Month>
-    <Program_Release_Day>14</Program_Release_Day>
+    <Program_Release_Day>24</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -114,12 +114,12 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64,Win2000,WinOther,Windows2000,Windows2003,WinServer,Windows Vista Ultimate,Windows Vista Ultimate x64,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows 8,Windows Server 2012</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>* Improved error handling for playback when using VLC media player for Windows</Program_Change_Info>
+    <Program_Change_Info>Closed playlist window to system tray when active</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25329175</File_Size_Bytes>
-      <File_Size_K>24735</File_Size_K>
+      <File_Size_Bytes>25331825</File_Size_Bytes>
+      <File_Size_K>24738</File_Size_K>
       <File_Size_MB>24.16</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
@@ -135,7 +135,7 @@
       <Expire_Day></Expire_Day>
       <Expire_Year></Expire_Year>
     </Expire_Info>
-    <Program_Categories>Search/Lookup,Tools,Internet,Network</Program_Categories>
+    <Program_Categories>Internet,Search/Lookup,Tools,Network</Program_Categories>
     <Limitations>No limitations</Limitations>
     <Program_Cost_Other_Code></Program_Cost_Other_Code>
     <Program_Cost_Other></Program_Cost_Other>
@@ -166,6 +166,7 @@
     <Distribution_Permissions>GPLv2</Distribution_Permissions>
     <EULA>GPLv2</EULA>
   </Permissions>
+  <ASBMPlannerID2ndRound>2</ASBMPlannerID2ndRound>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
     <AppStore_Category></AppStore_Category>
