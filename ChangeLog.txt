@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.05.04   | VidMasta 21.3
+
+CHANGE: UI   | Set title of media player for trailer
+CHANGE: UI   | Updated user interface library
+CHANGE: CORE | Updated list of untrusty IPs that are automatically filtered
+
+
+
+
 2016.04.24   | VidMasta 21.2
 
 CHANGE: UI   | Closed playlist window to system tray when active

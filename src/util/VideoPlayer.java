@@ -40,18 +40,18 @@ public class VideoPlayer {
     public static boolean open(int canOpenIndex, File file, boolean playAndExit, boolean startMinimized) {
         String filePath;
         return canOpen(canOpenIndex) && (filePath = file.getPath()).length() < 255 && Regex.isMatch(file.getName(), 698) && open(filePath, playAndExit,
-                startMinimized, null, null);
+                startMinimized, null, null, null);
     }
 
-    public static boolean open(int canOpenIndex, String url, int quality, Runnable errorAction) {
-        return canOpen(canOpenIndex) && open(url, true, false, quality, errorAction);
+    public static boolean open(int canOpenIndex, String url, int quality, String title, Runnable errorAction) {
+        return canOpen(canOpenIndex) && open(url, true, false, quality, title, errorAction);
     }
 
     private static boolean canOpen(int canOpenIndex) {
         return Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && (new File(Constant.APP_DIR + Str.get(697))).exists();
     }
 
-    private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, final Runnable errorAction) {
+    private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, final Runnable errorAction) {
         try {
             List<String> args = new ArrayList<String>(5);
             Collections.addAll(args, Constant.APP_DIR + Str.get(695).replace(Str.get(696), Constant.FILE_SEPARATOR), location, "--no-one-instance");
@@ -63,6 +63,9 @@ public class VideoPlayer {
             }
             if (quality != null) {
                 args.add("--preferred-resolution=" + quality);
+            }
+            if (title != null) {
+                args.add("--meta-title=" + title);
             }
 
             ProcessBuilder videoPlayerBuilder = new ProcessBuilder(args);

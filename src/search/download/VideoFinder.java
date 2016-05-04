@@ -482,7 +482,7 @@ public class VideoFinder extends AbstractSwingWorker {
             };
 
             if (player == 6 || !VideoPlayer.open(738, link, player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1 ? 1080
-                    : -1)))), browseLink)) {
+                    : -1)))), Regex.htmlToPlainText(video.title) + " (" + video.year + ')', browseLink)) {
                 browseLink.run();
             }
         }
