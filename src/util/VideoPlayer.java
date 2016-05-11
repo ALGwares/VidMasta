@@ -83,6 +83,9 @@ public class VideoPlayer {
                             String line;
                             while ((line = br.readLine()) != null) {
                                 if (!Regex.firstMatch(line, Str.get(739)).isEmpty()) {
+                                    if (Debug.DEBUG) {
+                                        Debug.println(line);
+                                    }
                                     videoPlayer.destroy();
                                     errorAction.run();
                                     return null;

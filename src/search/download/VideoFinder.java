@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -451,7 +452,7 @@ public class VideoFinder extends AbstractSwingWorker {
         } else {
             seasonStr = "";
         }
-        final String link = getTrailerLink(seasonStr);
+        final String[] link = getTrailerLink(seasonStr);
 
         if (PREFETCH || isCancelled()) {
             return;
@@ -461,10 +462,10 @@ public class VideoFinder extends AbstractSwingWorker {
             guiListener.msg(Str.str("trailerNotFound"), Constant.INFO_MSG);
         } else {
             if (Debug.DEBUG) {
-                Debug.println("Trailer: '" + link + '\'');
+                Debug.println("Trailer: '" + Arrays.toString(link) + '\'');
             }
             if (strExportListener != null) {
-                export = link;
+                export = link[0];
                 return;
             }
 
@@ -474,21 +475,21 @@ public class VideoFinder extends AbstractSwingWorker {
                 public void run() {
                     try {
                         guiListener.browserNotification(DomainType.TRAILER);
-                        Connection.browse(link);
+                        Connection.browse(link[0]);
                     } catch (Exception e) {
                         error(e);
                     }
                 }
             };
 
-            if (player == 6 || !VideoPlayer.open(738, link, player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1 ? 1080
-                    : -1)))), Regex.htmlToPlainText(video.title) + " (" + video.year + ')', browseLink)) {
+            if (player == 6 || !VideoPlayer.open(738, link[0], player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1
+                    ? 1080 : -1)))), Regex.htmlToPlainText(link[1]), browseLink)) {
                 browseLink.run();
             }
         }
     }
 
-    private String getTrailerLink(String seasonStr) throws Exception {
+    private String[] getTrailerLink(String seasonStr) throws Exception {
         String urlFormOptions = URLEncoder.encode(TITLE + seasonStr + (video.IS_TV_SHOW ? "" : (' ' + video.year)) + Str.get(87), Constant.UTF8);
         String source = Connection.getSourceCode(Str.get(86) + urlFormOptions, DomainType.TRAILER, !PREFETCH);
         if (PREFETCH || isCancelled()) {
@@ -500,12 +501,12 @@ public class VideoFinder extends AbstractSwingWorker {
             return null;
         }
 
-        String trailerID = Regex.match(Regex.firstMatch(source, 90), 92);
+        String link = Regex.firstMatch(source, 90), trailerID = Regex.match(link, 92);
         if (trailerID.isEmpty()) {
             return null;
         }
 
-        return Str.get(91) + URLEncoder.encode(trailerID, Constant.UTF8);
+        return new String[]{Str.get(91) + URLEncoder.encode(trailerID, Constant.UTF8), Regex.firstMatch(link, 740)};
     }
 
     private boolean magnetLinkOnly() {

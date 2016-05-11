@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.05.11   | VidMasta 21.4
+
+CHANGE: CORE | Improved search performance
+
+
+
+
 2016.05.04   | VidMasta 21.3
 
 CHANGE: UI   | Set title of media player for trailer

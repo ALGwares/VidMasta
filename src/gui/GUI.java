@@ -6008,9 +6008,6 @@ public class GUI extends JFrame implements GuiListener {
         if (!isVisible()) {
             setVisible(true);
         }
-        downloadMenu.doClick();
-        downloaderMenu.doClick();
-        webBrowserAppDownloaderRadioButtonMenuItem.setArmed(true);
     }//GEN-LAST:event_activationDialogWindowClosing
 
     private void playlistPlayButtonMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayButtonMousePressed
