@@ -1,4 +1,4 @@
-243
+244
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -648,7 +648,7 @@ Oracle/Java/Deployment/security/exception.sites
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F636865636B323F
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C323F
 Next&nbsp;&raquo;
-\<\s*+a[^\>]*?\shref\s*+\=\s*+"/((movies)|(tv))/[^"]*+"[^\>]*+\>\d++\<\s*+/a\s*+\>\s*+(\<\s*+script[^\>]*+\>(?s).*?\<\s*+/script\s*+\>\s*+)?+\<\s*+/div\s*+\>
+\<\s*+a[^\>]*?\shref\s*+\=\s*+"/((movies)|(tv))/[^"]*+"[^\>]*+\>\d++\<\s*+/a\s*+\>\s*+(((\<\s*+script[^\>]*+\>(?s).*?\<\s*+/script\s*+\>)|(\<\!\-\-(?s).*?\-\-\>))\s*+)?+\<\s*+/div\s*+\>
 http://kat.unbanthe.net/
 tv
 movies
@@ -740,4 +740,6 @@ https://kat.cr
 true
 (?i)((Couldn't extract youtube video URL)|(open of \p{Graph}++ failed))
 (?<=\>)[^\<]*+(?=\<)
+((?<=\<)\s*+(?i)script[\s\>])|(\<\s*+/\s*+(?i)script\s*+(?=\>))|(\<%)|(%\>)
+!--
 eof

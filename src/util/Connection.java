@@ -209,7 +209,7 @@ public class Connection {
                     IO.close(br);
                 }
 
-                return source.toString();
+                return Regex.replaceAll(source.toString(), 741);
             }
         }).runAndWaitFor();
     }

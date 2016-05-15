@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.05.15   | VidMasta 21.5
+
+CHANGE: CORE | Sanitized cache files
+
+
+
+
 2016.05.11   | VidMasta 21.4
 
 CHANGE: CORE | Improved search performance
