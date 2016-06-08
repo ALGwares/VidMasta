@@ -11,6 +11,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Insets;
@@ -319,8 +320,21 @@ public class UI {
         }
         Rectangle bounds = graphicsConfig.getBounds();
         Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsConfig);
-        Point point = (usePoint ? new Point(bounds.x, bounds.y) : new Point(insets.left, insets.top));
+        Point point = (usePoint ? new Point(bounds.x + insets.left, bounds.y + insets.top) : new Point(insets.left, insets.top));
         return new Rectangle(point.x, point.y, bounds.width - (insets.left + insets.right), bounds.height - (insets.top + insets.bottom));
+    }
+
+    public static boolean isOnScreen(Point point) {
+        for (GraphicsDevice graphicsDevice : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+            GraphicsConfiguration graphicsConfig = graphicsDevice.getDefaultConfiguration();
+            Rectangle bounds = graphicsConfig.getBounds();
+            Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsConfig);
+            if ((new Rectangle(bounds.x + insets.left, bounds.y + insets.top, bounds.width - (insets.left + insets.right), bounds.height - (insets.top
+                    + insets.bottom))).contains(point.x, point.y)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static BufferedImage image(Icon icon) {

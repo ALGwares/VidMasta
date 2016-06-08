@@ -170,7 +170,6 @@ public class Main implements WorkerListener {
                     gui.resizeContent();
                     gui.setInitialFocus();
                     splashScreen.setVisible(false);
-                    gui.maximize();
                     gui.startPosterCacher();
                     gui.showFeed(true);
                     splashScreen.dispose();

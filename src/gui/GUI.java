@@ -4453,7 +4453,6 @@ public class GUI extends JFrame implements GuiListener {
         }
         setSize(dimension);
         UI.centerOnScreen(this);
-        maximize();
     }//GEN-LAST:event_resetWindowMenuItemActionPerformed
 
     void timeoutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_timeoutMenuItemActionPerformed
@@ -4873,10 +4872,8 @@ public class GUI extends JFrame implements GuiListener {
             if (!copyMenuItem.isEnabled()) {
                 copyMenuItem.setEnabled(true);
             }
-        } else {
-            if (copyMenuItem.isEnabled()) {
-                copyMenuItem.setEnabled(false);
-            }
+        } else if (copyMenuItem.isEnabled()) {
+            copyMenuItem.setEnabled(false);
         }
 
         if (!UI.isClipboardEmpty() && titleTextField.getCaret().isSelectionVisible()) {
@@ -5237,16 +5234,9 @@ public class GUI extends JFrame implements GuiListener {
             int profile = profileComboBox.getSelectedIndex();
             settings.loadSettings(profile == 0 ? Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS : Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT);
             playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
-            maximize();
             timedMsg(Str.str("settingsRestored", profileComboBox.getItemAt(profile)));
         } else {
             showMsg(Str.str("setProfileBeforeUse"), Constant.ERROR_MSG);
-        }
-    }
-
-    public void maximize() {
-        if (UI.isMaxSize(this, getSize())) {
-            setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
         }
     }
 
@@ -5838,7 +5828,7 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_playlistMenuItemActionPerformed
 
-    PlaylistItem selectedPlaylistItem() {
+    private PlaylistItem selectedPlaylistItem() {
         synchronized (playlistSyncTable.lock) {
             int[] rows = playlistSyncTable.table.getSelectedRows();
             if (rows.length != 1) {
@@ -5848,16 +5838,46 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
+    PlaylistItem[] selectedPlaylistItems() {
+        synchronized (playlistSyncTable.lock) {
+            int[] rows = playlistSyncTable.table.getSelectedRows();
+            if (rows.length < 1) {
+                return null;
+            }
+
+            Arrays.sort(rows);
+            PlaylistItem[] playlistItems = new PlaylistItem[rows.length];
+            for (int i = 0; i < rows.length; i++) {
+                playlistItems[i] = (PlaylistItem) playlistSyncTable.tableModel.getValueAt(playlistSyncTable.table.convertRowIndexToModel(rows[i]),
+                        playlistItemCol);
+            }
+            return playlistItems;
+        }
+    }
+
     private void playlistPlayButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistPlayButtonActionPerformed
         playlistFindControl.hide();
         boolean force = forcePlay;
         forcePlay = false;
-        PlaylistItem playlistItem = selectedPlaylistItem();
-        if (playlistItem != null) {
-            if (playlistItem.canPlay()) {
-                playlistItem.play(force);
+        PlaylistItem[] playlistItems = selectedPlaylistItems();
+        if (playlistItems == null) {
+            return;
+        }
+
+        int i = 0;
+        boolean play = playlistItems[i].canPlay();
+        if (play) {
+            playlistItems[i].play(force);
+        } else {
+            playlistItems[i].stop();
+        }
+        for (++i; i < playlistItems.length; i++) {
+            if (play) {
+                if (playlistItems[i].canPlay()) {
+                    playlistItems[i].play(false);
+                }
             } else {
-                playlistItem.stop();
+                playlistItems[i].stop();
             }
         }
     }//GEN-LAST:event_playlistPlayButtonActionPerformed
@@ -6566,8 +6586,13 @@ public class GUI extends JFrame implements GuiListener {
             } else if (location.equals(Constant.NULL)) {
                 window.setLocationRelativeTo(GUI.this);
             } else {
-                String[] point = Regex.split(location, ",");
-                window.setLocation(new Point(Integer.parseInt(point[0]), Integer.parseInt(point[1])));
+                String[] xy = Regex.split(location, ",");
+                Point point = new Point(Integer.parseInt(xy[0]), Integer.parseInt(xy[1]));
+                if (UI.isOnScreen(point)) {
+                    window.setLocation(point);
+                } else {
+                    UI.centerOnScreen(window);
+                }
             }
         }
 
@@ -7444,17 +7469,23 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private void play(PlaylistItem playlistItem) {
-        if (playlistItem == null) {
-            playlistPlayButton.setIcon(playIcon);
-            playlistPlayMenuItem.setText(Str.str("play"));
+    private void play(PlaylistItem[] playlistItems) {
+        if (playlistItems == null || playlistItems.length > 1) {
             playlistBanGroupMenuItem.setText(Str.str("banGroup"));
-            UI.enable(false, playlistBanGroupMenuItem, playlistReloadGroupMenuItem, playlistOpenMenuItem, playlistPlayButton, playlistPlayMenuItem);
-            return;
+            UI.enable(false, playlistBanGroupMenuItem, playlistReloadGroupMenuItem, playlistOpenMenuItem);
+            if (playlistItems == null) {
+                playlistPlayButton.setIcon(playIcon);
+                playlistPlayMenuItem.setText(Str.str("play"));
+                UI.enable(false, playlistPlayButton, playlistPlayMenuItem);
+                return;
+            }
         }
-        playlistBanGroupMenuItem.setText(Str.str((bannedDownloadIDs.contains(playlistItem.groupDownloadID()) ? "un" : "") + "banGroup"));
-        playlistBanGroupMenuItem.setEnabled(true);
-        UI.enable(playlistItem.canOpen(), playlistReloadGroupMenuItem, playlistOpenMenuItem);
+        PlaylistItem playlistItem = playlistItems[0];
+        if (playlistItems.length == 1) {
+            playlistBanGroupMenuItem.setText(Str.str((bannedDownloadIDs.contains(playlistItem.groupDownloadID()) ? "un" : "") + "banGroup"));
+            playlistBanGroupMenuItem.setEnabled(true);
+            UI.enable(playlistItem.canOpen(), playlistReloadGroupMenuItem, playlistOpenMenuItem);
+        }
         boolean play = playlistItem.canPlay(), active = playlistItem.isActive();
         playlistPlayButton.setIcon(play ? playIcon : stopIcon);
         playlistPlayMenuItem.setText(Str.str(play ? "play" : Constant.STOP_KEY));
@@ -7466,7 +7497,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.run(false, new Runnable() {
             @Override
             public void run() {
-                play(selectedPlaylistItem());
+                play(selectedPlaylistItems());
             }
         });
     }

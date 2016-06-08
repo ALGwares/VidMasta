@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.06.08   | VidMasta 21.6
+
+CHANGE: UI   | Allowed selection of multiple playlist items at once for playing and stopping
+CHANGE: UI   | Fixed window sizing issues
+
+
+
+
 2016.05.15   | VidMasta 21.5
 
 CHANGE: CORE | Sanitized cache files

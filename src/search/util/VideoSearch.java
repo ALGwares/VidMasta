@@ -364,7 +364,7 @@ public class VideoSearch {
         return Regex.match(sourceCode, 172);
     }
 
-    public static void saveImage(Video video) throws Exception {
+    public static void saveImage(Video video) {
         String tooOldOrNonexistentImagePath = tooOldOrNonexistentImagePath(video);
         if (tooOldOrNonexistentImagePath != null) {
             try {
