@@ -90,23 +90,24 @@
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
   <Press_Release>
-    <Headline>VidMasta 21.2 Released</Headline>
-    <Summary>VidMasta 21.2 Released</Summary>
+    <Headline>VidMasta 21.6 Released</Headline>
+    <Summary>VidMasta 21.6 Released</Summary>
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
-    <Press_Release_Plain>VidMasta 21.2 Released</Press_Release_Plain>
-    <Press_Release>VidMasta 21.2 Released</Press_Release>
+    <Press_Release_Plain>VidMasta 21.6 Released</Press_Release_Plain>
+    <Press_Release>VidMasta 21.6 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
   <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
   <Issues>11</Issues>
+  <ASBMPlannerID2ndRound>2</ASBMPlannerID2ndRound>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>21.2</Program_Version>
-    <Program_Release_Month>04</Program_Release_Month>
-    <Program_Release_Day>24</Program_Release_Day>
+    <Program_Version>21.6</Program_Version>
+    <Program_Release_Month>06</Program_Release_Month>
+    <Program_Release_Day>08</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -118,9 +119,9 @@
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25331825</File_Size_Bytes>
-      <File_Size_K>24738</File_Size_K>
-      <File_Size_MB>24.16</File_Size_MB>
+      <File_Size_Bytes>25300704</File_Size_Bytes>
+      <File_Size_K>24707</File_Size_K>
+      <File_Size_MB>24.13</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
@@ -166,7 +167,6 @@
     <Distribution_Permissions>GPLv2</Distribution_Permissions>
     <EULA>GPLv2</EULA>
   </Permissions>
-  <ASBMPlannerID2ndRound>2</ASBMPlannerID2ndRound>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
     <AppStore_Category></AppStore_Category>
