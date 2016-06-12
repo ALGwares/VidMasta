@@ -9,7 +9,7 @@
   <RoboSoft>
     <Company_UIN>CMP-010419D92FD</Company_UIN>
     <Company_Description></Company_Description>
-    <Product_UIN>APP-00F11FD8D97</Product_UIN>
+    <Product_UIN>APP-01060C1ED0F</Product_UIN>
     <Search_String>VidMasta</Search_String>
     <Publish_on_CD>FALSE</Publish_on_CD>
     <RSProductType></RSProductType>
@@ -53,6 +53,14 @@
     <FacebookCompanyPage></FacebookCompanyPage>
     <CompanyStorePage></CompanyStorePage>
   </Company_Info>
+  <PAD_Certification_Promotion>
+    <Apply_For_Certification>N</Apply_For_Certification>
+  </PAD_Certification_Promotion>
+  <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
+  <Issues>0</Issues>
+  <Dynamic_PAD>
+    <Dynamic_Distributive>N</Dynamic_Distributive>
+  </Dynamic_PAD>
   <NewsFeed>
     <NewsFeed_FORM>Y</NewsFeed_FORM>
     <NewsFeed_VERSION>1.0</NewsFeed_VERSION>
@@ -71,37 +79,6 @@
     <NewsFeed_Description_70></NewsFeed_Description_70>
     <NewsFeed_Description_250></NewsFeed_Description_250>
   </NewsFeed>
-  <Site>
-    <Site_FORM>Y</Site_FORM>
-    <Site_VERSION>1.0</Site_VERSION>
-    <Site_URL>http://Submit-Everywhere.com/extensions/Site.htm</Site_URL>
-    <Site_DESCRIPTION>This PAD extension allows you to add your site info into your PAD file. This info can be used by site submission software or by web directories themselves.</Site_DESCRIPTION>
-    <Site_Contact_Email>algwares@inbox.com</Site_Contact_Email>
-    <Site_Contact_First_Name>Anthony</Site_Contact_First_Name>
-    <Site_Contact_Last_Name>Gray</Site_Contact_Last_Name>
-    <Site_Site_Title>VidMasta</Site_Site_Title>
-    <Site_Site_URL>http://sites.google.com/site/algwares/vidmasta</Site_Site_URL>
-    <Site_Description_100>VidMasta</Site_Description_100>
-    <Site_Description_250>VidMasta</Site_Description_250>
-    <Site_Description_450>VidMasta</Site_Description_450>
-    <Site_Keywords>VidMasta,ALGwares,Anthony Gray</Site_Keywords>
-  </Site>
-  <PAD_Certification_Promotion>
-    <Apply_For_Certification>N</Apply_For_Certification>
-  </PAD_Certification_Promotion>
-  <Press_Release>
-    <Headline>VidMasta 21.6 Released</Headline>
-    <Summary>VidMasta 21.6 Released</Summary>
-    <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
-    <Press_Release_Plain>VidMasta 21.6 Released</Press_Release_Plain>
-    <Press_Release>VidMasta 21.6 Released</Press_Release>
-    <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
-  </Press_Release>
-  <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
-  <Issues>0</Issues>
-  <Dynamic_PAD>
-    <Dynamic_Distributive>N</Dynamic_Distributive>
-  </Dynamic_PAD>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
     <Program_Version>21.6</Program_Version>
@@ -112,15 +89,15 @@
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
-    <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64,Win2000,WinOther,Windows2000,Windows2003,WinServer,Windows Vista Ultimate,Windows Vista Ultimate x64,Java,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows 10,Windows 8,Windows Server 2012</Program_OS_Support>
+    <Program_OS_Support>Mac Other,Java,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
     <Program_Change_Info>Allowed selection of multiple playlist items at once for playing and stopping. Fixed window sizing issues.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25300704</File_Size_Bytes>
-      <File_Size_K>24707</File_Size_K>
-      <File_Size_MB>24.13</File_Size_MB>
+      <File_Size_Bytes>25261598</File_Size_Bytes>
+      <File_Size_K>24669</File_Size_K>
+      <File_Size_MB>24.09</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
@@ -153,10 +130,10 @@
       <Application_Order_URL>http://sourceforge.net/projects/vidmasta</Application_Order_URL>
       <Application_Screenshot_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMastaScreenshot.png?format=raw&amp;VidMastaScreenshot.png</Application_Screenshot_URL>
       <Application_Icon_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMastaIcon32x32.gif?format=raw&amp;VidMastaIcon32x32.gif</Application_Icon_URL>
-      <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad.xml</Application_XML_File_URL>
+      <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad_mac.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>https://docs.google.com/uc?id=0B3i91lMM4fZIOTQ4ZjE4MjEtNzVjYS00ZGE4LTg2NDctNmMzODVlOTY4M2U2&amp;export=download&amp;hl=en_US</Primary_Download_URL>
+      <Primary_Download_URL>https://docs.google.com/uc?id=0B3i91lMM4fZIMDUzODU2NWItYjViYS00NzJiLWJmZTUtYjE2MWViNmQ4YTBi&amp;export=download&amp;hl=en_US</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
