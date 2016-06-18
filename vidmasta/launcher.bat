@@ -1,1 +1,2 @@
-start javaw -jar "%~1\vidmasta\launcher.jar" windows
+explorer "%~1\vidmasta\launcher.jar"
+exit /b 0
