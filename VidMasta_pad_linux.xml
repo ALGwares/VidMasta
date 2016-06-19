@@ -56,12 +56,11 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>2</ASBMPlannerID1stRound>
+  <ASBMPlannerID1stRound>12</ASBMPlannerID1stRound>
   <Issues>10</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
-  <ASBMPlannerID2ndRound>3</ASBMPlannerID2ndRound>
   <NewsFeed>
     <NewsFeed_FORM>Y</NewsFeed_FORM>
     <NewsFeed_VERSION>1.0</NewsFeed_VERSION>
@@ -103,6 +102,7 @@
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
+  <ASBMPlannerID2ndRound>13</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
     <Program_Version>21.6</Program_Version>
