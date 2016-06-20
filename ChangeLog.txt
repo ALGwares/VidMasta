@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.06.19   | VidMasta 21.7
+
+CHANGE: CORE | Improved search error handling
+
+
+
+
 2016.06.08   | VidMasta 21.6
 
 CHANGE: UI   | Allowed selection of multiple playlist items at once for playing and stopping

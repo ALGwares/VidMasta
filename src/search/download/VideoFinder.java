@@ -452,7 +452,7 @@ public class VideoFinder extends AbstractSwingWorker {
         } else {
             seasonStr = "";
         }
-        final String[] link = getTrailerLink(seasonStr);
+        final String[] link = getTrailerLink(seasonStr, true);
 
         if (PREFETCH || isCancelled()) {
             return;
@@ -489,20 +489,22 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private String[] getTrailerLink(String seasonStr) throws Exception {
-        String urlFormOptions = URLEncoder.encode(TITLE + seasonStr + (video.IS_TV_SHOW ? "" : (' ' + video.year)) + Str.get(87), Constant.UTF8);
-        String source = Connection.getSourceCode(Str.get(86) + urlFormOptions, DomainType.TRAILER, !PREFETCH);
+    private String[] getTrailerLink(String seasonStr, boolean canRetry) throws Exception {
+        String urlFormOptions = URLEncoder.encode(TITLE + seasonStr + (video.IS_TV_SHOW ? "" : (' ' + video.year)) + Str.get(87), Constant.UTF8), url = Str.get(86)
+                + urlFormOptions;
+        String source = Connection.getSourceCode(url, DomainType.TRAILER, !PREFETCH);
         if (PREFETCH || isCancelled()) {
             return null;
         }
 
-        String noResultsStr = Regex.match(source, 88);
-        if (!noResultsStr.isEmpty() && noResultsStr.contains(URLDecoder.decode(urlFormOptions, Constant.UTF8))) {
-            return null;
-        }
-
-        String link = Regex.firstMatch(source, 90), trailerID = Regex.match(link, 92);
-        if (trailerID.isEmpty()) {
+        String noResults = Regex.match(source, 88), link, trailerID;
+        if ((!noResults.isEmpty() && noResults.contains(URLDecoder.decode(urlFormOptions, Constant.UTF8))) || (trailerID = Regex.match(link = Regex.firstMatch(
+                source, 90), 92)).isEmpty()) {
+            Connection.removeFromCache(url);
+            if (canRetry) {
+                Thread.sleep(1000);
+                return getTrailerLink(seasonStr, false);
+            }
             return null;
         }
 
