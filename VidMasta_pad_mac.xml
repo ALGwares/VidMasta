@@ -105,9 +105,9 @@
   <ASBMPlannerID2ndRound>11</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>21.6</Program_Version>
+    <Program_Version>21.7</Program_Version>
     <Program_Release_Month>06</Program_Release_Month>
-    <Program_Release_Day>08</Program_Release_Day>
+    <Program_Release_Day>19</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -115,13 +115,13 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac Other,Java,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Allowed selection of multiple playlist items at once for playing and stopping. Fixed window sizing issues.</Program_Change_Info>
+    <Program_Change_Info>Improved search error handling.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25261598</File_Size_Bytes>
-      <File_Size_K>24669</File_Size_K>
-      <File_Size_MB>24.09</File_Size_MB>
+      <File_Size_Bytes>25291084</File_Size_Bytes>
+      <File_Size_K>24698</File_Size_K>
+      <File_Size_MB>24.12</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
