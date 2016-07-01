@@ -1,0 +1,20 @@
+<processing>
+    <job name="Starting VidMasta...">
+        <os family="Windows"/>
+        <executefile name="$INSTALL_PATH/vidmasta/launcher.bat">
+            <arg>$INSTALL_PATH</arg>
+        </executefile>
+    </job>
+    <job name="Starting VidMasta...">
+        <os family="Mac"/>
+        <executefile name="$INSTALL_PATH/vidmasta/launcher.command">
+            <arg>$INSTALL_PATH</arg>
+        </executefile>
+    </job>
+    <job name="Starting VidMasta...">
+        <os family="Unix"/>
+        <executefile name="$INSTALL_PATH/vidmasta/launcher.sh">
+            <arg>$INSTALL_PATH</arg>
+        </executefile>
+    </job>
+</processing>

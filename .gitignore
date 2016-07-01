@@ -9,8 +9,8 @@
 *~
 
 cnet_*.jpg
-/manifest.mf
-/build.xml
-/nbproject
-/dist
-/build
+**/manifest.mf
+**/build.xml
+**/nbproject
+**/dist
+**/build

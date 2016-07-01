@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<shortcuts>
+    <skipIfNotSupported/>
+    <programGroup defaultName="VidMasta" location="applications"/>
+    <shortcut applications="no" desktop="yes"
+        iconFile="$INSTALL_PATH/vidmasta/favicon.ico" iconIndex="0"
+        initialState="noShow" name="VidMasta 21.7" programGroup="yes"
+        startMenu="no" startup="no" target="$INSTALL_PATH/vidmasta/VidMasta.jar"/>
+    <shortcut applications="no" desktop="no"
+        iconFile="$INSTALL_PATH/vidmasta/favicon.ico" iconIndex="0"
+        initialState="noShow" name="Uninstall" programGroup="yes"
+        startMenu="no" startup="no" target="$INSTALL_PATH/Uninstaller/Uninstaller.jar"/>
+    <shortcut applications="no" desktop="no" initialState="noShow"
+        name="Readme" programGroup="yes" startMenu="no" startup="no" target="$INSTALL_PATH/vidmasta/readme.html"/>
+</shortcuts>
