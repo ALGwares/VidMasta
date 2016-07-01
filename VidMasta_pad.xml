@@ -97,12 +97,12 @@
     <Press_Release>VidMasta 21.6 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
-  <ASBMPlannerID1stRound>8</ASBMPlannerID1stRound>
-  <Issues>10</Issues>
+  <ASBMPlannerID1stRound>14</ASBMPlannerID1stRound>
+  <Issues>8</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
-  <ASBMPlannerID2ndRound>9</ASBMPlannerID2ndRound>
+  <ASBMPlannerID2ndRound>15</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
     <Program_Version>21.7</Program_Version>
@@ -119,9 +119,9 @@
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>52506916</File_Size_Bytes>
-      <File_Size_K>51276</File_Size_K>
-      <File_Size_MB>50.07</File_Size_MB>
+      <File_Size_Bytes>51360063</File_Size_Bytes>
+      <File_Size_K>50156</File_Size_K>
+      <File_Size_MB>48.98</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>

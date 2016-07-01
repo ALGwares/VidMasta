@@ -56,8 +56,8 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>10</ASBMPlannerID1stRound>
-  <Issues>10</Issues>
+  <ASBMPlannerID1stRound>16</ASBMPlannerID1stRound>
+  <Issues>9</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
@@ -102,7 +102,7 @@
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
-  <ASBMPlannerID2ndRound>11</ASBMPlannerID2ndRound>
+  <ASBMPlannerID2ndRound>17</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
     <Program_Version>21.7</Program_Version>
@@ -119,9 +119,9 @@
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25299092</File_Size_Bytes>
-      <File_Size_K>24706</File_Size_K>
-      <File_Size_MB>24.13</File_Size_MB>
+      <File_Size_Bytes>25295191</File_Size_Bytes>
+      <File_Size_K>24702</File_Size_K>
+      <File_Size_MB>24.12</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
