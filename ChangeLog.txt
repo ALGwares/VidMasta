@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.07.07   | VidMasta 21.8
+
+CHANGE: CORE | Improved error handling
+CHANGE: CORE | Added automatic cleanup of stale data
+
+
+
+
 2016.06.19   | VidMasta 21.7
 
 CHANGE: CORE | Improved search error handling

@@ -6028,6 +6028,9 @@ public class GUI extends JFrame implements GuiListener {
         if (!isVisible()) {
             setVisible(true);
         }
+        downloadMenu.doClick();
+        downloaderMenu.doClick();
+        webBrowserAppDownloaderRadioButtonMenuItem.setArmed(true);
     }//GEN-LAST:event_activationDialogWindowClosing
 
     private void playlistPlayButtonMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayButtonMousePressed
@@ -7055,6 +7058,23 @@ public class GUI extends JFrame implements GuiListener {
                 } catch (Exception e) {
                     IO.fileOp(peerBlock, IO.RM_DIR);
                     throw e;
+                }
+            }
+            File confVersion = new File(Constant.APP_DIR, Constant.PEER_BLOCK_CONF_VERSION);
+            if (!confVersion.exists()) {
+                File conf = new File(peerBlock, "peerblock.conf");
+                try {
+                    String confStr = IO.read(conf);
+                    int startIndex = confStr.indexOf("<Lists>"), endIndex;
+                    if (startIndex != -1 && (endIndex = confStr.indexOf("</Lists>")) != -1) {
+                        IO.write(conf, confStr.substring(0, startIndex) + IO.read(new File(Constant.PROGRAM_DIR + "peerblockLists" + Constant.TXT))
+                                + confStr.substring(endIndex + 8, confStr.length()));
+                    }
+                    IO.fileOp(confVersion, IO.MK_FILE);
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
                 }
             }
             String peerBlockProgram = Constant.APP_DIR + Constant.PEER_BLOCK_VERSION + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE;

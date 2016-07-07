@@ -148,8 +148,9 @@ public class IO {
         try {
             Writer writer = new StringWriter();
             t.printStackTrace(new PrintWriter(writer));
-            write(fileName, Calendar.getInstance().getTime() + IOConstant.NEWLINE + "System Environment: " + System.getenv() + IOConstant.NEWLINE
-                    + "System Properties: " + System.getProperties() + IOConstant.NEWLINE + writer + IOConstant.NEWLINE, true);
+            write(fileName, "Program: " + IOConstant.APP_TITLE + " " + IOConstant.APP_VERSION + IOConstant.NEWLINE + "Time: " + Calendar.getInstance().getTime()
+                    + IOConstant.NEWLINE + "System Environment: " + System.getenv() + IOConstant.NEWLINE + "System Properties: " + System.getProperties()
+                    + IOConstant.NEWLINE + writer + IOConstant.NEWLINE, true);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);

@@ -13,14 +13,13 @@ public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
-    public static final double APP_VERSION = 21.7;
     public static final String VERSION_FORMAT = "0.0";
     public static final boolean WINDOWS_XP_AND_HIGHER;
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
     public static final String TV_SHOW = "TV Show";
     public static final String IP_FILTER = "ipfilter.dat";
-    public static final String PEER_BLOCK = "peerblock", PEER_BLOCK_VERSION;
+    public static final String PEER_BLOCK = "peerblock", PEER_BLOCK_CONF_VERSION = "peerblockConf" + APP_VERSION, PEER_BLOCK_VERSION;
     public static final String CONNECTIVITY = "connectivity";
     public static final String SEPARATOR1 = ":::", SEPARATOR2 = "~~~", SEPARATOR3 = ";;;";
     public static final String IMAGE_COL = "", ID_COL = "0", CURR_TITLE_COL = "1";
@@ -61,7 +60,6 @@ public class Constant implements IOConstant {
     public static final String NO_PROXY = "NO PROXY";
     public static final String INFINITY = "infinity";
     public static final String CUT = "Cut", COPY = "Copy", PASTE = "Paste";
-    public static final String APP_TITLE = "VidMasta";
     public static final String EXE = ".exe", JAR = ".jar", JAR_OPTION = "-jar";
     public static final String PROGRAM_JAR = APP_TITLE + JAR;
     public static final String TORRENTS = "torrents";

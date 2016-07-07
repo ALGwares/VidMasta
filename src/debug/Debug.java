@@ -24,7 +24,7 @@ public class Debug {
         if (DEBUG) {
             Writer writer = new StringWriter();
             t.printStackTrace(new PrintWriter(writer));
-            System.out.println("\n" + writer.toString());
+            System.out.println("\n" + writer);
         }
     }
 

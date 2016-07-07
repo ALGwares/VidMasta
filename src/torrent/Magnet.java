@@ -49,8 +49,9 @@ public class Magnet extends Thread {
     private static final Object saveTorrentLock = new Object(), azureusConfigLock = new Object();
     private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
     private static final AtomicBoolean isAzureusConfigured = new AtomicBoolean();
-    private static final String VUZE_DIR = Constant.APP_DIR + "vuze" + Constants.AZUREUS_VERSION.replace(".", "") + Constant.FILE_SEPARATOR + "vuze"
-            + Constant.FILE_SEPARATOR, IP_FILTER_TOGGLE = "Ip Filter Enabled";
+    public static final String IP_FILTER_VERSION = "ipfilter" + Constant.APP_VERSION, VUZE_VERSION = "vuze" + Constants.AZUREUS_VERSION.replace(".", "");
+    private static final String VUZE_DIR = Constant.APP_DIR + VUZE_VERSION + Constant.FILE_SEPARATOR + "vuze" + Constant.FILE_SEPARATOR, IP_FILTER_TOGGLE
+            = "Ip Filter Enabled";
     private static volatile AzureusCore core;
     public final String MAGNET_LINK;
     public final File TORRENT;
@@ -427,15 +428,15 @@ public class Magnet extends Thread {
         }
 
         private static void initIpFilter() throws Exception {
-            File blockedIPs = new File(Constant.APP_DIR + Constant.IP_FILTER);
-            if (!blockedIPs.exists() || !(new File(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION)).exists()) {
+            File blockedIPs = new File(Constant.APP_DIR + Constant.IP_FILTER), ipFilterVersion = new File(Constant.APP_DIR + IP_FILTER_VERSION);
+            if (!blockedIPs.exists() || !ipFilterVersion.exists()) {
                 try {
                     IO.unzip(Constant.PROGRAM_DIR + Constant.IP_FILTER + Constant.ZIP, Constant.APP_DIR);
                 } catch (Exception e) {
                     IO.fileOp(blockedIPs, IO.RM_FILE);
                     throw e;
                 }
-                IO.fileOp(Constant.APP_DIR + "ipfilter" + Constant.APP_VERSION, IO.MK_FILE);
+                IO.fileOp(ipFilterVersion, IO.MK_FILE);
             }
 
             String line;

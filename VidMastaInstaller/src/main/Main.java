@@ -13,6 +13,8 @@ public class Main {
         jar(new File(Constant.SAVE_DIR + Constant.INSTALLER + ".jar"), "installerJAR");
         jar(new File(Constant.SAVE_DIR + Constant.AUTO_INSTALLER + ".jar"), "auto-installer");
         launch4jExe(jar(new File(Constant.AUTO_INSTALLER + ".jar"), "auto-installer"), new File(Constant.SAVE_DIR + Constant.AUTO_INSTALLER + ".exe"));
+        //launch4jAdminPermissionsTesterExe(new File("C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR
+        //        + "Desktop" + Constant.FILE_SEPARATOR + "adminPermissionsTester.exe"));
     }
 
     private static File jar(File jar, String installerXMLFolderName) throws Exception {
@@ -38,6 +40,25 @@ public class Main {
         run(new File(launch4jDir), "java", "-jar", launch4jDir + "launch4j.jar", config.getCanonicalPath());
         config.delete();
         jar.delete();
+    }
+
+    static void launch4jAdminPermissionsTesterExe(File exe) throws Exception {
+        File config = new File("launch4j.xml");
+        IO.write(config, ""
+                + "<launch4jConfig>\n"
+                + "  <headerType>console</headerType>\n"
+                + "  <downloadUrl>about:blank</downloadUrl>\n"
+                + "  <errTitle>Testing (Ignore)</errTitle>\n"
+                + "  <jar>" + (new File("adminPermissionsTester.jar")).getCanonicalPath() + "</jar>\n"
+                + "  <outfile>" + exe.getCanonicalPath() + "</outfile>\n"
+                + "  <manifest>" + (new File("dummy.manifest")).getCanonicalPath() + "</manifest>\n"
+                + "  <jre>\n"
+                + "    <minVersion>" + Constant.MIN_JAVA_VERSION + ".0</minVersion>\n"
+                + "  </jre>\n"
+                + "</launch4jConfig>");
+        String launch4jDir = "C:" + Constant.FILE_SEPARATOR + "Program Files (x86)" + Constant.FILE_SEPARATOR + "Launch4j" + Constant.FILE_SEPARATOR;
+        run(new File(launch4jDir), "java", "-jar", launch4jDir + "launch4j.jar", config.getCanonicalPath());
+        config.delete();
     }
 
     static void innoExe() throws Exception {

@@ -28,6 +28,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import listener.ContentType;
@@ -201,6 +202,7 @@ public class Main implements WorkerListener {
 
         Magnet.initIpFilter();
         VideoPlayer.install();
+        cleanUpAppDir();
     }
 
     private static void singleInstance() {
@@ -489,6 +491,31 @@ public class Main implements WorkerListener {
         if (prefetcher != null) {
             prefetcher.cancel(true);
             prefetcher = null;
+        }
+    }
+
+    private static void cleanUpAppDir() {
+        try {
+            File cleanVersion = new File(Constant.APP_DIR, "clean" + Constant.APP_VERSION);
+            if (cleanVersion.exists()) {
+                return;
+            }
+            IO.fileOp(cleanVersion, IO.MK_FILE);
+
+            Pattern fileName = Pattern.compile("(?!((" + Pattern.quote(cleanVersion.getName()) + ")|(" + Pattern.quote(Constant.UPDATE_FILE) + ")|("
+                    + Pattern.quote(Constant.USER_SETTINGS) + ")|(" + Pattern.quote(Magnet.VUZE_VERSION) + ")|(" + Pattern.quote(Magnet.IP_FILTER_VERSION) + ")|("
+                    + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION)
+                    + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(ipfilter[\\d\\.]*+)|(peerblockConf[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe))");
+
+            for (File file : IO.listFiles(Constant.APP_DIR)) {
+                if (fileName.matcher(file.getName()).matches()) {
+                    IO.fileOp(file, file.isDirectory() ? IO.RM_DIR : IO.RM_FILE);
+                }
+            }
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
         }
     }
 
