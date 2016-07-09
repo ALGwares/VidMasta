@@ -56,8 +56,8 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>18</ASBMPlannerID1stRound>
-  <Issues>9</Issues>
+  <ASBMPlannerID1stRound>23</ASBMPlannerID1stRound>
+  <Issues>0</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
@@ -102,7 +102,6 @@
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
-  <ASBMPlannerID2ndRound>19</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
     <Program_Version>21.8</Program_Version>
@@ -187,7 +186,7 @@
       <Char_Desc_80>Watch and download any movie and television titles that are being shared online.</Char_Desc_80>
       <Char_Desc_250>Watch or download movie and television titles in any format (TV, DVD, 720p, 1080i/p) with as few as two clicks of the mouse. The first click is to hit the search button. The second click is to hit the download button.</Char_Desc_250>
       <Char_Desc_450>Watch or download movie and television titles in any format (TV, DVD, 720p, 1080i/p) with as few as two clicks of the mouse. The first click is to hit the search button. The second click is to hit the download button. Features include: anonymity via automatic filtering of untrusty IPs, the use of proxies, and encryption, download video subtitles, and more.</Char_Desc_450>
-      <Char_Desc_2000>Search for, read about, preview, watch, and download any movie and television titles that are being shared online.
+      <Char_Desc_2000>Watch and download any movie and television titles that are being shared online.
 
 Features
 * Watch or download movie and television titles in any format (TV, DVD, 720p, 1080i/p) with as few as two clicks of the mouse. The first click is to hit the search button. The second click is to hit the download button.

@@ -97,12 +97,11 @@
     <Press_Release>VidMasta 21.6 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
-  <ASBMPlannerID1stRound>20</ASBMPlannerID1stRound>
-  <Issues>8</Issues>
+  <ASBMPlannerID1stRound>24</ASBMPlannerID1stRound>
+  <Issues>7</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
-  <ASBMPlannerID2ndRound>21</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
     <Program_Version>21.8</Program_Version>
@@ -167,6 +166,7 @@
     <Distribution_Permissions>GPLv2</Distribution_Permissions>
     <EULA>GPLv2</EULA>
   </Permissions>
+  <ASBMPlannerID2ndRound>25</ASBMPlannerID2ndRound>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
     <AppStore_Category></AppStore_Category>
