@@ -1,4 +1,4 @@
-244
+245
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -47,13 +47,13 @@ http://kat.unbanthe.net
 /
 /
 http://kat.unbanthe.net
-\<\s*+tr\s++class\s*+\=\s*+"((odd)|(even))"
+\<\s*+tr(\s++class\s*+\=\s*+"alt")?+\s*+\>
 EMPTY
 \<\s*+/tr\s*+\>
-\<\s*+a[^\>]*?\sclass\s*+\=\s*+"cellMainLink"[^\>]*+\>
+\<\s*+div\s++class\s*+\=\s*+"detName"\s*+\>\s*+\<\s*+a\s+?[^\<\>]*+\>
 \<\s*+/a\s*+\>
-\<\s*+a\s++href\s*+\=\s*+"/(?=(?i)((movies)|(tv)|(anime))/")(?![^\>]*+\>[^\<]++\<\s*+/a\s*+\>\s*+\>\s*+\<\s*+a\s++href\s*+\=\s*+"/trailer/")
-/"
+\(\s*+\<\s*+a\s++href\s*+\=\s*+"[^/]*+/browse/
+"
 (?i)((tv)|(anime))
 (?i)((tv)|(anime))
 (?i)((movies)|(anime))
@@ -61,20 +61,20 @@ EMPTY
 (?i)((movies)|(anime))
 (?!)
 4
-\<\s*+td[^\>]*+\>(?=\s*+[\d\.]++\s*+\<\s*+span\s*+\>\s*+(([KM]B)|(bytes))\s*+\<\s*+/span\s*+\>\s*+\<\s*+/td\s*+\>)
-\<(?s).+?d\s*+\>
-\<\s*+td[^\>]*+\>(?=\s*+[\d\.]++\s*+\<\s*+span\s*+\>\s*+GB\s*+\<\s*+/span\s*+\>\s*+\<\s*+/td\s*+\>)
-\<(?s).+?d\s*+\>
+\<\s*+font\s++class\s*+\=\s*+"detDesc"\s*+\>[^\<\>]*?((?i)(Size))\s++
+\s*+&nbsp;\s*+[KM]iB
+\<\s*+font\s++class\s*+\=\s*+"detDesc"\s*+\>[^\<\>]*?((?i)(Size))\s++
+\s*+&nbsp;\s*+GiB
 http://www.bitlet.org/download?torrent=
 <\s*+a\s++href\s*+=[^>]++>\s*+<\s*+img\s++src\s*+=[^>]++>\s*+<\s*+/a\s*+>\s*+<\s*+a\s++href\s*+=\s*+"
 "
 \.sx/[^/]*+/
-\<\s*+td\s++class\s*+\=\s*+"red lasttd center"\s*+\>
+\<\s*+td\s++align\s*+\=\s*+"right"\s*+\>\s*+\d++\s*+\<\s*+/td\s*+\>\s*+\<\s*+td\s++align\s*+\=\s*+"right"\s*+\>
 \<\s*+/td\s*+\>
-\<\s*+td\s++class\s*+\=\s*+"green center"\s*+\>
+\<\s*+td\s++align\s*+\=\s*+"right"\s*+\>
 \<\s*+/td\s*+\>
-title\s*+\=\s*+"(?=(?i)Verified Torrent")
-"
+title\s*+\=\s*+"((?i)((VIP)|(Trusted)|(Helper)|(Moderator)))"
+\>
 SPACEimdb.com
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>))
 SPACE
@@ -121,10 +121,10 @@ tv
 movies
 /
 /?field=leechers&sorder=desc
-\<\s*+tr\s++class\s*+\=\s*+"((odd)|(even))"
+\<\s*+tr(\s++class\s*+\=\s*+"alt")?+\s*+\>
 EMPTY
 \<\s*+/tr\s*+\>
-\<\s*+a[^\>]*?\sclass\s*+\=\s*+"cellMainLink"[^\>]*+\>
+\<\s*+div\s++class\s*+\=\s*+"detName"\s*+\>\s*+\<\s*+a\s+?[^\<\>]*+\>
 \<\s*+/a\s*+\>
 <\s*+span\s++itemprop\s*+=\s*+"ratingValue"\s*+>
 <\s*+/span\s*+>
@@ -145,13 +145,13 @@ EMPTY
 EMPTY
 EMPTY
 There was an error processing this request
-(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
-(?i)(Oops, looks like something went wrong\! Please)|(Could not connect to caching server)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
+(?i)(Hm\. Problem! Please retry\.)|(Upgrading software, please check back in)|(Could not connect to caching server)|(The Pirate Bay is down for maintenance)|(Database maintenance, please check back in)|(Oops, looks like something went wrong\! Please)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
+(?i)(Hm\. Problem! Please retry\.)|(Upgrading software, please check back in)|(Could not connect to caching server)|(The Pirate Bay is down for maintenance)|(Database maintenance, please check back in)|(Oops, looks like something went wrong\! Please)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
 http://torrents.thepiratebay.se/
 /
 http://kat.unbanthe.net/comments/index/torrent/
-(\<\s*+span[^>]*+\>\s*+Show comment\s*+\<\s*+/span\s*+\>)|(\<\s*+\!\-\-commentowner\-\-\s*+\>)
-\<[^\>]*?\sclass\s*+\=\s*+"replyLink"
+\<\s*+div\s++class\s*+\=\s*+"comment"\s*+\>
+\<\s*+/div\s*+\>
 ((\A|\s+?|\p{Punct}+?)((?i)(f++a++k++e++))(\z|\s+?|\p{Punct}+?))
 #.#
 /
@@ -301,7 +301,7 @@ EMPTY
 SPACE
 30
 Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
-((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(la)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
+((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(co)|(website)|(la)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
 ...
 EMPTY
 ((?i)(https?+://(www\.)?+))
@@ -459,9 +459,9 @@ http://www.opensubtitles.org
 (<\s*+/span\s*+>)?+<\s*+br\s*+/\s*+>
 10
 &genre=&director=&actor_name=&tag=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1&key=
-t\d++\.html?+"\s++class\s*+\=\s*+"cellMainLink"
-t
-\.
+\<\s*+a\s++href\s*+\=\s*+"/torrent/[^/]++/[^"]++"
+/torrent/
+/
 /((bittorrentclient)|(download))\?torrent=file%3A%2F%2F%2F
 EMPTY
 https://docs.google.com/uc?id=0B3i91lMM4fZId2tQQ0h4ZWxORDQ&export=download&hl=en_US
@@ -487,12 +487,12 @@ http://tpbcrawler.appspot.com/fetch?0
 Sorry, our TTS Voice service is
 /usearch/[^/]++/((?=\d++/\?(startIndex\=1&)?+field\=((leechers)|(seeders))&sorder\=desc)|(\?startIndex\=(?=1&field\=((leechers)|(seeders))&sorder\=desc)))
 [/&].+?sc
-/usearch/
+/search/
 /
 false
 http://kat.unbanthe.net/usearch/
 /
-/usearch/[^/]++/\d++
+/search/[^/]++/\d++
 \z
 198
 293
@@ -503,7 +503,7 @@ true
 2592000000
 300
 100
-(?i)((results\s++\d++\s*+\-\s*+\d++)|( did not match any documents)|(Page you are looking for is not found on the server))
+(?i)(Search\s++results)
 http://kat.unbanthe.net
 <\s*+a[^>]+?title\s*+=\s*+"About movie @ http://www.imdb.com"[^>]+?href\s*+=\s*+"
 "
@@ -561,8 +561,8 @@ true
 false
 <\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Creators*+:\s*+<\s*+/h4\s*+>
 <\s*+/div\s*+>
-(?i)((tv)|(anime))
-(?i)((movies)|(anime))
+20[58]
+20[127]
 azureus.install.path
 true
 1
@@ -587,7 +587,7 @@ http://www.opensubtitles.org
 <|&|\(|\d|((?i)((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)))
 (?i)(TV\s((Series)|(Movie)|(Mini\-Series)|(Special)))
 (\A\z)|((?i)((TV\sMovie)|(Video(?!(\sGame)))|(Feature)|(Documentary)|(Short)))
-(?i)((movies)|(tv)|(anime))
+20[12758]
 (?i)(TV\s((Movie)|(Mini\-Series)))
 (?i)(TV\sMovie)
 (?i)((TV\sMovie)|(Mini\-Series))
@@ -648,36 +648,36 @@ Oracle/Java/Deployment/security/exception.sites
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F636865636B323F
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C323F
 Next&nbsp;&raquo;
-\<\s*+a[^\>]*?\shref\s*+\=\s*+"/((movies)|(tv))/[^"]*+"[^\>]*+\>\d++\<\s*+/a\s*+\>\s*+(((\<\s*+script[^\>]*+\>(?s).*?\<\s*+/script\s*+\>)|(\<\!\-\-(?s).*?\-\-\>))\s*+)?+\<\s*+/div\s*+\>
+\<\s*+a[^\>]*?\shref\s*+\=\s*+"/browse/
 http://kat.unbanthe.net/
-tv
-movies
-EMPTY
+205
+201
+/0
 /
-1
-/?field=leechers&sorder=desc
-/
-+category%3Atv/
-+category%3Amovies/
-(?=(?i) did not match any documents)|((?<=")/usearch/[^/]++/\?field\=leechers&sorder\=desc(?="))
-(?=(?i) did not match any documents)|((?<=")/usearch/[^/]++/\?field\=seeders&sorder\=desc(?="))
-1
-/usearch/[^/]++/
-/\?field\=leechers&sorder\=desc
-/\?field\=seeders&sorder\=desc
-%2B
+0
+/9
+/0/8/200
+/0/8/205
+/0/8/201
+(?<=\<\s{0,10}+abbr\s{1,10}+title\s{0,10}+\=\s{0,10}+"((?i)Leechers)"\s{0,10}+\>\s{0,10}+\<\s{0,10}+a\s{1,10}+href\s{0,10}+\=\s{0,10}+")[^"]++
+(?<=\<\s{0,10}+abbr\s{1,10}+title\s{0,10}+\=\s{0,10}+"((?i)Seeders)"\s{0,10}+\>\s{0,10}+\<\s{0,10}+a\s{1,10}+href\s{0,10}+\=\s{0,10}+")[^"]++
+0
+/search/[^/]++/
+/[^/]++/[^/]*+
+/[^/]++/[^/]*+
+%2[Bb]
 +
-\<\s*+td\s++class\s*+\=\s*+"center"\s*+\>((&((#(?i)xA0)|(#160)|((?i)nbsp));)|\s)*+(?=\d{1,3}+((&((#(?i)xA0)|(#160)|((?i)nbsp));)|\s)*+years?+((&((#(?i)xA0)|(#160)|((?i)nbsp));)|\s)*+\<\s*+/td\s*+\>)
-[&\sy]
-true
+\<\s*+font\s++class\s*+\=\s*+"detDesc"\s*+\>[^\<\>]*?((?i)(Uploaded))\s*+(\d{2}+)\-(\d{2}+)\s*+&nbsp;\s*+(?=\d{4}+)
+(?<=\d{4}+)
+false
 33,39,41,47,117,466,491,505,518,650,674
 \<[^\>]++\>:::\s{2,}+|((?<=audio:\s{0,3}+\d{0,3}+)(?=video:\s{0,3}+\d{0,3}+))
 EMPTY:::SPACE
 http://kat.unbanthe.net/comments/index/torrent/
-t\d++\.html?+"\s++class\s*+\=\s*+"cellMainLink"
-t
-\.
-/?all=1
+\<\s*+a\s++href\s*+\=\s*+"/torrent/[^/]++/[^"]++"
+/torrent/
+/
+EMPTY
 \.(?! )
 SPACE
 <br>Try using <a href="http://www.videolan.org/">VLC media player</a>.
@@ -699,7 +699,7 @@ vlc-2.2.1/vlc.exe
 vlc
 .*\.((?i)(3g2)|(3ga)|(3gp)|(3gp2)|(3gpp)|(669)|(a52)|(aac)|(ac3)|(adt)|(adts)|(aif)|(aifc)|(aiff)|(amr)|(amv)|(aob)|(ape)|(asf)|(asx)|(au)|(avi)|(b4s)|(bik)|(bin)|(caf)|(cda)|(cue)|(divx)|(drc)|(dts)|(dv)|(f4v)|(flac)|(flv)|(gvi)|(gxf)|(ifo)|(it)|(m1v)|(m2t)|(m2ts)|(m2v)|(m3u)|(m3u8)|(m4a)|(m4p)|(m4v)|(mid)|(mka)|(mkv)|(mlp)|(mod)|(mov)|(mp1)|(mp2)|(mp2v)|(mp3)|(mp4)|(mp4v)|(mpa)|(mpc)|(mpe)|(mpeg)|(mpeg1)|(mpeg2)|(mpeg4)|(mpg)|(mpga)|(mpv2)|(mts)|(mtv)|(mxf)|(nsv)|(nuv)|(oga)|(ogg)|(ogm)|(ogv)|(ogx)|(oma)|(opus)|(pls)|(qcp)|(ra)|(ram)|(rec)|(rm)|(rmbv)|(rmi)|(rpl)|(s3m)|(sdp)|(snd)|(spx)|(swf)|(thp)|(tod)|(ts)|(tta)|(tts)|(vlc)|(vlt)|(vob)|(voc)|(vqf)|(vro)|(w64)|(wav)|(webm)|(wma)|(wmv)|(wsz)|(wv)|(wvx)|(xa)|(xesc)|(xm)|(xspf))
 https://sites.google.com/site/algwares/vidmasta
-http://tpbcrawler.appspot.com/fetch?id=
+http://tpbcrawler.appspot.com/fetch?v=2&id=
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-5.2.3-Java6.exe/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-5.2.3-Java6.dmg/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-5.2.3-Java6.tgz/download
@@ -720,17 +720,17 @@ https://kat.cr
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-6.2.2-Java7.exe/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-6.2.2-Java7.dmg/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-6.2.2-Java7.tgz/download
-https://kickass.unblocked.la/usearch/
-https://kickass.unblocked.la
-https://kickass.unblocked.la
-https://kickass.unblocked.la/usearch/
-https://kickass.unblocked.la
-https://kickass.unblocked.la:::https://kickass.unblocked.sx:::https://kickass.unblocked.pe
-https://kickass.unblocked.la
-https://kickass.unblocked.la
-https://kickass.unblocked.la/
-https://kickass.unblocked.la/comments/index/torrent/
-https://kat.cr
+https://thehiddenbay.eu/search/
+https://thehiddenbay.eu
+https://thehiddenbay.eu
+https://thehiddenbay.eu/search/
+https://thehiddenbay.eu
+https://thehiddenbay.eu:::https://kuiken.co:::https://tpbproxy.website
+https://thehiddenbay.eu
+https://thehiddenbay.eu
+https://thehiddenbay.eu/browse/
+https://thehiddenbay.eu/ajax_details_comments.php?id=
+https://thepiratebay.org
 721,722,723,724,725,727,729,730
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z)(?![01](\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z))
@@ -742,4 +742,6 @@ true
 (?<=\>)[^\<]*+(?=\<)
 ((?<=\<)\s*+(?i)script[\s\>])|(\<\s*+/\s*+(?i)script\s*+(?=\>))|(\<%)|(%\>)
 !--
+true
+false
 eof
