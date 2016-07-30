@@ -115,7 +115,7 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64,Win2000,WinOther,Windows2000,Windows2003,WinServer,Windows Vista Ultimate,Windows Vista Ultimate x64,Java,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows 10,Windows 8,Windows Server 2012</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Improved error handling and added automatic cleanup of stale data.</Program_Change_Info>
+    <Program_Change_Info>Changed date to end of year instead of start of year when entering year only for the to release date search criterion, updated PeerBlock configuration, and improved search performance.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>

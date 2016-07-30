@@ -115,7 +115,7 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac Other,Java,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Improved error handling and added automatic cleanup of stale data.</Program_Change_Info>
+    <Program_Change_Info>Changed date to end of year instead of start of year when entering year only for the to release date search criterion, updated PeerBlock configuration, and improved search performance.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
