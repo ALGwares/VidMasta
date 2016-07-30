@@ -471,7 +471,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
             }
         } else {
             if (isTitlePrefix) {
-                String titlePrefix = VideoSearch.getMovieTitlePrefix(titleParts.title);
+                String titlePrefix = VideoSearch.getTitlePrefix(titleParts.title);
                 if (titlePrefix != null) {
                     titleParts.title = titlePrefix;
                 }

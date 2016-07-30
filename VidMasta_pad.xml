@@ -102,11 +102,12 @@
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
+  <ASBMPlannerID2ndRound>25</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>21.8</Program_Version>
+    <Program_Version>21.9</Program_Version>
     <Program_Release_Month>07</Program_Release_Month>
-    <Program_Release_Day>07</Program_Release_Day>
+    <Program_Release_Day>30</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -118,8 +119,8 @@
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>51361000</File_Size_Bytes>
-      <File_Size_K>50157</File_Size_K>
+      <File_Size_Bytes>51360627</File_Size_Bytes>
+      <File_Size_K>50156</File_Size_K>
       <File_Size_MB>48.98</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
@@ -156,7 +157,7 @@
       <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>http://ufpr.dl.sourceforge.net/project/vidmasta/vidmasta-setup-21.8.exe</Primary_Download_URL>
+      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-21.9.exe</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
@@ -166,7 +167,6 @@
     <Distribution_Permissions>GPLv2</Distribution_Permissions>
     <EULA>GPLv2</EULA>
   </Permissions>
-  <ASBMPlannerID2ndRound>25</ASBMPlannerID2ndRound>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
     <AppStore_Category></AppStore_Category>

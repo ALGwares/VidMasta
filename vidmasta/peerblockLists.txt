@@ -1,35 +1,8 @@
     <Lists>
         <List>
-            <Url>http://list.iblocklist.com/?list=activision&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Activision</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=aevzidimyvwybzkletsg&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Pandora</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
             <Url>http://list.iblocklist.com/?list=aphcqvpxuqgrkgufjruj&amp;fileformat=p2p&amp;archiveformat=gz</Url>
             <Type>block</Type>
             <Description>Apple</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=blizzard&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Blizzard</Description>
             <Enabled>yes</Enabled>
             <FailedUpdate>no</FailedUpdate>
             <LastUpdate>1300000000</LastUpdate>
@@ -144,27 +117,9 @@
             <LastDownload>1300000000</LastDownload>
         </List>
         <List>
-            <Url>http://list.iblocklist.com/?list=ccp&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Crowd Control Productions</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
             <Url>http://list.iblocklist.com/?list=ecqbsykllnadihkdirsh&amp;fileformat=p2p&amp;archiveformat=gz</Url>
             <Type>block</Type>
             <Description>General Corporate Ranges</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=electronicarts&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Electronic Arts</Description>
             <Enabled>yes</Enabled>
             <FailedUpdate>no</FailedUpdate>
             <LastUpdate>1300000000</LastUpdate>
@@ -207,45 +162,9 @@
             <LastDownload>1300000000</LastDownload>
         </List>
         <List>
-            <Url>http://list.iblocklist.com/?list=lindenlab&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Linden Lab</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
             <Url>http://list.iblocklist.com/?list=lljggjrpmefcwqknpalp&amp;fileformat=p2p&amp;archiveformat=gz</Url>
             <Type>block</Type>
             <Description>Educational Institutions</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=ncsoft&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>NCsoft</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=nintendo&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Nintendo</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=punkbuster&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>PunkBuster</Description>
             <Enabled>yes</Enabled>
             <FailedUpdate>no</FailedUpdate>
             <LastUpdate>1300000000</LastUpdate>
@@ -264,24 +183,6 @@
             <Url>http://list.iblocklist.com/?list=soe&amp;fileformat=p2p&amp;archiveformat=gz</Url>
             <Type>block</Type>
             <Description>Sony Online Entertainment</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=squareenix&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Square Enix</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=steam&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Steam</Description>
             <Enabled>yes</Enabled>
             <FailedUpdate>no</FailedUpdate>
             <LastUpdate>1300000000</LastUpdate>
@@ -309,24 +210,6 @@
             <Url>http://list.iblocklist.com/?list=tzmtqbbsgbtfxainogvm&amp;fileformat=p2p&amp;archiveformat=gz</Url>
             <Type>block</Type>
             <Description>Atma</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=ubisoft&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Ubisoft</Description>
-            <Enabled>yes</Enabled>
-            <FailedUpdate>no</FailedUpdate>
-            <LastUpdate>1300000000</LastUpdate>
-            <LastDownload>1300000000</LastDownload>
-        </List>
-        <List>
-            <Url>http://list.iblocklist.com/?list=xfire&amp;fileformat=p2p&amp;archiveformat=gz</Url>
-            <Type>block</Type>
-            <Description>Xfire</Description>
             <Enabled>yes</Enabled>
             <FailedUpdate>no</FailedUpdate>
             <LastUpdate>1300000000</LastUpdate>

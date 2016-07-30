@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.07.30   | VidMasta 21.9
+
+CHANGE: CORE | Changed date to end of year instead of start of year when entering year only for the to release date search criterion
+CHANGE: CORE | Updated PeerBlock configuration
+CHANGE: CORE | Improved search performance
+
+
+
+
 2016.07.07   | VidMasta 21.8
 
 CHANGE: CORE | Improved error handling

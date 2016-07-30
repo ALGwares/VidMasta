@@ -56,8 +56,8 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>22</ASBMPlannerID1stRound>
-  <Issues>0</Issues>
+  <ASBMPlannerID1stRound>26</ASBMPlannerID1stRound>
+  <Issues>8</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
@@ -102,11 +102,12 @@
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
+  <ASBMPlannerID2ndRound>27</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>21.8</Program_Version>
+    <Program_Version>21.9</Program_Version>
     <Program_Release_Month>07</Program_Release_Month>
-    <Program_Release_Day>07</Program_Release_Day>
+    <Program_Release_Day>30</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -118,7 +119,7 @@
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25303525</File_Size_Bytes>
+      <File_Size_Bytes>25303358</File_Size_Bytes>
       <File_Size_K>24710</File_Size_K>
       <File_Size_MB>24.13</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>

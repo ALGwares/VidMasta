@@ -1,4 +1,4 @@
-245
+247
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -20,18 +20,18 @@ feature,tv_movie,documentary,short,video
 tv_movie,tv_series,tv_special,mini_series
 &sort=moviemeter,asc
 EMPTY
-<\s*+tr\s++class\s*+=\s*+"((even)|(odd)) detailed"\s*+>
+\<\s*+div\s++class\s*+\=\s*+"([^"]*? )??lister\-item( [^"]*+)?+"\s*+\>
 http://www.imdb.com
 <\s*+a\s++href\s*+=\s*+"
 "
-<\s*+a\s++href\s*+=\s*+"/title/[^/]++/"\s*+>
-<\s*+/a\s*+>
-<\s*+span\s++class\s*+=\s*+"year_type"\s*+>
-<\s*+/span\s*+>
+\<\s*+a\s++href\s*+\=\s*+"/title/[^"]++"\s*+\>(?!\s*+\<\s*+img\s)
+\<\s*+/a\s*+\>
+\<\s*+span\s++class\s*+\=\s*+"([^"]*? )??lister\-item\-year( [^"]*+)?+"\s*+\>
+\<\s*+/span\s*+\>
 (\d{4}+)
-<\s*+div\s++class\s*+=\s*+"user_rating"\s*+>
-<\s*+/div\s*+>
-(?<=((<span\sclass="rating-rating"><span\sclass="value">)|(<div\sclass="rating(?=(\-ineligible">)))))((\d{1,2}+\.\d)|(\-))(?=((</span>)|(ineligible">)))
+(\<\s*+div\s++class\s*+\=\s*+"([^"]*? )??ratings\-imdb\-rating( [^"]*+)?+"[^\>]*?\s++data\-value\s*+\=")|(?=\<\s*+div\s++class\s*+\=\s*+"([^"]*? )??lister\-item( [^"]*+)?+"\s*+\>)
+"|\<
+[\d\.]++
 http://kat.unbanthe.net/usearch/
 /?startIndex=1
 \A(?s)(?!.+(?i) did not match any documents).+?\s++href\s*+\=\s*+"(?=/usearch/[^/]++/(\d++/)?+\?startIndex\=1&field\=
@@ -383,9 +383,9 @@ Released:\s*+<\s*+/strong\s*+>(\s*+<\s*+/td\s*+>\s*+<\s*+td\s*+>)?+
 )\s*+<\s*+/div\s*+>
 <\s*+/html\s*+>
 #
-<\s*+img\s++src\s*+=\s*+"
+loadlate\s*+\=\s*+"(?=(?i)http://ia?+\.media\-imdb\.com/images/)
 "
-http://i\.media-imdb\.com/images/[^/]++/realm/[^\.]+?\.gif
+.*?/nopicture/.*?
 ~~~
 magnet:?
 "magnet:\?
@@ -417,8 +417,8 @@ http://www.primewire.ag
 100
 <\s*+span\s++class\s*+=\s*+"genre"\s*+>
 <\s*+/span\s*+>
-<\s*+a\s++[^>]++>
-<\s*+/a\s*+>
+(\<\s*+a\s++[^\>]++\>)|,|\A
+(\<\s*+/a\s*+\>)|,|\z
 ANY:::all~~~Albanian:::alb~~~Arabic:::ara~~~Armenian:::arm~~~Basque:::baq~~~Bengali:::ben~~~Bosnian:::bos~~~Breton:::bre~~~Bulgarian:::bul~~~Catalan:::cat~~~Chinese:::chi~~~Croatian:::hrv~~~Czech:::cze~~~Danish:::dan~~~Dutch:::dut~~~English:::eng~~~Esperanto:::epo~~~Estonian:::est~~~Farsi:::per~~~Finnish:::fin~~~French:::fre~~~Galician:::glg~~~Georgian:::geo~~~German:::ger~~~Greek:::ell~~~Hebrew:::heb~~~Hindi:::hin~~~Hungarian:::hun~~~Icelandic:::ice~~~Indonesian:::ind~~~Italian:::ita~~~Japanese:::jpn~~~Kazakh:::kaz~~~Korean:::kor~~~Latvian:::lav~~~Lithuanian:::lit~~~Luxembourgish:::ltz~~~Macedonian:::mac~~~Malay:::may~~~Norwegian:::nor~~~Occitan:::oci~~~Polish:::pol~~~Portuguese:::por~~~Portuguese-BR:::pob~~~Romanian:::rum~~~Russian:::rus~~~Serbian:::scc~~~Sinhalese:::sin~~~Slovak:::slo~~~Slovenian:::slv~~~Spanish:::spa~~~Swedish:::swe~~~Syriac:::syr~~~Tagalog:::tgl~~~Thai:::tha~~~Turkish:::tur~~~Ukrainian:::ukr~~~Urdu:::urd~~~Vietnamese:::vie
 https://docs.google.com/uc?id=0B3i91lMM4fZIdExvQkpCMmhSb09lSEVRY1AwUU9hZw&export=download&hl=en_US
 https://docs.google.com/uc?id=0B3i91lMM4fZITmxELXgtMFVRY1d0WW0tdUtfUDloUQ&export=download&hl=en_US
@@ -647,7 +647,7 @@ Oracle/Java/Deployment/security/exception.sites
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F636865636B3F
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F636865636B323F
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C323F
-Next&nbsp;&raquo;
+(?i)Next\s*+(&nbsp;)*+&((raquo)|(#187));
 \<\s*+a[^\>]*?\shref\s*+\=\s*+"/browse/
 http://kat.unbanthe.net/
 205

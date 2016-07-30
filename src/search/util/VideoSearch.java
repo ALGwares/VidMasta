@@ -304,16 +304,15 @@ public class VideoSearch {
         nameList.append("<b>").append(Str.str(type + (numNames > 1 ? "s" : ""))).append("</b> ");
 
         for (int i = 0; i < numNames; i++) {
+            nameList.append(namesArr.get(i));
             if (i == numNames - 2) {
                 if (numNames == 2) {
-                    nameList.append(namesArr.get(i)).append(" and ");
+                    nameList.append(" and ");
                 } else {
-                    nameList.append(namesArr.get(i)).append(", and ");
+                    nameList.append(", and ");
                 }
-            } else if (i == numNames - 1) {
-                nameList.append(namesArr.get(i));
-            } else {
-                nameList.append(namesArr.get(i)).append(", ");
+            } else if (i != numNames - 1) {
+                nameList.append(", ");
             }
         }
 
@@ -332,10 +331,10 @@ public class VideoSearch {
         return date;
     }
 
-    public static String getMovieTitlePrefix(String dirtyMovieTitle) {
+    public static String getTitlePrefix(String title) {
         int index = -1;
 
-        Matcher numMatcher = Regex.matcher(214, dirtyMovieTitle);
+        Matcher numMatcher = Regex.matcher(214, title);
         while (!numMatcher.hitEnd()) {
             if (numMatcher.find()) {
                 index = numMatcher.end();
@@ -345,17 +344,17 @@ public class VideoSearch {
         if (index == -1) {
             return null;
         }
-        if (index != dirtyMovieTitle.length()) {
+        if (index != title.length()) {
             index--;
         }
 
-        String prefix = dirtyMovieTitle.substring(0, index);
-        if (prefix.equals(dirtyMovieTitle)) {
+        String prefix = title.substring(0, index);
+        if (prefix.equals(title)) {
             return null;
         }
 
         if (Debug.DEBUG) {
-            Debug.println("Movie Title Prefix: '" + prefix + '\'');
+            Debug.println("Title Prefix: '" + prefix + '\'');
         }
         return prefix;
     }

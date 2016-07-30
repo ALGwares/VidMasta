@@ -113,6 +113,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.TransferHandler;
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
@@ -165,7 +166,8 @@ public class GUI extends JFrame implements GuiListener {
     private static final Preferences preferences = Preferences.userNodeForPackage(GUI.class);
 
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay;
+    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay,
+            forcePlaylistDownloader = true;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
     private final Set<Long> bannedDownloadIDs = new CopyOnWriteArraySet<Long>();
@@ -990,8 +992,8 @@ public class GUI extends JFrame implements GuiListener {
         searchProgressTextField = new JTextField();
         exitBackupModeButton = new JButton();
         connectionIssueButton = new JButton();
-        startDateChooser = new DateChooser();
-        endDateChooser = new DateChooser();
+        startDateChooser = new DateChooser(true);
+        endDateChooser = new DateChooser(false);
         findTextField = new JTextField();
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
@@ -6028,9 +6030,11 @@ public class GUI extends JFrame implements GuiListener {
         if (!isVisible()) {
             setVisible(true);
         }
-        downloadMenu.doClick();
-        downloaderMenu.doClick();
-        webBrowserAppDownloaderRadioButtonMenuItem.setArmed(true);
+        if (Boolean.parseBoolean(Str.get(744))) {
+            downloadMenu.doClick();
+            downloaderMenu.doClick();
+            webBrowserAppDownloaderRadioButtonMenuItem.setArmed(true);
+        }
     }//GEN-LAST:event_activationDialogWindowClosing
 
     private void playlistPlayButtonMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayButtonMousePressed
@@ -7666,7 +7670,14 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public boolean canDownloadWithPlaylist() {
-        return playlistDownloaderRadioButtonMenuItem.isSelected();
+        if (playlistDownloaderRadioButtonMenuItem.isSelected()) {
+            return true;
+        }
+        if (Boolean.parseBoolean(Str.get(743)) && !workerListener.isLicensePresent() && (forcePlaylistDownloader = !forcePlaylistDownloader)) {
+            playlistDownloaderRadioButtonMenuItem.setSelected(true);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -8285,6 +8296,11 @@ public class GUI extends JFrame implements GuiListener {
         initFileNameExtensionFilters();
 
         aboutEditorPane.setText(UI.about());
+
+        UIManager.put("OptionPane.yesButtonText", Str.str("GUI.optionPane.yesButton.text"));
+        UIManager.put("OptionPane.noButtonText", Str.str("GUI.optionPane.noButton.text"));
+        UIManager.put("OptionPane.okButtonText", Str.str("GUI.optionPane.okButton.text"));
+        UIManager.put("OptionPane.cancelButtonText", Str.str("GUI.optionPane.cancelButton.text"));
 
         resizeContent();
     }

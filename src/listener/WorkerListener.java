@@ -70,4 +70,6 @@ public interface WorkerListener {
     void license(String activationCode);
 
     void licenseActivated();
+
+    boolean isLicensePresent();
 }

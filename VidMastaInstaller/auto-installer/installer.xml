@@ -2,11 +2,11 @@
 <installation version="1.0">
     <info>
         <appname>VidMasta</appname>
-        <appversion>21.8</appversion>
+        <appversion>21.9</appversion>
         <authors>
             <author email="" name="Anthony Gray"/>
         </authors>
-        <uninstaller name="Uninstaller.jar" write="yes"/>
+        <uninstaller write="no"/>
         <requiresjdk>no</requiresjdk>
         <writeinstallationinformation>no</writeinstallationinformation>
         <run-privileged condition="izpack.windowsinstall.vista|izpack.windowsinstall.7"/>

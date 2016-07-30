@@ -209,7 +209,7 @@ public class Connection {
                     IO.close(br);
                 }
 
-                return Regex.replaceAll(source.toString(), 741);
+                return domainType == DomainType.UPDATE ? source.toString() : Regex.replaceAll(source.toString(), 741);
             }
         }).runAndWaitFor();
     }
@@ -538,7 +538,7 @@ public class Connection {
                 }
 
                 checkConnectionResponse(connection, url);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 IO.consumeErrorStream(connection);
                 if (Debug.DEBUG) {
                     Debug.print(e);

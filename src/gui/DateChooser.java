@@ -16,8 +16,11 @@ public class DateChooser extends JDateChooser {
 
     private static final long serialVersionUID = 1L;
 
-    public DateChooser() {
+    private boolean isStartDateChooser;
+
+    public DateChooser(boolean isStartDateChooser) {
         super(new JCalendar(null, null, true, true), null, null, new DateEditor());
+        this.isStartDateChooser = isStartDateChooser;
     }
 
     public Calendar getTime() {
@@ -30,6 +33,10 @@ public class DateChooser extends JDateChooser {
             calendar = Calendar.getInstance(Str.locale());
             calendar.clear();
             calendar.set(Calendar.YEAR, Integer.parseInt(text));
+            if (!isStartDateChooser) {
+                calendar.set(Calendar.MONTH, Calendar.DECEMBER);
+                calendar.set(Calendar.DAY_OF_MONTH, 31);
+            }
             return calendar;
         }
         return null;

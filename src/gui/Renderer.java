@@ -51,6 +51,11 @@ public class Renderer implements ListCellRenderer, UIResource {
         Arrays.sort(sortedModelView, new Comparator<Entry<String, String>>() {
             private Collator collator = Collator.getInstance(Str.locale());
 
+            {
+                collator.setStrength(Collator.IDENTICAL);
+                collator.setDecomposition(Collator.FULL_DECOMPOSITION);
+            }
+
             @Override
             public int compare(Entry<String, String> entry1, Entry<String, String> entry2) {
                 return entry1.getKey().equals(Constant.ANY) ? -1 : (entry2.getKey().equals(Constant.ANY) ? 1 : collator.compare(entry1.getValue(),
