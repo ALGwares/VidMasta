@@ -33,15 +33,15 @@
     <Contact_Info>
       <Contact_First_Name>Anthony</Contact_First_Name>
       <Contact_Last_Name>Gray</Contact_Last_Name>
-      <Contact_Email>algwares@inbox.com</Contact_Email>
+      <Contact_Email>algwares@gmx.com</Contact_Email>
       <Author_First_Name>Anthony</Author_First_Name>
       <Author_Last_Name>Gray</Author_Last_Name>
-      <Author_Email>algwares@inbox.com</Author_Email>
+      <Author_Email>algwares@gmx.com</Author_Email>
     </Contact_Info>
     <Support_Info>
-      <Sales_Email>algwares@inbox.com</Sales_Email>
-      <Support_Email>algwares@inbox.com</Support_Email>
-      <General_Email>algwares@inbox.com</General_Email>
+      <Sales_Email>algwares@gmx.com</Sales_Email>
+      <Support_Email>algwares@gmx.com</Support_Email>
+      <General_Email>algwares@gmx.com</General_Email>
       <Sales_Phone></Sales_Phone>
       <Support_Phone></Support_Phone>
       <General_Phone></General_Phone>
@@ -56,8 +56,8 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>26</ASBMPlannerID1stRound>
-  <Issues>8</Issues>
+  <ASBMPlannerID1stRound>31</ASBMPlannerID1stRound>
+  <Issues>0</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
@@ -69,7 +69,7 @@
     <NewsFeed_Type>RSS 0.90</NewsFeed_Type>
     <NewsFeed_Language>English</NewsFeed_Language>
     <NewsFeed_Purpose>News</NewsFeed_Purpose>
-    <NewsFeed_Author_Email>algwares@inbox.com</NewsFeed_Author_Email>
+    <NewsFeed_Author_Email>algwares@gmx.com</NewsFeed_Author_Email>
     <NewsFeed_Author_First_Name>Anthony</NewsFeed_Author_First_Name>
     <NewsFeed_Author_Last_Name>Gray</NewsFeed_Author_Last_Name>
     <NewsFeed_Feed_URL></NewsFeed_Feed_URL>
@@ -90,7 +90,7 @@
     <Site_Description_250>VidMasta</Site_Description_250>
     <Site_Description_450>VidMasta</Site_Description_450>
     <Site_Keywords>VidMasta,ALGwares,Anthony Gray</Site_Keywords>
-    <Site_Contact_Email>algwares@inbox.com</Site_Contact_Email>
+    <Site_Contact_Email>algwares@gmx.com</Site_Contact_Email>
     <Site_Contact_First_Name>Anthony</Site_Contact_First_Name>
     <Site_Contact_Last_Name>Gray</Site_Contact_Last_Name>
   </Site>
@@ -102,12 +102,11 @@
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
-  <ASBMPlannerID2ndRound>27</ASBMPlannerID2ndRound>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>21.9</Program_Version>
-    <Program_Release_Month>07</Program_Release_Month>
-    <Program_Release_Day>30</Program_Release_Day>
+    <Program_Version>22.0</Program_Version>
+    <Program_Release_Month>08</Program_Release_Month>
+    <Program_Release_Day>09</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -115,7 +114,7 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac Other,Java,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Changed date to end of year instead of start of year when entering year only for the to release date search criterion, updated PeerBlock configuration, and improved search performance.</Program_Change_Info>
+    <Program_Change_Info>Improved search error handling and showed message when playlist is in system tray and main window is closed.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>

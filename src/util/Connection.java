@@ -49,7 +49,9 @@ public class Connection {
     private static final Collection<Long> cache = new ConcurrentSkipListSet<Long>();
     private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
     private static final AtomicBoolean downloadLinkInfoFail = new AtomicBoolean();
-    private static boolean downloadLinkInfoDeproxied;
+    private static int numDownloadLinkInfoDeproxiers;
+    private static UpdateListener deproxyDownloadLinkInfo;
+    private static boolean reproxyDownloadLinkInfoUrlSet;
     private static volatile String downloadLinkInfoFailUrl;
 
     public static void init(GuiListener listener) {
@@ -227,14 +229,40 @@ public class Connection {
                 + downloadLinkInfoProxyUrl.substring(Str.get(723).length()) : null;
     }
 
+    public static void runDownloadLinkInfoDeproxier(Task deproxier) throws Exception {
+        try {
+            downloadLinkInfoProxyLock.lock();
+            try {
+                ++numDownloadLinkInfoDeproxiers;
+            } finally {
+                downloadLinkInfoProxyLock.unlock();
+            }
+            deproxier.run();
+        } finally {
+            downloadLinkInfoProxyLock.lock();
+            try {
+                if (--numDownloadLinkInfoDeproxiers == 0 && Str.containsListener(deproxyDownloadLinkInfo)) {
+                    Str.removeListener(deproxyDownloadLinkInfo);
+                    deproxyDownloadLinkInfo = null;
+                    if (!reproxyDownloadLinkInfoUrlSet) {
+                        selectNextDownloadLinkInfoProxy();
+                    }
+                    reproxyDownloadLinkInfoUrlSet = false;
+                }
+            } finally {
+                downloadLinkInfoProxyLock.unlock();
+            }
+        }
+    }
+
     public static boolean deproxyDownloadLinkInfo() {
         downloadLinkInfoProxyLock.lock();
         try {
-            if (downloadLinkInfoDeproxied) {
+            if (Str.containsListener(deproxyDownloadLinkInfo)) {
                 return false;
             }
 
-            Str.addListener(new UpdateListener() {
+            Str.addListener(deproxyDownloadLinkInfo = new UpdateListener() {
                 @Override
                 public void update(String[] strs) {
                     int downloadLinkInfoUrlLen = strs[727].length();
@@ -244,13 +272,12 @@ public class Connection {
                     }
                 }
             });
-            Str.update();
 
             if (Debug.DEBUG) {
                 Debug.print(new ConnectionException("Download link info deproxied."));
             }
 
-            return (downloadLinkInfoDeproxied = true);
+            return true;
         } finally {
             downloadLinkInfoProxyLock.unlock();
         }
@@ -259,7 +286,7 @@ public class Connection {
     public static boolean isDownloadLinkInfoDeproxied() {
         downloadLinkInfoProxyLock.lock();
         try {
-            return downloadLinkInfoDeproxied;
+            return Str.containsListener(deproxyDownloadLinkInfo);
         } finally {
             downloadLinkInfoProxyLock.unlock();
         }
@@ -277,6 +304,7 @@ public class Connection {
                 int proxyIndex = (proxyIndexFile.exists() ? Integer.parseInt(IO.read(proxyIndexFile)) : 0);
                 IO.write(proxyIndexFile, String.valueOf(++proxyIndex >= Regex.split(proxies, Constant.SEPARATOR1).length ? 0 : proxyIndex));
                 Str.update();
+                reproxyDownloadLinkInfoUrlSet = true;
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);

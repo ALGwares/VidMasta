@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.08.09   | VidMasta 22.0
+
+CHANGE: CORE | Improved search error handling
+CHANGE: UI   | Showed message when playlist is in system tray and main window is closed
+
+
+
+
 2016.07.30   | VidMasta 21.9
 
 CHANGE: CORE | Changed date to end of year instead of start of year when entering year only for the to release date search criterion
@@ -265,7 +273,7 @@ CHANGE: UI   | Improved positioning of windows
 
 CHANGE: UI   | Improved progress reporting when playing a playlist item
 CHANGE: UI   | Improved naming of playlist items
-CHANGE: UI   | Added minimize to system tray support to VidMasta's main window and playlist window by right-clicking the minimize button
+CHANGE: UI   | Added minimize to system tray support to main window and playlist window by right-clicking the minimize button
 CHANGE: UI   | Moved Manage Proxies menu item from File menu to Search menu
 CHANGE: CORE | Saved and restored initializing playlist items between restarts of VidMasta
 CHANGE: CORE | Improved accuracy of TV show episode download link searches
@@ -280,7 +288,7 @@ CHANGE: UI   | Added new playlist setting to show/hide non-video items (e.g. ima
 CHANGE: UI   | Improved progress reporting when playing a playlist item
 CHANGE: UI   | Moved all playlist settings to new playlist menu
 CHANGE: UI   | Improved opening, closing, and positioning of windows
-CHANGE: UI   | Refocused VidMasta's main window when there is an attempt to re-open VidMasta while already open
+CHANGE: UI   | Refocused main window when there is an attempt to re-open VidMasta while already open
 CHANGE: UI   | Zero-padded minute of date shown when downloading proxies
 CHANGE: UI   | Improved save filename for torrents
 CHANGE: UI   | Added uninstaller to Programs/Uninstall window for Windows
@@ -307,7 +315,7 @@ CHANGE: UI   | Fixed hyperlinks for Mac
 
 CHANGE: UI   | Saved and restored playlist between restarts of VidMasta
 CHANGE: UI   | Showed percentage complete for initializing stage of playback when available
-CHANGE: UI   | Allowed main application window to be restored when the playlist window is the only window open by pressing ctrl+w
+CHANGE: UI   | Allowed main window to be restored when the playlist window is the only window open by pressing ctrl+w
 CHANGE: UI   | Fixed slowness when deleting a lot of playlist items at once
 CHANGE: UI   | Selected a nearby playlist item when a playlist item is deleted while selected
 CHANGE: UI   | Changed "Latest Episode" to more accurately say "Popular Episode" in Popular TV Show search results

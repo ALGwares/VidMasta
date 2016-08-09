@@ -33,6 +33,7 @@ import util.ExceptionUtil;
 import util.IO;
 import util.Regex;
 import util.RunnableUtil;
+import util.Task;
 import util.VideoPlayer;
 
 public class VideoFinder extends AbstractSwingWorker {
@@ -137,10 +138,6 @@ public class VideoFinder extends AbstractSwingWorker {
                 findTVDownloadLink(false);
             } else {
                 findMovieDownloadLink();
-            }
-
-            for (TorrentFinder finder : torrentFinders) {
-                finder.getTorrent(true, true);
             }
         }
     }
@@ -725,30 +722,40 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void findDownloadLink() throws Exception {
-        if (PREFETCH) {
-            return;
-        }
+        Connection.runDownloadLinkInfoDeproxier(new Task() {
+            @Override
+            public void run() throws Exception {
+                if (PREFETCH) {
+                    for (TorrentFinder finder : torrentFinders) {
+                        finder.getTorrent(true, true);
+                    }
+                    return;
+                }
 
-        boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
-        try {
-            RunnableUtil.runAndWaitFor(torrentFinders);
-        } catch (CancellationException e) {
-            if (Debug.DEBUG) {
-                Debug.println(e);
-            }
-        }
-        if (isCancelled()) {
-            return;
-        }
+                boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+                try {
+                    RunnableUtil.runAndWaitFor(torrentFinders);
+                } catch (CancellationException e) {
+                    if (Debug.DEBUG) {
+                        Debug.println(e);
+                    }
+                }
+                if (isCancelled()) {
+                    return;
+                }
 
-        if (!isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
-            Collection<TorrentFinder> newTorrentFinders = new ArrayList<TorrentFinder>(torrentFinders.size());
-            for (TorrentFinder torrentFinder : torrentFinders) {
-                newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
+                if (!isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
+                    Collection<TorrentFinder> newTorrentFinders = new ArrayList<TorrentFinder>(torrentFinders.size());
+                    for (TorrentFinder torrentFinder : torrentFinders) {
+                        newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
+                    }
+                    RunnableUtil.runAndWaitFor(newTorrentFinders);
+                }
             }
-            RunnableUtil.runAndWaitFor(newTorrentFinders);
+        });
+        if (!PREFETCH) {
+            findAlt2DownloadLink(false);
         }
-        findAlt2DownloadLink(false);
     }
 
     private void updateOldTitleAndSummary() throws Exception {

@@ -5551,6 +5551,7 @@ public class GUI extends JFrame implements GuiListener {
     private void formWindowClosing(WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         setVisible(false);
         if (UI.trayIcon(playlistFrame) != null) {
+            playlistTrayIcon.displayMessage(Constant.APP_TITLE, playlistTrayIcon.getToolTip(), MessageType.INFO);
             return;
         }
         if (!playlistFrame.isShowing() || !isPlaylistActive()) {

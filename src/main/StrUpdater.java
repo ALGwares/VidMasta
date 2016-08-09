@@ -145,6 +145,21 @@ public class StrUpdater implements StrUpdateListener {
     }
 
     @Override
+    public void removeListener(UpdateListener listener) {
+        synchronized (updateLock) {
+            updateListeners.remove(listener);
+            update();
+        }
+    }
+
+    @Override
+    public boolean containsListener(UpdateListener listener) {
+        synchronized (updateLock) {
+            return updateListeners.contains(listener);
+        }
+    }
+
+    @Override
     public void waitForUpdate() {
         try {
             updateDoneSignal.await(20, TimeUnit.SECONDS);

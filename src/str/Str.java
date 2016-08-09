@@ -29,6 +29,14 @@ public class Str extends I18nStr {
         strUpdateListener.addListener(listener);
     }
 
+    public static void removeListener(UpdateListener listener) {
+        strUpdateListener.removeListener(listener);
+    }
+
+    public static boolean containsListener(UpdateListener listener) {
+        return strUpdateListener.containsListener(listener);
+    }
+
     public static void waitForUpdate() {
         strUpdateListener.waitForUpdate();
     }

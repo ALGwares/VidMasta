@@ -10,6 +10,10 @@ public interface StrUpdateListener {
 
     void addListener(UpdateListener listener);
 
+    void removeListener(UpdateListener listener);
+
+    boolean containsListener(UpdateListener listener);
+
     void waitForUpdate();
 
     interface UpdateListener {

@@ -1,4 +1,4 @@
-247
+251
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -145,8 +145,8 @@ EMPTY
 EMPTY
 EMPTY
 There was an error processing this request
-(?i)(Hm\. Problem! Please retry\.)|(Upgrading software, please check back in)|(Could not connect to caching server)|(The Pirate Bay is down for maintenance)|(Database maintenance, please check back in)|(Oops, looks like something went wrong\! Please)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
-(?i)(Hm\. Problem! Please retry\.)|(Upgrading software, please check back in)|(Could not connect to caching server)|(The Pirate Bay is down for maintenance)|(Database maintenance, please check back in)|(Oops, looks like something went wrong\! Please)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
+(?i)(Hm\. Problem\! Please retry\.)|(Upgrading software, please check back in)|(Could not connect to caching server)|(The Pirate Bay is down for maintenance)|(Database maintenance, please check back in)|(Oops, looks like something went wrong\! Please)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
+(?i)(Hm\. Problem\! Please retry\.)|(Upgrading software, please check back in)|(Could not connect to caching server)|(The Pirate Bay is down for maintenance)|(Database maintenance, please check back in)|(Oops, looks like something went wrong\! Please)|(\s++title\s*+\=\s*+"Torrent magnet link"\s++href\s*+\=\s*+"#")|(Access your favourite blocked sites)|(This is a default index page for a new domain)
 http://torrents.thepiratebay.se/
 /
 http://kat.unbanthe.net/comments/index/torrent/
@@ -301,7 +301,7 @@ EMPTY
 SPACE
 30
 Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
-((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(co)|(website)|(la)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
+((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(co)|(website)|(xyz)|(la)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
 ...
 EMPTY
 ((?i)(https?+://(www\.)?+))
@@ -554,7 +554,7 @@ MMMM yyyy
 \u00b9:SPACE1;\u00b2:SPACE2;\u00b3:SPACE3;\u00a2:c;\u00a5:Y;\u00a6:|;\u00aa:a;\u00af:-;\u00b4:';\u00b5:u;\u00c6:Ae;\u00d0:D;\u00d7:x;\u00d8:O;\u00de:p;\u00df:B;\u00e6:ae;\u00f8:o;\u00fe:p;\u0152:Oe;\u0153:oe;\u0192:f;\u2013:-;\u2014:-;\u20ac:E;\u2122:TM;\u00a1:SPACE;\u00bf:SPACE
 ;
 :
-SPACE(<a href="mailto:algwares@inbox.com">algwares@inbox.com</a>, <a href="https://sites.google.com/site/algwares/">ALGwares</a>)
+SPACE(<a href="mailto:algwares@gmx.com">algwares@gmx.com</a>, <a href="https://sites.google.com/site/algwares/">ALGwares</a>)
 true
 false
 true
@@ -720,16 +720,16 @@ https://kat.cr
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-6.2.2-Java7.exe/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-6.2.2-Java7.dmg/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-6.2.2-Java7.tgz/download
-https://thehiddenbay.eu/search/
-https://thehiddenbay.eu
-https://thehiddenbay.eu
-https://thehiddenbay.eu/search/
-https://thehiddenbay.eu
-https://thehiddenbay.eu:::https://kuiken.co:::https://tpbproxy.website
-https://thehiddenbay.eu
-https://thehiddenbay.eu
-https://thehiddenbay.eu/browse/
-https://thehiddenbay.eu/ajax_details_comments.php?id=
+https://kuiken.co/search/
+https://kuiken.co
+https://kuiken.co
+https://kuiken.co/search/
+https://kuiken.co
+https://kuiken.co:::https://tpbproxy.website:::https://thepirateproxybay.xyz
+https://kuiken.co
+https://kuiken.co
+https://kuiken.co/browse/
+https://kuiken.co/ajax_details_comments.php?id=
 https://thepiratebay.org
 721,722,723,724,725,727,729,730
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
