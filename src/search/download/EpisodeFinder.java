@@ -1,13 +1,13 @@
 package search.download;
 
 import debug.Debug;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -97,14 +97,15 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
         return nums;
     }
 
-    private void setEpisodeText(String season, String episode, String airdate, SimpleDateFormat dateFormat, boolean isNextEpisode) {
-        String airdateText = airdate;
-        if (Regex.isMatch(airdateText, 534)) {
-            airdateText = VideoSearch.dateToString(dateFormat, Regex.replaceAll(airdateText, 535), Boolean.parseBoolean(Str.get(558)));
-        } else if (Regex.isMatch(airdateText, 546)) {
-            airdateText = VideoSearch.dateToString(new SimpleDateFormat(Str.get(547), Locale.ENGLISH), Regex.replaceAll(airdateText, 535), Boolean.parseBoolean(
-                    Str.get(559)));
-        } else if (airdateText.isEmpty() || Regex.isMatch(airdateText, 537)) {
+    private void setEpisodeText(String season, String episode, String airdate, DateFormat[] dateFormats, boolean isNextEpisode) {
+        String airdateText;
+        if (Regex.isMatch(airdate, 534)) {
+            airdateText = VideoSearch.dateToString(dateFormats[0], Regex.replaceAll(airdate, 535), Boolean.parseBoolean(Str.get(558)));
+        } else if (Regex.isMatch(airdate, 546)) {
+            airdateText = VideoSearch.dateToString(dateFormats[1], Regex.replaceAll(airdate, 535), Boolean.parseBoolean(Str.get(559)));
+        } else if (Regex.isMatch(airdate, 745)) {
+            airdateText = VideoSearch.dateToString(dateFormats[2], Regex.replaceAll(airdate, 535), null);
+        } else {
             airdateText = Str.str("unknown");
         }
         String seasonNumber, episodeNumber, episodeText = "S" + (seasonNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(season))) + "E"
@@ -124,7 +125,6 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
         currDate.set(Calendar.MINUTE, 0);
         currDate.set(Calendar.SECOND, 0);
         currDate.set(Calendar.MILLISECOND, 0);
-        Date currTime = currDate.getTime();
 
         String url = VideoSearch.url(video), source = Connection.getSourceCode(url, DomainType.VIDEO_INFO, false);
         List<String> seasons = Regex.matches(source, 520);
@@ -134,16 +134,34 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
             return;
         }
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat(Str.get(538), Locale.ENGLISH);
+        DateFormat[] dateFormats = {new SimpleDateFormat(Str.get(538), Locale.ENGLISH), new SimpleDateFormat(Str.get(547), Locale.ENGLISH), new SimpleDateFormat(
+            Str.get(746), Locale.ENGLISH)};
         List<Episode> episodes = new ArrayList<Episode>(3), prevNextEpisodes = new ArrayList<Episode>(2);
 
         outer:
         for (String season : seasons) {
             episodes.clear();
-            for (String episode : sortedNumListSet(Regex.matches(source = Connection.getSourceCode(url + Str.get(523) + season, DomainType.VIDEO_INFO, false),
-                    Str.get(524) + season + Str.get(525), Str.get(526)), true)) {
-                Episode currEpisode = new Episode(season, episode, Regex.replaceAll(Regex.match(source, Str.get(528) + season + Str.get(529) + episode
-                        + Str.get(530), Str.get(531)), Str.get(532), Str.get(533)));
+            List<String> currEpisodes = sortedNumListSet(Regex.matches(source = Connection.getSourceCode(url + Str.get(523) + season, DomainType.VIDEO_INFO, false),
+                    Str.get(524) + season + Str.get(525), Str.get(526)), true);
+            for (int i = 0, j = currEpisodes.size() - 1; i <= j; i++) {
+                String episode = currEpisodes.get(i), airdate = Regex.replaceAll(Regex.match(source, Str.get(528) + season + Str.get(529) + episode + Str.get(530),
+                        Str.get(531)), Str.get(532), Str.get(533));
+                Calendar currAirdate;
+                if (Regex.isMatch(airdate, 534)) {
+                    (currAirdate = Calendar.getInstance()).setTime(dateFormats[0].parse(Regex.replaceAll(airdate, 535)));
+                } else if (Regex.isMatch(airdate, 546)) {
+                    (currAirdate = Calendar.getInstance()).setTime(dateFormats[1].parse(Regex.replaceAll(airdate, 535)));
+                    currAirdate.set(Calendar.DAY_OF_MONTH, currAirdate.getActualMaximum(Calendar.DAY_OF_MONTH));
+                } else if (Regex.isMatch(airdate, 745)) {
+                    (currAirdate = Calendar.getInstance()).setTime(dateFormats[2].parse(Regex.replaceAll(airdate, 535)));
+                    currAirdate.set(Calendar.MONTH, currAirdate.getActualMaximum(Calendar.MONTH));
+                    currAirdate.set(Calendar.DAY_OF_MONTH, currAirdate.getActualMaximum(Calendar.DAY_OF_MONTH));
+                } else {
+                    airdate = "";
+                    currAirdate = null;
+                }
+
+                Episode currEpisode = new Episode(season, episode, airdate);
                 episodes.add(currEpisode);
                 if (episodes.size() == 3) {
                     Episode prevPrevEpisode = episodes.get(0), prevEpisode = episodes.get(1);
@@ -158,7 +176,14 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
                     }
                     episodes.remove(0);
                 }
-                if (!Regex.isMatch(currEpisode.airdate, 534) || dateFormat.parse(Regex.replaceAll(currEpisode.airdate, 535)).compareTo(currTime) > 0) {
+
+                if (currAirdate == null) {
+                    if (i == j) {
+                        prevNextEpisodes.clear();
+                        prevNextEpisodes.addAll(episodes);
+                        continue outer;
+                    }
+                } else if (currAirdate.compareTo(currDate) > 0) {
                     prevNextEpisodes.clear();
                     prevNextEpisodes.addAll(episodes);
                     continue outer;
@@ -173,12 +198,12 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
         int numEpisodes = episodes.size();
         if (numEpisodes == 1) {
             Episode nextEpisode = episodes.get(0);
-            setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, dateFormat, true);
+            setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, dateFormats, true);
             prevEpisodeText = nextEpisodeText;
         } else if (numEpisodes > 1) {
             Episode nextEpisode = episodes.get(numEpisodes - 1), prevEpisode = episodes.get(numEpisodes - 2);
-            setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, dateFormat, true);
-            setEpisodeText(prevEpisode.season, prevEpisode.episode, prevEpisode.airdate, dateFormat, false);
+            setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, dateFormats, true);
+            setEpisodeText(prevEpisode.season, prevEpisode.episode, prevEpisode.airdate, dateFormats, false);
         }
     }
 

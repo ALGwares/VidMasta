@@ -194,6 +194,7 @@ public class Magnet extends Thread {
             System.setProperty("azureus.security.manager.install", "0");
             System.setProperty("azureus.security.manager.permitexit", "1");
             System.setProperty("MULTI_INSTANCE", String.valueOf(true));
+            System.setProperty("azureus.platform.manager.disable", String.valueOf(true));
             boolean canFilterIpsWithoutBlocking = canFilterIpsWithoutBlocking();
             IO.fileOp(VUZE_DIR, IO.MK_DIR);
             System.setProperty("azureus.install.path", VUZE_DIR);
@@ -245,7 +246,7 @@ public class Magnet extends Thread {
                 setIpBlockMsg(IpFilterImpl.getInstance());
                 guiListener.setPlaylistPlayHint(ipBlockMsg);
                 if (Debug.DEBUG) {
-                    Debug.println(ipBlockMsg);
+                    Debug.println(ipBlockMsg.trim());
                 }
             } catch (Exception e) {
                 if (Debug.DEBUG) {

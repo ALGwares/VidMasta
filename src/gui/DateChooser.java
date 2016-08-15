@@ -9,7 +9,6 @@ import java.awt.event.FocusEvent;
 import java.util.Calendar;
 import java.util.Date;
 import javax.swing.event.CaretEvent;
-import str.Str;
 import util.Regex;
 
 public class DateChooser extends JDateChooser {
@@ -30,7 +29,7 @@ public class DateChooser extends JDateChooser {
         }
         String text = ((DateEditor) getDateEditor()).getYearText();
         if (text != null) {
-            calendar = Calendar.getInstance(Str.locale());
+            calendar = Calendar.getInstance();
             calendar.clear();
             calendar.set(Calendar.YEAR, Integer.parseInt(text));
             if (!isStartDateChooser) {

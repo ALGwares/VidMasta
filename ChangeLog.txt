@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.08.14   | VidMasta 22.1
+
+CHANGE: CORE | Improved prediction of previous episode and next/current episode in summary for TV shows
+
+
+
+
 2016.08.09   | VidMasta 22.0
 
 CHANGE: CORE | Improved search error handling

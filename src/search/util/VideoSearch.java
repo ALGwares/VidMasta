@@ -273,8 +273,8 @@ public class VideoSearch {
                 releaseDate = dateToString(new SimpleDateFormat(Str.get(544), Locale.ENGLISH), releaseDate, Boolean.parseBoolean(Str.get(556)));
             } else if (Regex.isMatch(releaseDate, 548)) {
                 releaseDate = dateToString(new SimpleDateFormat(Str.get(549), Locale.ENGLISH), releaseDate, Boolean.parseBoolean(Str.get(557)));
-            } else if (releaseDate.isEmpty() || Regex.isMatch(releaseDate, 545)) {
-                releaseDate = getImdbTitleParts(sourceCode).year;
+            } else {
+                releaseDate = dateToString(new SimpleDateFormat("yyyy", Locale.ENGLISH), getImdbTitleParts(sourceCode).year, null);
             }
             summary.append("<b>").append(Str.str("releaseDate")).append(" </b>").append(releaseDate);
         }
@@ -319,10 +319,10 @@ public class VideoSearch {
         nameLists.add(nameList);
     }
 
-    public static String dateToString(SimpleDateFormat dateFormat, String date, boolean showDay) {
+    public static String dateToString(DateFormat dateFormat, String date, Boolean showDay) {
         try {
-            return (showDay ? DateFormat.getDateInstance(DateFormat.FULL, Str.locale()) : new SimpleDateFormat("MMMM yyyy", Str.locale())).format(dateFormat.parse(
-                    date));
+            return (showDay == null ? new SimpleDateFormat("yyyy") : (showDay ? DateFormat.getDateInstance(DateFormat.FULL) : new SimpleDateFormat(
+                    "MMMM yyyy"))).format(dateFormat.parse(date));
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);

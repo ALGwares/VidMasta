@@ -70,8 +70,8 @@ public class ProxyListDownloader extends AbstractSwingWorker {
 
         if (currVersion < latestVersion) {
             try {
-                latestDate = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT, Str.locale()).format((new SimpleDateFormat(
-                        "EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)).parse(latestDate));
+                latestDate = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.DEFAULT).format((new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy",
+                        Locale.ENGLISH)).parse(latestDate));
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);

@@ -56,7 +56,7 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>32</ASBMPlannerID1stRound>
+  <ASBMPlannerID1stRound>35</ASBMPlannerID1stRound>
   <Issues>0</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
@@ -104,9 +104,9 @@
   </Press_Release>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>22.0</Program_Version>
+    <Program_Version>22.1</Program_Version>
     <Program_Release_Month>08</Program_Release_Month>
-    <Program_Release_Day>09</Program_Release_Day>
+    <Program_Release_Day>14</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -114,12 +114,12 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Unix,Linux,Java,Linux Gnome,Linux GPL,Linux Open Source</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Improved search error handling and showed message when playlist is in system tray and main window is closed.</Program_Change_Info>
+    <Program_Change_Info>Improved prediction of previous episode and next/current episode in summary for TV shows.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25303763</File_Size_Bytes>
-      <File_Size_K>24710</File_Size_K>
+      <File_Size_Bytes>25298612</File_Size_Bytes>
+      <File_Size_K>24705</File_Size_K>
       <File_Size_MB>24.13</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
