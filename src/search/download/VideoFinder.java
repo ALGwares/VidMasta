@@ -437,7 +437,7 @@ public class VideoFinder extends AbstractSwingWorker {
             return;
         }
 
-        String seasonStr;
+        Integer season = null;
         if (video.IS_TV_SHOW) {
             if (!PREFETCH) {
                 video.season = guiListener.getSeason();
@@ -445,14 +445,32 @@ public class VideoFinder extends AbstractSwingWorker {
             } else if (video.season.isEmpty()) {
                 return;
             }
-            seasonStr = (video.season.equals(Constant.ANY) ? "" : " \"season " + Integer.valueOf(video.season) + '\"');
-        } else {
-            seasonStr = "";
+            if (!video.season.equals(Constant.ANY)) {
+                season = Integer.valueOf(video.season);
+            }
         }
-        final String[] link = getTrailerLink(seasonStr, true);
 
-        if (PREFETCH || isCancelled()) {
-            return;
+        String[] link1 = null;
+        try {
+            link1 = getTrailerLink1(season);
+            if (PREFETCH || isCancelled()) {
+                return;
+            }
+        } catch (Exception e) {
+            if (PREFETCH || isCancelled()) {
+                throw e;
+            }
+            error(e);
+        }
+
+        final String[] link;
+        if (link1 == null) {
+            link = getTrailerLink2(season);
+            if (isCancelled()) {
+                return;
+            }
+        } else {
+            link = link1;
         }
 
         if (link == null) {
@@ -486,9 +504,9 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private String[] getTrailerLink(String seasonStr, boolean canRetry) throws Exception {
-        String urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + seasonStr + (video.IS_TV_SHOW ? "" : ' ' + video.year) + Str.get(87), Constant.UTF8),
-                url = Str.get(86) + urlFormOptions;
+    private String[] getTrailerLink1(Integer season) throws Exception {
+        String urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (season == null ? "" : " \"season " + season + "\"") + (video.IS_TV_SHOW ? "" : ' '
+                + video.year) + Str.get(87), Constant.UTF8), url = Str.get(86) + urlFormOptions;
         String source = Connection.getSourceCode(url, DomainType.TRAILER, !PREFETCH);
         if (PREFETCH || isCancelled()) {
             return null;
@@ -498,14 +516,46 @@ public class VideoFinder extends AbstractSwingWorker {
         if ((!noResults.isEmpty() && noResults.contains(URLDecoder.decode(urlFormOptions, Constant.UTF8))) || (trailerID = Regex.match(link = Regex.firstMatch(
                 source, 90), 92)).isEmpty()) {
             Connection.removeFromCache(url);
-            if (canRetry) {
-                Thread.sleep(1000);
-                return getTrailerLink(seasonStr, false);
-            }
             return null;
         }
 
         return new String[]{Str.get(91) + URLEncoder.encode(trailerID, Constant.UTF8), Regex.firstMatch(link, 740)};
+    }
+
+    private String[] getTrailerLink2(Integer season) throws Exception {
+        String sourceCode = Connection.getSourceCode(season == null ? String.format(Str.get(748), video.ID) : String.format(Str.get(749), video.ID, season),
+                DomainType.VIDEO_INFO, !PREFETCH);
+        if (isCancelled()) {
+            return null;
+        }
+
+        for (String videoId : Regex.matches(sourceCode, 750)) {
+            sourceCode = Connection.getSourceCode(String.format(Str.get(752), videoId), DomainType.VIDEO_INFO, !PREFETCH);
+            if (isCancelled()) {
+                return null;
+            }
+
+            List<String> videoInfos = Regex.matches(sourceCode, 753);
+            if (videoInfos.isEmpty()) {
+                sourceCode = Connection.getSourceCode(String.format(Str.get(755), videoId), DomainType.VIDEO_INFO, !PREFETCH);
+                if (isCancelled()) {
+                    return null;
+                }
+
+                videoInfos = Regex.matches(sourceCode, 753);
+            }
+
+            for (String videoInfo : videoInfos) {
+                for (String videoInfoContent : Regex.matches(videoInfo, 756)) {
+                    String link = Regex.match(videoInfoContent, 758);
+                    if (!link.isEmpty() && !Regex.firstMatch(videoInfoContent, 760).isEmpty()) {
+                        return new String[]{link, video.title + " (" + video.year + ')' + (season == null ? "" : " Season " + season)};
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private boolean magnetLinkOnly() {

@@ -6668,17 +6668,24 @@ public class GUI extends JFrame implements GuiListener {
                 return;
             }
 
+            List<Integer> modelCols = new ArrayList<Integer>(selectedCols.length);
+            for (int i = 0; i < selectedCols.length; i++) {
+                int col = resultsSyncTable.convertColumnIndexToModel(selectedCols[i]);
+                if (col == imageCol || col == titleCol) {
+                    col = currTitleCol;
+                }
+                if (!modelCols.contains(col)) {
+                    modelCols.add(col);
+                }
+            }
+
             StringBuilder str = new StringBuilder(2048), str2 = new StringBuilder(64);
             for (int i = 0; i < selectedRows.length; i++) {
                 str2.setLength(0);
-                for (int j = 0; j < selectedCols.length; j++) {
-                    int col = resultsSyncTable.convertColumnIndexToModel(selectedCols[j]);
-                    if (col == imageCol) {
-                        continue;
-                    }
-                    str2.append(col == titleCol ? Regex.htmlToPlainText((String) resultsSyncTable.getModelValueAt(resultsSyncTable.convertRowIndexToModel(
-                            selectedRows[i]), currTitleCol)) : UI.innerHTML((String) resultsSyncTable.getViewValueAt(selectedRows[i],
-                                            selectedCols[j]))).append('\t');
+                int modelRow = resultsSyncTable.convertRowIndexToModel(selectedRows[i]);
+                for (int modelCol : modelCols) {
+                    String val = (String) resultsSyncTable.getModelValueAt(modelRow, modelCol);
+                    str2.append(modelCol == currTitleCol ? Regex.htmlToPlainText(val) : UI.innerHTML(val)).append('\t');
                 }
                 str.append(str2.toString().trim()).append(Constant.NEWLINE);
             }
@@ -7674,7 +7681,8 @@ public class GUI extends JFrame implements GuiListener {
         if (playlistDownloaderRadioButtonMenuItem.isSelected()) {
             return true;
         }
-        if (Boolean.parseBoolean(Str.get(743)) && !workerListener.isLicensePresent() && (forcePlaylistDownloader = !forcePlaylistDownloader)) {
+        if (Boolean.parseBoolean(Str.get(747)) && preferences.get(Constant.APP_TITLE, null) != null && !workerListener.isLicensePresent()
+                && (forcePlaylistDownloader = !forcePlaylistDownloader)) {
             playlistDownloaderRadioButtonMenuItem.setSelected(true);
             return true;
         }
@@ -7877,6 +7885,7 @@ public class GUI extends JFrame implements GuiListener {
         activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this);
         resultsToBackground(true);
         UI.setVisible(activationDialog);
+        preferences.put(Constant.APP_TITLE, "");
     }
 
     @Override

@@ -70,15 +70,9 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected void initialSearch() {
+    protected void initialSearch() throws Exception {
         if (SLEEP > 0 && isFeed && !startAsap) {
-            try {
-                Thread.sleep(SLEEP);
-            } catch (InterruptedException e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
-                }
-            }
+            Thread.sleep(SLEEP);
         }
 
         try {

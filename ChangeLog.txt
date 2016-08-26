@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.08.25   | VidMasta 22.2
+
+CHANGE: CORE | Improved trailer search error handling
+CHANGE: CORE | Improved result of table clipboard copy/cut functionality
+
+
+
+
 2016.08.14   | VidMasta 22.1
 
 CHANGE: CORE | Improved prediction of previous episode and next/current episode in summary for TV shows

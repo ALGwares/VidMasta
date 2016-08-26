@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -53,6 +55,7 @@ public class Connection {
     private static UpdateListener deproxyDownloadLinkInfo;
     private static boolean reproxyDownloadLinkInfoUrlSet;
     private static volatile String downloadLinkInfoFailUrl;
+    private static volatile Timer clearCacheTimer;
 
     public static void init(GuiListener listener) {
         guiListener = listener;
@@ -412,6 +415,19 @@ public class Connection {
     }
 
     public static void clearCache() {
+        clearCacheHelper();
+        if (clearCacheTimer != null) {
+            clearCacheTimer.cancel();
+        }
+        (clearCacheTimer = new Timer(true)).schedule(new TimerTask() {
+            @Override
+            public void run() {
+                clearCacheHelper();
+            }
+        }, 14400000, 14400000);
+    }
+
+    private static void clearCacheHelper() {
         for (File file : IO.listFiles(Constant.CACHE_DIR)) {
             if (file.getName().endsWith(Constant.HTML)) {
                 IO.fileOp(file, IO.RM_FILE);
