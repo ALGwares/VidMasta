@@ -185,7 +185,7 @@ public class GUI extends JFrame implements GuiListener {
     private VideoStrExportListener subtitleStrExportListener;
     private final Set<Integer> trailerEpisodes = new HashSet<Integer>(4), downloadLinkEpisodes = new HashSet<Integer>(4),
             subtitleEpisodes = new HashSet<Integer>(4);
-    private Icon loadingIcon, notLoadingIcon, noWarningIcon, warningIcon, playIcon, stopIcon;
+    private Icon loadingIcon, notLoadingIcon, warningIcon, playIcon, stopIcon;
     JList popupList;
     JTextComponent popupTextComponent;
     SyncTable resultsSyncTable, playlistSyncTable;
@@ -477,9 +477,7 @@ public class GUI extends JFrame implements GuiListener {
             summaryLoadingLabel, activationLoadingLabel}) {
             label.setIcon(notLoadingIcon);
         }
-        noWarningIcon = UI.icon("noWarning.png");
         warningIcon = UI.icon("warning.png");
-        connectionIssueButton.setIcon(noWarningIcon);
         UI.setIcon(trashCanButton, "trashCan");
         playIcon = UI.icon("play.png");
         stopIcon = UI.icon("stop.png");
@@ -3550,9 +3548,11 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         connectionIssueButton.setText(null);
-        connectionIssueButton.setBorderPainted(false);
+        connectionIssueButton.setBorder(BorderFactory.createEtchedBorder());
         connectionIssueButton.setEnabled(false);
         connectionIssueButton.setMargin(new Insets(0, 0, 0, 0));
+        connectionIssueButton.setMaximumSize(new Dimension(18, 18));
+        connectionIssueButton.setPreferredSize(new Dimension(0, 0));
         connectionIssueButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 connectionIssueButtonActionPerformed(evt);
@@ -4108,11 +4108,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addGap(18, 18, 18)
                         .addComponent(genreLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(connectionIssueButton))
-                            .addComponent(genreScrollPane))
+                        .addComponent(genreScrollPane)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addComponent(searchButton, Alignment.TRAILING)
@@ -4120,6 +4116,8 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addComponent(statusBarTextField)
+                .addGap(0, 0, 0)
+                .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
@@ -4133,7 +4131,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(Alignment.LEADING)
                     .addComponent(loadingLabel)
-                    .addComponent(connectionIssueButton)
                     .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                         .addComponent(popularMoviesButton)
                         .addComponent(popularTVShowsButton)
@@ -4177,7 +4174,8 @@ public class GUI extends JFrame implements GuiListener {
                 .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
         );
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {endDateChooser, ratingComboBox, startDateChooser, titleTextField, typeComboBox});
@@ -4188,7 +4186,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchTrailerButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {searchProgressTextField, statusBarTextField});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {connectionIssueButton, searchProgressTextField, statusBarTextField});
 
         setSize(new Dimension(1160, 773));
         setLocationRelativeTo(null);
@@ -5413,9 +5411,8 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_profileOKButtonActionPerformed
 
     void connectionIssueButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_connectionIssueButtonActionPerformed
-        connectionIssueButton.setIcon(noWarningIcon);
-        connectionIssueButton.setToolTipText(null);
-        connectionIssueButton.setBorderPainted(false);
+        connectionIssueButton.setIcon(null);
+        connectionIssueButton.setPreferredSize(new Dimension(0, 0));
         connectionIssueButton.setEnabled(false);
         if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK) {
             msgDialogWindowClosing(null);
@@ -6323,9 +6320,8 @@ public class GUI extends JFrame implements GuiListener {
             msgEditorPane.setSelectionEnd(0);
             if (!connectionIssueButton.isEnabled() && !msgDialog.isVisible()) {
                 connectionIssueButton.setEnabled(true);
-                connectionIssueButton.setBorderPainted(true);
+                connectionIssueButton.setPreferredSize(new Dimension(18, 18));
                 connectionIssueButton.setIcon(warningIcon);
-                connectionIssueButton.setToolTipText(Str.ctrlStr("GUI.connectionIssueButton.toolTipText2"));
             }
         }
     }

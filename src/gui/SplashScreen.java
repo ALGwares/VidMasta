@@ -53,7 +53,6 @@ public class SplashScreen extends JFrame {
         initComponents();
 
         loadingLabel.setIcon(UI.icon("loading.gif"));
-        UI.setIcon(connectionIssueButton, "noWarning");
 
         Color bgColor = getBackground();
         genreList.setBackground(bgColor);
@@ -267,9 +266,11 @@ public class SplashScreen extends JFrame {
         exitBackupModeButton.setMaximumSize(new Dimension(0, 0));
 
         connectionIssueButton.setText(null);
-        connectionIssueButton.setBorderPainted(false);
+        connectionIssueButton.setBorder(BorderFactory.createEtchedBorder());
         connectionIssueButton.setEnabled(false);
         connectionIssueButton.setMargin(new Insets(0, 0, 0, 0));
+        connectionIssueButton.setMaximumSize(new Dimension(18, 18));
+        connectionIssueButton.setPreferredSize(new Dimension(0, 0));
 
         startDateTextField.setEnabled(false);
 
@@ -366,11 +367,7 @@ public class SplashScreen extends JFrame {
                                         .addGap(18, 18, 18)
                                         .addComponent(genreLabel)
                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addGroup(layout.createSequentialGroup()
-                                                        .addGap(0, 0, Short.MAX_VALUE)
-                                                        .addComponent(connectionIssueButton))
-                                                .addComponent(genreScrollPane))
+                                        .addComponent(genreScrollPane)
                                         .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                                 .addComponent(searchButton, Alignment.TRAILING)
@@ -378,6 +375,8 @@ public class SplashScreen extends JFrame {
                         .addContainerGap())
                 .addGroup(layout.createSequentialGroup()
                         .addComponent(statusBarTextField)
+                        .addGap(0, 0, 0)
+                        .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, 0)
                         .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
@@ -391,7 +390,6 @@ public class SplashScreen extends JFrame {
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                 .addComponent(loadingLabel)
-                                .addComponent(connectionIssueButton)
                                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                         .addComponent(popularMoviesButton)
                                         .addComponent(popularTVShowsButton)
@@ -435,7 +433,8 @@ public class SplashScreen extends JFrame {
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                 .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
         );
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
@@ -446,7 +445,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchTrailerButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{searchProgressTextField, statusBarTextField});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{connectionIssueButton, searchProgressTextField, statusBarTextField});
     }
 
     JButton connectionIssueButton;

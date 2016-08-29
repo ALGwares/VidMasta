@@ -165,13 +165,11 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
                 episodes.add(currEpisode);
                 if (episodes.size() == 3) {
                     Episode prevPrevEpisode = episodes.get(0), prevEpisode = episodes.get(1);
-                    if (prevPrevEpisode.airdate.equals(prevEpisode.airdate) && prevEpisode.airdate.equals(currEpisode.airdate)) {
+                    if (prevPrevEpisode.airdate.equals(prevEpisode.airdate) && prevEpisode.airdate.equals(currEpisode.airdate) && !prevPrevEpisode.aired
+                            && !prevEpisode.aired) {
                         episodes.remove(2);
                         prevNextEpisodes.clear();
                         prevNextEpisodes.addAll(episodes);
-                        if (prevPrevEpisode.aired || prevEpisode.aired) {
-                            break outer;
-                        }
                         continue outer;
                     }
                     episodes.remove(0);

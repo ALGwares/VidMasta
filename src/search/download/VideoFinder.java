@@ -484,8 +484,7 @@ public class VideoFinder extends AbstractSwingWorker {
                 return;
             }
 
-            int player = guiListener.getTrailerPlayer();
-            Runnable browseLink = new Runnable() {
+            final Runnable browseLink = new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -496,11 +495,27 @@ public class VideoFinder extends AbstractSwingWorker {
                     }
                 }
             };
+            final String[] tempLink1 = link1;
+            final Integer tempSeason = season;
 
-            if (player == 6 || !VideoPlayer.open(738, link[0], player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1
-                    ? 1080 : -1)))), Regex.htmlToPlainText(link[1]), browseLink)) {
-                browseLink.run();
-            }
+            openTrailerLink(link, new Runnable() {
+                @Override
+                public void run() {
+                    String[] link2 = null;
+                    if (tempLink1 != null) {
+                        try {
+                            link2 = getTrailerLink2(tempSeason);
+                        } catch (Exception e) {
+                            error(e);
+                        }
+                    }
+                    if (link2 == null) {
+                        browseLink.run();
+                    } else {
+                        openTrailerLink(link2, browseLink, browseLink);
+                    }
+                }
+            }, browseLink);
         }
     }
 
@@ -556,6 +571,14 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         return null;
+    }
+
+    private void openTrailerLink(String[] link, Runnable browseLink1, Runnable browseLink2) {
+        int player = guiListener.getTrailerPlayer();
+        if (player == 6 || !VideoPlayer.open(738, link[0], player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1 ? 1080
+                : -1)))), Regex.htmlToPlainText(link[1]), browseLink1)) {
+            browseLink2.run();
+        }
     }
 
     private boolean magnetLinkOnly() {
