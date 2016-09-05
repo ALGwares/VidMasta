@@ -53,16 +53,18 @@ public class VideoFinder extends AbstractSwingWorker {
     private TorrentSearchState searchState;
     private static volatile CommentsFinder commentsFinder;
     private static final Object tvChoicesLock = new Object();
+    private final Runnable rerunner;
 
     public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
-        this(guiListener, contentType, row, video, strExportListener, false);
+        this(guiListener, contentType, row, video, strExportListener, false, null);
     }
 
     public VideoFinder(ContentType contentType, VideoFinder finder) {
-        this(finder.guiListener, contentType, finder.ROW, finder.video, null, true);
+        this(finder.guiListener, contentType, finder.ROW, finder.video, null, true, null);
     }
 
-    private VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean prefetch) {
+    public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean prefetch,
+            Runnable rerunner) {
         this.guiListener = guiListener;
         CONTENT_TYPE = contentType;
         ROW = row;
@@ -75,6 +77,7 @@ public class VideoFinder extends AbstractSwingWorker {
         } else if (contentType == ContentType.DOWNLOAD3) {
             torrents = new ArrayList<Torrent>(1);
         }
+        this.rerunner = rerunner;
     }
 
     @Override
@@ -433,7 +436,7 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void findTrailer() throws Exception {
-        if (!PREFETCH && video.IS_TV_SHOW && tvChoices()) {
+        if (!PREFETCH && video.IS_TV_SHOW && rerunner != null && tvChoices()) {
             return;
         }
 
@@ -495,27 +498,25 @@ public class VideoFinder extends AbstractSwingWorker {
                     }
                 }
             };
-            final String[] tempLink1 = link1;
-            final Integer tempSeason = season;
 
-            openTrailerLink(link, new Runnable() {
-                @Override
-                public void run() {
-                    String[] link2 = null;
-                    if (tempLink1 != null) {
-                        try {
-                            link2 = getTrailerLink2(tempSeason);
-                        } catch (Exception e) {
-                            error(e);
-                        }
-                    }
-                    if (link2 == null) {
-                        browseLink.run();
-                    } else {
-                        openTrailerLink(link2, browseLink, browseLink);
-                    }
+            if (rerunner == null && link1 != null) {
+                String[] link2 = null;
+                try {
+                    link2 = getTrailerLink2(season);
+                } catch (Exception e) {
+                    error(e);
                 }
-            }, browseLink);
+                if (isCancelled()) {
+                    return;
+                }
+                if (link2 == null) {
+                    browseLink.run();
+                } else {
+                    openTrailerLink(link2, browseLink, browseLink);
+                }
+            } else {
+                openTrailerLink(link, link1 == null ? browseLink : rerunner, browseLink);
+            }
         }
     }
 

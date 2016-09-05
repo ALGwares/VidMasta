@@ -371,9 +371,20 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
+    public void trailerSearchStarted(final int row, final Video video, final VideoStrExportListener strExportListener) {
         if (isTrailerSearchDone()) {
-            startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener));
+            startPrefetcher(trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener, false, new Runnable() {
+                @Override
+                public void run() {
+                    UI.run(false, new Runnable() {
+                        @Override
+                        public void run() {
+                            trailerFinder.cancel(true);
+                            (trailerFinder = new VideoFinder(gui, ContentType.TRAILER, row, video, strExportListener)).execute();
+                        }
+                    });
+                }
+            }));
             trailerFinder.execute();
         }
     }

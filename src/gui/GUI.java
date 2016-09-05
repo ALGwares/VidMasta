@@ -6318,12 +6318,47 @@ public class GUI extends JFrame implements GuiListener {
             msgEditorPane.setText("<html><head></head><body marginwidth=\"10\">" + text + "<p>" + msg + "</p><br></body></html>");
             msgEditorPane.setSelectionStart(0);
             msgEditorPane.setSelectionEnd(0);
-            if (!connectionIssueButton.isEnabled() && !msgDialog.isVisible()) {
-                connectionIssueButton.setEnabled(true);
-                connectionIssueButton.setPreferredSize(new Dimension(18, 18));
-                connectionIssueButton.setIcon(warningIcon);
+            if (!msgDialog.isVisible()) {
+                if (connectionIssueButton.isEnabled()) {
+                    blinkConnectionIssueButton(false);
+                } else {
+                    connectionIssueButton.setEnabled(true);
+                    connectionIssueButton.setPreferredSize(new Dimension(18, 18));
+                    connectionIssueButton.setIcon(warningIcon);
+                    blinkConnectionIssueButton(true);
+                }
             }
         }
+    }
+
+    private void blinkConnectionIssueButton(final boolean delay) {
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (delay) {
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e);
+                        }
+                    }
+                }
+                if (!msgDialog.isVisible()) {
+                    connectionIssueButton.setIcon(null);
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e);
+                        }
+                    }
+                    if (!msgDialog.isVisible()) {
+                        connectionIssueButton.setIcon(warningIcon);
+                    }
+                }
+            }
+        })).start();
     }
 
     private int showOptionalConfirm(Component parent, String msg, JMenuItem menuItem) {
@@ -6819,8 +6854,8 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void altVideoDownloadStarted() {
         if (!isAltSearch) {
-            showConnectionException(new ConnectionException("<font color=\"red\">" + Str.str("switchingToBackupMode") + "</font> " + Str.str("connectionProblem",
-                    Connection.getShortUrl(Connection.downloadLinkInfoFailUrl(), false))));
+            showConnectionException(new ConnectionException(Str.str("connectionProblem", Connection.getShortUrl(Connection.downloadLinkInfoFailUrl(), false))
+                    + " <font color=\"red\">" + Str.str("switchingToBackupMode") + "</font>"));
             enableVideoFormats(false);
             exitBackupModeButton.setEnabled(true);
             exitBackupModeButton.setBorderPainted(true);
