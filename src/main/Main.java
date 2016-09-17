@@ -51,9 +51,9 @@ import util.Connection;
 import util.Constant;
 import util.ExceptionUtil;
 import util.IO;
+import util.MediaPlayer;
 import util.ModClass;
 import util.RunnableUtil.AbstractWorker;
-import util.VideoPlayer;
 
 public class Main implements WorkerListener {
 
@@ -151,7 +151,7 @@ public class Main implements WorkerListener {
             public void run() {
                 main.updateStarted(true);
             }
-        }, Calendar.getInstance().getTime(), 43200000);
+        }, Calendar.getInstance().getTime(), 14400000);
 
         EventQueue.invokeLater(new Runnable() {
             @Override
@@ -201,7 +201,7 @@ public class Main implements WorkerListener {
         }).start();
 
         Magnet.initIpFilter();
-        VideoPlayer.install();
+        MediaPlayer.install();
         cleanUpAppDir();
     }
 

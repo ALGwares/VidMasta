@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.09.17   | VidMasta 22.5
+
+CHANGE: CORE | Improved accuracy of download link searches
+CHANGE: CORE | Improved trailer search error handling
+CHANGE: CORE | Improved auto-opening of playlist items
+
+
+
+
 2016.09.05   | VidMasta 22.4
 
 CHANGE: CORE | Only auto-opened first playlist item in list of active playlist items

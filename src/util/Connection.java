@@ -424,7 +424,7 @@ public class Connection {
             public void run() {
                 clearCacheHelper();
             }
-        }, 14400000, 14400000);
+        }, 3600000, 3600000);
     }
 
     private static void clearCacheHelper() {

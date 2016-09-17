@@ -22,8 +22,10 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.nio.channels.FileLock;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -321,6 +323,27 @@ public class IO {
                 listAllFiles(currFile, allFiles);
             }
         }
+    }
+
+    public static File findFile(File dir, Pattern filePath) {
+        File[] files = listFiles(dir);
+        Arrays.sort(files, new Comparator<File>() {
+            @Override
+            public int compare(File file1, File file2) {
+                return file1.isFile() ? -1 : (file2.isFile() ? 1 : 0);
+            }
+        });
+        for (File file : files) {
+            if (file.isDirectory()) {
+                File foundFile = findFile(file, filePath);
+                if (foundFile != null) {
+                    return foundFile;
+                }
+            } else if (filePath.matcher(file.getPath()).matches()) {
+                return file;
+            }
+        }
+        return null;
     }
 
     public static String parentDir(String path) {

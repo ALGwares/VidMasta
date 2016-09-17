@@ -1,4 +1,4 @@
-255
+260
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -182,10 +182,10 @@ EMPTY
 &countries=
 EMPTY
 &languages=
-\s++href\s*+=\s*+"/language/
-[\?"]
-\s++href\s*+=\s*+"/country/
-[\?"]
+\s++href\s*+\=\s*+"[^"]*?[&\?/]languages?+[\=/]
+[&\?"]
+\s++href\s*+\=\s*+"[^"]*?[&\?/]countr(y|(ies))[\=/]
+[&\?"]
 http://www\.imdb\.com/((title/[^/]++/)|(Title%3f[^"]++))
 (<\s*+div[^>]+?class\s*+=\s*+"poster"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(\sid\s*+=\s*+"img_primary"[^>]*+>\s*+<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")
 "
@@ -383,7 +383,7 @@ Released:\s*+<\s*+/strong\s*+>(\s*+<\s*+/td\s*+>\s*+<\s*+td\s*+>)?+
 )\s*+<\s*+/div\s*+>
 <\s*+/html\s*+>
 #
-loadlate\s*+\=\s*+"(?=(?i)http://ia?+\.media\-imdb\.com/images/)
+loadlate\s*+\=\s*+"(?=(?i)https?+://[^"]+?/images/)
 "
 .*?/nopicture/.*?
 ~~~
@@ -717,9 +717,9 @@ http://kat.unbanthe.net/
 http://kat.unbanthe.net/comments/index/torrent/
 https://kat.cr
 706,707,708,709,710,712,714,715
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-6.2.2-Java7.exe/download
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-6.2.2-Java7.dmg/download
-http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-6.2.2-Java7.tgz/download
+http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Windows/UMS-6.5.0-Java7.exe
+http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/OS%20X/UMS-6.5.0-Java7.dmg
+http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Linux/UMS-6.5.0-Java7.tgz
 https://kuiken.co/search/
 https://kuiken.co
 https://kuiken.co
@@ -760,4 +760,8 @@ http://www.imdb.com/video/screenplay/%s/imdb/single
 (?i)"videoUrl"\s*+:\s*+"
 "
 (?i)"videoMimeType"\s*+:\s*+"video
+http://mirror.nexcess.net/videolan/vlc/2.2.4/win32/vlc-2.2.4-win32.zip
+vlc-2.2.1
+.*?(?i)vlc\.exe
+3
 eof

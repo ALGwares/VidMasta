@@ -61,7 +61,8 @@ public class PopularSearcher extends AbstractSearcher {
         for (String locale : locales) {
             if (Regex.firstMatch(sourceCode, Str.get(regexStartIndex) + locale + Str.get(regexStartIndex + 1)).isEmpty()) {
                 if (Debug.DEBUG) {
-                    Debug.println("Wrong locale (NOT " + locale + ")");
+                    TitleParts titleParts = VideoSearch.getImdbTitleParts(sourceCode);
+                    Debug.println("Wrong locale (NOT " + locale + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
                 }
                 return false;
             }

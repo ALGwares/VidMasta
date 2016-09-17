@@ -31,10 +31,10 @@ import util.ConnectionException;
 import util.Constant;
 import util.ExceptionUtil;
 import util.IO;
+import util.MediaPlayer;
 import util.Regex;
 import util.RunnableUtil;
 import util.Task;
-import util.VideoPlayer;
 
 public class VideoFinder extends AbstractSwingWorker {
 
@@ -455,7 +455,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
         String[] link1 = null;
         try {
-            link1 = getTrailerLink1(season);
+            link1 = getTrailerLink1(season, true);
             if (PREFETCH || isCancelled()) {
                 return;
             }
@@ -520,7 +520,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
-    private String[] getTrailerLink1(Integer season) throws Exception {
+    private String[] getTrailerLink1(Integer season, boolean canRetry) throws Exception {
         String urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (season == null ? "" : " \"season " + season + "\"") + (video.IS_TV_SHOW ? "" : ' '
                 + video.year) + Str.get(87), Constant.UTF8), url = Str.get(86) + urlFormOptions;
         String source = Connection.getSourceCode(url, DomainType.TRAILER, !PREFETCH);
@@ -532,6 +532,10 @@ public class VideoFinder extends AbstractSwingWorker {
         if ((!noResults.isEmpty() && noResults.contains(URLDecoder.decode(urlFormOptions, Constant.UTF8))) || (trailerID = Regex.match(link = Regex.firstMatch(
                 source, 90), 92)).isEmpty()) {
             Connection.removeFromCache(url);
+            if (canRetry) {
+                Thread.sleep(1000);
+                return getTrailerLink1(season, false);
+            }
             return null;
         }
 
@@ -576,7 +580,7 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void openTrailerLink(String[] link, Runnable browseLink1, Runnable browseLink2) {
         int player = guiListener.getTrailerPlayer();
-        if (player == 6 || !VideoPlayer.open(738, link[0], player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1 ? 1080
+        if (player == 6 || !MediaPlayer.open(738, link[0], player == 5 ? 240 : (player == 4 ? 360 : (player == 3 ? 480 : (player == 2 ? 720 : (player == 1 ? 1080
                 : -1)))), Regex.htmlToPlainText(link[1]), browseLink1)) {
             browseLink2.run();
         }
@@ -801,7 +805,7 @@ public class VideoFinder extends AbstractSwingWorker {
             public void run() throws Exception {
                 if (PREFETCH) {
                     for (TorrentFinder finder : torrentFinders) {
-                        finder.getTorrent(true, true);
+                        finder.getTorrents(true, true);
                     }
                     return;
                 }

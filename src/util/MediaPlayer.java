@@ -11,7 +11,9 @@ import javax.swing.SwingWorker;
 import listener.DomainType;
 import str.Str;
 
-public class VideoPlayer {
+public class MediaPlayer {
+
+    private static final File MEDIA_PLAYER_DIR = new File(Constant.APP_DIR, "mediaPlayer");
 
     public static void install() {
         Str.waitForUpdate();
@@ -22,10 +24,10 @@ public class VideoPlayer {
 
         String zipFile = Constant.APP_DIR + Str.get(697) + Constant.ZIP;
         try {
-            Connection.saveData(Str.get(693), zipFile, DomainType.UPDATE, false);
+            Connection.saveData(Str.get(761), zipFile, DomainType.UPDATE, false);
             try {
-                IO.fileOp(Constant.APP_DIR + Str.get(694), IO.RM_DIR);
-                IO.unzip(zipFile, Constant.APP_DIR);
+                IO.fileOp(MEDIA_PLAYER_DIR, IO.RM_DIR);
+                IO.unzip(zipFile, IO.dir(MEDIA_PLAYER_DIR.getPath()));
                 IO.fileOp(Constant.APP_DIR + Str.get(697), IO.MK_FILE);
             } finally {
                 IO.fileOp(zipFile, IO.RM_FILE);
@@ -54,7 +56,9 @@ public class VideoPlayer {
     private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, final Runnable errorAction) {
         try {
             List<String> args = new ArrayList<String>(5);
-            Collections.addAll(args, Constant.APP_DIR + Str.get(695).replace(Str.get(696), Constant.FILE_SEPARATOR), location, "--no-one-instance");
+            File oldMediaPlayerDir;
+            Collections.addAll(args, IO.findFile(MEDIA_PLAYER_DIR.exists() ? MEDIA_PLAYER_DIR : ((oldMediaPlayerDir = new File(Constant.APP_DIR, Str.get(
+                    762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance");
             if (playAndExit) {
                 args.add("--play-and-exit");
             }
@@ -68,25 +72,25 @@ public class VideoPlayer {
                 args.add("--meta-title=" + title);
             }
 
-            ProcessBuilder videoPlayerBuilder = new ProcessBuilder(args);
+            ProcessBuilder mediaPlayerBuilder = new ProcessBuilder(args);
             if (errorAction != null) {
-                videoPlayerBuilder.redirectErrorStream(true);
+                mediaPlayerBuilder.redirectErrorStream(true);
             }
-            final Process videoPlayer = videoPlayerBuilder.start();
+            final Process mediaPlayer = mediaPlayerBuilder.start();
             if (errorAction != null) {
                 (new SwingWorker<Object, Object>() {
                     @Override
                     protected Object doInBackground() {
                         BufferedReader br = null;
                         try {
-                            br = new BufferedReader(new InputStreamReader(videoPlayer.getInputStream(), Constant.UTF8));
+                            br = new BufferedReader(new InputStreamReader(mediaPlayer.getInputStream(), Constant.UTF8));
                             String line;
                             while ((line = br.readLine()) != null) {
                                 if (!Regex.firstMatch(line, Str.get(739)).isEmpty()) {
                                     if (Debug.DEBUG) {
                                         Debug.println(line);
                                     }
-                                    videoPlayer.destroy();
+                                    mediaPlayer.destroy();
                                     errorAction.run();
                                     return null;
                                 }
@@ -112,6 +116,6 @@ public class VideoPlayer {
         return false;
     }
 
-    private VideoPlayer() {
+    private MediaPlayer() {
     }
 }

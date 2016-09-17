@@ -6,9 +6,7 @@ import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -271,7 +269,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
                     return;
                 }
 
-                File subtitleFile = getSubtitle(new File(subtitleDir));
+                File subtitleFile = IO.findFile(new File(subtitleDir), Regex.pattern(438));
                 if (subtitleFile != null) {
                     String subtitleFileName = subtitleFile.getName();
                     if (tempFirstMatch) {
@@ -297,29 +295,6 @@ public class SubtitleFinder extends AbstractSwingWorker {
             }
         }
         notFound();
-    }
-
-    public static File getSubtitle(File dir) {
-        File[] files = IO.listFiles(dir);
-        Arrays.sort(files, new Comparator<File>() {
-            @Override
-            public int compare(File file1, File file2) {
-                return file1.isFile() ? -1 : (file2.isFile() ? 1 : 0);
-            }
-        });
-
-        for (File file : files) {
-            if (file.isDirectory()) {
-                File subtitleFile = getSubtitle(file);
-                if (subtitleFile != null) {
-                    return subtitleFile;
-                }
-            } else if (Regex.isMatch(file.getName(), 438)) {
-                return file;
-            }
-        }
-
-        return null;
     }
 
     private static class Subtitle implements Comparable<Subtitle> {

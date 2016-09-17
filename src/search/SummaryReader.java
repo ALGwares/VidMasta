@@ -29,9 +29,9 @@ import util.Connection;
 import util.ConnectionException;
 import util.Constant;
 import util.IO;
+import util.MediaPlayer;
 import util.Regex;
 import util.RunnableUtil;
-import util.VideoPlayer;
 
 public class SummaryReader extends AbstractSwingWorker {
 
@@ -128,7 +128,7 @@ public class SummaryReader extends AbstractSwingWorker {
     }
 
     private void browse(File swfSpeech) throws Exception {
-        if (VideoPlayer.open(704, swfSpeech, true, true)) {
+        if (MediaPlayer.open(704, swfSpeech, true, true)) {
             return;
         }
 
