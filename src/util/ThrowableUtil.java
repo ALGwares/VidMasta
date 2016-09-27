@@ -2,12 +2,12 @@ package util;
 
 import i18n.I18nStr;
 
-public class ExceptionUtil {
+public class ThrowableUtil {
 
-    public static String toString(Exception e) {
-        String msg = e.getMessage();
+    public static String toString(Throwable t) {
+        String msg = t.getMessage();
 
-        if (e instanceof IndexOutOfBoundsException && msg != null) {
+        if (t instanceof IndexOutOfBoundsException && msg != null) {
             String[] msgParts = msg.split(":");
             if (msgParts.length > 0) {
                 String index = msgParts[msgParts.length - 1].trim();
@@ -18,7 +18,7 @@ public class ExceptionUtil {
         }
 
         if (msg == null || (msg = msg.trim()).isEmpty()) {
-            msg = e.toString().trim();
+            msg = t.toString().trim();
             if (msg.endsWith(":")) {
                 msg = msg.substring(0, msg.length() - 1);
             }
@@ -27,19 +27,27 @@ public class ExceptionUtil {
         return msg;
     }
 
-    public static Exception cause(Exception e) {
-        Throwable cause = e.getCause();
+    public static Throwable rootCause(Throwable t) {
+        Throwable cause = t;
+        for (Throwable t2 = t; t2 != null; t2 = t2.getCause()) {
+            cause = t2;
+        }
+        return cause;
+    }
+
+    public static Exception cause(Throwable t) {
+        Throwable cause = t.getCause();
         if (cause instanceof Exception) {
             return (Exception) cause;
         }
         return new Exception(cause);
     }
 
-    public static RuntimeException unwrap(Exception e) {
-        Exception cause = cause(e);
+    public static RuntimeException unwrap(Throwable t) {
+        Exception cause = cause(t);
         return new RuntimeException(cause.getMessage(), cause);
     }
 
-    private ExceptionUtil() {
+    private ThrowableUtil() {
     }
 }

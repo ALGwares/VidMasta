@@ -32,7 +32,7 @@ public class RunnableUtil {
         try {
             return future.get();
         } catch (ExecutionException e) {
-            throw ExceptionUtil.cause(e);
+            throw ThrowableUtil.cause(e);
         }
     }
 

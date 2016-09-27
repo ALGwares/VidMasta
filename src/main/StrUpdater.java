@@ -12,9 +12,9 @@ import listener.GuiListener;
 import listener.StrUpdateListener;
 import util.Connection;
 import util.Constant;
-import util.ExceptionUtil;
 import util.IO;
 import util.Regex;
+import util.ThrowableUtil;
 import util.UpdateException;
 
 public class StrUpdater implements StrUpdateListener {
@@ -59,7 +59,7 @@ public class StrUpdater implements StrUpdateListener {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            JOptionPane.showMessageDialog(null, "There was an error initializing the application's search engine: \n" + ExceptionUtil.toString(e),
+            JOptionPane.showMessageDialog(null, "There was an error initializing the application's search engine: \n" + ThrowableUtil.toString(e),
                     Constant.APP_TITLE, Constant.ERROR_MSG);
             System.exit(-1);
         }
@@ -120,7 +120,7 @@ public class StrUpdater implements StrUpdateListener {
                 Debug.print(e);
             }
             if (showConfirmation) {
-                guiListener.msg(I18nStr.str("searchEngineUpdateError") + ' ' + ExceptionUtil.toString(e), Constant.ERROR_MSG);
+                guiListener.msg(I18nStr.str("searchEngineUpdateError") + ' ' + ThrowableUtil.toString(e), Constant.ERROR_MSG);
             } else {
                 Connection.updateError(e);
             }

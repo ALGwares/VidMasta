@@ -4,9 +4,14 @@ import debug.Debug;
 import gui.AbstractSwingWorker;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -23,9 +28,11 @@ import util.RunnableUtil;
 
 public abstract class AbstractSearcher extends AbstractSwingWorker {
 
+    private static final Map<Boolean, String> separators = new HashMap<Boolean, String>(2);
+
     protected GuiListener guiListener;
     protected int numResultsPerSearch, currSearchPage;
-    protected boolean isTVShow;
+    protected Boolean isTVShow;
     private AtomicInteger numResults, numSearchResults;
     private boolean isNewSearch = true;
     protected Set<String> allVideos, allBufferVideos;
@@ -34,7 +41,12 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     private SwingWorker<?, ?> prefetcher;
     private final int SLEEP = Integer.parseInt(Str.get(166));
 
-    protected AbstractSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow) {
+    static {
+        separators.put(true, "F79101054F653765341793");
+        separators.put(false, "7BE507C6E5FD38D0324C22");
+    }
+
+    protected AbstractSearcher(GuiListener guiListener, int numResultsPerSearch, Boolean isTVShow) {
         this.guiListener = guiListener;
         this.numResultsPerSearch = numResultsPerSearch;
         this.isTVShow = isTVShow;
@@ -65,7 +77,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected Object doInBackground() {
         guiListener.searchStarted();
         if (isNewSearch && isNewSearch()) {
-            guiListener.newSearch(isTVShow);
+            guiListener.newSearch(!Boolean.FALSE.equals(isTVShow));
             numResults.set(0);
             numSearchResults.set(0);
 
@@ -78,9 +90,8 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             }
 
             isNewSearch = false;
-        } else if (numSearchResults.get() == numResultsPerSearch) {
+        } else if (numSearchResults.compareAndSet(numResultsPerSearch, 0)) {
             guiListener.searchProgressUpdate(numResults.get(), 0);
-            numSearchResults.set(0);
         }
 
         if (!isCancelled()) {
@@ -130,7 +141,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     }
 
     private void restore() {
-        restoreToPrev();
+        currSourceCode = prevSourceCode;
         for (Video video : videoBuffer) {
             allBufferVideos.remove(video.ID);
         }
@@ -144,17 +155,17 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
     protected abstract boolean addCurrVideos();
 
-    protected abstract String getUrl(int page) throws Exception;
+    protected abstract String getUrl(int page, boolean isTVShow, int numResultsPerSearch) throws Exception;
 
     protected abstract DomainType domainType();
 
     protected abstract boolean connectionException(String url, ConnectionException e);
 
-    protected abstract int getTitleRegexIndex(String url) throws Exception;
+    protected abstract int getTitleRegexIndex(Iterable<String> urls) throws Exception;
 
     protected abstract void addVideo(String titleMatch);
 
-    protected abstract void checkVideoes(String url) throws Exception;
+    protected abstract void checkVideoes(Iterable<String> urls) throws Exception;
 
     protected abstract boolean findImage(Video video);
 
@@ -166,16 +177,36 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         return currSourceCode == null;
     }
 
-    private void restoreToPrev() {
-        currSourceCode = prevSourceCode;
-    }
-
     private boolean hasAnotherPage() {
         return !Regex.firstMatch(currSourceCode, Str.get(anotherPageRegexIndex())).isEmpty();
     }
 
     private boolean hasNextSearchPage() {
         return isNewSearch() || !videoBuffer.isEmpty() || hasAnotherPage();
+    }
+
+    private Map<String, String> getUrls(int page) throws Exception {
+        Map<String, String> urls = new TreeMap<String, String>();
+        if (isTVShow == null) {
+            for (boolean tvShow : separators.keySet()) {
+                String index1Str = separators.get(tvShow), index2Str;
+                int index1, index2;
+                if (currSourceCode == null || ((index1 = currSourceCode.indexOf(index1Str)) != -1 && !Regex.firstMatch(currSourceCode.substring((index2
+                        = currSourceCode.indexOf(index2Str = separators.get(!tvShow))) != -1 && index2 < index1 ? index2 + index2Str.length() : 0, index1),
+                        Str.get(anotherPageRegexIndex())).isEmpty())) {
+                    urls.put(index1Str, getUrl(page, tvShow, (int) Math.ceil(numResultsPerSearch / 2.0)));
+                }
+            }
+        } else {
+            urls.put("", getUrl(page, isTVShow, numResultsPerSearch));
+        }
+        return urls;
+    }
+
+    protected boolean isTVShow(String titleMatch) {
+        int index1, index2;
+        return (isTVShow == null ? (index1 = titleMatch.indexOf(separators.get(false))) == -1 || ((index2 = titleMatch.indexOf(separators.get(true))) != -1
+                && index2 < index1) : isTVShow);
     }
 
     private void searchNextPage() throws Exception {
@@ -214,14 +245,19 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         }
 
         prevSourceCode = currSourceCode;
-        String url = getUrl(currSearchPage);
+        Map<String, String> urls = getUrls(currSearchPage);
 
         stopPrefetcher();
 
         try {
-            currSourceCode = Connection.getSourceCode(url, domainType());
+            boolean init = true;
+            for (Entry<String, String> urlsEntry : urls.entrySet()) {
+                String sourceCode = Connection.getSourceCode(urlsEntry.getValue(), domainType()) + urlsEntry.getKey();
+                currSourceCode = (init ? sourceCode : currSourceCode + sourceCode);
+                init = false;
+            }
         } catch (ConnectionException e) {
-            if (!isCancelled() && connectionException(url, e)) {
+            if (!isCancelled() && connectionException(urls.values().iterator().next(), e)) {
                 return;
             }
             throw new ConnectionException();
@@ -229,7 +265,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
 
         startPrefetcher();
 
-        int titleRegexIndex = getTitleRegexIndex(url);
+        int titleRegexIndex = getTitleRegexIndex(urls.values());
         if (titleRegexIndex == -1) {
             return;
         }
@@ -246,7 +282,23 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             }
         }
 
-        checkVideoes(url);
+        checkVideoes(urls.values());
+
+        if (isTVShow == null) {
+            List<Video> newVideoBuffer = new ArrayList<Video>(videoBuffer.size());
+            for (boolean tvShow = false; !videoBuffer.isEmpty(); tvShow = !tvShow) {
+                Iterator<Video> videoBufferIt = videoBuffer.listIterator();
+                while (videoBufferIt.hasNext()) {
+                    Video video = videoBufferIt.next();
+                    if (video.IS_TV_SHOW == tvShow) {
+                        videoBufferIt.remove();
+                        newVideoBuffer.add(video);
+                        break;
+                    }
+                }
+            }
+            videoBuffer = newVideoBuffer;
+        }
     }
 
     private void startPrefetcher() {
@@ -261,7 +313,9 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                     Debug.println("prefetching search page " + (currSearchPage + 2));
                 }
                 try {
-                    Connection.getSourceCode(getUrl(currSearchPage + 1), domainType(), false);
+                    for (String url : getUrls(currSearchPage + 1).values()) {
+                        Connection.getSourceCode(url, domainType(), false);
+                    }
                 } catch (Exception e) {
                     if (Debug.DEBUG) {
                         Debug.print(e);

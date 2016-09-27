@@ -125,7 +125,7 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected String getUrl(int page) {
+    protected String getUrl(int page, boolean isTVShow, int numResultsPerSearch) {
         return Str.get(729) + Str.get(isTVShow ? 651 : 652) + (page == 0 ? Str.get(653) : Str.get(654) + (page + Integer.parseInt(Str.get(655)))) + Str.get(656);
     }
 
@@ -148,16 +148,18 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected int getTitleRegexIndex(String url) throws Exception {
+    protected int getTitleRegexIndex(Iterable<String> urls) throws Exception {
         if (!Regex.firstMatch(currSourceCode, 147).isEmpty()) {
-            fail(url);
+            fail(urls);
             return -1;
         }
         return 122;
     }
 
-    protected void fail(String url) throws Exception {
-        Connection.removeDownloadLinkInfoFromCache(url);
+    protected void fail(Iterable<String> urls) throws Exception {
+        for (String url : urls) {
+            Connection.removeDownloadLinkInfoFromCache(url);
+        }
         if (Connection.deproxyDownloadLinkInfo()) {
             return;
         }
@@ -165,7 +167,7 @@ public class PopularSearcher extends AbstractSearcher {
             if (backupMode()) {
                 return;
             }
-            guiListener.msg(Connection.serverError(url), Constant.ERROR_MSG);
+            guiListener.msg(Connection.serverError(urls.iterator().next()), Constant.ERROR_MSG);
         }
         throw new ConnectionException();
     }
@@ -190,9 +192,9 @@ public class PopularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected void checkVideoes(String url) throws Exception {
+    protected void checkVideoes(Iterable<String> urls) throws Exception {
         if ((currSearchPage - titleNames.size()) == 0 && videoBuffer.isEmpty()) {
-            fail(url);
+            fail(urls);
         }
     }
 

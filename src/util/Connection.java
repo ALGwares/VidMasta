@@ -757,7 +757,7 @@ public class Connection {
             @Override
             public void run() {
                 try {
-                    String msg = Str.str("updateError") + ' ' + ExceptionUtil.toString(e);
+                    String msg = Str.str("updateError") + ' ' + ThrowableUtil.toString(e);
                     setStatusBar(msg);
                     try {
                         Thread.sleep(Regex.split(msg, " ").length * 400L);

@@ -6,7 +6,7 @@ import java.util.Locale;
 
 public interface WorkerListener {
 
-    void regularSearchStarted(int numResultsPerSearch, boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres, String[] languages,
+    void regularSearchStarted(int numResultsPerSearch, Boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres, String[] languages,
             String[] countries, String minRating);
 
     void searchStopped(boolean isRegularSearcher);

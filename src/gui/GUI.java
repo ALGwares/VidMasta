@@ -155,9 +155,9 @@ import str.Str;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
-import util.ExceptionUtil;
 import util.IO;
 import util.Regex;
+import util.ThrowableUtil;
 import util.WindowsUtil;
 
 public class GUI extends JFrame implements GuiListener {
@@ -4324,15 +4324,15 @@ public class GUI extends JFrame implements GuiListener {
         findControl.hide();
 
         int numResultsPerSearch = Integer.parseInt((String) regularResultsPerSearchComboBox.getSelectedItem());
-        isTVShowSearch = Constant.TV_SHOW.equals(typeComboBox.getSelectedItem());
+        Object type = typeComboBox.getSelectedItem();
+        Boolean isTVShow = (Constant.ANY.equals(type) ? null : Constant.TV_SHOW.equals(type));
         Calendar startDate = ((DateChooser) startDateChooser).getTime(), endDate = ((DateChooser) endDateChooser).getTime();
-
         String title = titleTextField.getText().trim(), minRating = (String) ratingComboBox.getSelectedItem();
         String[] genres = UI.selectAnyIfNoSelectionAndCopy(genreList), languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries
                 = UI.selectAnyIfNoSelectionAndCopy(countryList);
 
         isRegularSearcher = true;
-        workerListener.regularSearchStarted(numResultsPerSearch, isTVShowSearch, startDate, endDate, title, genres, languages, countries, minRating);
+        workerListener.regularSearchStarted(numResultsPerSearch, isTVShow, startDate, endDate, title, genres, languages, countries, minRating);
     }//GEN-LAST:event_searchButtonActionPerformed
 
     void yesButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_yesButtonActionPerformed
@@ -5428,7 +5428,7 @@ public class GUI extends JFrame implements GuiListener {
     void findSubtitleActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
         subtitleVideo = new Video(row.video.ID, Regex.clean(row.video.title), row.video.year, row.video.IS_TV_SHOW, row.video.IS_TV_SHOW_AND_MOVIE);
         subtitleStrExportListener = strExportListener;
-        isTVShowSubtitle = isTVShowSearch;
+        isTVShowSubtitle = row.video.IS_TV_SHOW;
 
         if (subtitleFormat != null) {
             movieSubtitleFormatComboBox.setSelectedItem(subtitleFormat);
@@ -6242,7 +6242,7 @@ public class GUI extends JFrame implements GuiListener {
                         Debug.print(e);
                     }
                     Window alwaysOnTopFocus = resultsToBackground();
-                    JOptionPane.showMessageDialog(showing(), getTextArea(ExceptionUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
+                    JOptionPane.showMessageDialog(showing(), getTextArea(ThrowableUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
                     resultsToForeground(alwaysOnTopFocus);
                     IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
                 }
@@ -6277,7 +6277,7 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        showMsg(ExceptionUtil.toString(e), Constant.ERROR_MSG);
+        showMsg(ThrowableUtil.toString(e), Constant.ERROR_MSG);
         IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
     }
 
@@ -7128,7 +7128,7 @@ public class GUI extends JFrame implements GuiListener {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            showMsg(Str.str("peerblockStartError") + ' ' + ExceptionUtil.toString(e), Constant.ERROR_MSG);
+            showMsg(Str.str("peerblockStartError") + ' ' + ThrowableUtil.toString(e), Constant.ERROR_MSG);
         }
     }
 

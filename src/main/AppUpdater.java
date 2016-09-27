@@ -12,9 +12,9 @@ import listener.GuiListener;
 import str.Str;
 import util.Connection;
 import util.Constant;
-import util.ExceptionUtil;
 import util.IO;
 import util.Regex;
+import util.ThrowableUtil;
 import util.UpdateException;
 import util.WindowsUtil;
 
@@ -28,7 +28,7 @@ class AppUpdater {
         try {
             installHelper();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
+            JOptionPane.showMessageDialog(null, ThrowableUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
         }
     }
 
@@ -107,7 +107,7 @@ class AppUpdater {
                 Debug.print(e);
             }
             if (showConfirmation) {
-                guiListener.msg(Str.str("appUpdateError") + ' ' + ExceptionUtil.toString(e), Constant.ERROR_MSG);
+                guiListener.msg(Str.str("appUpdateError") + ' ' + ThrowableUtil.toString(e), Constant.ERROR_MSG);
             }
         }
     }

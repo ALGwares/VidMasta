@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.09.27   | VidMasta 22.6
+
+CHANGE: UI   | Added ability to search for movies and TV shows at the same time
+CHANGE: CORE | Improved search accuracy
+CHANGE: CORE | Fixed error when loading playlist items with a completion size larger than the available disk space
+
+
+
+
 2016.09.17   | VidMasta 22.5
 
 CHANGE: CORE | Improved accuracy of download link searches

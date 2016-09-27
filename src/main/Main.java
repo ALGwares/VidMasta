@@ -49,11 +49,11 @@ import str.Str;
 import torrent.Magnet;
 import util.Connection;
 import util.Constant;
-import util.ExceptionUtil;
 import util.IO;
 import util.MediaPlayer;
 import util.ModClass;
 import util.RunnableUtil.AbstractWorker;
+import util.ThrowableUtil;
 
 public class Main implements WorkerListener {
 
@@ -105,7 +105,7 @@ public class Main implements WorkerListener {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            JOptionPane.showMessageDialog(null, ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
+            JOptionPane.showMessageDialog(null, ThrowableUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
             IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
             System.exit(-1);
         }
@@ -179,7 +179,7 @@ public class Main implements WorkerListener {
                     if (Debug.DEBUG) {
                         Debug.print(e);
                     }
-                    JOptionPane.showMessageDialog(null, ExceptionUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
+                    JOptionPane.showMessageDialog(null, ThrowableUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
                     IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
                     System.exit(-1);
                 }
@@ -307,7 +307,7 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void regularSearchStarted(int numResultsPerSearch, boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres,
+    public void regularSearchStarted(int numResultsPerSearch, Boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres,
             String[] languages, String[] countries, String minRating) {
         if (areSearchersDone()) {
             regularSearcher = new RegularSearcher(gui, numResultsPerSearch, isTVShow, startDate, endDate, title, genres, languages, countries, minRating);

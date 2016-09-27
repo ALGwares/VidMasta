@@ -28,7 +28,7 @@ public class RegularSearcher extends AbstractSearcher {
     private boolean isInitialSearchSuccessful;
     private static final Collection<String> noImageTitles = new ConcurrentSkipListSet<String>();
 
-    public RegularSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres,
+    public RegularSearcher(GuiListener guiListener, int numResultsPerSearch, Boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres,
             String[] languages, String[] countries, String minRating) {
         super(guiListener, numResultsPerSearch, isTVShow);
         this.startDate = startDate;
@@ -111,17 +111,30 @@ public class RegularSearcher extends AbstractSearcher {
             return;
         }
 
-        if (!VideoSearch.isImdbVideoType(sourceCode, isTVShow)) {
+        boolean tvShow;
+        if (isTVShow != null) {
+            if (!VideoSearch.isImdbVideoType(sourceCode, isTVShow)) {
+                if (Debug.DEBUG) {
+                    Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
+                }
+                return;
+            }
+            tvShow = isTVShow;
+        } else if (VideoSearch.isImdbVideoType(sourceCode, true)) {
+            tvShow = true;
+        } else if (VideoSearch.isImdbVideoType(sourceCode, false)) {
+            tvShow = false;
+        } else {
             if (Debug.DEBUG) {
-                Debug.println("Wrong video type (NOT a " + (isTVShow ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
+                Debug.println("Wrong video type: '" + titleParts.title + "' '" + titleParts.year + '\'');
             }
             return;
         }
 
-        Video video = new Video(titleID, titleParts.title, titleParts.year, isTVShow, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
+        Video video = new Video(titleID, titleParts.title, titleParts.year, tvShow, VideoSearch.isImdbVideoType(sourceCode, tvShow ? 589 : 590));
         video.oldTitle = VideoSearch.getOldTitle(sourceCode);
         video.rating = VideoSearch.rating(Regex.match(sourceCode, 127));
-        video.summary = VideoSearch.getSummary(sourceCode, isTVShow);
+        video.summary = VideoSearch.getSummary(sourceCode, tvShow);
         video.imageLink = Regex.match(sourceCode, 190);
         if (!video.imageLink.isEmpty()) {
             VideoSearch.saveImage(video);
@@ -145,7 +158,7 @@ public class RegularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected String getUrl(int page) throws Exception {
+    protected String getUrl(int page, boolean isTVShow, int numResultsPerSearch) throws Exception {
         int maxNumResultsPerSearch = Integer.parseInt(Str.get(503));
         int numResultsPerPage = (numResultsPerSearch > maxNumResultsPerSearch ? maxNumResultsPerSearch : numResultsPerSearch);
         String urlCountries = (countries.equals(Constant.ANY) ? Str.get(179) : Str.get(180) + countries);
@@ -153,7 +166,7 @@ public class RegularSearcher extends AbstractSearcher {
         String urlLanguages = (languages.equals(Constant.ANY) ? Str.get(181) : Str.get(182) + languages);
         String urlReleaseDates = (startDateStr.isEmpty() && endDateStr.isEmpty() ? Str.get(240) : Str.get(14) + startDateStr + Str.get(15) + endDateStr);
         String urlStart = (page == 0 ? Str.get(144) : Str.get(13) + ((page * numResultsPerPage) + 1));
-        String urlTitle = (title.isEmpty() ? Str.get(142) : Str.get(10) + URLEncoder.encode(Regex.clean(title), Constant.UTF8));
+        String urlTitle = (title.isEmpty() ? Str.get(142) : Str.get(10) + URLEncoder.encode(Regex.htmlToPlainText(title), Constant.UTF8));
         String urlTitleType = Str.get(16) + Str.get(isTVShow ? 18 : 17);
         String urlUserRating = (minRating.equals(Constant.ANY) ? Str.get(143) : (Str.get(11) + minRating + Str.get(12)));
         return Str.get(6) + numResultsPerPage + urlCountries + urlGenres + urlLanguages + urlReleaseDates + Str.get(19) + urlStart + urlTitle + urlTitleType
@@ -172,14 +185,16 @@ public class RegularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected int getTitleRegexIndex(String url) throws Exception {
+    protected int getTitleRegexIndex(Iterable<String> urls) throws Exception {
         if (!Regex.firstMatch(currSourceCode, 145).isEmpty()) {
-            Connection.removeFromCache(url);
+            for (String url : urls) {
+                Connection.removeFromCache(url);
+            }
             if (!isCancelled()) {
                 if (isInitialSearchSuccessful) {
-                    throw new ConnectionException(Connection.serverError(url));
+                    throw new ConnectionException(Connection.serverError(urls.iterator().next()));
                 } else {
-                    guiListener.msg(Connection.serverError(url), Constant.ERROR_MSG);
+                    guiListener.msg(Connection.serverError(urls.iterator().next()), Constant.ERROR_MSG);
                 }
             }
             throw new ConnectionException();
@@ -190,8 +205,9 @@ public class RegularSearcher extends AbstractSearcher {
     @Override
     protected void addVideo(String titleMatch) {
         String yearAndType = Regex.match(titleMatch, 27);
-        Video video = new Video(Regex.firstMatch(Regex.match(titleMatch, 23), 628), Regex.match(titleMatch, 25), Regex.firstMatch(yearAndType, 29), isTVShow,
-                !Regex.firstMatch(yearAndType, isTVShow ? 591 : 592).isEmpty());
+        boolean tvShow = isTVShow(titleMatch);
+        Video video = new Video(Regex.firstMatch(Regex.match(titleMatch, 23), 628), Regex.match(titleMatch, 25), Regex.firstMatch(yearAndType, 29), tvShow,
+                !Regex.firstMatch(yearAndType, tvShow ? 591 : 592).isEmpty());
         if (video.title.isEmpty() || video.year.isEmpty() || video.ID.isEmpty()) {
             if (Debug.DEBUG) {
                 Debug.println("video ('" + video.title + "' '" + video.year + "' '" + video.ID + "') is invalid!");
@@ -209,7 +225,7 @@ public class RegularSearcher extends AbstractSearcher {
     }
 
     @Override
-    protected void checkVideoes(String url) {
+    protected void checkVideoes(Iterable<String> urls) {
     }
 
     private boolean isValid(Video video, String source) {

@@ -220,6 +220,7 @@ public class Magnet extends Thread {
             COConfigurationManager.setParameter("network.transport.encrypted.fallback.outgoing", true);
             COConfigurationManager.setParameter("network.transport.encrypted.fallback.incoming", true);
             COConfigurationManager.setParameter("network.transport.encrypted.use.crypto.port", false);
+            COConfigurationManager.setParameter("Enable incremental file creation", true);
 
             changeLocale();
 

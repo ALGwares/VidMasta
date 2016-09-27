@@ -233,7 +233,7 @@ public class VideoSearch {
         String storyline = null;
         boolean isEmpty1 = summary1.isEmpty(), isEmpty2 = summary2.isEmpty();
 
-        if ((!isEmpty1 && !isEmpty2) && summary1.equals(summary2)) {
+        if ((!isEmpty1 && !isEmpty2) && Regex.htmlToPlainText(summary1).equalsIgnoreCase(Regex.htmlToPlainText(summary2))) {
             summary.append(summary1);
         } else if (isEmpty1 && !isEmpty2) {
             summary.append(summary2);

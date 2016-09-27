@@ -29,12 +29,12 @@ import torrent.Torrent;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
-import util.ExceptionUtil;
 import util.IO;
 import util.MediaPlayer;
 import util.Regex;
 import util.RunnableUtil;
 import util.Task;
+import util.ThrowableUtil;
 
 public class VideoFinder extends AbstractSwingWorker {
 
@@ -285,7 +285,7 @@ public class VideoFinder extends AbstractSwingWorker {
                         return;
                     }
                     imagePath = null;
-                    guiListener.msg(Str.str("posterDisplayError") + Constant.NEWLINE + ExceptionUtil.toString(e), Constant.ERROR_MSG);
+                    guiListener.msg(Str.str("posterDisplayError") + Constant.STD_NEWLINE2 + ThrowableUtil.toString(e), Constant.ERROR_MSG);
                 }
             }
         }

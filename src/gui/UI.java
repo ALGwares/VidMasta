@@ -81,7 +81,7 @@ import javax.swing.text.html.HTML.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import str.Str;
 import util.Constant;
-import util.ExceptionUtil;
+import util.ThrowableUtil;
 
 public class UI {
 
@@ -747,7 +747,7 @@ public class UI {
                 EventQueue.invokeLater(runnable);
             }
         } catch (InvocationTargetException e) {
-            throw ExceptionUtil.unwrap(e);
+            throw ThrowableUtil.unwrap(e);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -765,9 +765,9 @@ public class UI {
                 return task.get();
             }
         } catch (ExecutionException e) {
-            throw ExceptionUtil.unwrap(e);
+            throw ThrowableUtil.unwrap(e);
         } catch (InvocationTargetException e) {
-            throw ExceptionUtil.unwrap(e);
+            throw ThrowableUtil.unwrap(e);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
