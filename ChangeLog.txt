@@ -1,6 +1,20 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.11.03   | VidMasta 22.7
+
+CHANGE: CORE | Automatically selected subtitle language and audio language for media player whenever possible
+CHANGE: CORE | Made repeat search results ordering stable whenever possible
+CHANGE: UI   | Showed download settings when a download link is not found
+CHANGE: UI   | Moved download link quality selection into download menu
+CHANGE: UI   | Remembered last search position for find functionality (ctrl+f)
+CHANGE: UI   | Fixed freezing of the splash screen's progress display
+CHANGE: UI   | Simplified some text
+CHANGE: UI   | Showed 100% done for playlist items with a size of 0 bytes
+
+
+
+
 2016.09.27   | VidMasta 22.6
 
 CHANGE: UI   | Added ability to search for movies and TV shows at the same time

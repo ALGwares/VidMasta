@@ -104,9 +104,9 @@
   </Press_Release>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>22.6</Program_Version>
-    <Program_Release_Month>09</Program_Release_Month>
-    <Program_Release_Day>27</Program_Release_Day>
+    <Program_Version>22.7</Program_Version>
+    <Program_Release_Month>11</Program_Release_Month>
+    <Program_Release_Day>03</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -114,11 +114,11 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac Other,Java,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Added ability to search for movies and TV shows at the same time, improved search accuracy, and fixed error when loading playlist items with a completion size larger than the available disk space.</Program_Change_Info>
+    <Program_Change_Info>Automatically selected subtitle language and audio language for media player whenever possible, made repeat search results ordering stable whenever possible, showed download settings when a download link is not found, moved download link quality selection into download menu, remembered last...</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25330573</File_Size_Bytes>
+      <File_Size_Bytes>25330426</File_Size_Bytes>
       <File_Size_K>24736</File_Size_K>
       <File_Size_MB>24.16</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>

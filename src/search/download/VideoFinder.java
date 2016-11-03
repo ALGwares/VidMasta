@@ -313,8 +313,9 @@ public class VideoFinder extends AbstractSwingWorker {
     private void saveTorrent(Torrent torrent) throws Exception {
         if (torrent == null) {
             guiListener.enable(false, null, true, currContentType);
+            String settings = searchState.toString();
             guiListener.msg(Str.str(("download" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? "" : (isDownload1 ? "1" : "2")))
-                    + "LinkNotFound"), Constant.INFO_MSG);
+                    + "LinkNotFound") + (settings.isEmpty() ? "" : Constant.STD_NEWLINE2 + Str.str("settings", settings)), Constant.INFO_MSG);
         } else {
             if (Debug.DEBUG) {
                 Debug.println("Selected torrent: " + torrent);

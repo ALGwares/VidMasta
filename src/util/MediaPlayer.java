@@ -46,7 +46,7 @@ public class MediaPlayer {
     }
 
     public static boolean open(int canOpenIndex, String url, int quality, String title, Runnable errorAction) {
-        return canOpen(canOpenIndex) && open(url, true, false, quality, title, errorAction);
+        return canOpen(canOpenIndex) && open(url, false, false, quality, title, errorAction);
     }
 
     private static boolean canOpen(int canOpenIndex) {
@@ -55,10 +55,12 @@ public class MediaPlayer {
 
     private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, final Runnable errorAction) {
         try {
-            List<String> args = new ArrayList<String>(5);
+            List<String> args = new ArrayList<String>(16);
             File oldMediaPlayerDir;
+            String language = Str.locale().getISO3Language();
             Collections.addAll(args, IO.findFile(MEDIA_PLAYER_DIR.exists() ? MEDIA_PLAYER_DIR : ((oldMediaPlayerDir = new File(Constant.APP_DIR, Str.get(
-                    762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance");
+                    762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance",
+                    "--audio-language=" + language, "--sub-language=" + language);
             if (playAndExit) {
                 args.add("--play-and-exit");
             }

@@ -202,16 +202,6 @@ public class UI {
         }
     }
 
-    public static String groupButtonSelectionChanged(AbstractButton button, AbstractButton... otherButtons) {
-        if (button.isSelected()) {
-            for (AbstractButton otherButton : otherButtons) {
-                otherButton.setSelected(false);
-            }
-            return button.getText();
-        }
-        return Constant.ANY;
-    }
-
     public static void updateList(JList list) {
         int[] selection = list.getSelectedIndices();
         if (selection.length < 2) {

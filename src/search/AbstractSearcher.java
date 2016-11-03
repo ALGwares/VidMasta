@@ -222,13 +222,18 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             numVideos = numResultsLeft;
         }
         Collection<Video> videos = videoBuffer.subList(0, numVideos);
-        Collection<SearcherHelper> searchHelpers = new ArrayList<SearcherHelper>(numVideos);
+        Collection<Searcher> searchers = new ArrayList<Searcher>(numVideos);
 
         for (Video video : videos) {
-            searchHelpers.add(new SearcherHelper(video, findImage(video)));
+            Searcher searcher = new Searcher(video, findImage(video));
+            if (searcher.findImage) {
+                searchers.add(searcher);
+            } else {
+                searcher.doInBackground();
+            }
         }
 
-        RunnableUtil.runAndWaitFor(searchHelpers);
+        RunnableUtil.runAndWaitFor(searchers);
         if (isCancelled()) {
             return;
         }
@@ -342,12 +347,12 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         guiListener.newResults(rows);
     }
 
-    private class SearcherHelper extends SwingWorker<Object, Object> {
+    private class Searcher extends SwingWorker<Object, Object> {
 
         private Video video;
         private boolean findImage;
 
-        SearcherHelper(Video video, boolean findImage) {
+        Searcher(Video video, boolean findImage) {
             this.video = video;
             this.findImage = findImage;
         }
@@ -398,7 +403,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 return;
             }
             AbstractSearcher.this.publish(row);
-            synchronized (SearcherHelper.class) {
+            synchronized (Searcher.class) {
                 incrementProgress();
             }
         }

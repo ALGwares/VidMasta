@@ -8,6 +8,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.SecondaryLoop;
 import java.awt.Toolkit;
 import java.text.NumberFormat;
 import java.util.ResourceBundle;
@@ -15,7 +16,6 @@ import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -38,6 +38,7 @@ public class SplashScreen extends JFrame {
 
     private final ResourceBundle bundle;
     private final NumberFormat percentFormat;
+    private final SecondaryLoop secondaryLoop;
     private final String INITIALIZING, DONE;
     private int progress;
 
@@ -60,12 +61,21 @@ public class SplashScreen extends JFrame {
         findTextField.setForeground(bgColor);
 
         setSize(new Dimension(1022, 680));
-        setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        setIconImage(toolkit.getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
         UI.centerOnScreen(this);
+        secondaryLoop = toolkit.getSystemEventQueue().createSecondaryLoop();
     }
 
     void progress() {
-        statusBarTextField.setText(INITIALIZING + percentFormat.format(++progress / (double) MAX_PROGRESS) + DONE);
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                statusBarTextField.setText(INITIALIZING + percentFormat.format(++progress / (double) MAX_PROGRESS) + DONE);
+                secondaryLoop.exit();
+            }
+        })).start();
+        secondaryLoop.enter();
     }
 
     private void initComponents() {
@@ -84,10 +94,6 @@ public class SplashScreen extends JFrame {
         typeLabel = new JLabel();
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
-        hqVideoTypeCheckBox = new JCheckBox();
-        dvdCheckBox = new JCheckBox();
-        hd720CheckBox = new JCheckBox();
-        hd1080CheckBox = new JCheckBox();
         popularMoviesButton = new JButton();
         popularTVShowsButton = new JButton();
         loadingLabel = new JLabel();
@@ -211,22 +217,6 @@ public class SplashScreen extends JFrame {
         releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text"));
         releasedToLabel.setEnabled(false);
 
-        hqVideoTypeCheckBox.setText(Constant.HQ);
-        hqVideoTypeCheckBox.setEnabled(false);
-        hqVideoTypeCheckBox.setMargin(new Insets(0, 0, 0, 0));
-
-        dvdCheckBox.setText(Constant.DVD);
-        dvdCheckBox.setEnabled(false);
-        dvdCheckBox.setMargin(new Insets(0, 0, 0, 0));
-
-        hd720CheckBox.setText(Constant.HD720);
-        hd720CheckBox.setEnabled(false);
-        hd720CheckBox.setMargin(new Insets(0, 0, 0, 0));
-
-        hd1080CheckBox.setText(Constant.HD1080);
-        hd1080CheckBox.setEnabled(false);
-        hd1080CheckBox.setMargin(new Insets(0, 0, 0, 0));
-
         popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text"));
         popularMoviesButton.setEnabled(false);
 
@@ -326,15 +316,7 @@ public class SplashScreen extends JFrame {
                                         .addComponent(downloadLink2Button)
                                         .addPreferredGap(ComponentPlacement.RELATED)
                                         .addComponent(exitBackupModeButton)
-                                        .addGap(2, 2, 2)
-                                        .addComponent(hqVideoTypeCheckBox)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(dvdCheckBox)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(hd720CheckBox)
-                                        .addGap(0, 0, 0)
-                                        .addComponent(hd1080CheckBox)
-                                        .addGap(0, 162, Short.MAX_VALUE)
+                                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(loadMoreResultsButton))
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -425,10 +407,6 @@ public class SplashScreen extends JFrame {
                                         .addComponent(watchTrailerButton)
                                         .addComponent(downloadLink1Button)
                                         .addComponent(downloadLink2Button)
-                                        .addComponent(hqVideoTypeCheckBox)
-                                        .addComponent(dvdCheckBox)
-                                        .addComponent(hd720CheckBox)
-                                        .addComponent(hd1080CheckBox)
                                         .addComponent(loadMoreResultsButton)))
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
@@ -452,7 +430,6 @@ public class SplashScreen extends JFrame {
     JButton downloadLink1Button;
     JButton downloadLink2Button;
     JMenu downloadMenu;
-    JCheckBox dvdCheckBox;
     JMenu editMenu;
     JTextField endDateTextField;
     JButton exitBackupModeButton;
@@ -461,10 +438,7 @@ public class SplashScreen extends JFrame {
     JLabel genreLabel;
     JList genreList;
     JScrollPane genreScrollPane;
-    JCheckBox hd1080CheckBox;
-    JCheckBox hd720CheckBox;
     JMenu helpMenu;
-    JCheckBox hqVideoTypeCheckBox;
     JButton loadMoreResultsButton;
     JLabel loadingLabel;
     JMenuBar menuBar;

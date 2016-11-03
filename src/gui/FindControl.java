@@ -31,11 +31,11 @@ public class FindControl {
         showBgColor = tempTextComponent.getBackground();
         showFgColor = tempTextComponent.getForeground();
         showBorder = tempTextComponent.getBorder();
-        hide();
+        hide(true);
         AutoCompleteDecorator.decorate(findTextComponent, findables, false);
     }
 
-    public final void hide() {
+    public final void hide(boolean clearFindRow) {
         if (findTextComponent.isEnabled()) {
             findTextComponent.setEnabled(false);
             query = findTextComponent.getText();
@@ -43,7 +43,9 @@ public class FindControl {
             findTextComponent.setBackground(hideColor);
             findTextComponent.setForeground(hideColor);
             findTextComponent.setBorder(null);
-            findRow = -2;
+            if (clearFindRow) {
+                findRow = -2;
+            }
         }
     }
 
@@ -85,7 +87,7 @@ public class FindControl {
                 enterKeyAction.run();
                 return;
             } else if (key == KeyEvent.VK_ESCAPE) {
-                hide();
+                hide(false);
                 return;
             }
         }

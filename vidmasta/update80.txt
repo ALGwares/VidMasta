@@ -1,4 +1,4 @@
-261
+264
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -301,7 +301,7 @@ EMPTY
 SPACE
 30
 Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
-((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(co)|(website)|(xyz)|(la)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
+((?i)(https?+://(www\.)?+([^\.]++\.)+?((com)|(net)|(org)|(ca)|(co)|(pw)|(website)|(xyz)|(la)|(sx)|(pe)|(cr)|(al)|(us)|(eu)|(ag)|(se)|(is)|(to)|(tv)|(ch))(/|:|\z)))
 ...
 EMPTY
 ((?i)(https?+://(www\.)?+))
