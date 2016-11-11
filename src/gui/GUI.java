@@ -476,7 +476,7 @@ public class GUI extends JFrame implements GuiListener {
         loadingIcon = UI.icon("loading.gif");
         notLoadingIcon = UI.icon("notLoading.gif");
         for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel,
-            summaryLoadingLabel, activationLoadingLabel}) {
+            summaryLoadingLabel}) {
             label.setIcon(notLoadingIcon);
         }
         warningIcon = UI.icon("warning.png");
@@ -955,11 +955,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistBanGroupMenuItem = new JMenuItem();
         activationDialog = new JDialog();
         activationUpgradeButton = new JButton();
-        activationUpgradeLabel = new JLabel();
-        activationCodeLabel = new JLabel();
         activationTextField = new JTextField();
-        activationButton = new JButton();
-        activationLoadingLabel = new JLabel();
         languageButtonGroup = new ButtonGroup();
         trailerPlayerButtonGroup = new ButtonGroup();
         downloadQualityButtonGroup = new ButtonGroup();
@@ -3202,7 +3198,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistTablePopupMenu.add(playlistBanGroupMenuItem);
 
-        activationDialog.setTitle(bundle.getString("GUI.activationDialog.title")); // NOI18N
+        activationDialog.setTitle(Constant.APP_TITLE);
         activationDialog.setAlwaysOnTop(true);
         activationDialog.setIconImage(null);
         activationDialog.setModal(true);
@@ -3213,63 +3209,28 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         activationUpgradeButton.setText(bundle.getString("GUI.activationUpgradeButton.text")); // NOI18N
-        activationUpgradeButton.setToolTipText(bundle.getString("GUI.activationUpgradeButton.toolTipText")); // NOI18N
         activationUpgradeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 activationUpgradeButtonActionPerformed(evt);
             }
         });
 
-        activationUpgradeLabel.setText(bundle.getString("GUI.activationUpgradeLabel.text")); // NOI18N
-
-        activationCodeLabel.setText(bundle.getString("GUI.activationCodeLabel.text")); // NOI18N
-
-        activationButton.setText(bundle.getString("GUI.activationButton.text")); // NOI18N
-        activationButton.setToolTipText(bundle.getString("GUI.activationButton.toolTipText")); // NOI18N
-        activationButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                activationButtonActionPerformed(evt);
-            }
-        });
-
-        activationLoadingLabel.setText(null);
-
         GroupLayout activationDialogLayout = new GroupLayout(activationDialog.getContentPane());
         activationDialog.getContentPane().setLayout(activationDialogLayout);
         activationDialogLayout.setHorizontalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(activationDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addGroup(activationDialogLayout.createSequentialGroup()
-                        .addComponent(activationCodeLabel)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(activationTextField))
-                    .addGroup(activationDialogLayout.createSequentialGroup()
-                        .addComponent(activationUpgradeButton)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(activationUpgradeLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addComponent(activationUpgradeButton)
                 .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(activationButton)
-                    .addComponent(activationLoadingLabel))
+                .addComponent(activationTextField, GroupLayout.DEFAULT_SIZE, 174, Short.MAX_VALUE)
                 .addContainerGap())
         );
-
-        activationDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {activationCodeLabel, activationUpgradeButton});
-
         activationDialogLayout.setVerticalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(activationDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(activationUpgradeButton)
-                        .addComponent(activationUpgradeLabel))
-                    .addComponent(activationLoadingLabel, Alignment.TRAILING))
-                .addPreferredGap(ComponentPlacement.UNRELATED)
                 .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(activationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(activationCodeLabel)
-                    .addComponent(activationButton))
+                    .addComponent(activationUpgradeButton)
+                    .addComponent(activationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -6005,12 +5966,8 @@ public class GUI extends JFrame implements GuiListener {
         closePlaylistFrameToTray();
     }//GEN-LAST:event_playlistFrameWindowClosing
 
-    private void activationButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationButtonActionPerformed
-        workerListener.license(activationTextField.getText().trim());
-    }//GEN-LAST:event_activationButtonActionPerformed
-
     private void activationUpgradeButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationUpgradeButtonActionPerformed
-        workerListener.license(null);
+        workerListener.license(activationTextField.getText().trim());
     }//GEN-LAST:event_activationUpgradeButtonActionPerformed
 
     private void activationDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_activationDialogWindowClosing
@@ -7925,14 +7882,16 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void licenseActivationStarted() {
-        UI.enable(false, activationButton, activationUpgradeButton);
-        activationLoadingLabel.setIcon(loadingIcon);
+        activationUpgradeButton.setEnabled(false);
+        activationUpgradeButton.setIcon(loadingIcon);
+        activationUpgradeButton.setDisabledIcon(loadingIcon);
     }
 
     @Override
     public void licenseActivationStopped() {
-        UI.enable(true, activationButton, activationUpgradeButton);
-        activationLoadingLabel.setIcon(notLoadingIcon);
+        activationUpgradeButton.setIcon(null);
+        activationUpgradeButton.setDisabledIcon(null);
+        activationUpgradeButton.setEnabled(true);
     }
 
     void changeLocale(String locale) {
@@ -7988,13 +7947,7 @@ public class GUI extends JFrame implements GuiListener {
 
         aboutDialog.setTitle(Str.str("GUI.aboutDialog.title"));
         aboutMenuItem.setText(Str.str("GUI.aboutMenuItem.text"));
-        activationButton.setText(Str.str("GUI.activationButton.text"));
-        activationButton.setToolTipText(Str.str("GUI.activationButton.toolTipText"));
-        activationCodeLabel.setText(Str.str("GUI.activationCodeLabel.text"));
-        activationDialog.setTitle(Str.str("GUI.activationDialog.title"));
         activationUpgradeButton.setText(Str.str("GUI.activationUpgradeButton.text"));
-        activationUpgradeButton.setToolTipText(Str.str("GUI.activationUpgradeButton.toolTipText"));
-        activationUpgradeLabel.setText(Str.str("GUI.activationUpgradeLabel.text"));
         addProxiesAddButton.setText(Str.str("GUI.addProxiesAddButton.text"));
         addProxiesCancelButton.setText(Str.str("GUI.addProxiesCancelButton.text"));
         addProxiesDialog.setTitle(Str.str("GUI.addProxiesDialog.title"));
@@ -8338,13 +8291,9 @@ public class GUI extends JFrame implements GuiListener {
     JEditorPane aboutEditorPane;
     JMenuItem aboutMenuItem;
     JScrollPane aboutScrollPane;
-    JButton activationButton;
-    JLabel activationCodeLabel;
     JDialog activationDialog;
-    JLabel activationLoadingLabel;
     JTextField activationTextField;
     JButton activationUpgradeButton;
-    JLabel activationUpgradeLabel;
     JButton addProxiesAddButton;
     JButton addProxiesCancelButton;
     JDialog addProxiesDialog;
