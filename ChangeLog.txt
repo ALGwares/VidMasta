@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.11.16   | VidMasta 22.9
+
+CHANGE: CORE | Improved playlist error handling
+
+
+
+
 2016.11.11   | VidMasta 22.8
 
 CHANGE: CORE | Improved playlist error handling

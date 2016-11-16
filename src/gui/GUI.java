@@ -7658,7 +7658,7 @@ public class GUI extends JFrame implements GuiListener {
         if (playlistDownloaderRadioButtonMenuItem.isSelected()) {
             return true;
         }
-        if (Boolean.parseBoolean(Str.get(747)) && preferences.get(Constant.APP_TITLE, null) != null && !workerListener.isLicensePresent()
+        if (Boolean.parseBoolean(Str.get(747)) && preferences.getInt(Constant.APP_TITLE, 0) > 0 && !workerListener.isLicensePresent()
                 && (forcePlaylistDownloader = !forcePlaylistDownloader)) {
             playlistDownloaderRadioButtonMenuItem.setSelected(true);
             return true;
@@ -7859,10 +7859,12 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void showLicenseActivation() {
+        int count = preferences.getInt(Constant.APP_TITLE, 0);
+        activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
         activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this);
         resultsToBackground(true);
         UI.setVisible(activationDialog);
-        preferences.put(Constant.APP_TITLE, "");
+        preferences.putInt(Constant.APP_TITLE, ++count);
     }
 
     @Override
