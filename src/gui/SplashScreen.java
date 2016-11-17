@@ -8,7 +8,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.SecondaryLoop;
 import java.awt.Toolkit;
 import java.text.NumberFormat;
 import java.util.ResourceBundle;
@@ -38,7 +37,6 @@ public class SplashScreen extends JFrame {
 
     private final ResourceBundle bundle;
     private final NumberFormat percentFormat;
-    private final SecondaryLoop secondaryLoop;
     private final String INITIALIZING, DONE;
     private int progress;
 
@@ -61,21 +59,12 @@ public class SplashScreen extends JFrame {
         findTextField.setForeground(bgColor);
 
         setSize(new Dimension(1022, 680));
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        setIconImage(toolkit.getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
+        setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
         UI.centerOnScreen(this);
-        secondaryLoop = toolkit.getSystemEventQueue().createSecondaryLoop();
     }
 
     void progress() {
-        (new Thread(new Runnable() {
-            @Override
-            public void run() {
-                statusBarTextField.setText(INITIALIZING + percentFormat.format(++progress / (double) MAX_PROGRESS) + DONE);
-                secondaryLoop.exit();
-            }
-        })).start();
-        secondaryLoop.enter();
+        statusBarTextField.setText(INITIALIZING + percentFormat.format(++progress / (double) MAX_PROGRESS) + DONE);
     }
 
     private void initComponents() {

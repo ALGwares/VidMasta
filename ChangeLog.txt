@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.11.17   | VidMasta 23.0
+
+CHANGE: UI   | Fixed freezing of splash screen
+
+
+
+
 2016.11.16   | VidMasta 22.9
 
 CHANGE: CORE | Improved playlist error handling
