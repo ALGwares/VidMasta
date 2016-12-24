@@ -1,7 +1,6 @@
 package proxy;
 
 import debug.Debug;
-import gui.AbstractSwingWorker;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -15,8 +14,9 @@ import util.Connection;
 import util.Constant;
 import util.IO;
 import util.Regex;
+import util.Worker;
 
-public class ProxyListDownloader extends AbstractSwingWorker {
+public class ProxyListDownloader extends Worker {
 
     private GuiListener guiListener;
     private String proxyFile;
@@ -26,7 +26,7 @@ public class ProxyListDownloader extends AbstractSwingWorker {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         guiListener.proxyListDownloadStarted();
         try {
             download();
@@ -34,8 +34,6 @@ public class ProxyListDownloader extends AbstractSwingWorker {
             guiListener.error(e);
         }
         guiListener.proxyListDownloadStopped();
-        workDone();
-        return null;
     }
 
     private void download() throws Exception {

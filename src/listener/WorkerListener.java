@@ -3,6 +3,7 @@ package listener;
 import java.io.File;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.Future;
 
 public interface WorkerListener {
 
@@ -36,6 +37,8 @@ public interface WorkerListener {
     void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
     void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
+
+    Future<?> torrentSearchStarted(Video video);
 
     void proxyListDownloadStarted();
 

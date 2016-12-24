@@ -1,7 +1,6 @@
 package search.download;
 
 import debug.Debug;
-import gui.AbstractSwingWorker;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -14,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
-import javax.swing.SwingWorker;
 import listener.ContentType;
 import listener.DomainType;
 import listener.GuiListener;
@@ -26,17 +24,18 @@ import str.Str;
 import torrent.FileTypeChecker;
 import torrent.Magnet;
 import torrent.Torrent;
+import util.AbstractWorker;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
 import util.IO;
 import util.MediaPlayer;
 import util.Regex;
-import util.RunnableUtil;
 import util.Task;
 import util.ThrowableUtil;
+import util.Worker;
 
-public class VideoFinder extends AbstractSwingWorker {
+public class VideoFinder extends Worker {
 
     final GuiListener guiListener;
     public final ContentType CONTENT_TYPE;
@@ -45,14 +44,14 @@ public class VideoFinder extends AbstractSwingWorker {
     private final VideoStrExportListener strExportListener;
     final Video video;
     public final boolean PREFETCH;
-    private boolean isDownload1, play, startPeerblock = true;
+    private boolean isDownload1, play, startPeerblock = true, foreground;
     private String export;
-    private static volatile SwingWorker<?, ?> episodeFinder;
+    private static volatile Worker episodeFinder;
     private Collection<Torrent> torrents;
     private Collection<TorrentFinder> torrentFinders;
     private TorrentSearchState searchState;
     private static volatile CommentsFinder commentsFinder;
-    private static final Object tvChoicesLock = new Object();
+    private static final Object TV_CHOICES_LOCK = new Object(), DOWNLOAD_LOCK = new Object();
     private final Runnable rerunner;
 
     public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
@@ -71,18 +70,21 @@ public class VideoFinder extends AbstractSwingWorker {
         this.video = video;
         this.strExportListener = strExportListener;
         PREFETCH = prefetch;
+        this.rerunner = rerunner;
+        foreground = (row != -1);
         if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD2) {
             torrents = new CopyOnWriteArrayList<Torrent>();
             torrentFinders = new ArrayList<TorrentFinder>(12);
         } else if (contentType == ContentType.DOWNLOAD3) {
             torrents = new ArrayList<Torrent>(1);
         }
-        this.rerunner = rerunner;
     }
 
     @Override
-    protected Object doInBackground() {
-        guiListener.loading(true);
+    protected void doWork() {
+        if (foreground) {
+            guiListener.loading(true);
+        }
         search(CONTENT_TYPE);
 
         boolean isCancelled = false;
@@ -103,8 +105,10 @@ public class VideoFinder extends AbstractSwingWorker {
             }
         }
 
-        workDone();
-        guiListener.loading(false);
+        done();
+        if (foreground) {
+            guiListener.loading(false);
+        }
 
         if (strExportListener != null) {
             strExportListener.export(CONTENT_TYPE, export1, isCancelled, guiListener);
@@ -112,8 +116,6 @@ public class VideoFinder extends AbstractSwingWorker {
                 strExportListener.export(export2ContentType, export, isCancelled(), guiListener);
             }
         }
-
-        return null;
     }
 
     private void resetDownloadVideoFinder() {
@@ -146,7 +148,9 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void startPeerBlock() {
-        guiListener.enable(false, null, true, currContentType);
+        if (foreground) {
+            guiListener.enable(false, null, true, currContentType);
+        }
         if (startPeerblock) {
             try {
                 guiListener.startPeerBlock();
@@ -186,14 +190,18 @@ public class VideoFinder extends AbstractSwingWorker {
             isDownload1 = (currContentType == ContentType.DOWNLOAD1 || currContentType == ContentType.DOWNLOAD3);
             play = (strExportListener == null && guiListener.canDownloadWithPlaylist());
             searchState = new TorrentSearchState(guiListener);
-            guiListener.enable(true, false, false, currContentType);
+            if (foreground) {
+                guiListener.enable(true, false, false, currContentType);
+            }
 
             try {
                 if (currContentType == ContentType.DOWNLOAD3) {
                     findAltDownloadLink();
                 } else if (video.IS_TV_SHOW) {
                     if (!findTVDownloadLink(true)) {
-                        guiListener.enable(currContentType);
+                        if (foreground) {
+                            guiListener.enable(currContentType);
+                        }
                         return;
                     }
                 } else {
@@ -201,7 +209,9 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (isCancelled()) {
-                    guiListener.enable(currContentType);
+                    if (foreground) {
+                        guiListener.enable(currContentType);
+                    }
                     return;
                 }
 
@@ -214,7 +224,9 @@ public class VideoFinder extends AbstractSwingWorker {
                         try {
                             video.season = Constant.ANY;
                             if (!findTVDownloadLink(false) || isCancelled()) {
-                                guiListener.enable(currContentType);
+                                if (foreground) {
+                                    guiListener.enable(currContentType);
+                                }
                                 return;
                             }
                         } finally {
@@ -232,7 +244,9 @@ public class VideoFinder extends AbstractSwingWorker {
                 }
 
                 if (isCancelled()) {
-                    guiListener.enable(currContentType);
+                    if (foreground) {
+                        guiListener.enable(currContentType);
+                    }
                     return;
                 }
 
@@ -244,12 +258,16 @@ public class VideoFinder extends AbstractSwingWorker {
                     }
                 }
 
-                saveTorrent(torrent);
+                synchronized (DOWNLOAD_LOCK) {
+                    saveTorrent(torrent);
+                }
             } catch (Exception e) {
                 error(e);
             }
 
-            guiListener.enable(currContentType);
+            if (foreground) {
+                guiListener.enable(currContentType);
+            }
         }
     }
 
@@ -312,10 +330,14 @@ public class VideoFinder extends AbstractSwingWorker {
 
     private void saveTorrent(Torrent torrent) throws Exception {
         if (torrent == null) {
-            guiListener.enable(false, null, true, currContentType);
+            if (foreground) {
+                guiListener.enable(false, null, true, currContentType);
+            }
             String settings = searchState.toString();
             guiListener.msg(Str.str(("download" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? "" : (isDownload1 ? "1" : "2")))
-                    + "LinkNotFound") + (settings.isEmpty() ? "" : Constant.STD_NEWLINE2 + Str.str("settings", settings)), Constant.INFO_MSG);
+                    + "LinkNotFound") + Constant.STD_NEWLINE2 + Str.str("settings", " " + (settings.isEmpty() ? videoDescription() : videoDescription() + ','
+                                    + settings)), Constant.INFO_MSG);
+            addVideoToPlaylist();
         } else {
             if (Debug.DEBUG) {
                 Debug.println("Selected torrent: " + torrent);
@@ -331,6 +353,8 @@ public class VideoFinder extends AbstractSwingWorker {
             } else if (torrent.ID.isEmpty()) {
                 if (guiListener.canProceedWithUnsafeDownload(torrent.saveName(false))) {
                     saveTorrentHelper(torrent);
+                } else {
+                    addVideoToPlaylist();
                 }
             } else {
                 String torrentSaveName = torrent.saveName(false);
@@ -349,6 +373,8 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 if (guiListener.canProceedWithUnsafeDownload()) {
                     saveTorrentHelper(torrent);
+                } else {
+                    addVideoToPlaylist();
                 }
             }
         }
@@ -361,6 +387,7 @@ public class VideoFinder extends AbstractSwingWorker {
         }
 
         if (!guiListener.unbanDownload(Str.hashCode(torrent.MAGNET_LINK), torrent.NAME)) {
+            addVideoToPlaylist();
             return;
         }
 
@@ -423,8 +450,16 @@ public class VideoFinder extends AbstractSwingWorker {
         }
     }
 
+    private String videoDescription() {
+        return Regex.htmlToPlainText(video.title) + " (" + video.year + (video.IS_TV_SHOW ? (" S" + (video.season.isEmpty() || video.season.equals(Constant.ANY)
+                ? "--" : video.season) + "E" + (video.episode.isEmpty() || video.episode.equals(Constant.ANY) ? "--" : video.episode)) : "") + ')';
+    }
+
+    private void addVideoToPlaylist() {
+    }
+
     private boolean tvChoices() {
-        synchronized (tvChoicesLock) {
+        synchronized (TV_CHOICES_LOCK) {
             if (strExportListener == null || strExportListener.showTVChoices()) {
                 boolean cancelTVSelection = guiListener.tvChoices(video.season, video.episode);
                 if (strExportListener != null) {
@@ -592,6 +627,10 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void findAltDownloadLink() throws Exception {
+        if (!foreground) {
+            return;
+        }
+
         guiListener.altVideoDownloadStarted();
 
         String sourceCode;
@@ -649,13 +688,13 @@ public class VideoFinder extends AbstractSwingWorker {
             torrentFinders = new ArrayList<TorrentFinder>(1);
             Magnet.waitForAzureusToStart();
             addFinder(video.title, "", false, false, false, null, true, singleOrderByMode);
-            RunnableUtil.runAndWaitFor(torrentFinders);
+            AbstractWorker.executeAndWaitFor(torrentFinders);
         }
     }
 
     private boolean findTVDownloadLink(boolean canShowTVChoices) throws Exception {
         if (canShowTVChoices) {
-            if (tvChoices()) {
+            if (foreground && tvChoices()) {
                 return false;
             }
 
@@ -664,8 +703,10 @@ public class VideoFinder extends AbstractSwingWorker {
                 return false;
             }
 
-            video.season = guiListener.getSeason();
-            video.episode = guiListener.getEpisode();
+            if (foreground) {
+                video.season = guiListener.getSeason();
+                video.episode = guiListener.getEpisode();
+            }
         }
 
         updateOldTitleAndSummary();
@@ -813,7 +854,13 @@ public class VideoFinder extends AbstractSwingWorker {
 
                 boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
                 try {
-                    RunnableUtil.runAndWaitFor(torrentFinders);
+                    if (foreground) {
+                        AbstractWorker.executeAndWaitFor(torrentFinders);
+                    } else {
+                        for (Worker torrentFinder : torrentFinders) {
+                            AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
+                        }
+                    }
                 } catch (CancellationException e) {
                     if (Debug.DEBUG) {
                         Debug.println(e);
@@ -828,7 +875,13 @@ public class VideoFinder extends AbstractSwingWorker {
                     for (TorrentFinder torrentFinder : torrentFinders) {
                         newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
                     }
-                    RunnableUtil.runAndWaitFor(newTorrentFinders);
+                    if (foreground) {
+                        AbstractWorker.executeAndWaitFor(newTorrentFinders);
+                    } else {
+                        for (Worker torrentFinder : newTorrentFinders) {
+                            AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
+                        }
+                    }
                 }
             }
         });
@@ -838,7 +891,7 @@ public class VideoFinder extends AbstractSwingWorker {
     }
 
     private void updateOldTitleAndSummary() throws Exception {
-        if (!video.summary.isEmpty()) {
+        if (!video.summary.isEmpty() || !foreground) {
             return;
         }
 

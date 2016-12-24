@@ -9,7 +9,6 @@ import com.flagstone.transform.action.Action;
 import com.flagstone.transform.action.BasicAction;
 import com.flagstone.transform.sound.SoundStreamBlock;
 import com.flagstone.transform.sound.SoundStreamHead;
-import gui.AbstractSwingWorker;
 import java.io.File;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -19,21 +18,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.swing.SwingWorker;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
 import search.util.VideoSearch;
 import str.Str;
+import util.AbstractWorker;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
 import util.IO;
 import util.MediaPlayer;
 import util.Regex;
-import util.RunnableUtil;
+import util.Worker;
 
-public class SummaryReader extends AbstractSwingWorker {
+public class SummaryReader extends Worker {
 
     GuiListener guiListener;
     private Video video;
@@ -47,7 +46,7 @@ public class SummaryReader extends AbstractSwingWorker {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         guiListener.summaryReadStarted();
         try {
             readSummary();
@@ -57,8 +56,6 @@ public class SummaryReader extends AbstractSwingWorker {
             }
         }
         guiListener.summaryReadStopped();
-        workDone();
-        return null;
     }
 
     public void readSummary() throws Exception {
@@ -86,7 +83,7 @@ public class SummaryReader extends AbstractSwingWorker {
             moviePartFinders.add(new MoviePartFinder(i, Str.get(474) + URLEncoder.encode(summaryParts.get(i), Constant.UTF8)));
         }
 
-        RunnableUtil.runAndWaitFor(moviePartFinders);
+        AbstractWorker.executeAndWaitFor(moviePartFinders);
         if (isCancelled() || failure.get()) {
             return;
         }
@@ -144,7 +141,7 @@ public class SummaryReader extends AbstractSwingWorker {
         IO.browse(swfPage);
     }
 
-    private class MoviePartFinder extends SwingWorker<Object, Object> {
+    private class MoviePartFinder extends Worker {
 
         private Integer partNumber;
         private String url;
@@ -155,10 +152,10 @@ public class SummaryReader extends AbstractSwingWorker {
         }
 
         @Override
-        protected Object doInBackground() throws Exception {
+        protected void doWork() throws Exception {
             try {
                 if (failure.get()) {
-                    return null;
+                    return;
                 }
                 String source = Connection.getSourceCode(url, DomainType.VIDEO_INFO);
 
@@ -168,17 +165,17 @@ public class SummaryReader extends AbstractSwingWorker {
                 }
 
                 if (failure.get()) {
-                    return null;
+                    return;
                 }
 
                 url = Regex.match(source, 475);
                 String movie = Constant.TEMP_DIR + swfName + "_" + partNumber + Constant.SWF;
                 if (failure.get()) {
-                    return null;
+                    return;
                 }
                 Connection.saveData(url, movie, DomainType.VIDEO_INFO);
                 if (failure.get()) {
-                    return null;
+                    return;
                 }
                 movieParts.put(partNumber, movie);
             } catch (Exception e) {
@@ -187,7 +184,6 @@ public class SummaryReader extends AbstractSwingWorker {
                     guiListener.error(e);
                 }
             }
-            return null;
         }
     }
 }

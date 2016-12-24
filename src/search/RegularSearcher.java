@@ -26,7 +26,7 @@ public class RegularSearcher extends AbstractSearcher {
     private String startDateStr, endDateStr, title, genresStr, languages, countries, minRating;
     private String[] genres;
     private boolean isInitialSearchSuccessful;
-    private static final Collection<String> noImageTitles = new ConcurrentSkipListSet<String>();
+    private Collection<String> noImageTitles = new ConcurrentSkipListSet<String>();
 
     public RegularSearcher(GuiListener guiListener, int numResultsPerSearch, Boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres,
             String[] languages, String[] countries, String minRating) {
@@ -55,6 +55,7 @@ public class RegularSearcher extends AbstractSearcher {
         languages = searcher.languages;
         countries = searcher.countries;
         minRating = searcher.minRating;
+        noImageTitles = searcher.noImageTitles;
     }
 
     private static String dateToStr(Calendar date) {

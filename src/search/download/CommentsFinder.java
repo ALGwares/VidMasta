@@ -1,15 +1,15 @@
 package search.download;
 
 import java.util.Collection;
-import javax.swing.SwingWorker;
 import listener.DomainType;
 import listener.GuiListener;
 import str.Str;
 import util.Connection;
 import util.Constant;
 import util.Regex;
+import util.Worker;
 
-public class CommentsFinder extends SwingWorker<Object, Object> {
+public class CommentsFinder extends Worker {
 
     private GuiListener guiListener;
     private String link, name;
@@ -22,7 +22,7 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         guiListener.commentsFinderStarted();
         try {
             String commentsStr = Connection.getSourceCode(link, DomainType.DOWNLOAD_LINK_INFO, true, true);
@@ -54,6 +54,5 @@ public class CommentsFinder extends SwingWorker<Object, Object> {
             }
         }
         guiListener.commentsFinderStopped();
-        return null;
     }
 }

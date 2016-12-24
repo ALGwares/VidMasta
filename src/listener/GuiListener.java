@@ -76,8 +76,6 @@ public interface GuiListener {
 
     void newResult(Object[] result);
 
-    void newResults(Iterable<Object[]> results);
-
     void searchProgressUpdate(int numResults, double progress);
 
     boolean unbanDownload(Long downloadID, String downloadName);

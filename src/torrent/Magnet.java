@@ -21,7 +21,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.SwingWorker;
 import listener.GuiListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -38,11 +37,12 @@ import org.gudy.azureus2.plugins.PluginManagerDefaults;
 import org.gudy.azureus2.plugins.PluginState;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import str.Str;
+import util.AbstractWorker;
 import util.Connection;
 import util.Constant;
 import util.IO;
 import util.Regex;
-import util.RunnableUtil;
+import util.Worker;
 
 public class Magnet extends Thread {
 
@@ -58,7 +58,7 @@ public class Magnet extends Thread {
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
     private static final ConcurrentMap<String, Thread> downloaders = new ConcurrentHashMap<String, Thread>(16);
     private static volatile String ipBlockMsg = "";
-    private static volatile SwingWorker<?, ?> azureusStarter;
+    private static volatile Worker azureusStarter;
     private static Thread ipFilterInitializer;
 
     public Magnet(String magnetLink) {
@@ -154,7 +154,7 @@ public class Magnet extends Thread {
         if (azureusStarter == null) {
             return;
         }
-        RunnableUtil.waitFor(azureusStarter);
+        AbstractWorker.get(azureusStarter);
     }
 
     public static void initIpFilter() {
@@ -174,11 +174,10 @@ public class Magnet extends Thread {
         if (core != null) {
             return;
         }
-        (azureusStarter = new SwingWorker<Object, Object>() {
+        (azureusStarter = new Worker() {
             @Override
-            protected Object doInBackground() {
+            protected void doWork() {
                 initAzureus(guiListener);
-                return null;
             }
         }).execute();
     }

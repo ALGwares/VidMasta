@@ -1,11 +1,11 @@
 package search.download;
 
 import debug.Debug;
-import gui.AbstractSwingWorker;
 import listener.ContentType;
 import util.Connection;
+import util.Worker;
 
-public class Prefetcher extends AbstractSwingWorker {
+public class Prefetcher extends Worker {
 
     private VideoFinder videoFinder;
     private ContentType[] fetchOrder;
@@ -26,7 +26,7 @@ public class Prefetcher extends AbstractSwingWorker {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         try {
             prefetch();
         } catch (Exception e) {
@@ -34,8 +34,6 @@ public class Prefetcher extends AbstractSwingWorker {
                 Debug.print(e);
             }
         }
-        workDone();
-        return null;
     }
 
     private void prefetch() {

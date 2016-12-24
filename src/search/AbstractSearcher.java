@@ -1,7 +1,6 @@
 package search;
 
 import debug.Debug;
-import gui.AbstractSwingWorker;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,18 +14,18 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
-import javax.swing.SwingWorker;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
 import search.util.VideoSearch;
 import str.Str;
+import util.AbstractWorker;
 import util.Connection;
 import util.ConnectionException;
 import util.Regex;
-import util.RunnableUtil;
+import util.Worker;
 
-public abstract class AbstractSearcher extends AbstractSwingWorker {
+public abstract class AbstractSearcher extends Worker {
 
     private static final Map<Boolean, String> separators = new HashMap<Boolean, String>(2);
 
@@ -38,7 +37,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     protected Set<String> allVideos, allBufferVideos;
     protected List<Video> videoBuffer;
     protected String currSourceCode, prevSourceCode;
-    private SwingWorker<?, ?> prefetcher;
+    private Worker prefetcher;
     private final int SLEEP = Integer.parseInt(Str.get(166));
 
     static {
@@ -74,7 +73,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         guiListener.searchStarted();
         if (isNewSearch && isNewSearch()) {
             guiListener.newSearch(!Boolean.FALSE.equals(isTVShow));
@@ -106,9 +105,8 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         }
 
         guiListener.searchStopped();
-        workDone();
+        done();
         guiListener.loading(false);
-        return null;
     }
 
     private void updateTable() throws Exception {
@@ -229,11 +227,11 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             if (searcher.findImage) {
                 searchers.add(searcher);
             } else {
-                searcher.doInBackground();
+                searcher.doWork();
             }
         }
 
-        RunnableUtil.runAndWaitFor(searchers);
+        AbstractWorker.executeAndWaitFor(searchers);
         if (isCancelled()) {
             return;
         }
@@ -311,9 +309,9 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
             return;
         }
 
-        prefetcher = new SwingWorker<Object, Object>() {
+        prefetcher = new Worker() {
             @Override
-            protected Object doInBackground() throws Exception {
+            protected void doWork() throws Exception {
                 if (Debug.DEBUG) {
                     Debug.println("prefetching search page " + (currSearchPage + 2));
                 }
@@ -326,7 +324,6 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                         Debug.print(e);
                     }
                 }
-                return null;
             }
         };
         prefetcher.execute();
@@ -342,12 +339,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         guiListener.searchProgressUpdate(numResults.incrementAndGet(), numSearchResults.incrementAndGet() / (double) numResultsPerSearch);
     }
 
-    @Override
-    protected void process(List<Object[]> rows) {
-        guiListener.newResults(rows);
-    }
-
-    private class Searcher extends SwingWorker<Object, Object> {
+    private class Searcher extends Worker {
 
         private Video video;
         private boolean findImage;
@@ -358,7 +350,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
         }
 
         @Override
-        protected Object doInBackground() {
+        protected void doWork() {
             try {
                 search();
             } catch (Exception e) {
@@ -366,7 +358,6 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                     guiListener.error(e);
                 }
             }
-            return null;
         }
 
         private void search() throws Exception {
@@ -402,7 +393,7 @@ public abstract class AbstractSearcher extends AbstractSwingWorker {
                 allVideos.remove(video.ID);
                 return;
             }
-            AbstractSearcher.this.publish(row);
+            guiListener.newResult(row);
             synchronized (Searcher.class) {
                 incrementProgress();
             }

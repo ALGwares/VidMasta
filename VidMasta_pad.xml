@@ -104,9 +104,9 @@
   </Dynamic_PAD>
   <Program_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>23.0</Program_Version>
-    <Program_Release_Month>11</Program_Release_Month>
-    <Program_Release_Day>17</Program_Release_Day>
+    <Program_Version>23.1</Program_Version>
+    <Program_Release_Month>12</Program_Release_Month>
+    <Program_Release_Day>24</Program_Release_Day>
     <Program_Release_Year>2016</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -114,12 +114,12 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64,Win2000,WinOther,Windows2000,Windows2003,WinServer,Windows Vista Ultimate,Windows Vista Ultimate x64,Java,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows 10,Windows 8,Windows Server 2012</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Fixed freezing of splash screen.</Program_Change_Info>
+    <Program_Change_Info>Added automatic watchlist/wishlist management, added keyboard shortcuts for download link quality selection, improved positioning of windows, improved overall performance via improved thread management, and improved play, download, and search error handling.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>51367870</File_Size_Bytes>
-      <File_Size_K>50163</File_Size_K>
+      <File_Size_Bytes>51372769</File_Size_Bytes>
+      <File_Size_K>50168</File_Size_K>
       <File_Size_MB>48.99</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
@@ -156,7 +156,7 @@
       <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-23.0.exe</Primary_Download_URL>
+      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-23.1.exe</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>

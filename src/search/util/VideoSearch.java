@@ -382,7 +382,7 @@ public class VideoSearch {
         if (!video.oldTitle.isEmpty()) {
             title += aka(video.oldTitle);
         }
-        if (video.IS_TV_SHOW && !video.season.isEmpty()) {
+        if (video.IS_TV_SHOW && !video.season.isEmpty() && !video.episode.isEmpty()) {
             title += popularEpisode(video.season, video.episode);
         }
 

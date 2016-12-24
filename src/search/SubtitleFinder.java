@@ -1,7 +1,6 @@
 package search;
 
 import debug.Debug;
-import gui.AbstractSwingWorker;
 import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -22,8 +21,9 @@ import util.ConnectionException;
 import util.Constant;
 import util.IO;
 import util.Regex;
+import util.Worker;
 
-public class SubtitleFinder extends AbstractSwingWorker {
+public class SubtitleFinder extends Worker {
 
     private final GuiListener guiListener;
     private final String format, languageID;
@@ -46,7 +46,7 @@ public class SubtitleFinder extends AbstractSwingWorker {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         guiListener.subtitleSearchStarted();
         try {
             findSubtitle();
@@ -57,11 +57,10 @@ public class SubtitleFinder extends AbstractSwingWorker {
                 guiListener.error(e);
             }
         }
-        workDone();
+        done();
         if (strExportListener != null) {
             strExportListener.export(ContentType.SUBTITLE, subtitleLink, isCancelled(), guiListener);
         }
-        return null;
     }
 
     private void searchStopped() {

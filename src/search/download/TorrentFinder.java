@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
-import javax.swing.SwingWorker;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
@@ -25,9 +24,11 @@ import torrent.Torrent;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
+import util.IOException2;
 import util.Regex;
+import util.Worker;
 
-public class TorrentFinder extends SwingWorker<Object, Object> {
+public class TorrentFinder extends Worker {
 
     private GuiListener guiListener;
     private Iterable<? extends Future<?>> cohort;
@@ -87,7 +88,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         if (altSearch) {
             try {
                 getTorrents();
@@ -96,7 +97,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                     guiListener.error(e);
                 }
             }
-            return null;
+            return;
         }
 
         while (true) {
@@ -104,7 +105,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
                 Debug.println("Thread: " + Thread.currentThread().getName() + " Attempt: " + (attemptNum + 1));
             }
             if (isCancelled()) {
-                return null;
+                return;
             }
 
             possiblyInconsistent = true;
@@ -120,7 +121,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
             }
 
             if (isCancelled()) {
-                return null;
+                return;
             }
 
             if (possiblyInconsistent && ++attemptNum < maxNumAttempts) {
@@ -133,7 +134,7 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
             if (newTorrents != null && !newTorrents.isEmpty() && !isCancelled()) {
                 torrents.addAll(newTorrents);
             }
-            return null;
+            return;
         }
     }
 
@@ -148,11 +149,14 @@ public class TorrentFinder extends SwingWorker<Object, Object> {
         try {
             sourceCode = Connection.getSourceCode(prevUrl = urlForm + urlFormOptions, DomainType.DOWNLOAD_LINK_INFO, !prefetch, false,
                     FileNotFoundException.class);
-        } catch (FileNotFoundException e) {
+        } catch (IOException2 e) {
             if (Debug.DEBUG) {
                 Debug.println(e);
             }
-            return null;
+            if (Regex.firstMatch(e.extraMsg, 146).isEmpty()) {
+                return null;
+            }
+            sourceCode = e.extraMsg;
         }
 
         if (!Regex.firstMatch(sourceCode, 146).isEmpty() || Regex.firstMatch(sourceCode, 504).isEmpty()) {

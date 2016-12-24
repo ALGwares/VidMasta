@@ -111,7 +111,6 @@ import javax.swing.RootPaneContainer;
 import javax.swing.RowFilter;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
-import javax.swing.SwingWorker;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -159,6 +158,7 @@ import util.IO;
 import util.Regex;
 import util.ThrowableUtil;
 import util.WindowsUtil;
+import util.Worker;
 
 public class GUI extends JFrame implements GuiListener {
 
@@ -200,7 +200,7 @@ public class GUI extends JFrame implements GuiListener {
     private JTextFieldDateEditor startDateTextField, endDateTextField;
     private TrayIcon trayIcon, playlistTrayIcon;
     boolean usePeerBlock;
-    private volatile Thread timedMsgThread;
+    private volatile Worker timedMsgThread;
     final Object timedMsgLock = new Object();
     private final FindControl findControl, playlistFindControl;
     private SplashScreen splashScreen;
@@ -3884,6 +3884,7 @@ public class GUI extends JFrame implements GuiListener {
 
         downloadQualityMenu.setText(bundle.getString("GUI.downloadQualityMenu.text")); // NOI18N
 
+        downloadAnyQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.ALT_MASK));
         downloadAnyQualityRadioButtonMenuItem.setSelected(true);
         downloadAnyQualityRadioButtonMenuItem.setText(Str.str("any"));
         downloadAnyQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
@@ -3893,6 +3894,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(downloadAnyQualityRadioButtonMenuItem);
 
+        downloadHighQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, InputEvent.ALT_MASK));
         downloadHighQualityRadioButtonMenuItem.setText(Constant.HQ);
         downloadHighQualityRadioButtonMenuItem.setToolTipText(bundle.getString("GUI.downloadHighQualityRadioButtonMenuItem.toolTipText")); // NOI18N
         downloadHighQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
@@ -3902,6 +3904,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(downloadHighQualityRadioButtonMenuItem);
 
+        downloadDVDQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_MASK));
         downloadDVDQualityRadioButtonMenuItem.setText(Constant.DVD);
         downloadDVDQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3910,6 +3913,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(downloadDVDQualityRadioButtonMenuItem);
 
+        download720HDQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.ALT_MASK));
         download720HDQualityRadioButtonMenuItem.setText(Constant.HD720);
         download720HDQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3918,6 +3922,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(download720HDQualityRadioButtonMenuItem);
 
+        download1080HDRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.ALT_MASK));
         download1080HDRadioButtonMenuItem.setText(Constant.HD1080);
         download1080HDRadioButtonMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -4337,9 +4342,9 @@ public class GUI extends JFrame implements GuiListener {
         }
         printMenuItem.setEnabled(false);
         printMenuItem.setText(Str.str("printing"));
-        (new SwingWorker<Object, Object>() {
+        (new Worker() {
             @Override
-            protected Object doInBackground() {
+            protected void doWork() {
                 Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR), defaultCursor = Cursor.getDefaultCursor();
                 rootPane.setCursor(waitCursor);
                 resultsSyncTable.table.setCursor(waitCursor);
@@ -4352,7 +4357,6 @@ public class GUI extends JFrame implements GuiListener {
                 resultsSyncTable.table.setCursor(defaultCursor);
                 printMenuItem.setText(Str.str("GUI.printMenuItem.text"));
                 printMenuItem.setEnabled(true);
-                return null;
             }
         }).execute();
     }//GEN-LAST:event_printMenuItemActionPerformed
@@ -5768,11 +5772,10 @@ public class GUI extends JFrame implements GuiListener {
     private void playlistMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMenuItemActionPerformed
         UI.show(playlistFrame);
         if (!isPlaylistRestored.get()) {
-            (new SwingWorker<Object, Object>() {
+            (new Worker() {
                 @Override
-                protected Object doInBackground() {
+                protected void doWork() {
                     restorePlaylist(true);
-                    return null;
                 }
             }).execute();
         }
@@ -5892,9 +5895,11 @@ public class GUI extends JFrame implements GuiListener {
             }
             Arrays.sort(modelRows);
 
-            List<?> rows = playlistSyncTable.tableModel.getDataVector();
             for (int i = modelRows.length - 1; i > -1; i--) {
                 ((PlaylistItem) playlistSyncTable.tableModel.getValueAt(modelRows[i], playlistItemCol)).stop();
+            }
+            List<?> rows = playlistSyncTable.tableModel.getDataVector();
+            for (int i = modelRows.length - 1; i > -1; i--) {
                 rows.remove(modelRows[i]);
             }
             playlistSyncTable.tableModel.fireTableDataChanged();
@@ -6280,9 +6285,9 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void blinkConnectionIssueButton(final boolean delay) {
-        (new Thread(new Runnable() {
+        (new Worker() {
             @Override
-            public void run() {
+            public void doWork() {
                 if (delay) {
                     try {
                         Thread.sleep(250);
@@ -6306,7 +6311,7 @@ public class GUI extends JFrame implements GuiListener {
                     }
                 }
             }
-        })).start();
+        }).execute();
     }
 
     private int showOptionalConfirm(Component parent, String msg, JMenuItem menuItem) {
@@ -6326,7 +6331,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     Component showing() {
-        return isShowing() ? this : null;
+        return UI.isShowing(this) ? this : null;
     }
 
     private void setSafetyDialog(String statistic, String link, String name) {
@@ -6819,11 +6824,11 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void timedMsg(final String msg) {
         if (timedMsgThread != null) {
-            timedMsgThread.interrupt();
+            timedMsgThread.cancel(true);
         }
-        (timedMsgThread = new Thread() {
+        (timedMsgThread = new Worker() {
             @Override
-            public void run() {
+            public void doWork() {
                 synchronized (timedMsgLock) {
                     timedMsgLabel.setText(msg);
                     timedMsgDialog.pack();
@@ -6839,7 +6844,7 @@ public class GUI extends JFrame implements GuiListener {
                     }
                 }
             }
-        }).start();
+        }).execute();
     }
 
     @Override
@@ -7304,15 +7309,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         posterImagePaths.add((String) result[imageCol]);
         findControl.addFindable((String) result[currTitleCol]);
-    }
-
-    @Override
-    public void newResults(Iterable<Object[]> results) {
-        for (Object[] result : results) {
-            resultsSyncTable.addRow(result);
-            posterImagePaths.add((String) result[imageCol]);
-            findControl.addFindable((String) result[currTitleCol]);
-        }
     }
 
     @Override
@@ -7861,7 +7857,7 @@ public class GUI extends JFrame implements GuiListener {
     public void showLicenseActivation() {
         int count = preferences.getInt(Constant.APP_TITLE, 0);
         activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
-        activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : this);
+        activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing());
         resultsToBackground(true);
         UI.setVisible(activationDialog);
         preferences.putInt(Constant.APP_TITLE, ++count);

@@ -1,7 +1,6 @@
 package main;
 
 import debug.Debug;
-import gui.AbstractSwingWorker;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -19,8 +18,9 @@ import str.Str;
 import util.Connection;
 import util.Constant;
 import util.IO;
+import util.Worker;
 
-class Updater extends AbstractSwingWorker {
+class Updater extends Worker {
 
     private GuiListener guiListener;
     private boolean silent;
@@ -31,7 +31,7 @@ class Updater extends AbstractSwingWorker {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         guiListener.updateStarted();
         if (silent) {
             Str.update(false, guiListener);
@@ -48,8 +48,6 @@ class Updater extends AbstractSwingWorker {
             Str.update(true, guiListener);
         }
         guiListener.updateStopped();
-        workDone();
-        return null;
     }
 
     private static void updateJavaDeployment() throws Exception {

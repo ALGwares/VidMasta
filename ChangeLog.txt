@@ -1,6 +1,17 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2016.12.24   | VidMasta 23.1
+
+CHANGE: UI   | Added automatic watchlist/wishlist management
+CHANGE: UI   | Added keyboard shortcuts for download link quality selection
+CHANGE: UI   | Improved positioning of windows
+CHANGE: CORE | Improved overall performance via improved thread management
+CHANGE: CORE | Improved play, download, and search error handling
+
+
+
+
 2016.11.17   | VidMasta 23.0
 
 CHANGE: UI   | Fixed freezing of splash screen

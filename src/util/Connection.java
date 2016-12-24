@@ -3,8 +3,6 @@ package util;
 import debug.Debug;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
@@ -25,7 +22,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -35,14 +31,10 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.StrUpdateListener.UpdateListener;
 import str.Str;
-import util.RunnableUtil.AbstractWorker;
 
 public class Connection {
 
@@ -149,7 +141,7 @@ public class Connection {
         }
         return (new AbstractWorker<String>() {
             @Override
-            protected String call() throws Exception {
+            protected String doInBackground() throws Exception {
                 HttpURLConnection connection = null;
                 BufferedReader br = null;
                 StringBuilder source = new StringBuilder(8192);
@@ -166,7 +158,8 @@ public class Connection {
                     }
 
                     setConnectionProperties(connection, compress, null);
-                    br = new BufferedReader(new InputStreamReader(connect(connection), Constant.UTF8));
+                    connection.connect();
+                    br = IO.bufferedReader(connection.getContentEncoding(), connection.getInputStream());
                     if (isCancelled()) {
                         return "";
                     }
@@ -188,10 +181,10 @@ public class Connection {
                         throw new IOException("empty source code");
                     }
                 } catch (IOException e) {
-                    IO.consumeErrorStream(connection);
+                    String errorMsg = IO.consumeErrorStream(connection);
                     for (Class<?> throwable : throwables) {
                         if (throwable.isInstance(e)) {
-                            throw e;
+                            throw new IOException2(e, errorMsg);
                         }
                     }
                     if (Debug.DEBUG) {
@@ -216,7 +209,7 @@ public class Connection {
 
                 return domainType == DomainType.UPDATE ? source.toString() : Regex.replaceAll(source.toString(), 741);
             }
-        }).runAndWaitFor();
+        }).executeAndGet();
     }
 
     public static String error(String url) {
@@ -348,21 +341,6 @@ public class Connection {
         downloadLinkInfoFail.set(false);
     }
 
-    private static InputStream connect(HttpURLConnection connection) throws Exception {
-        connection.connect();
-        String encoding = connection.getContentEncoding();
-        InputStream is = connection.getInputStream();
-        if (encoding != null) {
-            encoding = encoding.toLowerCase(Locale.ENGLISH);
-            if (encoding.equals("gzip")) {
-                is = new GZIPInputStream(is, 512);
-            } else if (encoding.equals("deflate")) {
-                is = new InflaterInputStream(is, new Inflater(), 512);
-            }
-        }
-        return is;
-    }
-
     public static void setConnectionProperties(HttpURLConnection connection, boolean compress, String referer) {
         connection.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1;q=0.9, us-ascii;q=0.8, *;q=0.7");
         connection.setRequestProperty("Accept-Language", "en-US, en-GB;q=0.9, en;q=0.8, *;q=0.7");
@@ -450,9 +428,9 @@ public class Connection {
         if (Debug.DEBUG) {
             Debug.println(url);
         }
-        (new AbstractWorker<Object>() {
+        (new Worker() {
             @Override
-            protected Object call() throws Exception {
+            protected void doWork() throws Exception {
                 HttpURLConnection connection = null;
                 InputStream is = null;
                 OutputStream os = null;
@@ -461,18 +439,18 @@ public class Connection {
                     Proxy proxy = getProxy(domainType);
                     String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
                     if (isCancelled()) {
-                        return null;
+                        return;
                     }
 
                     connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
                     if (isCancelled()) {
-                        return null;
+                        return;
                     }
 
                     setConnectionProperties(connection, false, referer);
                     is = connection.getInputStream();
                     if (isCancelled()) {
-                        return null;
+                        return;
                     }
 
                     os = new BufferedOutputStream(new FileOutputStream(outputPath)) {
@@ -506,9 +484,8 @@ public class Connection {
                     }
                     IO.close(is, os);
                 }
-                return null;
             }
-        }).runAndWaitFor();
+        }).executeAndGet();
     }
 
     public static String getShortUrl(String url, boolean showDots) {
@@ -540,9 +517,9 @@ public class Connection {
         String statusMsg;
         if (showStatus) {
             final Thread runner = Thread.currentThread();
-            callingWorker.doneListener = new PropertyChangeListener() {
+            callingWorker.doneAction = new Runnable() {
                 @Override
-                public void propertyChange(PropertyChangeEvent evt) {
+                public void run() {
                     statusBar.unset(runner);
                 }
             };
@@ -753,9 +730,9 @@ public class Connection {
             return;
         }
 
-        Thread errorNotifier = new Thread() {
+        (new Worker() {
             @Override
-            public void run() {
+            public void doWork() {
                 try {
                     String msg = Str.str("updateError") + ' ' + ThrowableUtil.toString(e);
                     setStatusBar(msg);
@@ -770,9 +747,7 @@ public class Connection {
                     unsetStatusBar();
                 }
             }
-        };
-        errorNotifier.setPriority(Thread.MIN_PRIORITY);
-        errorNotifier.start();
+        }).execute();
     }
 
     private Connection() {

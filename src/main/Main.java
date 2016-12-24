@@ -2,7 +2,6 @@ package main;
 
 import de.javasoft.plaf.synthetica.SyntheticaLookAndFeel;
 import debug.Debug;
-import gui.AbstractSwingWorker;
 import gui.GUI;
 import gui.SplashScreen;
 import gui.UI;
@@ -47,13 +46,15 @@ import search.download.Prefetcher;
 import search.download.VideoFinder;
 import str.Str;
 import torrent.Magnet;
+import util.AbstractWorker;
+import util.AbstractWorker.StateValue;
 import util.Connection;
 import util.Constant;
 import util.IO;
 import util.MediaPlayer;
 import util.ModClass;
-import util.RunnableUtil.AbstractWorker;
 import util.ThrowableUtil;
+import util.Worker;
 
 public class Main implements WorkerListener {
 
@@ -186,9 +187,9 @@ public class Main implements WorkerListener {
             }
         });
 
-        (new Thread() {
+        (new Worker() {
             @Override
-            public void run() {
+            public void doWork() {
                 // Warm and clean cache
                 for (File file : IO.listFiles(Constant.CACHE_DIR)) {
                     if (file.isDirectory()) {
@@ -198,7 +199,7 @@ public class Main implements WorkerListener {
                     }
                 }
             }
-        }).start();
+        }).execute();
 
         Magnet.initIpFilter();
         MediaPlayer.install();
@@ -272,8 +273,8 @@ public class Main implements WorkerListener {
         }
     }
 
-    private static boolean isWorkDone(AbstractSwingWorker worker) {
-        return worker == null || worker.isWorkDone();
+    private static boolean isWorkDone(Worker worker) {
+        return worker == null || worker.getState() == StateValue.DONE;
     }
 
     private static void stop(Future<?> worker) {
@@ -399,6 +400,14 @@ public class Main implements WorkerListener {
     }
 
     @Override
+    public Future<?> torrentSearchStarted(Video video) {
+        Magnet.startAzureus(gui);
+        AbstractWorker<?> videoFinder = new VideoFinder(gui, ContentType.DOWNLOAD1, -1, video, null);
+        videoFinder.execute();
+        return videoFinder;
+    }
+
+    @Override
     public void proxyListDownloadStarted() {
         if (isWorkDone(proxyDownloader)) {
             (proxyDownloader = new ProxyListDownloader(gui)).execute();
@@ -497,7 +506,7 @@ public class Main implements WorkerListener {
     private void startPrefetcher(VideoFinder videoFinder) {
         if (prefetcher == null) {
             (prefetcher = new Prefetcher(videoFinder)).execute();
-        } else if (!prefetcher.isForRow(videoFinder.ROW) || (!prefetcher.isForContentType(videoFinder.CONTENT_TYPE) && !prefetcher.isWorkDone())) {
+        } else if (!prefetcher.isForRow(videoFinder.ROW) || (!prefetcher.isForContentType(videoFinder.CONTENT_TYPE) && prefetcher.getState() != StateValue.DONE)) {
             prefetcher.cancel(true);
             (prefetcher = new Prefetcher(videoFinder)).execute();
         }

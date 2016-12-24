@@ -8,6 +8,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -28,11 +32,17 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.xml.bind.DatatypeConverter;
 
 public class IO {
 
@@ -54,6 +64,17 @@ public class IO {
             return result.toString().trim();
         } finally {
             close(br);
+        }
+    }
+
+    public static List<?> readListFromBase64(String list) {
+        ObjectInputStream ois = null;
+        try {
+            return (List<?>) (ois = new ObjectInputStream(new ByteArrayInputStream(DatatypeConverter.parseBase64Binary(list)))).readObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            close(ois);
         }
     }
 
@@ -125,16 +146,48 @@ public class IO {
         os.flush();
     }
 
-    public static void consumeErrorStream(HttpURLConnection connection) {
+    public static String writeListToBase64(List<?> list) {
+        ObjectOutputStream oos = null;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            (oos = new ObjectOutputStream(baos)).writeObject(list);
+            return DatatypeConverter.printBase64Binary(baos.toByteArray());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            close(oos);
+        }
+    }
+
+    public static String consumeErrorStream(HttpURLConnection connection) {
         if (connection == null) {
-            return;
+            return "";
         }
 
         InputStream is = null;
         try {
             if ((is = connection.getErrorStream()) != null) {
-                byte[] bytes = new byte[2048];
-                while (is.read(bytes) != -1) {
+                try {
+                    BufferedReader br = null;
+                    StringBuilder source = new StringBuilder(1024);
+                    try {
+                        br = bufferedReader(connection.getContentEncoding(), is);
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            source.append(line).append(IOConstant.NEWLINE);
+                        }
+                    } finally {
+                        close(br);
+                    }
+                    return source.toString();
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+
+                    byte[] bytes = new byte[2048];
+                    while (is.read(bytes) != -1) {
+                    }
                 }
             }
         } catch (Exception e) {
@@ -144,6 +197,20 @@ public class IO {
         } finally {
             close(is);
         }
+        return "";
+    }
+
+    public static BufferedReader bufferedReader(String contentEncoding, InputStream inputStream) throws Exception {
+        InputStream is = inputStream;
+        if (contentEncoding != null) {
+            String encoding = contentEncoding.toLowerCase(Locale.ENGLISH);
+            if (encoding.equals("gzip")) {
+                is = new GZIPInputStream(is, 512);
+            } else if (encoding.equals("deflate")) {
+                is = new InflaterInputStream(is, new Inflater(), 512);
+            }
+        }
+        return new BufferedReader(new InputStreamReader(is, IOConstant.UTF8));
     }
 
     public static void write(String fileName, Throwable t) {

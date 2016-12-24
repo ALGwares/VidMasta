@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.SwingWorker;
 import listener.DomainType;
 import str.Str;
 
@@ -80,9 +79,9 @@ public class MediaPlayer {
             }
             final Process mediaPlayer = mediaPlayerBuilder.start();
             if (errorAction != null) {
-                (new SwingWorker<Object, Object>() {
+                (new Worker() {
                     @Override
-                    protected Object doInBackground() {
+                    protected void doWork() {
                         BufferedReader br = null;
                         try {
                             br = new BufferedReader(new InputStreamReader(mediaPlayer.getInputStream(), Constant.UTF8));
@@ -94,7 +93,7 @@ public class MediaPlayer {
                                     }
                                     mediaPlayer.destroy();
                                     errorAction.run();
-                                    return null;
+                                    return;
                                 }
                             }
                         } catch (Exception e) {
@@ -104,7 +103,6 @@ public class MediaPlayer {
                         } finally {
                             IO.close(br);
                         }
-                        return null;
                     }
                 }).execute();
             }

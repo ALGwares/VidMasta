@@ -491,11 +491,15 @@ public class UI {
 
     public static boolean deiconifyThenIsShowing(Frame frame) {
         deiconify(frame);
-        return frame.isShowing();
+        return isShowing(frame);
     }
 
     public static void deiconify(Frame frame) {
         frame.setExtendedState(frame.getExtendedState() & ~Frame.ICONIFIED);
+    }
+
+    public static boolean isShowing(Frame frame) {
+        return frame.isShowing() && (frame.getExtendedState() & Frame.ICONIFIED) != Frame.ICONIFIED;
     }
 
     public static void addHyperlinkListener(final JEditorPane editorPane, final HyperlinkListener hyperlinkListener) {

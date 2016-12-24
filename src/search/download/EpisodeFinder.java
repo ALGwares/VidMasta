@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
-import javax.swing.SwingWorker;
 import javax.swing.text.Element;
 import listener.DomainType;
 import listener.GuiListener;
@@ -22,8 +21,9 @@ import util.Connection;
 import util.ConnectionException;
 import util.Constant;
 import util.Regex;
+import util.Worker;
 
-public class EpisodeFinder extends SwingWorker<Object, Object> {
+public class EpisodeFinder extends Worker {
 
     private GuiListener guiListener;
     private final int ROW;
@@ -40,7 +40,7 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
     }
 
     @Override
-    protected Object doInBackground() {
+    protected void doWork() {
         boolean updateSummary = true;
         try {
             findEpisodes();
@@ -70,7 +70,6 @@ public class EpisodeFinder extends SwingWorker<Object, Object> {
                 }
             }
         }
-        return null;
     }
 
     private String showEpisode(Element element, String text, String id, String summary) {
