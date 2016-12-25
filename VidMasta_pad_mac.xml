@@ -2,7 +2,7 @@
 <XML_DIZ_INFO>
   <MASTER_PAD_VERSION_INFO>
     <MASTER_PAD_VERSION>4.0</MASTER_PAD_VERSION>
-    <MASTER_PAD_EDITOR>RoboSoft 4.0.789</MASTER_PAD_EDITOR>
+    <MASTER_PAD_EDITOR>RoboSoft 4.0.797</MASTER_PAD_EDITOR>
     <MASTER_PAD_EDITOR_URL>http://robosoft.rudenko.com</MASTER_PAD_EDITOR_URL>
     <MASTER_PAD_INFO>Portable Application Description, or PAD for short, is a data set that is used by shareware authors to disseminate information to anyone interested in their software products. To find out more go to http://www.asp-shareware.org/pad</MASTER_PAD_INFO>
   </MASTER_PAD_VERSION_INFO>
@@ -112,7 +112,7 @@
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
-    <Program_OS_Support>Mac Other,Java,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
+    <Program_OS_Support>Mac OS X,Mac OS X 10.1,Mac OS X 10.2,Mac OS X 10.3,Mac OS X 10.4,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
     <Program_Change_Info>Added automatic watchlist/wishlist management, added keyboard shortcuts for download link quality selection, improved positioning of windows, improved overall performance via improved thread management, and improved play, download, and search error handling.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
@@ -137,6 +137,7 @@
     </Expire_Info>
     <Program_Categories>Internet,Search/Lookup,Tools,Network</Program_Categories>
     <Limitations>No limitations</Limitations>
+    <Program_Target_Platform>OS X</Program_Target_Platform>
     <Program_Cost_Other_Code></Program_Cost_Other_Code>
     <Program_Cost_Other></Program_Cost_Other>
     <Awards></Awards>
@@ -163,8 +164,8 @@
     </Download_URLs>
   </Web_Info>
   <Permissions>
-    <Distribution_Permissions>GPLv2</Distribution_Permissions>
-    <EULA>GPLv2</EULA>
+    <Distribution_Permissions>GPLv2+</Distribution_Permissions>
+    <EULA>GPLv2+</EULA>
   </Permissions>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>

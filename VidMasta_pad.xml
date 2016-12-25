@@ -2,7 +2,7 @@
 <XML_DIZ_INFO>
   <MASTER_PAD_VERSION_INFO>
     <MASTER_PAD_VERSION>4.0</MASTER_PAD_VERSION>
-    <MASTER_PAD_EDITOR>RoboSoft 4.0.789</MASTER_PAD_EDITOR>
+    <MASTER_PAD_EDITOR>RoboSoft 4.0.797</MASTER_PAD_EDITOR>
     <MASTER_PAD_EDITOR_URL>http://robosoft.rudenko.com</MASTER_PAD_EDITOR_URL>
     <MASTER_PAD_INFO>Portable Application Description, or PAD for short, is a data set that is used by shareware authors to disseminate information to anyone interested in their software products. To find out more go to http://www.asp-shareware.org/pad</MASTER_PAD_INFO>
   </MASTER_PAD_VERSION_INFO>
@@ -112,7 +112,7 @@
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
-    <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64,Win2000,WinOther,Windows2000,Windows2003,WinServer,Windows Vista Ultimate,Windows Vista Ultimate x64,Java,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows 10,Windows 8,Windows Server 2012</Program_OS_Support>
+    <Program_OS_Support>Win2000,WinXP,Win7 x32,Win7 x64,Windows 8,Windows 10,WinServer,WinOther,Windows2000,Windows2003,Windows Server 2012,Windows Tablet PC Edition 2005,Windows Media Center Edition 2005,WinVista,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Ultimate,WinVista x64,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows Vista Ultimate x64</Program_OS_Support>
     <Program_Language>English</Program_Language>
     <Program_Change_Info>Added automatic watchlist/wishlist management, added keyboard shortcuts for download link quality selection, improved positioning of windows, improved overall performance via improved thread management, and improved play, download, and search error handling.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
@@ -137,6 +137,7 @@
     </Expire_Info>
     <Program_Categories>Internet,Search/Lookup,Tools,Network</Program_Categories>
     <Limitations>No limitations</Limitations>
+    <Program_Target_Platform>Windows</Program_Target_Platform>
     <Program_Cost_Other_Code></Program_Cost_Other_Code>
     <Program_Cost_Other></Program_Cost_Other>
     <Awards></Awards>
@@ -163,8 +164,8 @@
     </Download_URLs>
   </Web_Info>
   <Permissions>
-    <Distribution_Permissions>GPLv2</Distribution_Permissions>
-    <EULA>GPLv2</EULA>
+    <Distribution_Permissions>GPLv2+</Distribution_Permissions>
+    <EULA>GPLv2+</EULA>
   </Permissions>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
