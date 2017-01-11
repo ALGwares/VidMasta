@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2017.1.11   | VidMasta 23.2
+
+CHANGE: UI   | Fixed issue with keyboard shortcut usage detection when playlist window is showing
+CHANGE: CORE | Improved download error handling
+
+
+
+
 2016.12.24   | VidMasta 23.1
 
 CHANGE: UI   | Added automatic watchlist/wishlist management

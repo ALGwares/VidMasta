@@ -44,7 +44,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -63,6 +65,9 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
@@ -813,6 +818,33 @@ public class UI {
             if (++currIndex == index) {
                 buttonGroup.setSelected(button.getModel(), true);
                 return;
+            }
+        }
+    }
+
+    public static Set<KeyStroke> accelerators(JMenuBar menuBar, JMenuItem... excludedMenuItems) {
+        Set<KeyStroke> accelerators = new HashSet<KeyStroke>(40);
+        Set<JMenuItem> excludedItems = new HashSet<JMenuItem>(Arrays.asList(excludedMenuItems));
+        for (int i = 0, numMenus = menuBar.getMenuCount(); i < numMenus; i++) {
+            accelerators(menuBar.getMenu(i), accelerators, excludedItems);
+        }
+        return accelerators;
+    }
+
+    private static void accelerators(JMenuItem menuItem, Set<KeyStroke> accelerators, Set<JMenuItem> excludedMenuItems) {
+        if (menuItem == null || excludedMenuItems.contains(menuItem)) {
+            return;
+        }
+
+        KeyStroke menuAccelerator = menuItem.getAccelerator();
+        if (menuAccelerator != null) {
+            accelerators.add(menuAccelerator);
+        }
+
+        if (menuItem instanceof JMenu) {
+            JMenu menu = (JMenu) menuItem;
+            for (int j = 0, numMenuItems = menu.getItemCount(); j < numMenuItems; j++) {
+                accelerators(menu.getItem(j), accelerators, excludedMenuItems);
             }
         }
     }

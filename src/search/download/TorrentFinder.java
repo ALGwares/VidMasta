@@ -38,7 +38,7 @@ public class TorrentFinder extends Worker {
     private boolean orderByLeechers, magnetLinkOnly, ignoreYear, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch, altSearch, singleOrderByMode;
     private final int maxNumAttempts, counter1Max, counter2Max;
     private int attemptNum, counter1, counter2;
-    private String categorySearch, prevUrl;
+    private String categorySearch, url;
     private TorrentSearchState searchState;
     private List<BoxSetVideo> boxSet;
     private static final ConcurrentMap<TorrentSearchID, Boolean> orderings = new ConcurrentHashMap<TorrentSearchID, Boolean>(16);
@@ -125,8 +125,8 @@ public class TorrentFinder extends Worker {
             }
 
             if (possiblyInconsistent && ++attemptNum < maxNumAttempts) {
-                if (prevUrl != null) {
-                    Connection.removeDownloadLinkInfoFromCache(prevUrl);
+                if (url != null) {
+                    Connection.removeDownloadLinkInfoFromCache(url);
                 }
                 continue;
             }
@@ -147,8 +147,7 @@ public class TorrentFinder extends Worker {
 
         String sourceCode;
         try {
-            sourceCode = Connection.getSourceCode(prevUrl = urlForm + urlFormOptions, DomainType.DOWNLOAD_LINK_INFO, !prefetch, false,
-                    FileNotFoundException.class);
+            sourceCode = Connection.getSourceCode(url = urlForm + urlFormOptions, DomainType.DOWNLOAD_LINK_INFO, !prefetch, false, FileNotFoundException.class);
         } catch (IOException2 e) {
             if (Debug.DEBUG) {
                 Debug.println(e);
@@ -159,18 +158,7 @@ public class TorrentFinder extends Worker {
             sourceCode = e.extraMsg;
         }
 
-        if (!Regex.firstMatch(sourceCode, 146).isEmpty() || Regex.firstMatch(sourceCode, 504).isEmpty()) {
-            Connection.removeDownloadLinkInfoFromCache(prevUrl);
-            if (Connection.deproxyDownloadLinkInfo()) {
-                for (Future<?> future : cohort) {
-                    future.cancel(true);
-                }
-                return null;
-            }
-            throw new ConnectionException(Connection.serverError(urlForm));
-        }
-
-        if (isCancelled()) {
+        if (!isSourceCodeValid(sourceCode) || isCancelled()) {
             return null;
         }
 
@@ -180,8 +168,8 @@ public class TorrentFinder extends Worker {
             return null;
         }
 
-        sourceCode = Connection.getSourceCode(Str.get(722) + firstPageLink, DomainType.DOWNLOAD_LINK_INFO, !prefetch);
-        if (prefetch) {
+        sourceCode = Connection.getSourceCode(url = Str.get(722) + firstPageLink, DomainType.DOWNLOAD_LINK_INFO, !prefetch);
+        if (!isSourceCodeValid(sourceCode) || isCancelled() || prefetch) {
             return null;
         }
 
@@ -211,11 +199,28 @@ public class TorrentFinder extends Worker {
                 query = URLEncoder.encode(query, Constant.UTF8);
             }
 
-            sourceCode = Connection.getSourceCode(Str.get(724) + query + Str.get(492) + currPageNum + Regex.match(nextPageLink, 493),
+            sourceCode = Connection.getSourceCode(url = Str.get(724) + query + Str.get(492) + currPageNum + Regex.match(nextPageLink, 493),
                     DomainType.DOWNLOAD_LINK_INFO);
+            if (!isSourceCodeValid(sourceCode) || isCancelled()) {
+                return null;
+            }
         }
 
         return null;
+    }
+
+    private boolean isSourceCodeValid(String sourceCode) throws ConnectionException {
+        if (!Regex.firstMatch(sourceCode, 146).isEmpty() || Regex.firstMatch(sourceCode, 504).isEmpty()) {
+            Connection.removeDownloadLinkInfoFromCache(url);
+            if (Connection.deproxyDownloadLinkInfo()) {
+                for (Future<?> future : cohort) {
+                    future.cancel(true);
+                }
+                return false;
+            }
+            throw new ConnectionException(Connection.serverError(url));
+        }
+        return true;
     }
 
     private void getTorrents() throws Exception {
@@ -235,7 +240,7 @@ public class TorrentFinder extends Worker {
 
         while (!titleMatcher.hitEnd() && counter1 != counter1Max) {
             if (isCancelled()) {
-                return null;
+                break;
             }
             if (!titleMatcher.find()) {
                 continue;
@@ -304,7 +309,7 @@ public class TorrentFinder extends Worker {
             }
 
             if (isCancelled()) {
-                return null;
+                break;
             }
 
             String numSources = (orderByLeechers ? Regex.match(videoStr, 70) : Regex.match(videoStr, 72));
@@ -320,7 +325,7 @@ public class TorrentFinder extends Worker {
             Magnet magnet = new Magnet(Str.get(388) + magnetLink);
             boolean isTorrentDownloaded = magnet.download(guiListener, this, magnetLinkOnly);
             if (isCancelled()) {
-                return null;
+                break;
             }
 
             File torrent;
@@ -332,7 +337,7 @@ public class TorrentFinder extends Worker {
                 }
 
                 if (isCancelled()) {
-                    return null;
+                    break;
                 }
 
                 torrent = magnet.TORRENT;

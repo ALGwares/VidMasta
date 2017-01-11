@@ -56,8 +56,8 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>37</ASBMPlannerID1stRound>
-  <Issues>0</Issues>
+  <ASBMPlannerID1stRound>3</ASBMPlannerID1stRound>
+  <Issues>9</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
@@ -103,23 +103,24 @@
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
   <Program_Info>
+    <Program_Target_Platform>OS X</Program_Target_Platform>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>23.1</Program_Version>
-    <Program_Release_Month>12</Program_Release_Month>
-    <Program_Release_Day>24</Program_Release_Day>
-    <Program_Release_Year>2016</Program_Release_Year>
+    <Program_Version>23.2</Program_Version>
+    <Program_Release_Month>01</Program_Release_Month>
+    <Program_Release_Day>11</Program_Release_Day>
+    <Program_Release_Year>2017</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac OS X,Mac OS X 10.1,Mac OS X 10.2,Mac OS X 10.3,Mac OS X 10.4,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Added automatic watchlist/wishlist management, added keyboard shortcuts for download link quality selection, improved positioning of windows, improved overall performance via improved thread management, and improved play, download, and search error handling.</Program_Change_Info>
+    <Program_Change_Info>Fixed issue with keyboard shortcut usage detection when playlist window is showing and improved download error handling.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::Download Managers</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25282317</File_Size_Bytes>
-      <File_Size_K>24689</File_Size_K>
+      <File_Size_Bytes>25282987</File_Size_Bytes>
+      <File_Size_K>24690</File_Size_K>
       <File_Size_MB>24.11</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
@@ -137,7 +138,6 @@
     </Expire_Info>
     <Program_Categories>Internet,Search/Lookup,Tools,Network</Program_Categories>
     <Limitations>No limitations</Limitations>
-    <Program_Target_Platform>OS X</Program_Target_Platform>
     <Program_Cost_Other_Code></Program_Cost_Other_Code>
     <Program_Cost_Other></Program_Cost_Other>
     <Awards></Awards>
@@ -148,6 +148,7 @@
     <FacebookProductPage></FacebookProductPage>
     <GooglePlusProductPage></GooglePlusProductPage>
   </Program_Info>
+  <ASBMPlannerID2ndRound>4</ASBMPlannerID2ndRound>
   <Web_Info>
     <Application_URLs>
       <Application_Info_URL>http://sourceforge.net/projects/vidmasta</Application_Info_URL>

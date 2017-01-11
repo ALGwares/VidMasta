@@ -189,6 +189,7 @@ public class GUI extends JFrame implements GuiListener {
     JList popupList;
     JTextComponent popupTextComponent;
     SyncTable resultsSyncTable, playlistSyncTable;
+    private final Set<KeyStroke> menuBarAccelerators;
     private AbstractPopupListener textComponentPopupListener;
     private final ActionListener htmlCopyListener = new HTMLCopyListener(), tableCopyListener = new TableCopyListener(),
             playlistTableCopyListener = new PlaylistTableCopyListener();
@@ -217,6 +218,7 @@ public class GUI extends JFrame implements GuiListener {
         splashScreen.progress();
 
         initComponents();
+        menuBarAccelerators = UI.accelerators(menuBar, editMenu, resetWindowMenuItem);
         updateToggleButtons(true);
         UI.initToggleButton(summaryTextToSpeechButton, "speaker.png");
         initFileNameExtensionFilters();
@@ -644,6 +646,10 @@ public class GUI extends JFrame implements GuiListener {
             tvSubtitleDownloadMatch2Button}) {
             UI.resize(AbstractComponent.newInstance(button), stop, button.getName());
         }
+
+        licenseActivationStarted();
+        UI.resize(AbstractComponent.newInstance(activationUpgradeButton), activationUpgradeButton.getText());
+        licenseActivationStopped();
     }
 
     private void resizeExitBackupModeButton() {
@@ -3220,17 +3226,17 @@ public class GUI extends JFrame implements GuiListener {
         activationDialogLayout.setHorizontalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(activationDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(activationUpgradeButton)
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addComponent(activationTextField, GroupLayout.DEFAULT_SIZE, 174, Short.MAX_VALUE)
+                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(activationUpgradeButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(activationTextField))
                 .addContainerGap())
         );
         activationDialogLayout.setVerticalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(activationDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(activationDialogLayout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(activationUpgradeButton)
-                    .addComponent(activationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addComponent(activationUpgradeButton)
+                .addGap(6, 6, 6)
+                .addComponent(activationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -5997,10 +6003,10 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_playlistPlayMenuItemMousePressed
 
     private void playlistTableKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistTableKeyPressed
-        int key = evt.getKeyCode();
-        if (key == KeyEvent.VK_DELETE) {
+        KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(evt);
+        if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0))) {
             playlistRemoveButtonActionPerformed(null);
-        } else if (key == KeyEvent.VK_ENTER) {
+        } else if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))) {
             playlistPlayButtonActionPerformed(null);
         } else {
             playlistKeyPressed(evt);
@@ -6111,20 +6117,13 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_downloadQualityButtonMenuItemActionPerformed
 
     private void playlistKeyPressed(KeyEvent evt) {
-        if (!evt.isControlDown()) {
-            return;
-        }
-
-        int key = evt.getKeyCode();
-        if (key == KeyEvent.VK_O) {
-            playlistAutoOpenCheckBoxMenuItem.setSelected(!playlistAutoOpenCheckBoxMenuItem.isSelected());
-        } else if (key == KeyEvent.VK_N) {
-            playlistShowNonVideoItemsCheckBoxMenuItem.setSelected(!playlistShowNonVideoItemsCheckBoxMenuItem.isSelected());
-            playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
-        } else if (key == KeyEvent.VK_F) {
+        KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(evt);
+        if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK))) {
             playlistFindControl.show();
-        } else if (key == KeyEvent.VK_W) {
+        } else if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_MASK))) {
             UI.show(this);
+        } else if (menuBarAccelerators.contains(keyStroke)) {
+            menuBar.dispatchEvent(evt);
         }
     }
 
@@ -7254,6 +7253,7 @@ public class GUI extends JFrame implements GuiListener {
         searchProgressUpdate(0, 0);
 
         Connection.clearCache();
+        posters.clear();
         if (isTVShow) {
             trailerEpisodes.clear();
             downloadLinkEpisodes.clear();
@@ -7857,6 +7857,7 @@ public class GUI extends JFrame implements GuiListener {
     public void showLicenseActivation() {
         int count = preferences.getInt(Constant.APP_TITLE, 0);
         activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
+        activationDialog.pack();
         activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing());
         resultsToBackground(true);
         UI.setVisible(activationDialog);

@@ -51,7 +51,7 @@ public class VideoFinder extends Worker {
     private Collection<TorrentFinder> torrentFinders;
     private TorrentSearchState searchState;
     private static volatile CommentsFinder commentsFinder;
-    private static final Object TV_CHOICES_LOCK = new Object(), DOWNLOAD_LOCK = new Object();
+    private static final Object TV_CHOICES_LOCK = new Object(), DOWNLOAD_LOCK = new Object(), VIDEO_LOCK = new Object();
     private final Runnable rerunner;
 
     public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener) {
@@ -891,38 +891,40 @@ public class VideoFinder extends Worker {
     }
 
     private void updateOldTitleAndSummary() throws Exception {
-        if (!video.summary.isEmpty() || !foreground) {
-            return;
-        }
-
-        String sourceCode = Connection.getSourceCode(VideoSearch.url(video), DomainType.VIDEO_INFO, !PREFETCH);
-        video.oldTitle = VideoSearch.getOldTitle(sourceCode);
-        if (!video.oldTitle.isEmpty()) {
-            String displayTitle = guiListener.getTitle(ROW, video.ID);
-            if (displayTitle != null) {
-                int beginIndex = 6, endOffSet = 7;
-                String startHtml = "<html>", endHtml = "</html>";
-                if (displayTitle.startsWith("<b>", beginIndex)) {
-                    beginIndex += 3;
-                    endOffSet += 4;
-                    startHtml += "<b>";
-                    endHtml = "</b>" + endHtml;
-                }
-                displayTitle = displayTitle.substring(beginIndex, displayTitle.length() - endOffSet);
-                String popularEpisode = VideoSearch.popularEpisode("", "");
-                String extraTitleInfo = Regex.firstMatch(displayTitle, popularEpisode);
-                displayTitle = Regex.replaceFirst(displayTitle, popularEpisode, "") + VideoSearch.aka(video.oldTitle) + (extraTitleInfo.isEmpty() ? "" : ' '
-                        + extraTitleInfo);
-                guiListener.setTitle(startHtml + displayTitle + endHtml, ROW, video.ID);
+        synchronized (VIDEO_LOCK) {
+            if (!video.summary.isEmpty() || !foreground) {
+                return;
             }
-        }
 
-        String imageLink = Regex.match(sourceCode, 188);
-        guiListener.setImageLink(imageLink, ROW, video.ID);
-        video.imageLink = imageLink;
-        String summary = VideoSearch.getSummary(sourceCode, video.IS_TV_SHOW);
-        guiListener.setSummary(summary, ROW, video.ID);
-        video.summary = summary;
+            String sourceCode = Connection.getSourceCode(VideoSearch.url(video), DomainType.VIDEO_INFO, !PREFETCH);
+            video.oldTitle = VideoSearch.getOldTitle(sourceCode);
+            if (!video.oldTitle.isEmpty()) {
+                String displayTitle = guiListener.getTitle(ROW, video.ID);
+                if (displayTitle != null) {
+                    int beginIndex = 6, endOffSet = 7;
+                    String startHtml = "<html>", endHtml = "</html>";
+                    if (displayTitle.startsWith("<b>", beginIndex)) {
+                        beginIndex += 3;
+                        endOffSet += 4;
+                        startHtml += "<b>";
+                        endHtml = "</b>" + endHtml;
+                    }
+                    displayTitle = displayTitle.substring(beginIndex, displayTitle.length() - endOffSet);
+                    String popularEpisode = VideoSearch.popularEpisode("", "");
+                    String extraTitleInfo = Regex.firstMatch(displayTitle, popularEpisode);
+                    displayTitle = Regex.replaceFirst(displayTitle, popularEpisode, "") + VideoSearch.aka(video.oldTitle) + (extraTitleInfo.isEmpty() ? "" : ' '
+                            + extraTitleInfo);
+                    guiListener.setTitle(startHtml + displayTitle + endHtml, ROW, video.ID);
+                }
+            }
+
+            String imageLink = Regex.match(sourceCode, 188);
+            guiListener.setImageLink(imageLink, ROW, video.ID);
+            video.imageLink = imageLink;
+            String summary = VideoSearch.getSummary(sourceCode, video.IS_TV_SHOW);
+            guiListener.setSummary(summary, ROW, video.ID);
+            video.summary = summary;
+        }
     }
 
     public static String getComments() {
