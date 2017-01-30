@@ -27,4 +27,6 @@ public interface PlaylistItem {
     Long groupDownloadID();
 
     String name();
+
+    boolean canBan();
 }

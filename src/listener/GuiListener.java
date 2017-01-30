@@ -88,7 +88,9 @@ public interface GuiListener {
 
     void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem, boolean updateValOnly);
 
-    boolean showPlaylist(PlaylistItem selectedPlaylistItem);
+    void showPlaylist();
+
+    boolean selectPlaylistItem(PlaylistItem playlistItem);
 
     String getPlaylistSaveDir();
 

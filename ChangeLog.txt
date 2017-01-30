@@ -1,7 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
-2017.1.11   | VidMasta 23.2
+2017.1.30    | VidMasta 23.3
+
+CHANGE: UI   | Improved playlist display
+
+
+
+
+2017.1.11    | VidMasta 23.2
 
 CHANGE: UI   | Fixed issue with keyboard shortcut usage detection when playlist window is showing
 CHANGE: CORE | Improved download error handling
