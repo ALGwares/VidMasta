@@ -157,7 +157,7 @@
       <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad_linux.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>https://docs.google.com/uc?id=0B3i91lMM4fZIMDUzODU2NWItYjViYS00NzJiLWJmZTUtYjE2MWViNmQ4YTBi&amp;export=download&amp;hl=en_US</Primary_Download_URL>
+      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-23.4.jar</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
