@@ -25,10 +25,14 @@ public class Torrent implements Comparable<Torrent> {
         SIZE_IN_GIB = sizeInGiB;
     }
 
-    public String saveName(boolean fileName) {
-        return (fileName ? Regex.toFileName(NAME) : Regex.replaceAll(NAME, 679)) + (IS_SAFE ? "" : '-' + (fileName ? Regex.toFileName(Str.str("unsafe")) : Str.str(
-                "unsafe"))) + (SIZE_IN_GIB > 0 ? "-" + SIZE_IN_GIB + (fileName ? Regex.toFileName(Str.str("GB")) : Str.str("GB")) : "") + "-"
-                + MAGNET_LINK.hashCode() + EXTENSIONS + Constant.TORRENT;
+    public String name() {
+        return Regex.replaceAll(NAME, 679) + (IS_SAFE ? "" : '-' + Str.str("unsafe")) + (SIZE_IN_GIB > 0 ? "-" + SIZE_IN_GIB + Str.str("GB") : "") + "-"
+                + (MAGNET_LINK.hashCode() & 0xfffffff) + EXTENSIONS;
+    }
+
+    public String fileName() {
+        return Regex.toFileName(NAME) + (IS_SAFE ? "" : '-' + Regex.toFileName(Str.str("unsafe"))) + (SIZE_IN_GIB > 0 ? "-" + SIZE_IN_GIB + Regex.toFileName(
+                Str.str("GB")) : "") + "-" + (MAGNET_LINK.hashCode() & 0xfffffff) + EXTENSIONS + Constant.TORRENT;
     }
 
     public String magnetLinkURL() throws Exception {

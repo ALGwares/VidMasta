@@ -1,6 +1,5 @@
 package i18n;
 
-import java.awt.event.KeyEvent;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -9,12 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class I18nStr {
-
-    private static volatile String ctrl = "ctrl+";
-
-    public static void localeChanged() {
-        ctrl = KeyEvent.getKeyModifiersText(KeyEvent.CTRL_MASK).toLowerCase(locale()) + '+';
-    }
 
     public static Locale locale() {
         return I18n.locale();
@@ -38,10 +31,6 @@ public class I18nStr {
             result = result.replaceFirst("999", Matcher.quoteReplacement(replacement.toString()));
         }
         return result;
-    }
-
-    public static String ctrlStr(String key) {
-        return str(key).replace("CTRL+", ctrl);
     }
 
     public static String htmlLinkStr(String key, String url, Object... replacements) {

@@ -297,15 +297,15 @@ public class SplashScreen extends JFrame {
                                 .addComponent(resultsScrollPane, Alignment.LEADING)
                                 .addGroup(layout.createSequentialGroup()
                                         .addComponent(readSummaryButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED)
                                         .addComponent(watchTrailerButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED)
                                         .addComponent(downloadLink1Button)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addGap(1, 1, 1)
                                         .addComponent(downloadLink2Button)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED)
                                         .addComponent(exitBackupModeButton)
-                                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(loadMoreResultsButton))
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -354,7 +354,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, downloadLink2Button, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()

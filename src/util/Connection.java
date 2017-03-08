@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
@@ -63,11 +64,27 @@ public class Connection {
                 }
             }
         });
+        setAuthenticator();
+    }
+
+    public static void setAuthenticator() {
         try {
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    String msg = Str.str("loginRequested", getShortUrl(getRequestingURL().toString(), false));
+                    String host = getRequestingHost();
+                    if (host == null) {
+                        URL url = getRequestingURL();
+                        if (url == null) {
+                            InetAddress site = getRequestingSite();
+                            if (site != null) {
+                                host = site.getHostName();
+                            }
+                        } else {
+                            host = url.getHost();
+                        }
+                    }
+                    String msg = Str.str("loginRequested", host == null ? "" : host);
                     String prompt = getRequestingPrompt().trim();
                     if (!prompt.isEmpty()) {
                         msg += ' ' + Str.str("websiteMsg") + ' ' + prompt;

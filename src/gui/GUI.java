@@ -642,7 +642,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.resize(AbstractComponent.newInstance(readSummaryButton), watchTrailer, downloadLink1, downloadLink2, stop, readSummary);
         UI.resize(AbstractComponent.newInstance(watchTrailerButton), readSummary, downloadLink1, downloadLink2, stop, watchTrailer);
         UI.resize(AbstractComponent.newInstance(downloadLink1Button), readSummary, watchTrailer, downloadLink2, stop, downloadLink1);
-        UI.resize(AbstractComponent.newInstance(downloadLink2Button), readSummary, watchTrailer, downloadLink1, stop, downloadLink2);
+        UI.resize(AbstractComponent.newInstance(downloadLink2Button), stop, downloadLink2);
         UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + Str.str("results", 11111, Str.percent(1, 0)) + ' ',
                 searchProgressTextField.getText());
         resizeExitBackupModeButton();
@@ -2681,7 +2681,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(tvSubtitleEpisodeComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                     .addGroup(tvSubtitleDialogLayout.createSequentialGroup()
                         .addComponent(tvSubtitleDownloadMatch1Button)
-                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGap(1, 1, 1)
                         .addComponent(tvSubtitleDownloadMatch2Button)
                         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(tvSubtitleLoadingLabel)))
@@ -2771,7 +2771,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(movieSubtitleFormatComboBox, 0, 96, Short.MAX_VALUE))
                     .addGroup(movieSubtitleDialogLayout.createSequentialGroup()
                         .addComponent(movieSubtitleDownloadMatch1Button)
-                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGap(1, 1, 1)
                         .addComponent(movieSubtitleDownloadMatch2Button)
                         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(movieSubtitleLoadingLabel)))
@@ -4116,15 +4116,15 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(resultsScrollPane, Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(readSummaryButton)
-                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addComponent(watchTrailerButton)
-                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addComponent(downloadLink1Button)
-                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGap(1, 1, 1)
                         .addComponent(downloadLink2Button)
-                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addComponent(exitBackupModeButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(loadMoreResultsButton))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -4173,7 +4173,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, downloadLink2Button, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -7140,11 +7140,6 @@ public class GUI extends JFrame implements GuiListener {
 
         usePeerBlock = true;
 
-        if (!WindowsUtil.canRunProgramsAsAdmin()) {
-            msg(Str.str("adminPermissionsNeededForPeerBlock"), Constant.ERROR_MSG);
-            return;
-        }
-
         try {
             File peerBlock = new File(Constant.APP_DIR + Constant.PEER_BLOCK_VERSION);
             if (!peerBlock.exists()) {
@@ -7174,8 +7169,8 @@ public class GUI extends JFrame implements GuiListener {
             }
             String peerBlockProgram = Constant.APP_DIR + Constant.PEER_BLOCK_VERSION + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE;
             WindowsUtil.addMicrosoftRegistryEntry("Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "SZ", peerBlockProgram, "RUNASADMIN");
-            (new ProcessBuilder(Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR, peerBlockProgram,
-                    Constant.APP_TITLE, Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit")).start();
+            WindowsUtil.runJavaAsAdmin(Arrays.asList(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR, peerBlockProgram, Constant.APP_TITLE,
+                    Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit"));
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -8164,8 +8159,8 @@ public class GUI extends JFrame implements GuiListener {
         playlistMoveUpMenuItem.setText(Str.str("GUI.playlistMoveUpMenuItem.text"));
         playlistOpenButton.setToolTipText(Str.str("GUI.playlistOpenButton.toolTipText"));
         playlistOpenMenuItem.setText(Str.str("GUI.playlistOpenMenuItem.text"));
-        playlistPlayButton.setToolTipText(Str.ctrlStr("GUI.playlistPlayButton.toolTipText"));
-        playlistPlayMenuItem.setToolTipText(Str.ctrlStr("GUI.playlistPlayMenuItem.toolTipText"));
+        playlistPlayButton.setToolTipText(Str.str("GUI.playlistPlayButton.toolTipText"));
+        playlistPlayMenuItem.setToolTipText(Str.str("GUI.playlistPlayMenuItem.toolTipText"));
         playlistPlayWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.playlistPlayWithDefaultAppCheckBoxMenuItem.text"));
         playlistReloadGroupButton.setToolTipText(Str.str("GUI.playlistReloadGroupButton.toolTipText"));
         playlistReloadGroupMenuItem.setText(Str.str("GUI.playlistReloadGroupMenuItem.text"));
@@ -8174,7 +8169,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistSaveFolderMenuItem.setText(Str.str("GUI.playlistSaveFolderMenuItem.text"));
         playlistShowNonVideoItemsCheckBoxMenuItem.setText(Str.str("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.text"));
         playlistShowNonVideoItemsCheckBoxMenuItem.setToolTipText(Str.str("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.toolTipText"));
-        popularMoviesButton.setToolTipText(Str.ctrlStr("GUI.popularMoviesButton.toolTipText"));
+        popularMoviesButton.setToolTipText(Str.str("GUI.popularMoviesButton.toolTipText"));
         popularMoviesResultsPerSearchLabel.setText(Str.str("GUI.popularMoviesResultsPerSearchLabel.text"));
         popularMoviesResultsPerSearchLabel.setToolTipText(Str.str("GUI.popularMoviesResultsPerSearchLabel.toolTipText"));
         popularTVShowsButton.setToolTipText(Str.str("GUI.popularTVShowsButton.toolTipText"));

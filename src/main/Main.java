@@ -6,7 +6,6 @@ import gui.GUI;
 import gui.SplashScreen;
 import gui.UI;
 import i18n.I18n;
-import i18n.I18nStr;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Rectangle;
@@ -70,6 +69,7 @@ public class Main implements WorkerListener {
     private VideoFinder summaryFinder, trailerFinder, torrentFinder;
     private ProxyListDownloader proxyDownloader;
     private SubtitleFinder subtitleFinder;
+    private Worker streamingTorrentReloader;
     private Prefetcher prefetcher;
     private SummaryReader summaryReader;
     private Video summaryReaderVideo;
@@ -78,7 +78,6 @@ public class Main implements WorkerListener {
         suppressStdOutput();
         System.setProperty("https.protocols", "TLSv1.2");
         I18n.setLocale(new Locale("en", "US"));
-        I18nStr.localeChanged();
         Str.init(new StrUpdater());
         setLookAndFeel();
         singleInstance();
@@ -486,7 +485,6 @@ public class Main implements WorkerListener {
     @Override
     public synchronized void changeLocale(Locale locale) {
         I18n.setLocale(locale);
-        I18nStr.localeChanged();
         Magnet.localeChanged();
     }
 
@@ -529,8 +527,8 @@ public class Main implements WorkerListener {
 
             Pattern fileName = Pattern.compile("(?!((" + Pattern.quote(cleanVersion.getName()) + ")|(" + Pattern.quote(Constant.UPDATE_FILE) + ")|("
                     + Pattern.quote(Constant.USER_SETTINGS) + ")|(" + Pattern.quote(Magnet.VUZE_VERSION) + ")|(" + Pattern.quote(Magnet.IP_FILTER_VERSION) + ")|("
-                    + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION)
-                    + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(ipfilter[\\d\\.]*+)|(peerblockConf[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe))");
+                    + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATE_FAIL)
+                    + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(ipfilter[\\d\\.]*+)|(peerblockConf[\\d\\.]++)|(updateFail[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe))");
 
             for (File file : IO.listFiles(Constant.APP_DIR)) {
                 if (fileName.matcher(file.getName()).matches()) {

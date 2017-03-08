@@ -202,6 +202,7 @@ public class Magnet extends Thread {
             SystemProperties.setUserPath(VUZE_DIR);
 
             COConfigurationManager.initialise();
+            Connection.setAuthenticator();
             COConfigurationManager.setParameter("max active torrents", 256);
             COConfigurationManager.setParameter("max downloads", 256);
             COConfigurationManager.setParameter(IP_FILTER_TOGGLE, canFilterIpsWithoutBlocking);
@@ -232,9 +233,8 @@ public class Magnet extends Thread {
             return;
         }
 
-        Connection.setStatusBar(Str.str("connecting4"));
-
         try {
+            Connection.setStatusBar(Str.str("connecting4"));
             configAzureus();
             setPorts(guiListener.getPort());
 

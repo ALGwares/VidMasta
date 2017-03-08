@@ -325,7 +325,7 @@ public class VideoFinder extends Worker {
     }
 
     private void torrentDownloadError(Torrent torrent) {
-        error(new ConnectionException(Str.str("downloadingProblem", torrent.saveName(false)) + ' ' + Str.str("connectionSolution")));
+        error(new ConnectionException(Str.str("downloadingProblem", torrent.name()) + ' ' + Str.str("connectionSolution")));
     }
 
     private void saveTorrent(Torrent torrent) throws Exception {
@@ -351,13 +351,13 @@ public class VideoFinder extends Worker {
             if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                 saveTorrentHelper(torrent);
             } else if (torrent.ID.isEmpty()) {
-                if (guiListener.canProceedWithUnsafeDownload(torrent.saveName(false))) {
+                if (guiListener.canProceedWithUnsafeDownload(torrent.name())) {
                     saveTorrentHelper(torrent);
                 } else {
                     addVideoToPlaylist();
                 }
             } else {
-                String torrentSaveName = torrent.saveName(false);
+                String torrentSaveName = torrent.name();
                 guiListener.initSafetyDialog(torrentSaveName);
 
                 if (commentsFinder != null) {
@@ -386,7 +386,7 @@ public class VideoFinder extends Worker {
             return;
         }
 
-        if (!guiListener.unbanDownload(Str.hashCode(torrent.MAGNET_LINK), torrent.NAME)) {
+        if (!guiListener.unbanDownload(Str.hashCode(torrent.MAGNET_LINK), torrent.name())) {
             addVideoToPlaylist();
             return;
         }
@@ -418,7 +418,7 @@ public class VideoFinder extends Worker {
             return;
         }
 
-        String torrentFilePath = IO.parentDir(torrent.FILE) + torrent.saveName(true);
+        String torrentFilePath = IO.parentDir(torrent.FILE) + torrent.fileName();
         File torrentFile = new File(torrentFilePath);
         if (!torrentFile.exists()) {
             IO.write(torrent.FILE, torrentFile);

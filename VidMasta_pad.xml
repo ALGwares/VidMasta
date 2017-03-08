@@ -97,17 +97,17 @@
     <Press_Release>VidMasta 21.6 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
-  <ASBMPlannerID1stRound>6</ASBMPlannerID1stRound>
-  <Issues>8</Issues>
+  <ASBMPlannerID1stRound>10</ASBMPlannerID1stRound>
+  <Issues>10</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
   <Program_Info>
     <Program_Target_Platform>Windows</Program_Target_Platform>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>23.3</Program_Version>
-    <Program_Release_Month>01</Program_Release_Month>
-    <Program_Release_Day>30</Program_Release_Day>
+    <Program_Version>23.4</Program_Version>
+    <Program_Release_Month>03</Program_Release_Month>
+    <Program_Release_Day>08</Program_Release_Day>
     <Program_Release_Year>2017</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -115,13 +115,13 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Win2000,WinXP,Win7 x32,Win7 x64,Windows 8,Windows 10,WinServer,WinOther,Windows2000,Windows2003,Windows Server 2012,Windows Tablet PC Edition 2005,Windows Media Center Edition 2005,WinVista,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Ultimate,WinVista x64,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows Vista Ultimate x64</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Improved playlist display.</Program_Change_Info>
+    <Program_Change_Info>Simplified user interface and improved Windows User Account Control (UAC) compatibility.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>51373224</File_Size_Bytes>
-      <File_Size_K>50169</File_Size_K>
-      <File_Size_MB>48.99</File_Size_MB>
+      <File_Size_Bytes>52706950</File_Size_Bytes>
+      <File_Size_K>51471</File_Size_K>
+      <File_Size_MB>50.26</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
@@ -148,7 +148,7 @@
     <FacebookProductPage></FacebookProductPage>
     <GooglePlusProductPage></GooglePlusProductPage>
   </Program_Info>
-  <ASBMPlannerID2ndRound>7</ASBMPlannerID2ndRound>
+  <ASBMPlannerID2ndRound>11</ASBMPlannerID2ndRound>
   <Web_Info>
     <Application_URLs>
       <Application_Info_URL>http://sourceforge.net/projects/vidmasta</Application_Info_URL>
@@ -158,7 +158,7 @@
       <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-23.3.exe</Primary_Download_URL>
+      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-23.4.exe</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>

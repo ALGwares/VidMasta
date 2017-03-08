@@ -56,8 +56,8 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>3</ASBMPlannerID1stRound>
-  <Issues>9</Issues>
+  <ASBMPlannerID1stRound>12</ASBMPlannerID1stRound>
+  <Issues>0</Issues>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
@@ -105,9 +105,9 @@
   <Program_Info>
     <Program_Target_Platform>OS X</Program_Target_Platform>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>23.3</Program_Version>
-    <Program_Release_Month>01</Program_Release_Month>
-    <Program_Release_Day>30</Program_Release_Day>
+    <Program_Version>23.4</Program_Version>
+    <Program_Release_Month>03</Program_Release_Month>
+    <Program_Release_Day>08</Program_Release_Day>
     <Program_Release_Year>2017</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -115,13 +115,13 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac OS X,Mac OS X 10.1,Mac OS X 10.2,Mac OS X 10.3,Mac OS X 10.4,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Improved playlist display.</Program_Change_Info>
+    <Program_Change_Info>Simplified user interface and improved Windows User Account Control (UAC) compatibility.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>25313347</File_Size_Bytes>
-      <File_Size_K>24720</File_Size_K>
-      <File_Size_MB>24.14</File_Size_MB>
+      <File_Size_Bytes>26776826</File_Size_Bytes>
+      <File_Size_K>26149</File_Size_K>
+      <File_Size_MB>25.54</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
@@ -148,7 +148,6 @@
     <FacebookProductPage></FacebookProductPage>
     <GooglePlusProductPage></GooglePlusProductPage>
   </Program_Info>
-  <ASBMPlannerID2ndRound>4</ASBMPlannerID2ndRound>
   <Web_Info>
     <Application_URLs>
       <Application_Info_URL>http://sourceforge.net/projects/vidmasta</Application_Info_URL>

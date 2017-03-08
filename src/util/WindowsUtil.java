@@ -1,8 +1,14 @@
 package util;
 
+import com.sun.jna.platform.win32.Kernel32Util;
+import com.sun.jna.platform.win32.Shell32;
+import com.sun.jna.platform.win32.ShellAPI.SHELLEXECUTEINFO;
 import debug.Debug;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class WindowsUtil {
 
@@ -16,16 +22,38 @@ public class WindowsUtil {
         }
     }
 
-    public static boolean canRunProgramsAsAdmin() {
+    public static void runJavaAsAdmin(List<String> javaArgs) throws Exception {
+        List<String> cmd = new ArrayList<String>(2 + javaArgs.size());
+        Collections.addAll(cmd, Constant.JAVA, Constant.JAR_OPTION);
+        cmd.addAll(javaArgs);
+        if (!Constant.WINDOWS_VISTA_AND_HIGHER) {
+            (new ProcessBuilder(cmd)).start();
+            return;
+        }
+
+        String adminPermissionsTesterProgram = Constant.PROGRAM_DIR + "adminPermissionsTester" + Constant.EXE;
+        addMicrosoftRegistryEntry("Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "SZ", adminPermissionsTesterProgram, "RUNASADMIN");
         try {
-            String adminPermissionsTesterProgram = Constant.PROGRAM_DIR + "adminPermissionsTester" + Constant.EXE;
-            addMicrosoftRegistryEntry("Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "SZ", adminPermissionsTesterProgram, "RUNASADMIN");
-            return (new ProcessBuilder(adminPermissionsTesterProgram)).start().waitFor() == 0;
+            if ((new ProcessBuilder(adminPermissionsTesterProgram)).start().waitFor() == 0) {
+                (new ProcessBuilder(cmd)).start();
+                return;
+            }
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
             }
-            return false;
+        }
+
+        SHELLEXECUTEINFO shellExecuteInfo = new SHELLEXECUTEINFO();
+        shellExecuteInfo.lpVerb = "runas";
+        shellExecuteInfo.lpFile = '"' + cmd.get(0) + "w\"";
+        StringBuilder params = new StringBuilder(512);
+        for (int i = 1, j = cmd.size(); i < j; i++) {
+            params.append(" \"").append(cmd.get(i)).append('"');
+        }
+        shellExecuteInfo.lpParameters = params.toString().trim();
+        if (!Shell32.INSTANCE.ShellExecuteEx(shellExecuteInfo)) {
+            throw new Exception(Kernel32Util.getLastErrorMessage());
         }
     }
 
