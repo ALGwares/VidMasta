@@ -1,9 +1,9 @@
 VIDMASTA CHANGELOG
 ------------------
 
-2017.03.09   | VidMasta 23.5
+2017.03.09   | VidMasta 23.6
 
-CHANGE: UI   | Improved Turkish translations
+CHANGE: UI   | Improved Turkish translations and fixed issue in version 23.5 when operating system locale is Turkish
 CHANGE: UI   | Improved size of some buttons
 
 

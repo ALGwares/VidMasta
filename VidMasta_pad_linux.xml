@@ -105,7 +105,7 @@
   <Program_Info>
     <Program_Target_Platform>Linux</Program_Target_Platform>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>23.5</Program_Version>
+    <Program_Version>23.6</Program_Version>
     <Program_Release_Month>03</Program_Release_Month>
     <Program_Release_Day>09</Program_Release_Day>
     <Program_Release_Year>2017</Program_Release_Year>
@@ -115,13 +115,13 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Linux,Linux Console,Linux Gnome,Linux GPL,Linux Open Source</Program_OS_Support>
     <Program_Language>English</Program_Language>
-    <Program_Change_Info>Simplified user interface and improved Windows User Account Control (UAC) compatibility.</Program_Change_Info>
+    <Program_Change_Info>Improved Turkish translations, fixed issue in version 23.5 when operating system locale is Turkish, and improved size of some buttons.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
     <File_Info>
-      <File_Size_Bytes>26839539</File_Size_Bytes>
-      <File_Size_K>26210</File_Size_K>
-      <File_Size_MB>25.60</File_Size_MB>
+      <File_Size_Bytes>26776858</File_Size_Bytes>
+      <File_Size_K>26149</File_Size_K>
+      <File_Size_MB>25.54</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
@@ -157,7 +157,7 @@
       <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad_linux.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-23.5.jar</Primary_Download_URL>
+      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-23.6.jar</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
