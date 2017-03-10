@@ -2649,6 +2649,7 @@ public class GUI extends JFrame implements GuiListener {
 
         tvSubtitleDownloadMatch2Button.setText(bundle.getString("GUI.tvSubtitleDownloadMatch2Button.text")); // NOI18N
         tvSubtitleDownloadMatch2Button.setToolTipText(bundle.getString("GUI.tvSubtitleDownloadMatch2Button.toolTipText")); // NOI18N
+        tvSubtitleDownloadMatch2Button.setMargin(new Insets(0, 2, 0, 2));
         tvSubtitleDownloadMatch2Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 tvSubtitleDownloadMatch2ButtonActionPerformed(evt);
@@ -2747,6 +2748,7 @@ public class GUI extends JFrame implements GuiListener {
 
         movieSubtitleDownloadMatch2Button.setText(bundle.getString("GUI.movieSubtitleDownloadMatch2Button.text")); // NOI18N
         movieSubtitleDownloadMatch2Button.setToolTipText(bundle.getString("GUI.movieSubtitleDownloadMatch2Button.toolTipText")); // NOI18N
+        movieSubtitleDownloadMatch2Button.setMargin(new Insets(0, 2, 0, 2));
         movieSubtitleDownloadMatch2Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 movieSubtitleDownloadMatch2ButtonActionPerformed(evt);
@@ -3526,6 +3528,7 @@ public class GUI extends JFrame implements GuiListener {
         downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text")); // NOI18N
         downloadLink2Button.setToolTipText(bundle.getString("GUI.downloadLink2Button.toolTipText")); // NOI18N
         downloadLink2Button.setEnabled(false);
+        downloadLink2Button.setMargin(new Insets(0, 2, 0, 2));
         downloadLink2Button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 downloadLink2ButtonActionPerformed(evt);
@@ -4229,7 +4232,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, exitBackupModeButton, findTextField, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {connectionIssueButton, searchProgressTextField, statusBarTextField});
 

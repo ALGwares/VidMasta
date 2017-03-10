@@ -2497,6 +2497,9 @@
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="i18n/Bundle.properties" key="GUI.tvSubtitleDownloadMatch2Button.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
             </Property>
+            <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+              <Insets value="[0, 2, 0, 2]"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tvSubtitleDownloadMatch2ButtonActionPerformed"/>
@@ -2621,6 +2624,9 @@
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
               <ResourceString bundle="i18n/Bundle.properties" key="GUI.movieSubtitleDownloadMatch2Button.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            </Property>
+            <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+              <Insets value="[0, 2, 0, 2]"/>
             </Property>
           </Properties>
           <Events>
@@ -4369,13 +4375,13 @@
               <Component id="resultsScrollPane" pref="552" max="32767" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="exitBackupModeButton" alignment="1" min="-2" max="-2" attributes="0"/>
+                  <Component id="exitBackupModeButton" linkSize="120" alignment="1" min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="readSummaryButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="watchTrailerButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="downloadLink1Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="downloadLink2Button" linkSize="120" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="loadMoreResultsButton" alignment="3" min="-2" max="-2" attributes="1"/>
+                      <Component id="loadMoreResultsButton" linkSize="120" alignment="3" min="-2" max="-2" attributes="1"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -4762,6 +4768,9 @@
           <ResourceString bundle="i18n/Bundle.properties" key="GUI.downloadLink2Button.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
         </Property>
         <Property name="enabled" type="boolean" value="false"/>
+        <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+          <Insets value="[0, 2, 0, 2]"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadLink2ButtonActionPerformed"/>

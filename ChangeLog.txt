@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2017.03.09   | VidMasta 23.5
+
+CHANGE: UI   | Improved Turkish translations
+CHANGE: UI   | Improved size of some buttons
+
+
+
+
 2017.03.08   | VidMasta 23.4
 
 CHANGE: UI   | Simplified user interface

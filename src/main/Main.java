@@ -77,7 +77,7 @@ public class Main implements WorkerListener {
     static {
         suppressStdOutput();
         System.setProperty("https.protocols", "TLSv1.2");
-        I18n.setLocale(new Locale("en", "US"));
+        I18n.setLocale(null);
         Str.init(new StrUpdater());
         setLookAndFeel();
         singleInstance();

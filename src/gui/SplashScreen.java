@@ -225,6 +225,8 @@ public class SplashScreen extends JFrame {
 
         downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text"));
         downloadLink2Button.setEnabled(false);
+        downloadLink2Button.setMargin(new Insets(0, 2, 0, 2));
+        UI.resize(AbstractComponent.newInstance(downloadLink2Button), bundle.getString(Constant.STOP_KEY), downloadLink2Button.getText());
 
         statusBarTextField.setEditable(false);
         statusBarTextField.setFont(new Font("Verdana", 0, 10));
@@ -381,8 +383,10 @@ public class SplashScreen extends JFrame {
                                                                 .addComponent(ratingLabel)
                                                                 .addComponent(ratingComboBox)
                                                                 .addComponent(releasedLabel))
-                                                        .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                        .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                                GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                                GroupLayout.PREFERRED_SIZE))
                                                 .addComponent(releasedToLabel)))
                                 .addComponent(searchButton)
                                 .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
@@ -410,7 +414,8 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularTVShowsButton});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, findTextField, readSummaryButton, watchTrailerButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, findTextField,
+            loadMoreResultsButton, readSummaryButton, watchTrailerButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{connectionIssueButton, searchProgressTextField, statusBarTextField});
     }
