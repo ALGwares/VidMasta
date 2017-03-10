@@ -236,5 +236,140 @@ Features
 * PeerBlock entegrasyonu (yalnızca Windows XP ve üstü için geçerlidir)</Char_Desc_2000>
       <Keywords>izle,akış,filmler,tv,televizyon,torrent,mıknatıs linkini</Keywords>
     </Turkish>
+    <Dutch>
+      <Keywords>horloge,stroom,films,tv,televisie,torrent,magnet link</Keywords>
+      <Char_Desc_45>Kijk en downloaden van films en tv-shows.</Char_Desc_45>
+      <Char_Desc_80>Kijk en downloaden van films en tv-titels die worden online worden gedeeld.</Char_Desc_80>
+      <Char_Desc_250>Kijk of downloaden film- en tv-titels in elk formaat (TV, DVD, 720p, 1080i / p) met slechts twee klikken van de muis. De eerste klik is om druk op de zoekknop. De tweede klik is om de download knop te raken.</Char_Desc_250>
+      <Char_Desc_450>Kijk of downloaden film- en tv-titels in elk formaat (TV, DVD, 720p, 1080i / p) met slechts twee klikken van de muis. De eerste klik is om druk op de zoekknop. De tweede klik is om de download knop te raken. Functies zijn onder meer: anonimiteit via automatische filtering van untrusty IPs, het gebruik van volmachten, en encryptie, download video ondertiteling, en nog veel meer.</Char_Desc_450>
+      <Char_Desc_2000>Kijk en downloaden van films en tv-titels die worden online worden gedeeld.
+
+Kenmerken
+* Kijk of downloaden van films en tv-titels in elk formaat (TV, DVD, 720p, 1080i / p) met slechts twee klikken van de muis. De eerste klik is om druk op de zoekknop. De tweede klik is om de download knop te raken.
+* Anonimiteit via automatische filtering van untrusty IPs, het gebruik van volmachten, en encryptie
+* "Deep Search, Beste Source" algoritme voor superieure video download links. Het algoritme verzamelt alle potentiële download links op basis van variaties van de zoekopdracht en selecteert vervolgens de beste verbinding op basis van factoren die de betrouwbaarheid, het aantal downloaders en uploaders en video bestandsgrootte bevatten.
+* "Popular Movies" optie om recente films die het meest zijn gedownload weer te geven
+* "Popular TV Shows" optie om de recente tv-programma's die het meest zijn gedownload weer te geven
+* Download video ondertitels
+* Stel het aantal resultaten per zoekopdracht
+* Stel de minimale en maximale grootte van een video-bestand dat kan worden gedownload
+* Stel de video bestandsextensies die kunnen worden gedownload
+* Zoeken naar film- en tv-titels op naam, release datum, genre, waardering, land en taal
+* Automatische volgorde van de zoekresultaten van populariteit
+* Hoor en lees de kleine samenvattingen van titels
+* Bekijk trailers van titels
+* Bekijk release data en ratings van titels
+* E-mail download links, stream links, en aanhangwagen koppelingen
+* Detectie van video box sets
+* PeerBlock integratie (alleen beschikbaar voor Windows XP en hoger)</Char_Desc_2000>
+    </Dutch>
+    <French>
+      <Keywords>montre,flux,films,tv,télévision,torrent,aimant lien</Keywords>
+      <Char_Desc_45>Regarder des films et la télévision.</Char_Desc_45>
+      <Char_Desc_80>Regarder des titres de films et de télévision qui sont partagés en ligne.</Char_Desc_80>
+      <Char_Desc_250>Regardez des films et des titres de télévision dans n'importe quel format (TV, DVD, 720p, 1080i / p) avec seulement deux clics de souris.</Char_Desc_250>
+      <Char_Desc_450>Regardez ou téléchargez des films et des titres de télévision dans n'importe quel format (TV, DVD, 720p, 1080i / p) avec seulement deux clics de la souris. Les fonctionnalités comprennent: l'anonymat via le filtrage automatique des IP non fiables, l'utilisation de proxies et le cryptage, télécharger des sous-titres vidéo, et plus encore.</Char_Desc_450>
+      <Char_Desc_2000>Regardez et téléchargez tous les titres de films et de télévision qui sont partagés en ligne.
+
+Caractéristiques
+* Regarder ou télécharger des films et des titres de télévision dans n'importe quel format (TV, DVD, 720p, 1080i / p) avec aussi peu que deux clics de la souris. Le premier clic est de cliquer sur le bouton de recherche. Le deuxième clic est de cliquer sur le bouton de téléchargement.
+* L'anonymat via le filtrage automatique des IP non fiables, l'utilisation de proxies et le cryptage
+* "Deep Search, Best Source" algorithme pour les liens de téléchargement de vidéo supérieure. L'algorithme regroupe tous les liens de téléchargement potentiels basés sur les variations de la requête de recherche et sélectionne ensuite le meilleur lien basé sur des facteurs tels que la fiabilité, le nombre de téléchargements et d'uploaders et la taille du fichier vidéo.
+* "Films populaires" option pour afficher les films récents qui ont été téléchargés le plus
+* "Populaires TV Shows" option pour afficher les émissions de télévision récentes qui ont été téléchargés le plus
+* Télécharger les sous-titres vidéo
+* Définir le nombre de résultats par recherche
+* Définissez la taille minimale et maximale d'un fichier vidéo pouvant être téléchargé
+* Définissez les extensions de fichier vidéo pouvant être téléchargées
+* Recherche de films et de titres de télévision par nom, date de sortie, genre, classement, pays et langue
+* Ordre automatique des résultats de recherche par popularité
+* Écoutez et lisez de petits résumés de titres
+* Voir les bandes-annonces des titres
+* Afficher les dates de sortie et les notes des titres
+* Email télécharger des liens, des liens de flux, et des liens de remorque
+* Détection de boîtes vidéo
+* PeerBlock intégration (uniquement disponible pour Windows XP et plus)</Char_Desc_2000>
+    </French>
+    <Italian>
+      <Keywords>orologio,flusso,film,tv,televisione,torrente,magnet link</Keywords>
+      <Char_Desc_45>Guardare film e spettacoli televisivi.</Char_Desc_45>
+      <Char_Desc_80>Guarda titoli di film e televisione che vengono condivisi online.</Char_Desc_80>
+      <Char_Desc_250>Guardare o scaricare titoli di film e televisione in qualsiasi formato (TV, DVD, 720p, 1080i / p) con due soli clic del mouse. Il primo clic è quello di colpire il pulsante di ricerca. Il secondo clic è quello di colpire il pulsante per il download.</Char_Desc_250>
+      <Char_Desc_450>Guardare o scaricare titoli di film e televisione in qualsiasi formato (TV, DVD, 720p, 1080i / p) con due soli clic del mouse. Il primo clic è quello di colpire il pulsante di ricerca. Il secondo clic è quello di colpire il pulsante per il download. Le caratteristiche includono: l'anonimato tramite filtraggio automatico di IP untrusty, l'uso di proxy, e la crittografia, i sottotitoli scaricare il video, e altro ancora.</Char_Desc_450>
+      <Char_Desc_2000>Guarda e scarica eventuali titoli di film e televisione che vengono condivisi online.
+
+Caratteristiche
+* Guardare o scaricare titoli di film e televisione in qualsiasi formato (TV, DVD, 720p, 1080i / p) con due soli clic del mouse. Il primo clic è quello di colpire il pulsante di ricerca. Il secondo clic è quello di colpire il pulsante per il download.
+* L'anonimato tramite filtraggio automatico di IP untrusty, l'uso di proxy, e la crittografia
+* "Deep Search, migliore fonte" algoritmo per superiori link il video download. L'algoritmo aggrega tutti i potenziali link per il download in base variazioni della query di ricerca e quindi seleziona il link migliore sulla base di fattori che includono l'affidabilità, il numero di downloader e uploader, e la dimensione del file video.
+* "Film famosi" per visualizzare i film recenti che sono stati scaricati più
+* "Popular TV Shows" per visualizzare programmi televisivi recenti che sono stati scaricati più
+* sottotitoli Scarica il video
+* Impostare il numero di risultati per ricerca
+* Impostare la dimensione minima e massima di un file video che può essere scaricato
+* Impostare le estensioni di file video che possono essere scaricati
+* Ricerca di film e televisione titoli per nome, data di uscita, genere, rating, paese e lingua
+* Ordinamento automatico dei risultati di ricerca di popolarità
+* Sentire e leggere piccoli riassunti dei titoli
+* Guarda trailer di titoli
+* Vedi date di rilascio e rating di titoli
+* collegamenti e-mail scaricare, link streaming e collegamenti rimorchio
+* Rilevamento di cofanetti di video
+* Integrazione PeerBlock (disponibile solo per Windows XP e versioni successive)</Char_Desc_2000>
+    </Italian>
+    <Spanish>
+      <Keywords>reloj,corriente,películas,tv,televisión,torrent,enlace del imán</Keywords>
+      <Char_Desc_45>Ver películas y programas de televisión.</Char_Desc_45>
+      <Char_Desc_80>Vea películas y títulos de televisión que se comparten en línea.</Char_Desc_80>
+      <Char_Desc_250>Mire o descargue películas y títulos de televisión en cualquier formato (TV, DVD, 720p, 1080i / p) con tan sólo dos clics del ratón. El primer clic es pulsar el botón de búsqueda. El segundo clic es pulsar el botón de descarga.</Char_Desc_250>
+      <Char_Desc_450>Mire o descargue películas y títulos de televisión en cualquier formato (TV, DVD, 720p, 1080i / p) con tan sólo dos clics del ratón. El primer clic es pulsar el botón de búsqueda. El segundo clic es pulsar el botón de descarga. Las características incluyen: el anonimato a través de filtrado automático de IPs no confiables, el uso de proxies, y el cifrado, descargar subtítulos de vídeo, y mucho más.</Char_Desc_450>
+      <Char_Desc_2000>Ver y descargar cualquier película y títulos de televisión que se comparten en línea.
+
+Caracteristicas
+* Ver o descargar películas y títulos de televisión en cualquier formato (TV, DVD, 720p, 1080i / p) con tan sólo dos clics del ratón. El primer clic es pulsar el botón de búsqueda. El segundo clic es pulsar el botón de descarga.
+* Anonimato a través de filtrado automático de IPs no confiables, el uso de proxies y cifrado
+* "Deep Search, Best Source" algoritmo para enlaces de descarga de vídeo superior. El algoritmo agrega todos los enlaces de descarga potenciales basados ​​en las variaciones de la consulta de búsqueda y luego selecciona el mejor enlace basado en factores que incluyen confiabilidad, número de descargadores y cargadores y tamaño de archivo de video.
+* "Películas Populares" opción para mostrar las películas recientes que se han descargado la mayoría
+* La opción "Programas de TV populares" para mostrar programas de TV recientes que se han descargado más
+* Descargar subtítulos de vídeo
+* Establecer el número de resultados por búsqueda
+* Establecer el tamaño mínimo y máximo de un archivo de vídeo que se puede descargar
+* Establecer las extensiones de archivo de vídeo que se pueden descargar
+* Búsqueda de películas y títulos de televisión por nombre, fecha de lanzamiento, género, clasificación, país e idioma
+* Ordenación automática de resultados de búsqueda por popularidad
+* Escuchar y leer pequeños resúmenes de títulos
+* Ver trailers de títulos
+* Ver fechas de lanzamiento y calificaciones de los títulos
+* Enlaces de descarga de correo electrónico, enlaces de flujo y enlaces de remolque
+* Detección de juegos de video box
+* PeerBlock integración (sólo disponible para Windows XP y superior)</Char_Desc_2000>
+    </Spanish>
+    <Portuguese>
+      <Keywords>relógio,fluxo,filmes,tv,televisão,torrent,link de ímã</Keywords>
+      <Char_Desc_45>Assista a filmes e programas de TV.</Char_Desc_45>
+      <Char_Desc_80>Assista a filmes e títulos de televisão que estão sendo compartilhados on-line.</Char_Desc_80>
+      <Char_Desc_250>Assista ou faça download de filmes e títulos de televisão em qualquer formato (TV, DVD, 720p, 1080i / p) com apenas dois cliques do mouse. O primeiro clique é clicar no botão de pesquisa. O segundo clique é clicar no botão de download.</Char_Desc_250>
+      <Char_Desc_450>Assista ou faça download de filmes e títulos de televisão em qualquer formato (TV, DVD, 720p, 1080i / p) com apenas dois cliques do mouse. O primeiro clique é clicar no botão de pesquisa. O segundo clique é clicar no botão de download. Os recursos incluem: anonimato via filtragem automática de IPs não confiáveis, o uso de proxies e criptografia, download de legendas de vídeo e muito mais.</Char_Desc_450>
+      <Char_Desc_2000>Assista e faça o download de qualquer filme e títulos de televisão que estão sendo compartilhados on-line.
+
+Características
+* Assista ou baixe filmes e títulos de televisão em qualquer formato (TV, DVD, 720p, 1080i / p) com apenas dois cliques do mouse. O primeiro clique é clicar no botão de pesquisa. O segundo clique é clicar no botão de download.
+* Anonimato via filtragem automática de IPs não confiáveis, uso de proxies e criptografia
+* "Deep Search, Best Source" algoritmo para links de download de vídeo superior. O algoritmo agrega todos os potenciais links de download baseados em variações da consulta de pesquisa e, em seguida, seleciona o melhor link com base em fatores que incluem confiabilidade, número de downloaders e uploaders e tamanho do arquivo de vídeo.
+* Opção "Filmes Populares" para exibir os filmes recentes que foram
+* "Programas de TV populares" para exibir programas de TV recentes que foram
+* Download de legendas de vídeo
+* Definir o número de resultados por pesquisa
+* Definir o tamanho mínimo e máximo de um arquivo de vídeo que pode ser baixado
+* Defina as extensões de arquivo de vídeo que podem ser baixadas
+* Procurar títulos de filmes e televisão por nome, data de lançamento, gênero, classificação, país e idioma
+* Ordenação automática dos resultados de pesquisa por popularidade
+* Ouvir e ler pequenos resumos de títulos
+* Ver trailers de títulos
+* Exibir datas de lançamento e classificações de títulos
+* Email links de download, links de fluxo e links de trailer
+* Detecção de conjuntos de caixa de vídeo
+* Integração PeerBlock (apenas disponível para Windows XP e superior)</Char_Desc_2000>
+    </Portuguese>
   </Program_Descriptions>
 </XML_DIZ_INFO>
