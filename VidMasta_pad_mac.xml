@@ -114,7 +114,7 @@
     <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac OS X,Mac OS X 10.1,Mac OS X 10.2,Mac OS X 10.3,Mac OS X 10.4,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
-    <Program_Language>English</Program_Language>
+    <Program_Language>English,Dutch,French,Italian,Portuguese,Spanish,Turkish</Program_Language>
     <Program_Change_Info>Improved Turkish translations, fixed issue in version 23.5 when operating system locale is Turkish, and improved size of some buttons.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
