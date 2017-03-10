@@ -209,5 +209,32 @@ Features
 * Detection of video box sets
 * PeerBlock integration (only available for Windows XP and higher)</Char_Desc_2000>
     </English>
+    <Turkish>
+      <Char_Desc_45>Filmleri ve TV şovlarını izleyin ve indirin.</Char_Desc_45>
+      <Char_Desc_80>Çevrimiçi olarak paylaşılan filmleri ve televizyon adlarını izleyin ve indirin.</Char_Desc_80>
+      <Char_Desc_250>Film ve televizyon başlıklarını farenin iki kere tıklanarak herhangi bir biçimde (TV, DVD, 720p, 1080i / p) izleyin veya indirin. İlk tıklama, arama düğmesine basmaktır. İkinci tıklama indirme düğmesine basmaktır.</Char_Desc_250>
+      <Char_Desc_450>Film ve televizyon başlıklarını farenin iki kere tıklanarak herhangi bir biçimde (TV, DVD, 720p, 1080i / p) izleyin veya indirin. İlk tıklama, arama düğmesine basmaktır. İkinci tıklama indirme düğmesine basmaktır. Özellikleri şunları içerir: güvenilmez IP'lerin otomatik olarak filtrelenmesi, anlık mesajlaşma kullanımı ve şifreleme, video altyazıları indirme ve daha fazlası.</Char_Desc_450>
+      <Char_Desc_2000>Çevrimiçi olarak paylaşılan filmleri ve televizyon adlarını izleyin ve indirin.
+
+Özellikler
+* Film ve televizyon başlıklarını farenin iki tıklama kadar az olması ile herhangi bir formatta (TV, DVD, 720p, 1080i / p) izleyebilir veya indirebilirsiniz. İlk tıklama, arama düğmesine basmaktır. İkinci tıklama indirme düğmesine basmaktır.
+* Güvenilir olmayan IP'lerin otomatik filtrelenmesi, vekillerin kullanılması ve şifreleme yoluyla anonimlik
+* Üstün video indirme bağlantıları için "Derin Arama, En İyi Kaynak" algoritması. Algoritma, arama sorgusunun varyasyonlarına dayalı olarak tüm olası indirme bağlantılarını toplar ve ardından güvenilirlik, indirici ve yükleyicilerin sayısı ve video dosyası boyutu içeren faktörlere dayalı en iyi bağlantıyı seçer.
+* En çok indirilen son filmleri görüntülemek için "Popüler Filmler" seçeneği
+* En çok indirilen yeni TV şovlarını görüntülemek için "Popüler TV Şovları" seçeneği
+* Video altyazıları indir
+* Arama başına sonuç sayısını ayarlayın
+* İndirilebilecek bir video dosyasının minimum ve maksimum boyutunu ayarlayın
+* İndirilebilecek video dosya uzantılarını ayarlayın
+* Film ve televizyon başlıklarını isim, yayın tarihi, tür, derecelendirme, ülke ve dile göre arayın
+* Popülerliğe göre arama sonuçlarının otomatik olarak sıralanması
+* Başlıkların küçük özetlerini dinleyin ve okuyun
+* Başlıkların fragmanlarını görüntüle
+* Yayın tarihlerini ve başlıkların derecelendirmesini görün
+* E-posta indirme bağlantıları, akış bağlantıları ve römork bağlantıları
+* Video kutusu setlerinin algılanması
+* PeerBlock entegrasyonu (yalnızca Windows XP ve üstü için geçerlidir)</Char_Desc_2000>
+      <Keywords>izle,akış,filmler,tv,televizyon,torrent,mıknatıs linkini</Keywords>
+    </Turkish>
   </Program_Descriptions>
 </XML_DIZ_INFO>
