@@ -51,6 +51,7 @@ public class SplashScreen extends JFrame {
 
         initComponents();
 
+        UI.setIcon(popularPopupMenuButton, "more");
         loadingLabel.setIcon(UI.icon("loading.gif"));
 
         Color bgColor = getBackground();
@@ -84,7 +85,7 @@ public class SplashScreen extends JFrame {
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
         popularMoviesButton = new JButton();
-        popularTVShowsButton = new JButton();
+        popularPopupMenuButton = new JButton();
         loadingLabel = new JLabel();
         readSummaryButton = new JButton();
         watchTrailerButton = new JButton();
@@ -209,8 +210,9 @@ public class SplashScreen extends JFrame {
         popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text"));
         popularMoviesButton.setEnabled(false);
 
-        popularTVShowsButton.setText(bundle.getString("GUI.popularTVShowsButton.text"));
-        popularTVShowsButton.setEnabled(false);
+        popularPopupMenuButton.setText(null);
+        popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
+        popularPopupMenuButton.setEnabled(false);
 
         loadingLabel.setText(null);
 
@@ -313,8 +315,8 @@ public class SplashScreen extends JFrame {
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                                 .addGroup(layout.createSequentialGroup()
                                                         .addComponent(popularMoviesButton)
-                                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                                        .addComponent(popularTVShowsButton)
+                                                        .addGap(1, 1, 1)
+                                                        .addComponent(popularPopupMenuButton)
                                                         .addGap(18, 18, 18)
                                                         .addComponent(findTextField))
                                                 .addGroup(layout.createSequentialGroup()
@@ -354,8 +356,6 @@ public class SplashScreen extends JFrame {
                         .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{popularMoviesButton, popularTVShowsButton});
-
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -365,7 +365,7 @@ public class SplashScreen extends JFrame {
                                 .addComponent(loadingLabel)
                                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                         .addComponent(popularMoviesButton)
-                                        .addComponent(popularTVShowsButton)
+                                        .addComponent(popularPopupMenuButton)
                                         .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -412,7 +412,7 @@ public class SplashScreen extends JFrame {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{genreLabel, ratingLabel, releasedLabel});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularTVShowsButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularPopupMenuButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, findTextField,
             loadMoreResultsButton, readSummaryButton, watchTrailerButton});
@@ -438,7 +438,7 @@ public class SplashScreen extends JFrame {
     JMenuBar menuBar;
     JMenu playlistMenu;
     JButton popularMoviesButton;
-    JButton popularTVShowsButton;
+    JButton popularPopupMenuButton;
     JComboBox ratingComboBox;
     JLabel ratingLabel;
     JButton readSummaryButton;

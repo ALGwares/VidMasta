@@ -303,7 +303,7 @@ public class VideoFinder extends Worker {
                         return;
                     }
                     imagePath = null;
-                    guiListener.msg(Str.str("posterDisplayError") + Constant.STD_NEWLINE2 + ThrowableUtil.toString(e), Constant.ERROR_MSG);
+                    guiListener.error(new ConnectionException(Str.str("posterDisplayError") + Constant.STD_NEWLINE2 + ThrowableUtil.toString(e)));
                 }
             }
         }

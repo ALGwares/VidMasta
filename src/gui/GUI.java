@@ -107,6 +107,8 @@ import javax.swing.JTextPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.MenuElement;
+import javax.swing.MenuSelectionManager;
 import javax.swing.RootPaneContainer;
 import javax.swing.RowFilter;
 import javax.swing.ScrollPaneConstants;
@@ -166,8 +168,9 @@ public class GUI extends JFrame implements GuiListener {
     private static final Preferences preferences = Preferences.userNodeForPackage(GUI.class);
 
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isTVShowSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay,
+    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay,
             forcePlaylistDownloader = true;
+    private MenuElement popularSearchMenuElement;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
     private final Set<Long> bannedDownloadIDs = new CopyOnWriteArraySet<Long>();
@@ -318,8 +321,6 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
         }, connectionIssueButton);
-
-        UI.addPopupMenu(popularMoviesButtonPopupMenu, popularMoviesButton);
 
         splashScreen.progress();
 
@@ -475,6 +476,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.add(downloaderButtonGroup, playlistDownloaderRadioButtonMenuItem, webBrowserAppDownloaderRadioButtonMenuItem,
                 webBrowserAltAppDownloaderRadioButtonMenuItem, defaultApplicationDownloaderRadioButtonMenuItem, noDownloaderRadioButtonMenuItem);
 
+        UI.setIcon(popularPopupMenuButton, "more");
         loadingIcon = UI.icon("loading.gif");
         notLoadingIcon = UI.icon("notLoading.gif");
         for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel,
@@ -576,6 +578,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
+        splashScreen.progress();
+
         try {
             trayIcon = UI.addMinimizeToTraySupport(this);
             playlistTrayIcon = UI.addMinimizeToTraySupport(playlistFrame);
@@ -620,7 +624,6 @@ public class GUI extends JFrame implements GuiListener {
 
     private void updateToggleButtons(boolean init) {
         UI.updateToggleButton(searchButton, "GUI.searchButton.text", init);
-        UI.updateToggleButton(popularTVShowsButton, "GUI.popularTVShowsButton.text", init);
         UI.updateToggleButton(popularMoviesButton, "GUI.popularMoviesButton.text", init);
         UI.updateToggleButton(readSummaryButton, "GUI.readSummaryButton.text", init);
         UI.updateToggleButton(watchTrailerButton, "GUI.watchTrailerButton.text", init);
@@ -633,12 +636,10 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     public void resizeContent() {
-        String stop = Str.str(Constant.STOP_KEY), popularMovies = popularMoviesButton.getName(), popularTVShows = popularTVShowsButton.getName(), readSummary
-                = readSummaryButton.getName(), watchTrailer = watchTrailerButton.getName(), downloadLink1 = downloadLink1Button.getName(), downloadLink2
-                = downloadLink2Button.getName();
+        String stop = Str.str(Constant.STOP_KEY), readSummary = readSummaryButton.getName(), watchTrailer = watchTrailerButton.getName(), downloadLink1
+                = downloadLink1Button.getName(), downloadLink2 = downloadLink2Button.getName();
         UI.resize(AbstractComponent.newInstance(searchButton), stop, searchButton.getName());
-        UI.resize(AbstractComponent.newInstance(popularTVShowsButton), popularMovies, stop, popularTVShows);
-        UI.resize(AbstractComponent.newInstance(popularMoviesButton), popularTVShows, stop, popularMovies);
+        UI.resize(AbstractComponent.newInstance(popularMoviesButton), stop, popularMoviesButton.getName());
         UI.resize(AbstractComponent.newInstance(readSummaryButton), watchTrailer, downloadLink1, downloadLink2, stop, readSummary);
         UI.resize(AbstractComponent.newInstance(watchTrailerButton), readSummary, downloadLink1, downloadLink2, stop, watchTrailer);
         UI.resize(AbstractComponent.newInstance(downloadLink1Button), readSummary, watchTrailer, downloadLink2, stop, downloadLink1);
@@ -702,19 +703,6 @@ public class GUI extends JFrame implements GuiListener {
             posters.put(imagePath, image = new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(60, 89, Image.SCALE_SMOOTH))); // Not a concurrency bug
         }
         return image;
-    }
-
-    public void showFeed(boolean isStartUp) {
-        if (isStartUp && !feedCheckBoxMenuItem.isSelected()) {
-            return;
-        }
-
-        findControl.hide(true);
-        isTVShowSearch = false;
-        isRegularSearcher = false;
-        int numResultsPerSearch = Integer.parseInt((String) popularMoviesResultsPerSearchComboBox.getSelectedItem());
-        String[] languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries = UI.selectAnyIfNoSelectionAndCopy(countryList);
-        workerListener.popularSearchStarted(numResultsPerSearch, isTVShowSearch, languages, countries, true, !isStartUp);
     }
 
     private void initFileNameExtensionFilters() {
@@ -830,6 +818,10 @@ public class GUI extends JFrame implements GuiListener {
         watchOnDeviceMenuItem = new JMenuItem();
         tablePopupMenuSeparator3 = new Separator();
         findSubtitleMenuItem = new JMenuItem();
+        popularPopupMenu = new JPopupMenu();
+        popularNewHQMoviesMenuItem = new JMenuItem();
+        popularTVShowsMenuItem = new JMenuItem();
+        popularNewHQTVShowsMenuItem = new JMenuItem();
         textComponentPopupMenu = new JPopupMenu();
         textComponentCutMenuItem = new JMenuItem();
         textComponentCopyMenuItem = new JMenuItem();
@@ -934,8 +926,6 @@ public class GUI extends JFrame implements GuiListener {
         listSelectAllMenuItem = new JMenuItem();
         connectionIssueButtonPopupMenu = new JPopupMenu();
         hideMenuItem = new JMenuItem();
-        popularMoviesButtonPopupMenu = new JPopupMenu();
-        viewNewHighQualityMoviesMenuItem = new JMenuItem();
         playlistFrame = new JFrame() {
             private static final long serialVersionUID = 1L;
 
@@ -988,7 +978,7 @@ public class GUI extends JFrame implements GuiListener {
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
         popularMoviesButton = new JButton();
-        popularTVShowsButton = new JButton();
+        popularPopupMenuButton = new JButton();
         loadingLabel = new JLabel();
         readSummaryButton = new JButton();
         watchTrailerButton = new JButton();
@@ -1979,6 +1969,33 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
+        popularNewHQMoviesMenuItem.setText(bundle.getString("GUI.popularNewHQMoviesMenuItem.text")); // NOI18N
+        popularNewHQMoviesMenuItem.setToolTipText(bundle.getString("GUI.popularNewHQMoviesMenuItem.toolTipText")); // NOI18N
+        popularNewHQMoviesMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                popularNewHQMoviesMenuItemActionPerformed(evt);
+            }
+        });
+        popularPopupMenu.add(popularNewHQMoviesMenuItem);
+
+        popularTVShowsMenuItem.setText(bundle.getString("GUI.popularTVShowsMenuItem.text")); // NOI18N
+        popularTVShowsMenuItem.setToolTipText(bundle.getString("GUI.popularTVShowsMenuItem.toolTipText")); // NOI18N
+        popularTVShowsMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                popularTVShowsMenuItemActionPerformed(evt);
+            }
+        });
+        popularPopupMenu.add(popularTVShowsMenuItem);
+
+        popularNewHQTVShowsMenuItem.setText(bundle.getString("GUI.popularNewHQTVShowsMenuItem.text")); // NOI18N
+        popularNewHQTVShowsMenuItem.setToolTipText(bundle.getString("GUI.popularNewHQTVShowsMenuItem.toolTipText")); // NOI18N
+        popularNewHQTVShowsMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                popularNewHQTVShowsMenuItemActionPerformed(evt);
+            }
+        });
+        popularPopupMenu.add(popularNewHQTVShowsMenuItem);
+
         textComponentPopupMenu.addPopupMenuListener(new PopupMenuListener() {
             public void popupMenuCanceled(PopupMenuEvent evt) {
             }
@@ -2953,16 +2970,6 @@ public class GUI extends JFrame implements GuiListener {
 
         splashScreen.progress();
 
-        viewNewHighQualityMoviesMenuItem.setText(bundle.getString("GUI.viewNewHighQualityMoviesMenuItem.text")); // NOI18N
-        viewNewHighQualityMoviesMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                viewNewHighQualityMoviesMenuItemActionPerformed(evt);
-            }
-        });
-        popularMoviesButtonPopupMenu.add(viewNewHighQualityMoviesMenuItem);
-
-        splashScreen.progress();
-
         playlistFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         playlistFrame.setTitle(bundle.getString("GUI.playlistFrame.title")); // NOI18N
         playlistFrame.setAlwaysOnTop(true);
@@ -3488,11 +3495,11 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        popularTVShowsButton.setText(bundle.getString("GUI.popularTVShowsButton.text")); // NOI18N
-        popularTVShowsButton.setToolTipText(bundle.getString("GUI.popularTVShowsButton.toolTipText")); // NOI18N
-        popularTVShowsButton.addActionListener(new ActionListener() {
+        popularPopupMenuButton.setText(null);
+        popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
+        popularPopupMenuButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                popularTVShowsButtonActionPerformed(evt);
+                popularPopupMenuButtonActionPerformed(evt);
             }
         });
 
@@ -4133,8 +4140,8 @@ public class GUI extends JFrame implements GuiListener {
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(popularMoviesButton)
-                                .addPreferredGap(ComponentPlacement.UNRELATED)
-                                .addComponent(popularTVShowsButton)
+                                .addGap(1, 1, 1)
+                                .addComponent(popularPopupMenuButton)
                                 .addGap(18, 18, 18)
                                 .addComponent(findTextField))
                             .addGroup(layout.createSequentialGroup()
@@ -4174,8 +4181,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
 
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {popularMoviesButton, popularTVShowsButton});
-
         layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, readSummaryButton, watchTrailerButton});
 
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -4185,7 +4190,7 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(loadingLabel)
                     .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                         .addComponent(popularMoviesButton)
-                        .addComponent(popularTVShowsButton)
+                        .addComponent(popularPopupMenuButton)
                         .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(Alignment.LEADING)
@@ -4230,7 +4235,7 @@ public class GUI extends JFrame implements GuiListener {
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {genreLabel, ratingLabel, releasedLabel});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularTVShowsButton});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularPopupMenuButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, exitBackupModeButton, findTextField, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
 
@@ -4553,23 +4558,21 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void popularMoviesButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularMoviesButtonActionPerformed
-        if (!stopSearch(popularMoviesButton)) {
-            if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK) {
-                showFeed(false);
-            } else {
-                doPopularVideosSearch(false);
-            }
-        }
+        doPopularVideosSearch(false, false, false, null);
     }//GEN-LAST:event_popularMoviesButtonActionPerformed
 
-    private void doPopularVideosSearch(boolean isPopularTVShows) {
+    public void doPopularVideosSearch(boolean isTVShow, boolean isFeed, boolean isStartUp, MenuElement menuElement) {
+        if (stopSearch(popularMoviesButton) || (isFeed && isStartUp && !feedCheckBoxMenuItem.isSelected())) {
+            return;
+        }
+
         findControl.hide(true);
-        isTVShowSearch = isPopularTVShows;
         isRegularSearcher = false;
-        int numResultsPerSearch = Integer.parseInt((String) (isPopularTVShows ? popularTVShowsResultsPerSearchComboBox.getSelectedItem()
-                : popularMoviesResultsPerSearchComboBox.getSelectedItem()));
+        int numResultsPerSearch = Integer.parseInt((String) (isTVShow ? popularTVShowsResultsPerSearchComboBox
+                : popularMoviesResultsPerSearchComboBox).getSelectedItem());
         String[] languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries = UI.selectAnyIfNoSelectionAndCopy(countryList);
-        workerListener.popularSearchStarted(numResultsPerSearch, isPopularTVShows, languages, countries, false, true);
+        workerListener.popularSearchStarted(numResultsPerSearch, isTVShow, languages, countries, isFeed, !isStartUp);
+        popularSearchMenuElement = menuElement;
     }
 
     void downloadSizeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadSizeMenuItemActionPerformed
@@ -4582,11 +4585,12 @@ public class GUI extends JFrame implements GuiListener {
         updateDownloadSizeComboBoxes();
     }//GEN-LAST:event_maxDownloadSizeComboBoxActionPerformed
 
-    void popularTVShowsButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularTVShowsButtonActionPerformed
-        if (!stopSearch(popularTVShowsButton)) {
-            doPopularVideosSearch(true);
+    void popularPopupMenuButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularPopupMenuButtonActionPerformed
+        popularPopupMenu.show(popularMoviesButton, 0, popularMoviesButton.getHeight() + 1);
+        if (popularSearchMenuElement != null) {
+            MenuSelectionManager.defaultManager().setSelectedPath(new MenuElement[]{popularPopupMenu, popularSearchMenuElement});
         }
-    }//GEN-LAST:event_popularTVShowsButtonActionPerformed
+    }//GEN-LAST:event_popularPopupMenuButtonActionPerformed
 
     void fileExtensionsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_fileExtensionsMenuItemActionPerformed
         resultsToBackground(true);
@@ -5744,10 +5748,6 @@ public class GUI extends JFrame implements GuiListener {
         connectionIssueButtonActionPerformed(new ActionEvent(connectionIssueButton, 0, "", ActionEvent.CTRL_MASK));
     }//GEN-LAST:event_hideMenuItemActionPerformed
 
-    private void viewNewHighQualityMoviesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_viewNewHighQualityMoviesMenuItemActionPerformed
-        showFeed(false);
-    }//GEN-LAST:event_viewNewHighQualityMoviesMenuItemActionPerformed
-
     private void copyFullTitleAndYearMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyFullTitleAndYearMenuItemActionPerformed
         SelectedTableRow row = selectedRow();
         readSummaryActionPerformed(row, row.strExportListener(false));
@@ -6219,6 +6219,18 @@ public class GUI extends JFrame implements GuiListener {
     private void playlistBanGroupButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistBanGroupButtonKeyPressed
         playlistKeyPressed(evt);
     }//GEN-LAST:event_playlistBanGroupButtonKeyPressed
+
+    private void popularTVShowsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularTVShowsMenuItemActionPerformed
+        doPopularVideosSearch(true, false, false, popularTVShowsMenuItem);
+    }//GEN-LAST:event_popularTVShowsMenuItemActionPerformed
+
+    private void popularNewHQMoviesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularNewHQMoviesMenuItemActionPerformed
+        doPopularVideosSearch(false, true, false, popularNewHQMoviesMenuItem);
+    }//GEN-LAST:event_popularNewHQMoviesMenuItemActionPerformed
+
+    private void popularNewHQTVShowsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularNewHQTVShowsMenuItemActionPerformed
+        doPopularVideosSearch(true, true, false, popularNewHQTVShowsMenuItem);
+    }//GEN-LAST:event_popularNewHQTVShowsMenuItemActionPerformed
 
     private void playlistKeyPressed(KeyEvent evt) {
         KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(evt);
@@ -7319,20 +7331,17 @@ public class GUI extends JFrame implements GuiListener {
     public void searchStarted() {
         loading(true);
 
-        Component[] secondaryComponents;
+        List<Component> secondaryComponents = new ArrayList<Component>(5);
+        Collections.addAll(secondaryComponents, loadMoreResultsButton, popularNewHQTVShowsMenuItem, popularTVShowsMenuItem, popularNewHQMoviesMenuItem);
         AbstractButton primaryButton;
         if (isRegularSearcher) {
-            secondaryComponents = new Component[]{popularTVShowsButton, popularMoviesButton};
+            secondaryComponents.add(popularMoviesButton);
             primaryButton = searchButton;
-        } else if (isTVShowSearch) {
-            secondaryComponents = new Component[]{searchButton, popularMoviesButton};
-            primaryButton = popularTVShowsButton;
         } else {
-            secondaryComponents = new Component[]{searchButton, popularTVShowsButton};
+            secondaryComponents.add(1, searchButton);
             primaryButton = popularMoviesButton;
         }
-        UI.enable(new AbstractButton[]{primaryButton}, false, new Component[]{loadMoreResultsButton, secondaryComponents[0], secondaryComponents[1],
-            viewNewHighQualityMoviesMenuItem}, false);
+        UI.enable(new AbstractButton[]{primaryButton}, false, secondaryComponents.toArray(new Component[secondaryComponents.size()]), false);
 
         resultsSyncTable.requestFocusInWindow();
     }
@@ -7386,8 +7395,14 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        UI.enable(new AbstractButton[]{isRegularSearcher ? searchButton : (isTVShowSearch ? popularTVShowsButton : popularMoviesButton)}, true, new Component[]{
-            searchButton, popularTVShowsButton, popularMoviesButton, viewNewHighQualityMoviesMenuItem}, true);
+        UI.enable(new AbstractButton[]{isRegularSearcher ? searchButton : popularMoviesButton}, true, new Component[]{searchButton, popularNewHQTVShowsMenuItem,
+            popularTVShowsMenuItem, popularNewHQMoviesMenuItem, popularMoviesButton}, true);
+
+        if (popularPopupMenu.isVisible() && popularSearchMenuElement != null) {
+            popularPopupMenu.setVisible(false);
+            popularPopupMenu.setVisible(true);
+            MenuSelectionManager.defaultManager().setSelectedPath(new MenuElement[]{popularPopupMenu, popularSearchMenuElement});
+        }
 
         if (titleTextField.isEnabled() && resultsSyncTable.getRowCount() == 0) {
             titleTextField.requestFocusInWindow();
@@ -8175,7 +8190,12 @@ public class GUI extends JFrame implements GuiListener {
         popularMoviesButton.setToolTipText(Str.str("GUI.popularMoviesButton.toolTipText"));
         popularMoviesResultsPerSearchLabel.setText(Str.str("GUI.popularMoviesResultsPerSearchLabel.text"));
         popularMoviesResultsPerSearchLabel.setToolTipText(Str.str("GUI.popularMoviesResultsPerSearchLabel.toolTipText"));
-        popularTVShowsButton.setToolTipText(Str.str("GUI.popularTVShowsButton.toolTipText"));
+        popularNewHQMoviesMenuItem.setText(Str.str("GUI.popularNewHQMoviesMenuItem.text"));
+        popularNewHQMoviesMenuItem.setToolTipText(Str.str("GUI.popularNewHQMoviesMenuItem.toolTipText"));
+        popularNewHQTVShowsMenuItem.setText(Str.str("GUI.popularNewHQTVShowsMenuItem.text"));
+        popularNewHQTVShowsMenuItem.setToolTipText(Str.str("GUI.popularNewHQTVShowsMenuItem.toolTipText"));
+        popularTVShowsMenuItem.setText(Str.str("GUI.popularTVShowsMenuItem.text"));
+        popularTVShowsMenuItem.setToolTipText(Str.str("GUI.popularTVShowsMenuItem.toolTipText"));
         popularTVShowsResultsPerSearchLabel.setText(Str.str("GUI.popularTVShowsResultsPerSearchLabel.text"));
         popularTVShowsResultsPerSearchLabel.setToolTipText(Str.str("GUI.popularTVShowsResultsPerSearchLabel.toolTipText"));
         portDialog.setTitle(Str.str("GUI.portDialog.title"));
@@ -8284,7 +8304,6 @@ public class GUI extends JFrame implements GuiListener {
         updateCheckBoxMenuItem.setText(Str.str("GUI.updateCheckBoxMenuItem.text"));
         updateMenuItem.setText(Str.str("GUI.updateMenuItem.text"));
         viewMenu.setText(Str.str("GUI.viewMenu.text"));
-        viewNewHighQualityMoviesMenuItem.setText(Str.str("GUI.viewNewHighQualityMoviesMenuItem.text"));
         watchOnDeviceMenuItem.setText(Str.str("GUI.watchOnDeviceMenuItem.text"));
         watchOnDeviceMenuItem.setToolTipText(Str.str("GUI.watchOnDeviceMenuItem.toolTipText"));
         watchTrailerButton.setToolTipText(Str.str("GUI.watchTrailerButton.toolTipText"));
@@ -8584,10 +8603,13 @@ public class GUI extends JFrame implements GuiListener {
     Separator playlistTablePopupMenuSeparator2;
     Separator playlistTablePopupMenuSeparator3;
     JButton popularMoviesButton;
-    JPopupMenu popularMoviesButtonPopupMenu;
     JComboBox popularMoviesResultsPerSearchComboBox;
     JLabel popularMoviesResultsPerSearchLabel;
-    JButton popularTVShowsButton;
+    JMenuItem popularNewHQMoviesMenuItem;
+    JMenuItem popularNewHQTVShowsMenuItem;
+    JPopupMenu popularPopupMenu;
+    JButton popularPopupMenuButton;
+    JMenuItem popularTVShowsMenuItem;
     JComboBox popularTVShowsResultsPerSearchComboBox;
     JLabel popularTVShowsResultsPerSearchLabel;
     JDialog portDialog;
@@ -8746,7 +8768,6 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem updateMenuItem;
     JMenu viewMenu;
     Separator viewMenuSeparator1;
-    JMenuItem viewNewHighQualityMoviesMenuItem;
     JMenuItem watchOnDeviceMenuItem;
     JButton watchTrailerButton;
     JMenuItem watchTrailerMenuItem;

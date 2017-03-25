@@ -69,7 +69,6 @@ public class Main implements WorkerListener {
     private VideoFinder summaryFinder, trailerFinder, torrentFinder;
     private ProxyListDownloader proxyDownloader;
     private SubtitleFinder subtitleFinder;
-    private Worker streamingTorrentReloader;
     private Prefetcher prefetcher;
     private SummaryReader summaryReader;
     private Video summaryReaderVideo;
@@ -172,7 +171,7 @@ public class Main implements WorkerListener {
                     gui.setInitialFocus();
                     splashScreen.setVisible(false);
                     gui.startPosterCacher();
-                    gui.showFeed(true);
+                    gui.doPopularVideosSearch(false, true, true, null);
                     splashScreen.dispose();
                     mainFrame = gui;
                 } catch (Exception e) {

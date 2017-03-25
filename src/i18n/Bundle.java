@@ -10,7 +10,8 @@ public class Bundle {
     public final Locale LOCALE;
 
     public Bundle(Locale locale) {
-        Locale newLocale = (locale == null ? ("tr".equals(DEFAULT_LOCALE.getLanguage()) ? new Locale("tr", "TR") : new Locale("en", "US")) : locale);
+        Locale newLocale = (locale == null ? (DEFAULT_LOCALE != null && "tr".equals(DEFAULT_LOCALE.getLanguage()) ? new Locale("tr", "TR") : new Locale("en",
+                "US")) : locale);
         bundle = ResourceBundle.getBundle("i18n.Bundle", newLocale);
         LOCALE = (newLocale = bundle.getLocale()).toString().isEmpty() ? new Locale("en", "US") : newLocale;
     }

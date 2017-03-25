@@ -383,13 +383,12 @@ public class UI {
         return ((AtomicBoolean) button.getClientProperty(Constant.STOP_KEY)).get();
     }
 
-    public static void enable(AbstractButton[] primaryButtons, Boolean startPrimary, Component[] secondaryComponents,
-            Boolean enableSecondary) {
+    public static void enable(AbstractButton[] primaryButtons, Boolean startPrimary, Component[] secondaryComponents, Boolean enableSecondary) {
         enable(primaryButtons, true, startPrimary, null, null, secondaryComponents, enableSecondary, null, null);
     }
 
-    public static void enable(AbstractButton[] primaryButtons, Boolean enablePrimary, Boolean startPrimary, AbstractButton primaryButtons2,
-            Boolean enablePrimary2, Component[] secondaryComponents, Boolean enableSecondary, Component[] secondaryComponents2, Boolean enableSecondary2) {
+    public static void enable(AbstractButton[] primaryButtons, Boolean enablePrimary, Boolean startPrimary, AbstractButton primaryButtons2, Boolean enablePrimary2,
+            Component[] secondaryComponents, Boolean enableSecondary, Component[] secondaryComponents2, Boolean enableSecondary2) {
         if (enablePrimary2 != null) {
             enable(enablePrimary2, primaryButtons2);
         }
