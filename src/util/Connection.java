@@ -68,12 +68,14 @@ public class Connection {
             }
         });
         try {
-            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
+            if (Constant.JAVA_VERSION.startsWith("1.7")) {
+                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                    @Override
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                });
+            }
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);

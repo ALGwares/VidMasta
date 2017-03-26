@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2017.03.26   | VidMasta 23.8
+
+CHANGE: CORE | Fixed connectivity issue when Java 8 or higher is used
+
+
+
+
 2017.03.24   | VidMasta 23.7
 
 CHANGE: CORE | Fixed connectivity issue when locale is Turkish
