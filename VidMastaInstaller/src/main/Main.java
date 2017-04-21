@@ -13,8 +13,23 @@ public class Main {
         jar(new File(Constant.SAVE_DIR + Constant.INSTALLER + ".jar"), "installerJAR");
         jar(new File(Constant.SAVE_DIR + Constant.AUTO_INSTALLER + ".jar"), "auto-installer");
         launch4jExe(jar(new File(Constant.AUTO_INSTALLER + ".jar"), "auto-installer"), new File(Constant.SAVE_DIR + Constant.AUTO_INSTALLER + ".exe"));
+        createVersionFile();
         //launch4jAdminPermissionsTesterExe(new File("C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR
         //        + "Desktop" + Constant.FILE_SEPARATOR + "adminPermissionsTester.exe"));
+    }
+
+    private static void createVersionFile() throws Exception {
+        StringBuilder result = new StringBuilder(1024);
+        result.append(Constant.APP_VERSION).append(Constant.STD_NEWLINE);
+        result.append(Constant.EXE_INSTALLER).append(Constant.STD_NEWLINE);
+        result.append(Constant.JAR_INSTALLER).append(Constant.STD_NEWLINE);
+        result.append("http://manual update required").append(Constant.STD_NEWLINE); // Workaround for VidMasta versions 19.9 and below
+        result.append(IO.checksum(new File(Constant.SAVE_DIR, Constant.AUTO_INSTALLER + ".exe"))).append(Constant.STD_NEWLINE);
+        result.append(Constant.JAR_UPDATE_INSTALLER).append(Constant.STD_NEWLINE);
+        result.append(IO.checksum(new File(Constant.SAVE_DIR, Constant.AUTO_INSTALLER + ".jar"))).append(Constant.STD_NEWLINE);
+        result.append(IO.read(new File("install.xml"))).append(Constant.STD_NEWLINE);
+        result.append("<!--").append(Constant.EXE_UPDATE_INSTALLER).append("-->"); // Workaround for VidMasta versions 20.0 and above
+        IO.write(new File(Constant.SAVE_DIR, "vmVersion.txt"), result.toString().trim());
     }
 
     private static File jar(File jar, String installerXMLFolderName) throws Exception {

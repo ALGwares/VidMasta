@@ -207,18 +207,14 @@ public class GUI extends JFrame implements GuiListener {
     private volatile Worker timedMsgThread;
     final Object timedMsgLock = new Object();
     private final FindControl findControl, playlistFindControl;
-    private SplashScreen splashScreen;
     JDialog dummyDialog = new JDialog();
     JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), dummyMenuItem4 = new JMenuItem(),
             dummyMenuItem5 = new JMenuItem(), dummyMenuItem6 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
-    JComboBox dummyComboBox = new JComboBox();
+    JComboBox dummyComboBox = new JComboBox(), dummyComboBox2 = new JComboBox();
     ButtonGroup trailerPlayerButtonGroup2;
 
-    public GUI(WorkerListener workerListener, SplashScreen splashScreen) throws Exception {
+    public GUI(WorkerListener workerListener) throws Exception {
         this.workerListener = workerListener;
-        this.splashScreen = splashScreen;
-
-        splashScreen.progress();
 
         initComponents();
         menuBarAccelerators = UI.accelerators(menuBar, editMenu, resetWindowMenuItem);
@@ -228,12 +224,8 @@ public class GUI extends JFrame implements GuiListener {
 
         dummyComboBox.setEditable(true);
 
-        splashScreen.progress();
-
         findControl = new FindControl(findTextField);
         playlistFindControl = new FindControl(playlistFindTextField);
-
-        splashScreen.progress();
 
         JOptionPane tempOptionPane = new JOptionPane();
         Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
@@ -261,8 +253,6 @@ public class GUI extends JFrame implements GuiListener {
         startDateTextField = (JTextFieldDateEditor) startDateChooser.getDateEditor().getUiComponent();
         endDateTextField = (JTextFieldDateEditor) endDateChooser.getDateEditor().getUiComponent();
 
-        splashScreen.progress();
-
         ActionListener enterKeyListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
@@ -274,14 +264,10 @@ public class GUI extends JFrame implements GuiListener {
             component.registerKeyboardAction(enterKeyListener, "Enter", enterKey, JComponent.WHEN_FOCUSED);
         }
 
-        splashScreen.progress();
-
         statusBarTextField.setBackground(bgColor = getBackground());
         statusBarTextField.setForeground(fgColor = getForeground());
         statusBarTextField.setSelectionColor(bgColor);
         statusBarTextField.setSelectedTextColor(fgColor);
-
-        splashScreen.progress();
 
         UI.addPopupMenu(tablePopupMenu, resultsSyncTable, true);
         UI.addPopupMenu(playlistTablePopupMenu, playlistSyncTable, false);
@@ -322,8 +308,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, connectionIssueButton);
 
-        splashScreen.progress();
-
         summaryEditorPaneDocument = (HTMLDocument) summaryEditorPane.getDocument();
 
         TableColumnModel colModel = resultsTable.getColumnModel();
@@ -352,8 +336,6 @@ public class GUI extends JFrame implements GuiListener {
         playlistProgressCol = playlistColModel.getColumnIndex(Str.str("GUI.playlistTable.columnModel.title2"));
         playlistItemCol = playlistColModel.getColumnIndex(Constant.PLAYLIST_ITEM_COL);
         playlistTable.removeColumn(playlistTable.getColumn(Constant.PLAYLIST_ITEM_COL));
-
-        splashScreen.progress();
 
         colModel.getColumn(imageCol).setCellRenderer(new DefaultTableCellRenderer() {
             private static final long serialVersionUID = 1L;
@@ -401,8 +383,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        splashScreen.progress();
-
         blacklistedList.setModel(blacklistListModel = new DefaultListModel());
         whitelistedList.setModel(whitelistListModel = new DefaultListModel());
         removeProxiesList.setModel(removeProxiesListModel = new DefaultListModel());
@@ -410,8 +390,6 @@ public class GUI extends JFrame implements GuiListener {
         UI.registerCutCopyPasteKeyboardActions(summaryEditorPane, htmlCopyListener);
         UI.registerCutCopyPasteKeyboardActions(resultsTable, tableCopyListener);
         UI.registerCutCopyPasteKeyboardActions(playlistTable, playlistTableCopyListener);
-
-        splashScreen.progress();
 
         DefaultRowSorter<TableModel, Integer> rowSorter = UI.setRowSorter(resultsSyncTable, yearCol, ratingCol);
         rowSorter.setComparator(titleCol, new AbstractColumnComparator<String>() {
@@ -466,8 +444,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        splashScreen.progress();
-
         UI.add(trailerPlayerButtonGroup, trailerMediaPlayerRadioButtonMenuItem, trailerMediaPlayer1080RadioButtonMenuItem,
                 trailerMediaPlayer720RadioButtonMenuItem, trailerMediaPlayer480RadioButtonMenuItem, trailerMediaPlayer360RadioButtonMenuItem,
                 trailerMediaPlayer240RadioButtonMenuItem, trailerWebBrowserPlayerRadioButtonMenuItem);
@@ -498,8 +474,6 @@ public class GUI extends JFrame implements GuiListener {
         UI.setIcon(whitelistedToBlacklistedButton, "rightArrow");
         UI.setIcon(blacklistedToWhitelistedButton, "leftArrow");
 
-        splashScreen.progress();
-
         File proxies = new File(Constant.APP_DIR + Constant.PROXIES);
         if (proxies.exists()) {
             for (String proxy : Regex.split(IO.read(proxies), Constant.NEWLINE)) {
@@ -510,8 +484,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        splashScreen.progress();
-
         for (int i = 0; i < 10; i++) {
             String profile = "GUI.profile" + i + "MenuItem.text";
             profileComboBox.addItem(i == 0 ? Str.str(profile) : preferences.get(profile, Str.str(profile)));
@@ -521,17 +493,11 @@ public class GUI extends JFrame implements GuiListener {
 
         faqEditorPane.setText(Regex.replaceFirst(IO.read(Constant.PROGRAM_DIR + "FAQ" + Constant.HTML), "<br><br><br>", Str.get(555) + "<br><br><br>"));
 
-        splashScreen.progress();
-
         AutoCompleteDecorator.decorate(titleTextField, Arrays.asList(Regex.split(IO.read(Constant.PROGRAM_DIR + "autoCompleteTitles" + Constant.TXT),
                 Constant.NEWLINE)), false);
 
-        splashScreen.progress();
-
         UI.initCountComboBoxes(414, 502, regularResultsPerSearchComboBox);
         UI.initCountComboBoxes(412, 413, popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox);
-
-        splashScreen.progress();
 
         AbstractButton[] languageButtons = languageButtons();
         UI.add(languageButtonGroup, languageButtons);
@@ -543,8 +509,6 @@ public class GUI extends JFrame implements GuiListener {
                 }
             });
         }
-
-        splashScreen.progress();
 
         String escapeKeyWindowClosingActionMapKey = "VK_ESCAPE:WINDOW_CLOSING", enterKeyWindowClosingActionMapKey = "VK_ENTER:WINDOW_CLOSING";
         KeyStroke escapeKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
@@ -578,8 +542,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        splashScreen.progress();
-
         try {
             trayIcon = UI.addMinimizeToTraySupport(this);
             playlistTrayIcon = UI.addMinimizeToTraySupport(playlistFrame);
@@ -588,8 +550,6 @@ public class GUI extends JFrame implements GuiListener {
                 Debug.print(e);
             }
         }
-
-        splashScreen.progress();
 
         if (Constant.WINDOWS_XP_AND_HIGHER) {
             peerBlockMenuItem = peerBlockNotificationCheckBoxMenuItem;
@@ -618,8 +578,6 @@ public class GUI extends JFrame implements GuiListener {
                 bannedDownloadIDs.add(Long.valueOf(downloadID));
             }
         }
-
-        splashScreen.progress();
     }
 
     private void updateToggleButtons(boolean init) {
@@ -744,8 +702,6 @@ public class GUI extends JFrame implements GuiListener {
         timeoutLabel = new JLabel();
         timeoutComboBox = new JComboBox();
         timeoutButton = new JButton();
-        timeoutDownloadLinkLabel = new JLabel();
-        timeoutDownloadLinkComboBox = new JComboBox();
         tvDialog = new JDialog();
         tvSeasonComboBox = new JComboBox();
         tvEpisodeComboBox = new JComboBox();
@@ -1090,7 +1046,6 @@ public class GUI extends JFrame implements GuiListener {
         updateCheckBoxMenuItem = new JCheckBoxMenuItem();
         helpMenuSeparator2 = new Separator();
         aboutMenuItem = new JMenuItem();
-        splashScreen.progress();
 
         ResourceBundle bundle = ResourceBundle.getBundle("i18n/Bundle"); // NOI18N
         safetyDialog.setTitle(bundle.getString("GUI.safetyDialog.title")); // NOI18N
@@ -1160,8 +1115,6 @@ public class GUI extends JFrame implements GuiListener {
 
         safetyDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {noButton, yesButton});
 
-        splashScreen.progress();
-
         summaryDialog.setTitle(bundle.getString("GUI.summaryDialog.title")); // NOI18N
         summaryDialog.setAlwaysOnTop(true);
 
@@ -1227,8 +1180,6 @@ public class GUI extends JFrame implements GuiListener {
 
         summaryDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {summaryCloseButton, summaryLoadingLabel, summaryTextToSpeechButton});
 
-        splashScreen.progress();
-
         faqFrame.setTitle(bundle.getString("GUI.faqFrame.title")); // NOI18N
         faqFrame.setAlwaysOnTop(true);
         faqFrame.setIconImage(null);
@@ -1255,8 +1206,6 @@ public class GUI extends JFrame implements GuiListener {
             .addComponent(faqScrollPane, GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
         );
 
-        splashScreen.progress();
-
         aboutDialog.setTitle(bundle.getString("GUI.aboutDialog.title")); // NOI18N
         aboutDialog.setAlwaysOnTop(true);
 
@@ -1277,8 +1226,6 @@ public class GUI extends JFrame implements GuiListener {
             .addComponent(aboutScrollPane, GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE)
         );
 
-        splashScreen.progress();
-
         timeoutDialog.setTitle(bundle.getString("GUI.timeoutDialog.title")); // NOI18N
         timeoutDialog.setAlwaysOnTop(true);
         timeoutDialog.setModal(true);
@@ -1296,53 +1243,27 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
-        timeoutDownloadLinkLabel.setText(bundle.getString("GUI.timeoutDownloadLinkLabel.text")); // NOI18N
-        timeoutDownloadLinkLabel.setToolTipText(bundle.getString("GUI.timeoutDownloadLinkLabel.toolTipText")); // NOI18N
-
-        timeoutDownloadLinkComboBox.setModel(new DefaultComboBoxModel(UI.items(0, 180, 5, false, null, null)));
-
         GroupLayout timeoutDialogLayout = new GroupLayout(timeoutDialog.getContentPane());
         timeoutDialog.getContentPane().setLayout(timeoutDialogLayout);
         timeoutDialogLayout.setHorizontalGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timeoutDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addGroup(timeoutDialogLayout.createSequentialGroup()
-                        .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.TRAILING, false)
-                            .addComponent(timeoutDownloadLinkLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(timeoutLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING, false)
-                            .addComponent(timeoutComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(timeoutDownloadLinkComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addComponent(timeoutButton))
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addComponent(timeoutLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addComponent(timeoutComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(timeoutButton)
+                .addContainerGap())
         );
-
-        timeoutDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {timeoutDownloadLinkLabel, timeoutLabel});
-
-        timeoutDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {timeoutComboBox, timeoutDownloadLinkComboBox});
-
         timeoutDialogLayout.setVerticalGroup(timeoutDialogLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(timeoutDialogLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(timeoutLabel)
-                    .addComponent(timeoutComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(timeoutDialogLayout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(timeoutDownloadLinkLabel)
-                    .addComponent(timeoutDownloadLinkComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(timeoutButton)
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(timeoutComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(timeoutButton))
+                .addContainerGap())
         );
-
-        timeoutDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {timeoutDownloadLinkLabel, timeoutLabel});
-
-        timeoutDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {timeoutComboBox, timeoutDownloadLinkComboBox});
-
-        splashScreen.progress();
 
         tvDialog.setTitle(bundle.getString("GUI.tvDialog.title")); // NOI18N
         tvDialog.setModal(true);
@@ -1431,8 +1352,6 @@ public class GUI extends JFrame implements GuiListener {
 
         tvDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {tvEpisodeComboBox, tvSeasonComboBox});
 
-        splashScreen.progress();
-
         resultsPerSearchDialog.setTitle(bundle.getString("GUI.resultsPerSearchDialog.title")); // NOI18N
         resultsPerSearchDialog.setAlwaysOnTop(true);
         resultsPerSearchDialog.setModal(true);
@@ -1501,8 +1420,6 @@ public class GUI extends JFrame implements GuiListener {
         resultsPerSearchDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox, regularResultsPerSearchComboBox});
 
         resultsPerSearchDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesResultsPerSearchLabel, popularTVShowsResultsPerSearchLabel, regularResultsPerSearchLabel});
-
-        splashScreen.progress();
 
         downloadSizeDialog.setTitle(bundle.getString("GUI.downloadSizeDialog.title")); // NOI18N
         downloadSizeDialog.setAlwaysOnTop(true);
@@ -1577,8 +1494,6 @@ public class GUI extends JFrame implements GuiListener {
         );
 
         downloadSizeDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {maxDownloadSizeComboBox, minDownloadSizeComboBox});
-
-        splashScreen.progress();
 
         extensionsDialog.setTitle(bundle.getString("GUI.extensionsDialog.title")); // NOI18N
         extensionsDialog.setAlwaysOnTop(true);
@@ -1702,8 +1617,6 @@ public class GUI extends JFrame implements GuiListener {
 
         extensionsDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {blacklistedToWhitelistedButton, extensionsButton, whitelistedToBlacklistedButton});
 
-        splashScreen.progress();
-
         languageCountryDialog.setTitle(bundle.getString("GUI.languageCountryDialog.title")); // NOI18N
         languageCountryDialog.setAlwaysOnTop(true);
         languageCountryDialog.setModal(true);
@@ -1779,8 +1692,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(languageCountryOkButton, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-
-        splashScreen.progress();
 
         readSummaryMenuItem.setText(bundle.getString("GUI.readSummaryMenuItem.text")); // NOI18N
         readSummaryMenuItem.setEnabled(false);
@@ -1967,8 +1878,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(findSubtitleMenuItem);
 
-        splashScreen.progress();
-
         popularNewHQMoviesMenuItem.setText(bundle.getString("GUI.popularNewHQMoviesMenuItem.text")); // NOI18N
         popularNewHQMoviesMenuItem.setToolTipText(bundle.getString("GUI.popularNewHQMoviesMenuItem.toolTipText")); // NOI18N
         popularNewHQMoviesMenuItem.addActionListener(new ActionListener() {
@@ -2055,8 +1964,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         textComponentPopupMenu.add(textComponentSelectAllMenuItem);
-
-        splashScreen.progress();
 
         proxyFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         proxyFileChooser.setCurrentDirectory(null);
@@ -2202,8 +2109,6 @@ public class GUI extends JFrame implements GuiListener {
 
         proxyDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {proxyDownloadLinkInfoCheckBox, proxySearchEnginesCheckBox, proxySubtitlesCheckBox, proxyTrailersCheckBox, proxyUpdatesCheckBox, proxyVideoInfoCheckBox});
 
-        splashScreen.progress();
-
         addProxiesDialog.setTitle(bundle.getString("GUI.addProxiesDialog.title")); // NOI18N
         addProxiesDialog.setAlwaysOnTop(true);
         addProxiesDialog.setModal(true);
@@ -2264,8 +2169,6 @@ public class GUI extends JFrame implements GuiListener {
         );
 
         addProxiesDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {addProxiesAddButton, addProxiesCancelButton});
-
-        splashScreen.progress();
 
         removeProxiesDialog.setTitle(bundle.getString("GUI.removeProxiesDialog.title")); // NOI18N
         removeProxiesDialog.setAlwaysOnTop(true);
@@ -2331,8 +2234,6 @@ public class GUI extends JFrame implements GuiListener {
 
         removeProxiesDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {removeProxiesCancelButton, removeProxiesRemoveButton});
 
-        splashScreen.progress();
-
         msgDialog.setTitle(Constant.APP_TITLE);
         msgDialog.setAlwaysOnTop(true);
         msgDialog.addWindowListener(new WindowAdapter() {
@@ -2374,8 +2275,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(msgOKButton)
                 .addContainerGap())
         );
-
-        splashScreen.progress();
 
         profileDialog.setTitle(bundle.getString("GUI.profileDialog.title")); // NOI18N
         profileDialog.setAlwaysOnTop(true);
@@ -2459,8 +2358,6 @@ public class GUI extends JFrame implements GuiListener {
 
         profileDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {profileClearButton, profileSetButton, profileUseButton});
 
-        splashScreen.progress();
-
         profileNameChangeDialog.setTitle(bundle.getString("GUI.profileNameChangeDialog.title")); // NOI18N
         profileNameChangeDialog.setAlwaysOnTop(true);
         profileNameChangeDialog.setModal(true);
@@ -2511,8 +2408,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap())
         );
 
-        splashScreen.progress();
-
         commentsDialog.setTitle(bundle.getString("GUI.commentsDialog.title")); // NOI18N
         commentsDialog.setModalityType(ModalityType.APPLICATION_MODAL);
 
@@ -2529,8 +2424,6 @@ public class GUI extends JFrame implements GuiListener {
         commentsDialogLayout.setVerticalGroup(commentsDialogLayout.createParallelGroup(Alignment.LEADING)
             .addComponent(commentsScrollPane, GroupLayout.DEFAULT_SIZE, 486, Short.MAX_VALUE)
         );
-
-        splashScreen.progress();
 
         portDialog.setTitle(bundle.getString("GUI.portDialog.title")); // NOI18N
         portDialog.setAlwaysOnTop(true);
@@ -2585,8 +2478,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap())
         );
 
-        splashScreen.progress();
-
         optionalMsgPanel.setOpaque(false);
 
         optionalMsgCheckBox.setText(bundle.getString("GUI.optionalMsgCheckBox.text")); // NOI18N
@@ -2620,8 +2511,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(optionalMsgCheckBox)
                 .addContainerGap())
         );
-
-        splashScreen.progress();
 
         tvSubtitleDialog.setTitle(bundle.getString("GUI.tvSubtitleDialog.title")); // NOI18N
         tvSubtitleDialog.setAlwaysOnTop(true);
@@ -2732,8 +2621,6 @@ public class GUI extends JFrame implements GuiListener {
 
         tvSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {tvSubtitleDownloadMatch1Button, tvSubtitleDownloadMatch2Button});
 
-        splashScreen.progress();
-
         movieSubtitleDialog.setTitle(bundle.getString("GUI.movieSubtitleDialog.title")); // NOI18N
         movieSubtitleDialog.setAlwaysOnTop(true);
 
@@ -2816,8 +2703,6 @@ public class GUI extends JFrame implements GuiListener {
 
         movieSubtitleDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox});
 
-        splashScreen.progress();
-
         timedMsgDialog.setTitle(Constant.APP_TITLE);
         timedMsgDialog.setAlwaysOnTop(true);
         timedMsgDialog.setResizable(false);
@@ -2838,8 +2723,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addComponent(timedMsgLabel, GroupLayout.PREFERRED_SIZE, 14, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-
-        splashScreen.progress();
 
         torrentFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         torrentFileChooser.setCurrentDirectory(null);
@@ -2913,8 +2796,6 @@ public class GUI extends JFrame implements GuiListener {
 
         authenticationPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {authenticationPasswordField, authenticationUsernameTextField});
 
-        splashScreen.progress();
-
         listPopupMenu.addPopupMenuListener(new PopupMenuListener() {
             public void popupMenuCanceled(PopupMenuEvent evt) {
             }
@@ -2958,8 +2839,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         listPopupMenu.add(listSelectAllMenuItem);
 
-        splashScreen.progress();
-
         hideMenuItem.setText(bundle.getString("GUI.hideMenuItem.text")); // NOI18N
         hideMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -2967,8 +2846,6 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         connectionIssueButtonPopupMenu.add(hideMenuItem);
-
-        splashScreen.progress();
 
         playlistFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         playlistFrame.setTitle(bundle.getString("GUI.playlistFrame.title")); // NOI18N
@@ -3581,7 +3458,6 @@ public class GUI extends JFrame implements GuiListener {
         });
 
         fileMenu.setText(bundle.getString("GUI.fileMenu.text")); // NOI18N
-        splashScreen.progress();
 
         profileMenu.setText(bundle.getString("GUI.profileMenu.text")); // NOI18N
         profileMenu.addMenuListener(new MenuListener() {
@@ -4115,7 +3991,6 @@ public class GUI extends JFrame implements GuiListener {
         menuBar.add(helpMenu);
 
         setJMenuBar(menuBar);
-        splashScreen.progress();
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -6519,7 +6394,7 @@ public class GUI extends JFrame implements GuiListener {
                 subtitleDir = getPath(settings, ++i);
 
                 i += restoreComboBoxes(settings, i, dummyComboBox); // Backward compatibility
-                i += restoreComboBoxes(settings, i, timeoutDownloadLinkComboBox);
+                i += restoreComboBoxes(settings, i, dummyComboBox2); // Backward compatibility
                 i += restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
                 i += restoreWindows(settings, i, playlistFrame);
                 activationDialog.pack();
@@ -6576,7 +6451,7 @@ public class GUI extends JFrame implements GuiListener {
             saveButtons(settings, dummyMenuItem5 /* Backward compatibility */, feedCheckBoxMenuItem);
             savePaths(settings, proxyImportFile, proxyExportFile, torrentDir, subtitleDir);
             saveComboBoxes(settings, dummyComboBox); // Backward compatibility
-            saveComboBoxes(settings, timeoutDownloadLinkComboBox);
+            saveComboBoxes(settings, dummyComboBox2); // Backward compatibility
             saveButtons(settings, emailWithDefaultAppCheckBoxMenuItem);
             settings.append(savePosition(playlistFrame));
             savePaths(settings, playlistDir);
@@ -7690,7 +7565,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public int getDownloadLinkTimeout() {
-        return Integer.parseInt((String) timeoutDownloadLinkComboBox.getSelectedItem());
+        return noDownloaderRadioButtonMenuItem.isSelected() || !blacklistListModel.isEmpty() ? 45 : 0;
     }
 
     @Override
@@ -8269,8 +8144,6 @@ public class GUI extends JFrame implements GuiListener {
         textComponentSelectAllMenuItem.setText(Str.str("GUI.textComponentSelectAllMenuItem.text"));
         timeoutButton.setText(Str.str("GUI.timeoutButton.text"));
         timeoutDialog.setTitle(Str.str("GUI.timeoutDialog.title"));
-        timeoutDownloadLinkLabel.setText(Str.str("GUI.timeoutDownloadLinkLabel.text"));
-        timeoutDownloadLinkLabel.setToolTipText(Str.str("GUI.timeoutDownloadLinkLabel.toolTipText"));
         timeoutLabel.setText(Str.str("GUI.timeoutLabel.text"));
         timeoutLabel.setToolTipText(Str.str("GUI.timeoutLabel.toolTipText"));
         timeoutMenuItem.setText(Str.str("GUI.timeoutMenuItem.text"));
@@ -8726,8 +8599,6 @@ public class GUI extends JFrame implements GuiListener {
     JButton timeoutButton;
     JComboBox timeoutComboBox;
     JDialog timeoutDialog;
-    JComboBox timeoutDownloadLinkComboBox;
-    JLabel timeoutDownloadLinkLabel;
     JLabel timeoutLabel;
     JMenuItem timeoutMenuItem;
     JLabel titleLabel;

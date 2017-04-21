@@ -88,11 +88,11 @@ public class Main implements WorkerListener {
         });
     }
 
-    private Main(final SplashScreen splashScreen) throws Exception {
+    private Main() throws Exception {
         gui = UI.run(new Callable<GuiListener>() {
             @Override
             public GuiListener call() throws Exception {
-                return new GUI(Main.this, splashScreen);
+                return new GUI(Main.this);
             }
         });
     }
@@ -117,7 +117,7 @@ public class Main implements WorkerListener {
         splashScreen.setVisible(true);
         final Rectangle initialSplashScreenBounds = splashScreen.getBounds();
 
-        final Main main = new Main(splashScreen);
+        final Main main = new Main();
         final GUI gui = (GUI) main.gui;
         Connection.init(gui);
 

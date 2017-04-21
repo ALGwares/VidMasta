@@ -62,7 +62,6 @@ public class Constant implements IOConstant {
     public static final String CUT = "Cut", COPY = "Copy", PASTE = "Paste";
     public static final String EXE = ".exe", JAR = ".jar", JAR_OPTION = "-jar";
     public static final String PROGRAM_JAR = APP_TITLE + JAR;
-    public static final String TORRENTS = "torrents";
     public static final String HOME_DIR = System.getProperty("user.home", ""), WORKING_DIR = System.getProperty("user.dir", ".");
     public static final String PROGRAM_DIR, APP_DIR, CACHE_DIR, TEMP_DIR, TORRENTS_DIR, DESKTOP_DIR;
     public static final String JAVA, JAVA_VERSION = System.getProperty("java.version", "");
@@ -74,7 +73,7 @@ public class Constant implements IOConstant {
         APP_DIR = initAppDir();
         CACHE_DIR = APP_DIR + "cache" + FILE_SEPARATOR;
         TEMP_DIR = APP_DIR + "temp" + FILE_SEPARATOR;
-        TORRENTS_DIR = APP_DIR + TORRENTS + FILE_SEPARATOR;
+        TORRENTS_DIR = APP_DIR + "torrents" + FILE_SEPARATOR;
         DESKTOP_DIR = (HOME_DIR.isEmpty() ? "" : HOME_DIR + FILE_SEPARATOR + "Desktop");
 
         if (WINDOWS) {

@@ -1,4 +1,4 @@
-273
+274
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -607,7 +607,7 @@ EMPTY
 EMPTY
 EMPTY
 EMPTY
-2592000000
+315569520000
 (\.(?! ))|(\<\s*+/?+((?i)strong)[^\>]*\>)
 SPACE
 false

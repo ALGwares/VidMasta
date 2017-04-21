@@ -15,9 +15,6 @@
           <Value id="APPLICATION_MODAL"/>
         </Property>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -120,9 +117,6 @@
         </Property>
         <Property name="alwaysOnTop" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -226,7 +220,6 @@
       </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new JFrame() {&#xd;&#xa;            private static final long serialVersionUID = 1L;&#xd;&#xa;&#xd;&#xa;            @Override&#xd;&#xa;            public void setMaximizedBounds(Rectangle bounds) {&#xd;&#xa;                super.setMaximizedBounds(bounds == null ? null : UI.getUsableScreenBounds(faqFrame));&#xd;&#xa;            }&#xd;&#xa;        }"/>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
       </AuxValues>
 
       <Layout>
@@ -273,9 +266,6 @@
         </Property>
         <Property name="alwaysOnTop" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -322,30 +312,18 @@
           <Value id="APPLICATION_EXCLUDE"/>
         </Property>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                              <Component id="timeoutDownloadLinkLabel" linkSize="172" max="32767" attributes="0"/>
-                              <Component id="timeoutLabel" linkSize="172" max="32767" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                              <Component id="timeoutComboBox" linkSize="174" max="32767" attributes="0"/>
-                              <Component id="timeoutDownloadLinkComboBox" linkSize="174" max="32767" attributes="0"/>
-                          </Group>
-                      </Group>
-                      <Component id="timeoutButton" alignment="0" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace pref="20" max="32767" attributes="0"/>
+                  <Component id="timeoutLabel" max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="timeoutComboBox" max="32767" attributes="0"/>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <Component id="timeoutButton" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -354,17 +332,11 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="timeoutLabel" linkSize="173" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="timeoutComboBox" linkSize="175" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="timeoutLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="timeoutComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="timeoutButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="timeoutDownloadLinkLabel" linkSize="173" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="timeoutDownloadLinkComboBox" linkSize="175" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                  <Component id="timeoutButton" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -397,23 +369,6 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="timeoutButtonActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JLabel" name="timeoutDownloadLinkLabel">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.timeoutDownloadLinkLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.timeoutDownloadLinkLabel.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JComboBox" name="timeoutDownloadLinkComboBox">
-          <Properties>
-            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="new DefaultComboBoxModel(UI.items(0, 180, 5, false, null, null))" type="code"/>
-            </Property>
-          </Properties>
-        </Component>
       </SubComponents>
     </Container>
     <Container class="javax.swing.JDialog" name="tvDialog">
@@ -423,9 +378,6 @@
         </Property>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -552,9 +504,6 @@
         <Property name="alwaysOnTop" type="boolean" value="true"/>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -666,9 +615,6 @@
         <Property name="alwaysOnTop" type="boolean" value="true"/>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -782,9 +728,6 @@
         <Property name="alwaysOnTop" type="boolean" value="true"/>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -977,9 +920,6 @@
         <Property name="alwaysOnTop" type="boolean" value="true"/>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -1103,9 +1043,6 @@
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPopupMenu" name="tablePopupMenu">
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
         <Property name="useNullLayout" type="boolean" value="true"/>
@@ -1407,9 +1344,6 @@
         <EventHandler event="popupMenuWillBecomeInvisible" listener="javax.swing.event.PopupMenuListener" parameters="javax.swing.event.PopupMenuEvent" handler="textComponentPopupMenuPopupMenuWillBecomeInvisible"/>
         <EventHandler event="popupMenuWillBecomeVisible" listener="javax.swing.event.PopupMenuListener" parameters="javax.swing.event.PopupMenuEvent" handler="textComponentPopupMenuPopupMenuWillBecomeVisible"/>
       </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
         <Property name="useNullLayout" type="boolean" value="true"/>
@@ -1504,9 +1438,6 @@
         <Property name="alwaysOnTop" type="boolean" value="true"/>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -1734,9 +1665,6 @@
       <Events>
         <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="addProxiesDialogWindowClosing"/>
       </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -1829,9 +1757,6 @@
       <Events>
         <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="removeProxiesDialogWindowClosing"/>
       </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -1922,9 +1847,6 @@
       <Events>
         <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="msgDialogWindowClosing"/>
       </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -1996,9 +1918,6 @@
         <Property name="alwaysOnTop" type="boolean" value="true"/>
         <Property name="modal" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2115,9 +2034,6 @@
       <Events>
         <EventHandler event="windowClosing" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="profileNameChangeDialogWindowClosing"/>
       </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2191,9 +2107,6 @@
           <Value id="APPLICATION_MODAL"/>
         </Property>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2243,9 +2156,6 @@
       <Events>
         <EventHandler event="componentHidden" listener="java.awt.event.ComponentListener" parameters="java.awt.event.ComponentEvent" handler="portDialogComponentHidden"/>
       </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2330,9 +2240,6 @@
       <Properties>
         <Property name="opaque" type="boolean" value="false"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2394,9 +2301,6 @@
         </Property>
         <Property name="alwaysOnTop" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2568,9 +2472,6 @@
         </Property>
         <Property name="alwaysOnTop" type="boolean" value="true"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2697,9 +2598,6 @@
         <Property name="alwaysOnTop" type="boolean" value="true"/>
         <Property name="resizable" type="boolean" value="false"/>
       </Properties>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2746,9 +2644,6 @@
       </Properties>
     </Component>
     <Container class="javax.swing.JPanel" name="authenticationPanel">
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout>
         <DimensionLayout dim="0">
@@ -2844,9 +2739,6 @@
       <Events>
         <EventHandler event="popupMenuWillBecomeVisible" listener="javax.swing.event.PopupMenuListener" parameters="javax.swing.event.PopupMenuEvent" handler="listPopupMenuPopupMenuWillBecomeVisible"/>
       </Events>
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
         <Property name="useNullLayout" type="boolean" value="true"/>
@@ -2897,9 +2789,6 @@
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPopupMenu" name="connectionIssueButtonPopupMenu">
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
         <Property name="useNullLayout" type="boolean" value="true"/>
@@ -3363,9 +3252,6 @@
     <Component class="javax.swing.ButtonGroup" name="downloadQualityButtonGroup">
     </Component>
     <Menu class="javax.swing.JMenuBar" name="menuBar">
-      <AuxValues>
-        <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-      </AuxValues>
       <SubComponents>
         <Menu class="javax.swing.JMenu" name="fileMenu">
           <Properties>
@@ -3373,9 +3259,6 @@
               <ResourceString bundle="i18n/Bundle.properties" key="GUI.fileMenu.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
             </Property>
           </Properties>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_LayoutCodePre" type="java.lang.String" value="splashScreen.progress();"/>
-          </AuxValues>
           <SubComponents>
             <Menu class="javax.swing.JMenu" name="profileMenu">
               <Properties>
@@ -4243,9 +4126,6 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="aboutMenuItemActionPerformed"/>
               </Events>
-              <AuxValues>
-                <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="splashScreen.progress();"/>
-              </AuxValues>
             </MenuItem>
           </SubComponents>
         </Menu>

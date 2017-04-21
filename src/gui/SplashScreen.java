@@ -9,7 +9,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
-import java.text.NumberFormat;
 import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -33,21 +32,12 @@ import util.Constant;
 public class SplashScreen extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    private static final int MAX_PROGRESS = 50;
 
     private final ResourceBundle bundle;
-    private final NumberFormat percentFormat;
-    private final String INITIALIZING, DONE;
-    private int progress;
 
     public SplashScreen() {
         Bundle newBundle = new Bundle(null);
         bundle = newBundle.bundle;
-        percentFormat = NumberFormat.getPercentInstance(newBundle.LOCALE);
-        percentFormat.setMinimumFractionDigits(0);
-        percentFormat.setMaximumFractionDigits(0);
-        INITIALIZING = ' ' + bundle.getString("initializing") + " - ";
-        DONE = ' ' + bundle.getString("done");
 
         initComponents();
 
@@ -62,10 +52,6 @@ public class SplashScreen extends JFrame {
         setSize(new Dimension(1022, 680));
         setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
         UI.centerOnScreen(this);
-    }
-
-    void progress() {
-        statusBarTextField.setText(INITIALIZING + percentFormat.format(++progress / (double) MAX_PROGRESS) + DONE);
     }
 
     private void initComponents() {
@@ -232,7 +218,6 @@ public class SplashScreen extends JFrame {
 
         statusBarTextField.setEditable(false);
         statusBarTextField.setFont(new Font("Verdana", 0, 10));
-        statusBarTextField.setText(INITIALIZING + percentFormat.format(0.0) + DONE);
         statusBarTextField.setBorder(BorderFactory.createEtchedBorder());
 
         searchProgressTextField.setEditable(false);

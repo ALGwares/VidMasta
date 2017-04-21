@@ -325,7 +325,7 @@ public class VideoFinder extends Worker {
     }
 
     private void torrentDownloadError(Torrent torrent) {
-        error(new ConnectionException(Str.str("downloadingProblem", torrent.name()) + ' ' + Str.str("connectionSolution")));
+        error(new ConnectionException(Str.str("downloadingProblem", torrent.name())));
     }
 
     private void saveTorrent(Torrent torrent) throws Exception {
