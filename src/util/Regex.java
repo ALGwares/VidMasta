@@ -70,31 +70,6 @@ public class Regex {
         return pattern(regex).split(input);
     }
 
-    public static List<String> split(String input, String splitCharClassRegex, int maxPartLen) {
-        List<String> parts = new ArrayList<String>((input.length() / maxPartLen) + 2);
-        split(input, splitCharClassRegex, maxPartLen, parts);
-        return parts;
-    }
-
-    private static void split(String input, String splitCharClassRegex, int maxPartLen, List<String> parts) {
-        int len = input.length();
-        if (len <= maxPartLen) {
-            parts.add(input);
-            return;
-        }
-
-        for (int i = 0, j = maxPartLen; i < len; i++) {
-            if (i == maxPartLen) {
-                parts.add(input.substring(0, j).trim());
-                split(input.substring(j), splitCharClassRegex, maxPartLen, parts);
-                return;
-            }
-            if (isMatch(String.valueOf(input.charAt(i)), splitCharClassRegex)) {
-                j = i + 1;
-            }
-        }
-    }
-
     public static String replaceFirst(String input, int regexIndex) {
         return replaceFirst(input, Str.get(regexIndex), Str.get(regexIndex + 1));
     }

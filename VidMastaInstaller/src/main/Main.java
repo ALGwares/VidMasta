@@ -2,13 +2,17 @@ package main;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import util.Constant;
 import util.IO;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
+        updateConfigs();
         innoExe();
         jar(new File(Constant.SAVE_DIR + Constant.INSTALLER + ".jar"), "installerJAR");
         jar(new File(Constant.SAVE_DIR + Constant.AUTO_INSTALLER + ".jar"), "auto-installer");
@@ -16,6 +20,15 @@ public class Main {
         createVersionFile();
         //launch4jAdminPermissionsTesterExe(new File("C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR
         //        + "Desktop" + Constant.FILE_SEPARATOR + "adminPermissionsTester.exe"));
+    }
+
+    private static void updateConfigs() throws Exception {
+        Collection<File> configs = new ArrayList<File>(Arrays.asList((new File("installerJAR")).listFiles()));
+        Collections.addAll(configs, (new File("auto-installer")).listFiles());
+        for (File config : configs) {
+            IO.write(config, IO.read(config).replaceAll("\\<appversion\\>[\\d\\.]++\\</appversion\\>", "<appversion>" + Constant.APP_VERSION
+                    + "</appversion>").replaceAll('"' + Constant.APP_NAME + " [\\d\\.]++\"", '"' + Constant.APP_NAME + " " + Constant.APP_VERSION + "\""));
+        }
     }
 
     private static void createVersionFile() throws Exception {

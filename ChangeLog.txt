@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2017.05.02   | VidMasta 24.0
+
+CHANGE: CORE | Fixed playback of summary
+
+
+
+
 2017.04.21   | VidMasta 23.9
 
 CHANGE: UI   | Simplified user interface
