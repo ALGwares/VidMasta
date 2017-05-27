@@ -28,14 +28,16 @@ public class SubtitleFinder extends Worker {
     private final GuiListener guiListener;
     private final String format, languageID;
     private final Video video;
-    private boolean isTVShow, isTVShowAndMovie, stopped;
-    private final boolean firstMatch;
+    private boolean isTVShow, isTVShowAndMovie, stopped, complete;
+    private final boolean foreground, firstMatch;
     private VideoStrExportListener strExportListener;
     private String subtitleLink, prevUrl;
     private static final Map<Long, String> cache = new HashMap<Long, String>(8);
 
-    public SubtitleFinder(GuiListener guiListener, String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener) {
+    public SubtitleFinder(GuiListener guiListener, boolean foreground, String format, String languageID, Video video, boolean firstMatch,
+            VideoStrExportListener strExportListener) {
         this.guiListener = guiListener;
+        this.foreground = foreground;
         this.format = format;
         this.languageID = languageID;
         this.video = video;
@@ -47,7 +49,9 @@ public class SubtitleFinder extends Worker {
 
     @Override
     protected void doWork() {
-        guiListener.subtitleSearchStarted();
+        if (foreground) {
+            guiListener.subtitleSearchStarted();
+        }
         try {
             findSubtitle();
             searchStopped();
@@ -55,6 +59,9 @@ public class SubtitleFinder extends Worker {
             searchStopped();
             if (!isCancelled()) {
                 guiListener.error(e);
+                if (!complete) {
+                    guiListener.msg(Str.str("subtitleNotFound"), Constant.INFO_MSG);
+                }
             }
         }
         done();
@@ -65,7 +72,9 @@ public class SubtitleFinder extends Worker {
 
     private void searchStopped() {
         if (!stopped) {
-            guiListener.subtitleSearchStopped();
+            if (foreground) {
+                guiListener.subtitleSearchStopped();
+            }
             stopped = true;
         }
     }
@@ -128,11 +137,7 @@ public class SubtitleFinder extends Worker {
 
         if (!Regex.firstMatch(source, 453).isEmpty()) {
             Connection.removeFromCache(prevUrl);
-            if (!isCancelled()) {
-                searchStopped();
-                guiListener.msg(Connection.serverError(prevUrl), Constant.ERROR_MSG);
-            }
-            throw new ConnectionException();
+            throw new ConnectionException(Connection.serverError(prevUrl));
         }
 
         return source;
@@ -162,6 +167,7 @@ public class SubtitleFinder extends Worker {
         }
         searchStopped();
         guiListener.msg(Str.str("subtitleNotFound"), Constant.INFO_MSG);
+        complete = true;
     }
 
     private void saveSubtitle(List<String> results, boolean isExactResult) throws Exception {
@@ -238,6 +244,7 @@ public class SubtitleFinder extends Worker {
                 } else {
                     subtitleLink = url;
                 }
+                complete = true;
                 return;
             }
 
@@ -278,6 +285,7 @@ public class SubtitleFinder extends Worker {
                         } else {
                             subtitleLink = url;
                         }
+                        complete = true;
                     }
                     IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
                     if (subtitleFile.renameTo(tempSubtitleFile)) {

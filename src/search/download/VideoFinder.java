@@ -335,8 +335,8 @@ public class VideoFinder extends Worker {
             }
             String settings = searchState.toString();
             guiListener.msg(Str.str(("download" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? "" : (isDownload1 ? "1" : "2")))
-                    + "LinkNotFound") + Constant.STD_NEWLINE2 + Str.str("settings", " " + (settings.isEmpty() ? videoDescription() : videoDescription() + ','
-                                    + settings)), Constant.INFO_MSG);
+                    + "LinkNotFound") + Constant.STD_NEWLINE2 + Str.str("settings", " " + (settings.isEmpty() ? VideoSearch.describe(video) : VideoSearch.describe(
+                                            video) + ',' + settings)), Constant.INFO_MSG);
             addVideoToPlaylist();
         } else {
             if (Debug.DEBUG) {
@@ -450,11 +450,6 @@ public class VideoFinder extends Worker {
         }
     }
 
-    private String videoDescription() {
-        return Regex.htmlToPlainText(video.title) + " (" + video.year + (video.IS_TV_SHOW ? (" S" + (video.season.isEmpty() || video.season.equals(Constant.ANY)
-                ? "--" : video.season) + "E" + (video.episode.isEmpty() || video.episode.equals(Constant.ANY) ? "--" : video.episode)) : "") + ')';
-    }
-
     private void addVideoToPlaylist() {
     }
 
@@ -504,10 +499,16 @@ public class VideoFinder extends Worker {
 
         final String[] link;
         if (link1 == null) {
-            link = getTrailerLink2(season);
-            if (isCancelled()) {
-                return;
+            String[] link2 = null;
+            try {
+                link2 = getTrailerLink2(season);
+                if (isCancelled()) {
+                    return;
+                }
+            } catch (Exception e) {
+                error(e);
             }
+            link = link2;
         } else {
             link = link1;
         }

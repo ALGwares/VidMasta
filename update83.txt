@@ -1,4 +1,4 @@
-281
+282
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -768,5 +768,5 @@ vlc-2.2.1
 (?i)magnet:\?(?s).*
 https://code.responsivevoice.org/getvoice.php?t=%s&tl=en-US&sv=&vn=&pitch=0.5&rate=0.5&vol=1
 .mp3
-<!DOCTYPE html>NEWLINE<html>NEWLINE  <head>NEWLINE    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">NEWLINE    <title>TTS_TITLE: Audio Summary</title>NEWLINE  </head>NEWLINE  <body>NEWLINE    <div style="text-align: center; margin-left: auto; margin-right: auto;"><br>NEWLINE      <br>NEWLINE      <br>NEWLINE      <span style="font-weight: bold; font-family: Verdana; font-size: 3;">TTS_TITLE</span><br>NEWLINE      <span style="font-family: Verdana; font-size: 2;">Audio Summary</span><br>NEWLINE      <br>NEWLINE      <img src="file:///TTS_POSTER" alt="poster">NEWLINE      <br>NEWLINE      <br>NEWLINE      <audio controls autoplay>NEWLINE        <source src="file:///TTS_AUDIO_CLIP" type="audio/mpeg">NEWLINE        Your browser does not support the audio element.NEWLINE      </audio>NEWLINE    </div>NEWLINE  </body>NEWLINE</html>
+<!DOCTYPE html>NEWLINE<html>NEWLINE  <head>NEWLINE    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">NEWLINE    <title>TTS_TITLE: Audio Summary</title>NEWLINE  </head>NEWLINE  <body>NEWLINE    <div style="text-align: center; margin-left: auto; margin-right: auto;"><br>NEWLINE      <br>NEWLINE      <br>NEWLINE      <span style="font-weight: bold; font-family: Verdana; font-size: 3;">TTS_TITLE</span><br>NEWLINE      <span style="font-family: Verdana; font-size: 2;">Audio Summary</span><br>NEWLINE      <br>NEWLINE      <img src="file:///TTS_POSTER" alt="poster">NEWLINE      <br>NEWLINE      <br>NEWLINE      <audio controls autoplay>NEWLINE        <source src="file:///TTS_AUDIO_CLIP" type="audio/mpeg">NEWLINE        <object data="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50">NEWLINE          <embed src="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50"/>NEWLINE        </object>NEWLINE      </audio>NEWLINE    </div>NEWLINE  </body>NEWLINE</html>
 eof

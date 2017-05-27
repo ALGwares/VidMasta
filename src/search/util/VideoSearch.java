@@ -420,6 +420,11 @@ public class VideoSearch {
         return (imageName % Constant.MAX_SUBDIRECTORIES) + Constant.FILE_SEPARATOR + imageName;
     }
 
+    public static String describe(Video video) {
+        return Regex.htmlToPlainText(video.title) + " (" + video.year + (video.IS_TV_SHOW ? (" S" + (video.season.isEmpty() || video.season.equals(Constant.ANY)
+                ? "--" : video.season) + "E" + (video.episode.isEmpty() || video.episode.equals(Constant.ANY) ? "--" : video.episode)) : "") + ')';
+    }
+
     public static boolean isUploadYearTooOld(String sourceCode, int maxYearsOld, int baseYear) {
         String uploadTime = Regex.match(sourceCode, 668);
         if (uploadTime.isEmpty()) {

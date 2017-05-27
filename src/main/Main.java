@@ -428,8 +428,15 @@ public class Main implements WorkerListener {
     @Override
     public void subtitleSearchStarted(String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener) {
         if (isWorkDone(subtitleFinder)) {
-            (subtitleFinder = new SubtitleFinder(gui, format, languageID, video, firstMatch, strExportListener)).execute();
+            (subtitleFinder = new SubtitleFinder(gui, true, format, languageID, video, firstMatch, strExportListener)).execute();
         }
+    }
+
+    @Override
+    public Future<?> subtitleSearchStarted(String format, String languageID, Video video) {
+        SubtitleFinder altSubtitleFinder = new SubtitleFinder(gui, false, format, languageID, video, true, null);
+        altSubtitleFinder.execute();
+        return altSubtitleFinder;
     }
 
     @Override

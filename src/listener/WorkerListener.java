@@ -44,6 +44,8 @@ public interface WorkerListener {
 
     void subtitleSearchStarted(String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener);
 
+    Future<?> subtitleSearchStarted(String format, String languageID, Video video);
+
     void subtitleSearchStopped();
 
     void summaryReadStarted(String summary);

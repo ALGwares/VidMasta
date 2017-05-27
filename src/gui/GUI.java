@@ -6437,7 +6437,7 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(port.isEmpty() ? Constant.NULL : port).append(Constant.NEWLINE);
             saveButtons(settings, portRandomizeCheckBox);
             settings.append(viewedPortBefore).append(Constant.NEWLINE);
-            saveButtons(settings, dummyMenuItem6 /* Backward compatibility */);
+            saveButtons(settings, dummyMenuItem6); // Backward compatibility
 
             settings.append(saveSize(GUI.this));
             for (Window window : windows()) {

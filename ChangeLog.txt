@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2017.05.27   | VidMasta 24.1
+
+CHANGE: CORE | Improved automatic watchlist/wishlist management for subtitles
+CHANGE: CORE | Improved subtitle search and trailer search error handling
+
+
+
+
 2017.05.02   | VidMasta 24.0
 
 CHANGE: CORE | Fixed playback of summary
