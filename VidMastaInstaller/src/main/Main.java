@@ -2,6 +2,7 @@ package main;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,6 +19,8 @@ public class Main {
         jar(new File(Constant.SAVE_DIR + Constant.AUTO_INSTALLER + ".jar"), "auto-installer");
         launch4jExe(jar(new File(Constant.AUTO_INSTALLER + ".jar"), "auto-installer"), new File(Constant.SAVE_DIR + Constant.AUTO_INSTALLER + ".exe"));
         createVersionFile();
+        run(null, Paths.get("C:", "Program Files", "7-Zip", "7z.exe").toString(), "a", "-tzip", "-mx9", "-mmt", Paths.get(Constant.SAVE_DIR, Constant.INSTALLER
+                + ".zip").toString(), Paths.get("C:", "Users", "Anthony", "workspace", "Netbeans", "VidMasta", "vidmasta").toString());
         //launch4jAdminPermissionsTesterExe(new File("C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR
         //        + "Desktop" + Constant.FILE_SEPARATOR + "adminPermissionsTester.exe"));
     }

@@ -463,6 +463,10 @@ public class VideoSearch {
         return "\\<\\s*+b\\s++id\\s*+\\=\\s*+\"" + id + "\"\\s*+\\>(?s).+?\\<\\s*+/b\\s*+\\>";
     }
 
+    public static String normalize(String titleID) {
+        return Regex.isMatch(titleID, Str.get(770)) ? String.format(Str.get(771), Integer.parseInt(titleID)) : titleID;
+    }
+
     private VideoSearch() {
     }
 }

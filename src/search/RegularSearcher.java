@@ -101,7 +101,7 @@ public class RegularSearcher extends AbstractSearcher {
             return;
         }
 
-        String titleID = Regex.firstMatch(titleLink, 628);
+        String titleID = VideoSearch.normalize(Regex.firstMatch(titleLink, 628));
         if (titleID.isEmpty()) {
             return;
         }
@@ -207,8 +207,8 @@ public class RegularSearcher extends AbstractSearcher {
     protected void addVideo(String titleMatch) {
         String yearAndType = Regex.match(titleMatch, 27);
         boolean tvShow = isTVShow(titleMatch);
-        Video video = new Video(Regex.firstMatch(Regex.match(titleMatch, 23), 628), Regex.match(titleMatch, 25), Regex.firstMatch(yearAndType, 29), tvShow,
-                !Regex.firstMatch(yearAndType, tvShow ? 591 : 592).isEmpty());
+        Video video = new Video(VideoSearch.normalize(Regex.firstMatch(Regex.match(titleMatch, 23), 628)), Regex.match(titleMatch, 25), Regex.firstMatch(
+                yearAndType, 29), tvShow, !Regex.firstMatch(yearAndType, tvShow ? 591 : 592).isEmpty());
         if (video.title.isEmpty() || video.year.isEmpty() || video.ID.isEmpty()) {
             if (Debug.DEBUG) {
                 Debug.println("video ('" + video.title + "' '" + video.year + "' '" + video.ID + "') is invalid!");

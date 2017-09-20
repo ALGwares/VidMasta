@@ -1,4 +1,4 @@
-282
+283
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -89,7 +89,7 @@ https://www.youtube.com/results?search_query=
 SPACEtrailer
 <[^>]++>\s*+No( video)?+ results for\s*+(<[^>]++>)?+
 \s*+<[^>]++>
-\<\s*+a\s++href\s*+\=\s*+"/watch\?v\=[^"]++"[^\>]*+\>[^\<]*+\<\s*+/a\s*+\>
+"/watch\?v\=[^"]++"([^\>]*+\>[^\<]*+\<\s*+/a\s*+\>)?+
 https://www.youtube.com/watch?v=
 v=
 "
@@ -717,9 +717,9 @@ http://kat.unbanthe.net/
 http://kat.unbanthe.net/comments/index/torrent/
 https://kat.cr
 706,707,708,709,710,712,714,715
-http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Windows/UMS-6.5.0-Java7.exe
-http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/OS%20X/UMS-6.5.0-Java7.dmg
-http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Linux/UMS-6.5.0-Java7.tgz
+http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Windows/UMS-6.6.0-Java7.exe
+http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/OS%20X/UMS-6.6.0-Java7.dmg
+http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Linux/UMS-6.6.0-Java7.tgz
 https://ahoy.one/search/
 https://ahoy.one
 https://ahoy.one
@@ -760,7 +760,7 @@ http://www.imdb.com/video/screenplay/%s/imdb/single
 (?i)"videoUrl"\s*+:\s*+"
 "
 (?i)"videoMimeType"\s*+:\s*+"video
-http://mirror.nexcess.net/videolan/vlc/2.2.4/win32/vlc-2.2.4-win32.zip
+http://download.videolan.org/pub/videolan/vlc/2.2.6/win32/vlc-2.2.6-win32.zip
 vlc-2.2.1
 .*?(?i)vlc\.exe
 3
@@ -769,4 +769,6 @@ vlc-2.2.1
 https://code.responsivevoice.org/getvoice.php?t=%s&tl=en-US&sv=&vn=&pitch=0.5&rate=0.5&vol=1
 .mp3
 <!DOCTYPE html>NEWLINE<html>NEWLINE  <head>NEWLINE    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">NEWLINE    <title>TTS_TITLE: Audio Summary</title>NEWLINE  </head>NEWLINE  <body>NEWLINE    <div style="text-align: center; margin-left: auto; margin-right: auto;"><br>NEWLINE      <br>NEWLINE      <br>NEWLINE      <span style="font-weight: bold; font-family: Verdana; font-size: 3;">TTS_TITLE</span><br>NEWLINE      <span style="font-family: Verdana; font-size: 2;">Audio Summary</span><br>NEWLINE      <br>NEWLINE      <img src="file:///TTS_POSTER" alt="poster">NEWLINE      <br>NEWLINE      <br>NEWLINE      <audio controls autoplay>NEWLINE        <source src="file:///TTS_AUDIO_CLIP" type="audio/mpeg">NEWLINE        <object data="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50">NEWLINE          <embed src="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50"/>NEWLINE        </object>NEWLINE      </audio>NEWLINE    </div>NEWLINE  </body>NEWLINE</html>
+\d++
+%08d
 eof

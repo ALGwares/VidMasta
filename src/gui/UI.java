@@ -493,11 +493,6 @@ public class UI {
         window.setVisible(true);
     }
 
-    public static boolean deiconifyThenIsShowing(Frame frame) {
-        deiconify(frame);
-        return isShowing(frame);
-    }
-
     public static void deiconify(Frame frame) {
         frame.setExtendedState(frame.getExtendedState() & ~Frame.ICONIFIED);
     }

@@ -228,7 +228,7 @@ public class PopularSearcher extends AbstractSearcher {
             return null;
         }
 
-        String titleID = Regex.firstMatch(titleLink, 628);
+        String titleID = VideoSearch.normalize(Regex.firstMatch(titleLink, 628));
         if (titleID.isEmpty()) {
             return null;
         }

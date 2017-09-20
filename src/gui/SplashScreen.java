@@ -20,7 +20,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -55,35 +57,37 @@ public class SplashScreen extends JFrame {
     }
 
     private void initComponents() {
+        resultsPanel = new JPanel();
+        resultsScrollPane = new JScrollPane();
+        resultsTable = new JTable();
+        readSummaryButton = new JButton();
+        watchTrailerButton = new JButton();
+        downloadLink1Button = new JButton();
+        downloadLink2Button = new JButton();
+        exitBackupModeButton = new JButton();
+        loadMoreResultsButton = new JButton();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
         genreLabel = new JLabel();
         ratingComboBox = new JComboBox();
         ratingLabel = new JLabel();
-        resultsScrollPane = new JScrollPane();
-        resultsTable = new JTable();
         searchButton = new JButton();
         genreScrollPane = new JScrollPane();
         genreList = new JList();
-        loadMoreResultsButton = new JButton();
         typeLabel = new JLabel();
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
         popularMoviesButton = new JButton();
         popularPopupMenuButton = new JButton();
         loadingLabel = new JLabel();
-        readSummaryButton = new JButton();
-        watchTrailerButton = new JButton();
-        downloadLink1Button = new JButton();
-        downloadLink2Button = new JButton();
         statusBarTextField = new JTextField();
         searchProgressTextField = new JTextField();
-        exitBackupModeButton = new JButton();
         connectionIssueButton = new JButton();
         startDateTextField = new JTextField();
         endDateTextField = new JTextField();
         findTextField = new JTextField();
+        splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, null);
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
         editMenu = new JMenu();
@@ -93,47 +97,15 @@ public class SplashScreen extends JFrame {
         downloadMenu = new JMenu();
         helpMenu = new JMenu();
 
-        setTitle(Constant.APP_TITLE);
-        setMinimumSize(null);
-
-        titleTextField.setEnabled(false);
-
-        titleLabel.setLabelFor(titleTextField);
-        titleLabel.setText(bundle.getString("GUI.titleLabel.text"));
-        titleLabel.setEnabled(false);
-
-        releasedLabel.setText(bundle.getString("GUI.releasedLabel.text"));
-        releasedLabel.setEnabled(false);
-
-        genreLabel.setLabelFor(genreList);
-        genreLabel.setText(bundle.getString("GUI.genreLabel.text"));
-        genreLabel.setEnabled(false);
-
-        ratingComboBox.setMaximumRowCount(11);
-        ratingComboBox.setEnabled(false);
-        ratingComboBox.addItem(bundle.getString("any"));
-
-        ratingLabel.setLabelFor(ratingComboBox);
-        ratingLabel.setText(bundle.getString("GUI.ratingLabel.text"));
-        ratingLabel.setEnabled(false);
-
         resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         resultsScrollPane.setAutoscrolls(true);
 
         resultsTable.setAutoCreateRowSorter(true);
-        resultsTable.setModel(new DefaultTableModel(
-                new Object[][]{},
-                new String[]{
-                    "", "Title", "Year", "Rating"
-                }
-        ) {
+        resultsTable.setModel(new DefaultTableModel(new Object[][]{}, new String[]{"", "Title", "Year", "Rating"}) {
             private static final long serialVersionUID = 1L;
-            Class<?>[] types = new Class<?>[]{
-                Object.class, String.class, String.class, String.class
-            };
-            boolean[] canEdit = new boolean[]{
-                false, false, false, false
-            };
+
+            Class[] types = new Class[]{Object.class, String.class, String.class, String.class};
+            boolean[] canEdit = new boolean[]{false, false, false, false};
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
@@ -172,6 +144,94 @@ public class SplashScreen extends JFrame {
             resultsTable.getColumnModel().getColumn(3).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title3"));
         }
 
+        readSummaryButton.setText(bundle.getString("GUI.readSummaryButton.text"));
+        readSummaryButton.setEnabled(false);
+
+        watchTrailerButton.setText(bundle.getString("GUI.watchTrailerButton.text"));
+        watchTrailerButton.setEnabled(false);
+
+        downloadLink1Button.setText(bundle.getString("GUI.downloadLink1Button.text"));
+        downloadLink1Button.setEnabled(false);
+
+        downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text"));
+        downloadLink2Button.setEnabled(false);
+        downloadLink2Button.setMargin(new Insets(0, 2, 0, 2));
+        UI.resize(AbstractComponent.newInstance(downloadLink2Button), bundle.getString(Constant.STOP_KEY), downloadLink2Button.getText());
+
+        exitBackupModeButton.setBorderPainted(false);
+        exitBackupModeButton.setEnabled(false);
+        exitBackupModeButton.setMinimumSize(new Dimension(0, 0));
+        exitBackupModeButton.setMaximumSize(new Dimension(0, 0));
+
+        loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text"));
+        loadMoreResultsButton.setEnabled(false);
+
+        GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
+        resultsPanel.setLayout(resultsPanelLayout);
+        resultsPanelLayout.setHorizontalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+                        .addGap(0, 0, 0)
+                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
+                                .addComponent(resultsScrollPane, Alignment.LEADING)
+                                .addGroup(resultsPanelLayout.createSequentialGroup()
+                                        .addComponent(readSummaryButton)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                                        .addComponent(watchTrailerButton)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                                        .addComponent(downloadLink1Button)
+                                        .addGap(1, 1, 1)
+                                        .addComponent(downloadLink2Button)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                                        .addComponent(exitBackupModeButton)
+                                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(loadMoreResultsButton)))
+                        .addGap(0, 0, 0))
+        );
+
+        resultsPanelLayout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, readSummaryButton, watchTrailerButton});
+
+        resultsPanelLayout.setVerticalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addGap(0, 0, 0)
+                        .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                                .addComponent(exitBackupModeButton, Alignment.TRAILING)
+                                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                                        .addComponent(readSummaryButton)
+                                        .addComponent(watchTrailerButton)
+                                        .addComponent(downloadLink1Button)
+                                        .addComponent(downloadLink2Button)
+                                        .addComponent(loadMoreResultsButton))))
+        );
+
+        resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton,
+            readSummaryButton, watchTrailerButton});
+
+        setTitle(Constant.APP_TITLE);
+        setMinimumSize(null);
+
+        titleTextField.setEnabled(false);
+
+        titleLabel.setLabelFor(titleTextField);
+        titleLabel.setText(bundle.getString("GUI.titleLabel.text"));
+        titleLabel.setEnabled(false);
+
+        releasedLabel.setText(bundle.getString("GUI.releasedLabel.text"));
+        releasedLabel.setEnabled(false);
+
+        genreLabel.setLabelFor(genreList);
+        genreLabel.setText(bundle.getString("GUI.genreLabel.text"));
+        genreLabel.setEnabled(false);
+
+        ratingComboBox.setMaximumRowCount(11);
+        ratingComboBox.setEnabled(false);
+        ratingComboBox.addItem(bundle.getString("any"));
+
+        ratingLabel.setLabelFor(ratingComboBox);
+        ratingLabel.setText(bundle.getString("GUI.ratingLabel.text"));
+        ratingLabel.setEnabled(false);
+
         searchButton.setText(bundle.getString("GUI.searchButton.text"));
         searchButton.setEnabled(false);
 
@@ -179,9 +239,6 @@ public class SplashScreen extends JFrame {
         genreList.setEnabled(false);
         genreList.setListData(new String[]{bundle.getString("any")});
         genreScrollPane.setViewportView(genreList);
-
-        loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text"));
-        loadMoreResultsButton.setEnabled(false);
 
         typeLabel.setLabelFor(typeComboBox);
         typeLabel.setText(bundle.getString("GUI.typeLabel.text"));
@@ -202,20 +259,6 @@ public class SplashScreen extends JFrame {
 
         loadingLabel.setText(null);
 
-        readSummaryButton.setText(bundle.getString("GUI.readSummaryButton.text"));
-        readSummaryButton.setEnabled(false);
-
-        watchTrailerButton.setText(bundle.getString("GUI.watchTrailerButton.text"));
-        watchTrailerButton.setEnabled(false);
-
-        downloadLink1Button.setText(bundle.getString("GUI.downloadLink1Button.text"));
-        downloadLink1Button.setEnabled(false);
-
-        downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text"));
-        downloadLink2Button.setEnabled(false);
-        downloadLink2Button.setMargin(new Insets(0, 2, 0, 2));
-        UI.resize(AbstractComponent.newInstance(downloadLink2Button), bundle.getString(Constant.STOP_KEY), downloadLink2Button.getText());
-
         statusBarTextField.setEditable(false);
         statusBarTextField.setFont(new Font("Verdana", 0, 10));
         statusBarTextField.setBorder(BorderFactory.createEtchedBorder());
@@ -227,11 +270,6 @@ public class SplashScreen extends JFrame {
         UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + I18nStr.replace(bundle.getString("results"), 11111, I18nStr.percent(1, 0)) + ' ',
                 searchProgressTextField.getText());
         searchProgressTextField.setBorder(BorderFactory.createEtchedBorder());
-
-        exitBackupModeButton.setBorderPainted(false);
-        exitBackupModeButton.setEnabled(false);
-        exitBackupModeButton.setMinimumSize(new Dimension(0, 0));
-        exitBackupModeButton.setMaximumSize(new Dimension(0, 0));
 
         connectionIssueButton.setText(null);
         connectionIssueButton.setBorder(BorderFactory.createEtchedBorder());
@@ -246,6 +284,11 @@ public class SplashScreen extends JFrame {
 
         findTextField.setBorder(null);
         findTextField.setEnabled(false);
+
+        splitPane.setDividerLocation(Integer.MAX_VALUE);
+        splitPane.setDividerSize(10);
+        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setOneTouchExpandable(false);
 
         fileMenu.setText(bundle.getString("GUI.fileMenu.text"));
         fileMenu.setEnabled(false);
@@ -283,19 +326,7 @@ public class SplashScreen extends JFrame {
                 .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(resultsScrollPane, Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                        .addComponent(readSummaryButton)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(watchTrailerButton)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(downloadLink1Button)
-                                        .addGap(1, 1, 1)
-                                        .addComponent(downloadLink2Button)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(exitBackupModeButton)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(loadMoreResultsButton))
+                                .addComponent(splitPane, Alignment.LEADING)
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                                 .addGroup(layout.createSequentialGroup()
@@ -340,9 +371,6 @@ public class SplashScreen extends JFrame {
                         .addGap(0, 0, 0)
                         .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
-
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, readSummaryButton, watchTrailerButton});
-
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
@@ -376,16 +404,7 @@ public class SplashScreen extends JFrame {
                                 .addComponent(searchButton)
                                 .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                .addComponent(exitBackupModeButton, Alignment.TRAILING)
-                                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                        .addComponent(readSummaryButton)
-                                        .addComponent(watchTrailerButton)
-                                        .addComponent(downloadLink1Button)
-                                        .addComponent(downloadLink2Button)
-                                        .addComponent(loadMoreResultsButton)))
+                        .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                 .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -393,14 +412,12 @@ public class SplashScreen extends JFrame {
                                 .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
         );
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, findTextField, ratingComboBox, startDateTextField, titleTextField,
+            typeComboBox});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{genreLabel, ratingLabel, releasedLabel});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularPopupMenuButton});
-
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, findTextField,
-            loadMoreResultsButton, readSummaryButton, watchTrailerButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{connectionIssueButton, searchProgressTextField, statusBarTextField});
     }
@@ -429,11 +446,13 @@ public class SplashScreen extends JFrame {
     JButton readSummaryButton;
     JLabel releasedLabel;
     JLabel releasedToLabel;
+    JPanel resultsPanel;
     JScrollPane resultsScrollPane;
     JTable resultsTable;
     JButton searchButton;
     JMenu searchMenu;
     JTextField searchProgressTextField;
+    JSplitPane splitPane;
     JTextField startDateTextField;
     JTextField statusBarTextField;
     JLabel titleLabel;

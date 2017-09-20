@@ -148,7 +148,7 @@ public class SubtitleFinder extends Worker {
             return true; // TV show's episode imdb title IDs != TV show's general imdb title ID
         }
         String titleLink = Regex.firstMatch(result, 427);
-        String resultID = Regex.replaceAll(Regex.replaceFirst(titleLink, 428), 423);
+        String resultID = VideoSearch.normalize(Regex.replaceAll(Regex.replaceFirst(titleLink, 428), 423));
         if (Debug.DEBUG) {
             Debug.println("subtitle search result: resultID='" + resultID + "' titleID='" + video.ID + "'");
         }

@@ -6,6 +6,7 @@ import com.toedter.calendar.JTextFieldDateEditor;
 import debug.Debug;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dialog.ModalExclusionType;
 import java.awt.Dialog.ModalityType;
@@ -99,6 +100,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTable.PrintMode;
 import javax.swing.JTextArea;
@@ -131,6 +133,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -172,7 +175,7 @@ public class GUI extends JFrame implements GuiListener {
             forcePlaylistDownloader = true;
     private MenuElement popularSearchMenuElement;
     boolean viewedPortBefore;
-    private final AtomicBoolean isPlaylistRestored = new AtomicBoolean();
+    private final AtomicBoolean isPlaylistRestored = new AtomicBoolean(), playlistShown = new AtomicBoolean();
     private final Set<Long> bannedDownloadIDs = new CopyOnWriteArraySet<Long>();
     private FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
@@ -192,7 +195,6 @@ public class GUI extends JFrame implements GuiListener {
     JList popupList;
     JTextComponent popupTextComponent;
     SyncTable resultsSyncTable, playlistSyncTable;
-    private final Set<KeyStroke> menuBarAccelerators;
     private AbstractPopupListener textComponentPopupListener;
     private final ActionListener htmlCopyListener = new HTMLCopyListener(), tableCopyListener = new TableCopyListener(),
             playlistTableCopyListener = new PlaylistTableCopyListener();
@@ -202,12 +204,12 @@ public class GUI extends JFrame implements GuiListener {
     final BlockingQueue<String> posterImagePaths = new LinkedBlockingQueue<String>();
     private Thread posterCacher;
     private JTextFieldDateEditor startDateTextField, endDateTextField;
-    private TrayIcon trayIcon, playlistTrayIcon;
+    private TrayIcon trayIcon;
     boolean usePeerBlock;
     private volatile Worker timedMsgThread;
     final Object timedMsgLock = new Object();
     private final FindControl findControl, playlistFindControl;
-    JDialog dummyDialog = new JDialog();
+    JDialog dummyDialog = new JDialog(), dummyDialog2 = new JDialog();
     JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), dummyMenuItem4 = new JMenuItem(),
             dummyMenuItem5 = new JMenuItem(), dummyMenuItem6 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
     JComboBox dummyComboBox = new JComboBox(), dummyComboBox2 = new JComboBox();
@@ -217,7 +219,6 @@ public class GUI extends JFrame implements GuiListener {
         this.workerListener = workerListener;
 
         initComponents();
-        menuBarAccelerators = UI.accelerators(menuBar, editMenu, resetWindowMenuItem);
         updateToggleButtons(true);
         UI.initToggleButton(summaryTextToSpeechButton, "speaker.png");
         initFileNameExtensionFilters();
@@ -516,7 +517,7 @@ public class GUI extends JFrame implements GuiListener {
 
         timedMsgDialog.setIconImage(icon);
         Collection<Window> windows = new ArrayList<Window>(Arrays.asList(windows()));
-        Collections.addAll(windows, (Window) playlistFrame, activationDialog);
+        windows.add(activationDialog);
 
         for (final Window window : windows) {
             window.setIconImage(icon);
@@ -536,7 +537,7 @@ public class GUI extends JFrame implements GuiListener {
             ActionMap actionMap = root.getActionMap();
             inputMap.put(escapeKey, escapeKeyWindowClosingActionMapKey);
             actionMap.put(escapeKeyWindowClosingActionMapKey, windowClosingAction);
-            if (window != playlistFrame && window != activationDialog) {
+            if (window != activationDialog) {
                 inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
                 actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
             }
@@ -544,7 +545,6 @@ public class GUI extends JFrame implements GuiListener {
 
         try {
             trayIcon = UI.addMinimizeToTraySupport(this);
-            playlistTrayIcon = UI.addMinimizeToTraySupport(playlistFrame);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -882,24 +882,6 @@ public class GUI extends JFrame implements GuiListener {
         listSelectAllMenuItem = new JMenuItem();
         connectionIssueButtonPopupMenu = new JPopupMenu();
         hideMenuItem = new JMenuItem();
-        playlistFrame = new JFrame() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void setMaximizedBounds(Rectangle bounds) {
-                super.setMaximizedBounds(bounds == null ? null : UI.getUsableScreenBounds(playlistFrame));
-            }
-        };
-        playlistScrollPane = new JScrollPane();
-        playlistTable = new JTable();
-        playlistPlayButton = new JButton();
-        playlistFindTextField = new JTextField();
-        playlistOpenButton = new JButton();
-        playlistMoveUpButton = new JButton();
-        playlistMoveDownButton = new JButton();
-        playlistRemoveButton = new JButton();
-        playlistReloadGroupButton = new JButton();
-        playlistBanGroupButton = new JButton();
         playlistTablePopupMenu = new JPopupMenu();
         playlistPlayMenuItem = new JMenuItem();
         playlistOpenMenuItem = new JMenuItem();
@@ -918,35 +900,48 @@ public class GUI extends JFrame implements GuiListener {
         languageButtonGroup = new ButtonGroup();
         trailerPlayerButtonGroup = new ButtonGroup();
         downloadQualityButtonGroup = new ButtonGroup();
+        resultsPanel = new JPanel();
+        resultsScrollPane = new JScrollPane();
+        resultsTable = new JTable();
+        readSummaryButton = new JButton();
+        watchTrailerButton = new JButton();
+        downloadLink1Button = new JButton();
+        downloadLink2Button = new JButton();
+        exitBackupModeButton = new JButton();
+        loadMoreResultsButton = new JButton();
+        playlistPanel = new JPanel();
+        playlistScrollPane = new JScrollPane();
+        playlistTable = new JTable();
+        playlistPlayButton = new JButton();
+        playlistFindTextField = new JTextField();
+        playlistOpenButton = new JButton();
+        playlistMoveUpButton = new JButton();
+        playlistMoveDownButton = new JButton();
+        playlistRemoveButton = new JButton();
+        playlistReloadGroupButton = new JButton();
+        playlistBanGroupButton = new JButton();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
         genreLabel = new JLabel();
         ratingComboBox = new JComboBox();
         ratingLabel = new JLabel();
-        resultsScrollPane = new JScrollPane();
-        resultsTable = new JTable();
         searchButton = new JButton();
         genreScrollPane = new JScrollPane();
         genreList = new JList();
-        loadMoreResultsButton = new JButton();
         typeLabel = new JLabel();
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
         popularMoviesButton = new JButton();
         popularPopupMenuButton = new JButton();
         loadingLabel = new JLabel();
-        readSummaryButton = new JButton();
-        watchTrailerButton = new JButton();
-        downloadLink1Button = new JButton();
-        downloadLink2Button = new JButton();
         statusBarTextField = new JTextField();
         searchProgressTextField = new JTextField();
-        exitBackupModeButton = new JButton();
         connectionIssueButton = new JButton();
         startDateChooser = new DateChooser(true);
         endDateChooser = new DateChooser(false);
         findTextField = new JTextField();
+        splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, playlistPanel);
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
         profileMenu = new JMenu();
@@ -2847,233 +2842,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         connectionIssueButtonPopupMenu.add(hideMenuItem);
 
-        playlistFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        playlistFrame.setTitle(bundle.getString("GUI.playlistFrame.title")); // NOI18N
-        playlistFrame.setAlwaysOnTop(true);
-        playlistFrame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent evt) {
-                playlistFrameWindowClosing(evt);
-            }
-        });
-
-        playlistScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        playlistScrollPane.setAutoscrolls(true);
-
-        playlistTable.setAutoCreateRowSorter(true);
-        playlistTable.setModel(new DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Name", "Size", "Progress", ""
-            }
-        ) {
-            Class[] types = new Class [] {
-                String.class, Object.class, Object.class, Object.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        playlistTable.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-        playlistTable.setFillsViewportHeight(true);
-        playlistTable.setMaximumSize(new Dimension(32767, 32767));
-        playlistTable.setMinimumSize(new Dimension(24, 24));
-        playlistTable.setName("Playlist"); // NOI18N
-        playlistTable.setOpaque(false);
-        playlistTable.setPreferredSize(null);
-        playlistTable.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                playlistTableMouseClicked(evt);
-            }
-        });
-        playlistTable.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistTableKeyPressed(evt);
-            }
-        });
-        playlistScrollPane.setViewportView(playlistTable);
-        if (playlistTable.getColumnModel().getColumnCount() > 0) {
-            playlistTable.getColumnModel().getColumn(0).setPreferredWidth(703);
-            playlistTable.getColumnModel().getColumn(0).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title0")); // NOI18N
-            playlistTable.getColumnModel().getColumn(1).setPreferredWidth(70);
-            playlistTable.getColumnModel().getColumn(1).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title1")); // NOI18N
-            playlistTable.getColumnModel().getColumn(2).setPreferredWidth(158);
-            playlistTable.getColumnModel().getColumn(2).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title2")); // NOI18N
-            playlistTable.getColumnModel().getColumn(3).setPreferredWidth(0);
-            playlistTable.getColumnModel().getColumn(3).setHeaderValue(Constant.PLAYLIST_ITEM_COL);
-        }
-
-        playlistPlayButton.setText(null);
-        playlistPlayButton.setToolTipText(bundle.getString("GUI.playlistPlayButton.toolTipText")); // NOI18N
-        playlistPlayButton.setEnabled(false);
-        playlistPlayButton.setMargin(new Insets(0, 0, 0, 0));
-        playlistPlayButton.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent evt) {
-                playlistPlayButtonMousePressed(evt);
-            }
-        });
-        playlistPlayButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistPlayButtonActionPerformed(evt);
-            }
-        });
-        playlistPlayButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistPlayButtonKeyPressed(evt);
-            }
-        });
-
-        playlistFindTextField.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistFindTextFieldKeyPressed(evt);
-            }
-        });
-
-        playlistOpenButton.setText(null);
-        playlistOpenButton.setToolTipText(bundle.getString("GUI.playlistOpenButton.toolTipText")); // NOI18N
-        playlistOpenButton.setEnabled(false);
-        playlistOpenButton.setMargin(new Insets(0, 0, 0, 0));
-        playlistOpenButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistOpenButtonActionPerformed(evt);
-            }
-        });
-        playlistOpenButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistOpenButtonKeyPressed(evt);
-            }
-        });
-
-        playlistMoveUpButton.setText(null);
-        playlistMoveUpButton.setToolTipText(bundle.getString("GUI.playlistMoveUpButton.toolTipText")); // NOI18N
-        playlistMoveUpButton.setEnabled(false);
-        playlistMoveUpButton.setMargin(new Insets(0, 0, 0, 0));
-        playlistMoveUpButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistMoveUpButtonActionPerformed(evt);
-            }
-        });
-        playlistMoveUpButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistMoveUpButtonKeyPressed(evt);
-            }
-        });
-
-        playlistMoveDownButton.setText(null);
-        playlistMoveDownButton.setToolTipText(bundle.getString("GUI.playlistMoveDownButton.toolTipText")); // NOI18N
-        playlistMoveDownButton.setEnabled(false);
-        playlistMoveDownButton.setMargin(new Insets(0, 0, 0, 0));
-        playlistMoveDownButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistMoveDownButtonActionPerformed(evt);
-            }
-        });
-        playlistMoveDownButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistMoveDownButtonKeyPressed(evt);
-            }
-        });
-
-        playlistRemoveButton.setText(null);
-        playlistRemoveButton.setToolTipText(bundle.getString("GUI.playlistRemoveButton.toolTipText")); // NOI18N
-        playlistRemoveButton.setEnabled(false);
-        playlistRemoveButton.setMargin(new Insets(0, 0, 0, 0));
-        playlistRemoveButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistRemoveButtonActionPerformed(evt);
-            }
-        });
-        playlistRemoveButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistRemoveButtonKeyPressed(evt);
-            }
-        });
-
-        playlistReloadGroupButton.setText(null);
-        playlistReloadGroupButton.setToolTipText(bundle.getString("GUI.playlistReloadGroupButton.toolTipText")); // NOI18N
-        playlistReloadGroupButton.setEnabled(false);
-        playlistReloadGroupButton.setMargin(new Insets(0, 0, 0, 0));
-        playlistReloadGroupButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistReloadGroupButtonActionPerformed(evt);
-            }
-        });
-        playlistReloadGroupButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistReloadGroupButtonKeyPressed(evt);
-            }
-        });
-
-        playlistBanGroupButton.setText(null);
-        playlistBanGroupButton.setToolTipText(bundle.getString("GUI.playlistBanGroupButton.toolTipText")); // NOI18N
-        playlistBanGroupButton.setEnabled(false);
-        playlistBanGroupButton.setMargin(new Insets(0, 0, 0, 0));
-        playlistBanGroupButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                playlistBanGroupButtonActionPerformed(evt);
-            }
-        });
-        playlistBanGroupButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                playlistBanGroupButtonKeyPressed(evt);
-            }
-        });
-
-        GroupLayout playlistFrameLayout = new GroupLayout(playlistFrame.getContentPane());
-        playlistFrame.getContentPane().setLayout(playlistFrameLayout);
-        playlistFrameLayout.setHorizontalGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(playlistFrameLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 880, Short.MAX_VALUE)
-                    .addGroup(playlistFrameLayout.createSequentialGroup()
-                        .addComponent(playlistPlayButton)
-                        .addGap(18, 18, 18)
-                        .addComponent(playlistFindTextField)
-                        .addGap(18, 18, 18)
-                        .addComponent(playlistOpenButton)
-                        .addGap(18, 18, 18)
-                        .addComponent(playlistMoveUpButton)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(playlistMoveDownButton)
-                        .addGap(18, 18, 18)
-                        .addComponent(playlistRemoveButton)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(playlistReloadGroupButton)
-                        .addGap(18, 18, 18)
-                        .addComponent(playlistBanGroupButton)))
-                .addContainerGap())
-        );
-        playlistFrameLayout.setVerticalGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(playlistFrameLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
-                .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addGroup(playlistFrameLayout.createParallelGroup(Alignment.LEADING)
-                    .addGroup(playlistFrameLayout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(playlistFindTextField, GroupLayout.PREFERRED_SIZE, 19, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(playlistOpenButton))
-                    .addGroup(playlistFrameLayout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(playlistPlayButton)
-                        .addComponent(playlistMoveUpButton)
-                        .addComponent(playlistMoveDownButton)
-                        .addComponent(playlistRemoveButton)
-                        .addComponent(playlistReloadGroupButton)
-                        .addComponent(playlistBanGroupButton)))
-                .addContainerGap())
-        );
-
-        playlistFrameLayout.linkSize(SwingConstants.VERTICAL, new Component[] {playlistFindTextField, playlistMoveDownButton, playlistMoveUpButton, playlistOpenButton, playlistPlayButton, playlistRemoveButton});
-
         playlistPlayMenuItem.setToolTipText(bundle.getString("GUI.playlistPlayMenuItem.toolTipText")); // NOI18N
         playlistPlayMenuItem.setEnabled(false);
         playlistPlayMenuItem.addMouseListener(new MouseAdapter() {
@@ -3194,39 +2962,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addContainerGap())
         );
 
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        setTitle(Constant.APP_TITLE);
-        setMinimumSize(null);
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent evt) {
-                formWindowClosing(evt);
-            }
-        });
-
-        titleTextField.setText(null);
-
-        titleLabel.setLabelFor(titleTextField);
-        titleLabel.setText(bundle.getString("GUI.titleLabel.text")); // NOI18N
-        titleLabel.setToolTipText(bundle.getString("GUI.titleLabel.toolTipText")); // NOI18N
-
-        releasedLabel.setLabelFor(startDateChooser);
-        releasedLabel.setText(bundle.getString("GUI.releasedLabel.text")); // NOI18N
-        releasedLabel.setToolTipText(bundle.getString("GUI.releasedLabel.toolTipText")); // NOI18N
-
-        genreLabel.setLabelFor(genreList);
-        genreLabel.setText(bundle.getString("GUI.genreLabel.text")); // NOI18N
-        genreLabel.setToolTipText(bundle.getString("GUI.genreLabel.toolTipText")); // NOI18N
-
-        ratingComboBox.setMaximumRowCount(11);
-        List<String> ratings = new ArrayList<String>(100);
-        ratings.add(Str.str("any"));
-        Collections.addAll(ratings, Regex.split(360, Constant.SEPARATOR1));
-        UI.init(ratingComboBox, ratings.toArray(Constant.EMPTY_STRS));
-
-        ratingLabel.setLabelFor(ratingComboBox);
-        ratingLabel.setText(bundle.getString("GUI.ratingLabel.text")); // NOI18N
-        ratingLabel.setToolTipText(bundle.getString("GUI.ratingLabel.toolTipText")); // NOI18N
-
         resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         resultsScrollPane.setAutoscrolls(true);
 
@@ -3326,62 +3061,6 @@ public class GUI extends JFrame implements GuiListener {
             resultsTable.getColumnModel().getColumn(12).setHeaderValue(Constant.EPISODE_COL);
         }
 
-        searchButton.setText(bundle.getString("GUI.searchButton.text")); // NOI18N
-        searchButton.setToolTipText(bundle.getString("GUI.searchButton.toolTipText")); // NOI18N
-        searchButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                searchButtonActionPerformed(evt);
-            }
-        });
-
-        List<String> genres = new ArrayList<String>(32);
-        genres.add(Str.str("any"));
-        Collections.addAll(genres, Regex.split(359, Constant.SEPARATOR1));
-        UI.init(genreList, genres.toArray(Constant.EMPTY_STRS));
-        genreList.setSelectedValue(Str.str("any"), true);
-        genreList.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent evt) {
-                genreListValueChanged(evt);
-            }
-        });
-        genreScrollPane.setViewportView(genreList);
-
-        loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text")); // NOI18N
-        loadMoreResultsButton.setToolTipText(bundle.getString("GUI.loadMoreResultsButton.toolTipText")); // NOI18N
-        loadMoreResultsButton.setEnabled(false);
-        loadMoreResultsButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                loadMoreResultsButtonActionPerformed(evt);
-            }
-        });
-
-        typeLabel.setLabelFor(typeComboBox);
-        typeLabel.setText(bundle.getString("GUI.typeLabel.text")); // NOI18N
-        typeLabel.setToolTipText(bundle.getString("GUI.typeLabel.toolTipText")); // NOI18N
-
-        UI.init(typeComboBox, Str.strs("GUI.typeComboBox.model"));
-
-        releasedToLabel.setLabelFor(endDateChooser);
-        releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text")); // NOI18N
-
-        popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text")); // NOI18N
-        popularMoviesButton.setToolTipText(bundle.getString("GUI.popularMoviesButton.toolTipText")); // NOI18N
-        popularMoviesButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                popularMoviesButtonActionPerformed(evt);
-            }
-        });
-
-        popularPopupMenuButton.setText(null);
-        popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
-        popularPopupMenuButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                popularPopupMenuButtonActionPerformed(evt);
-            }
-        });
-
-        loadingLabel.setText(null);
-
         readSummaryButton.setText(bundle.getString("GUI.readSummaryButton.text")); // NOI18N
         readSummaryButton.setToolTipText(bundle.getString("GUI.readSummaryButton.toolTipText")); // NOI18N
         readSummaryButton.setEnabled(false);
@@ -3419,6 +3098,333 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
+        exitBackupModeButton.setBorderPainted(false);
+        exitBackupModeButton.setEnabled(false);
+        exitBackupModeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                exitBackupModeButtonActionPerformed(evt);
+            }
+        });
+
+        loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text")); // NOI18N
+        loadMoreResultsButton.setToolTipText(bundle.getString("GUI.loadMoreResultsButton.toolTipText")); // NOI18N
+        loadMoreResultsButton.setEnabled(false);
+        loadMoreResultsButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                loadMoreResultsButtonActionPerformed(evt);
+            }
+        });
+
+        GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
+        resultsPanel.setLayout(resultsPanelLayout);
+        resultsPanelLayout.setHorizontalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
+                    .addComponent(resultsScrollPane, Alignment.LEADING)
+                    .addGroup(resultsPanelLayout.createSequentialGroup()
+                        .addComponent(readSummaryButton)
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                        .addComponent(watchTrailerButton)
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                        .addComponent(downloadLink1Button)
+                        .addGap(1, 1, 1)
+                        .addComponent(downloadLink2Button)
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                        .addComponent(exitBackupModeButton)
+                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(loadMoreResultsButton)))
+                .addGap(0, 0, 0))
+        );
+
+        resultsPanelLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, readSummaryButton, watchTrailerButton});
+
+        resultsPanelLayout.setVerticalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(resultsPanelLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.UNRELATED)
+                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(exitBackupModeButton, Alignment.TRAILING)
+                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(readSummaryButton)
+                        .addComponent(watchTrailerButton)
+                        .addComponent(downloadLink1Button)
+                        .addComponent(downloadLink2Button)
+                        .addComponent(loadMoreResultsButton))))
+        );
+
+        resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
+
+        playlistScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        playlistScrollPane.setAutoscrolls(true);
+
+        playlistTable.setAutoCreateRowSorter(true);
+        playlistTable.setModel(new DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Name", "Size", "Progress", ""
+            }
+        ) {
+            Class[] types = new Class [] {
+                String.class, Object.class, Object.class, Object.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        playlistTable.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        playlistTable.setFillsViewportHeight(true);
+        playlistTable.setMaximumSize(new Dimension(32767, 32767));
+        playlistTable.setMinimumSize(new Dimension(24, 24));
+        playlistTable.setName("Playlist"); // NOI18N
+        playlistTable.setOpaque(false);
+        playlistTable.setPreferredSize(null);
+        playlistTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                playlistTableMouseClicked(evt);
+            }
+        });
+        playlistTable.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistTableKeyPressed(evt);
+            }
+        });
+        playlistScrollPane.setViewportView(playlistTable);
+        if (playlistTable.getColumnModel().getColumnCount() > 0) {
+            playlistTable.getColumnModel().getColumn(0).setPreferredWidth(761);
+            playlistTable.getColumnModel().getColumn(0).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title0")); // NOI18N
+            playlistTable.getColumnModel().getColumn(1).setMinWidth(70);
+            playlistTable.getColumnModel().getColumn(1).setPreferredWidth(70);
+            playlistTable.getColumnModel().getColumn(1).setMaxWidth(105);
+            playlistTable.getColumnModel().getColumn(1).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title1")); // NOI18N
+            playlistTable.getColumnModel().getColumn(2).setMinWidth(158);
+            playlistTable.getColumnModel().getColumn(2).setPreferredWidth(158);
+            playlistTable.getColumnModel().getColumn(2).setMaxWidth(193);
+            playlistTable.getColumnModel().getColumn(2).setHeaderValue(bundle.getString("GUI.playlistTable.columnModel.title2")); // NOI18N
+            playlistTable.getColumnModel().getColumn(3).setMinWidth(0);
+            playlistTable.getColumnModel().getColumn(3).setPreferredWidth(0);
+            playlistTable.getColumnModel().getColumn(3).setMaxWidth(0);
+            playlistTable.getColumnModel().getColumn(3).setHeaderValue(Constant.PLAYLIST_ITEM_COL);
+        }
+
+        playlistPlayButton.setText(null);
+        playlistPlayButton.setToolTipText(bundle.getString("GUI.playlistPlayButton.toolTipText")); // NOI18N
+        playlistPlayButton.setEnabled(false);
+        playlistPlayButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistPlayButton.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent evt) {
+                playlistPlayButtonMousePressed(evt);
+            }
+        });
+        playlistPlayButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistPlayButtonActionPerformed(evt);
+            }
+        });
+
+        playlistFindTextField.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                playlistFindTextFieldKeyPressed(evt);
+            }
+        });
+
+        playlistOpenButton.setText(null);
+        playlistOpenButton.setToolTipText(bundle.getString("GUI.playlistOpenButton.toolTipText")); // NOI18N
+        playlistOpenButton.setEnabled(false);
+        playlistOpenButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistOpenButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistOpenButtonActionPerformed(evt);
+            }
+        });
+
+        playlistMoveUpButton.setText(null);
+        playlistMoveUpButton.setToolTipText(bundle.getString("GUI.playlistMoveUpButton.toolTipText")); // NOI18N
+        playlistMoveUpButton.setEnabled(false);
+        playlistMoveUpButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistMoveUpButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMoveUpButtonActionPerformed(evt);
+            }
+        });
+
+        playlistMoveDownButton.setText(null);
+        playlistMoveDownButton.setToolTipText(bundle.getString("GUI.playlistMoveDownButton.toolTipText")); // NOI18N
+        playlistMoveDownButton.setEnabled(false);
+        playlistMoveDownButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistMoveDownButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistMoveDownButtonActionPerformed(evt);
+            }
+        });
+
+        playlistRemoveButton.setText(null);
+        playlistRemoveButton.setToolTipText(bundle.getString("GUI.playlistRemoveButton.toolTipText")); // NOI18N
+        playlistRemoveButton.setEnabled(false);
+        playlistRemoveButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistRemoveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistRemoveButtonActionPerformed(evt);
+            }
+        });
+
+        playlistReloadGroupButton.setText(null);
+        playlistReloadGroupButton.setToolTipText(bundle.getString("GUI.playlistReloadGroupButton.toolTipText")); // NOI18N
+        playlistReloadGroupButton.setEnabled(false);
+        playlistReloadGroupButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistReloadGroupButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistReloadGroupButtonActionPerformed(evt);
+            }
+        });
+
+        playlistBanGroupButton.setText(null);
+        playlistBanGroupButton.setToolTipText(bundle.getString("GUI.playlistBanGroupButton.toolTipText")); // NOI18N
+        playlistBanGroupButton.setEnabled(false);
+        playlistBanGroupButton.setMargin(new Insets(0, 0, 0, 0));
+        playlistBanGroupButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistBanGroupButtonActionPerformed(evt);
+            }
+        });
+
+        GroupLayout playlistPanelLayout = new GroupLayout(playlistPanel);
+        playlistPanel.setLayout(playlistPanelLayout);
+        playlistPanelLayout.setHorizontalGroup(playlistPanelLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(playlistPanelLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addGroup(playlistPanelLayout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 880, Short.MAX_VALUE)
+                    .addGroup(playlistPanelLayout.createSequentialGroup()
+                        .addComponent(playlistPlayButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(playlistFindTextField)
+                        .addGap(18, 18, 18)
+                        .addComponent(playlistOpenButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(playlistMoveUpButton)
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(playlistMoveDownButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(playlistRemoveButton)
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(playlistReloadGroupButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(playlistBanGroupButton)))
+                .addGap(0, 0, 0))
+        );
+        playlistPanelLayout.setVerticalGroup(playlistPanelLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(playlistPanelLayout.createSequentialGroup()
+                .addGap(0, 0, 0)
+                .addComponent(playlistScrollPane, GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
+                .addPreferredGap(ComponentPlacement.UNRELATED)
+                .addGroup(playlistPanelLayout.createParallelGroup(Alignment.LEADING)
+                    .addGroup(playlistPanelLayout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(playlistFindTextField, GroupLayout.PREFERRED_SIZE, 19, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(playlistOpenButton))
+                    .addGroup(playlistPanelLayout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(playlistPlayButton)
+                        .addComponent(playlistMoveUpButton)
+                        .addComponent(playlistMoveDownButton)
+                        .addComponent(playlistRemoveButton)
+                        .addComponent(playlistReloadGroupButton)
+                        .addComponent(playlistBanGroupButton)))
+                .addGap(0, 0, 0))
+        );
+
+        playlistPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {playlistFindTextField, playlistMoveDownButton, playlistMoveUpButton, playlistOpenButton, playlistPlayButton, playlistRemoveButton});
+
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        setTitle(Constant.APP_TITLE);
+        setMinimumSize(null);
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
+
+        titleTextField.setText(null);
+
+        titleLabel.setLabelFor(titleTextField);
+        titleLabel.setText(bundle.getString("GUI.titleLabel.text")); // NOI18N
+        titleLabel.setToolTipText(bundle.getString("GUI.titleLabel.toolTipText")); // NOI18N
+
+        releasedLabel.setLabelFor(startDateChooser);
+        releasedLabel.setText(bundle.getString("GUI.releasedLabel.text")); // NOI18N
+        releasedLabel.setToolTipText(bundle.getString("GUI.releasedLabel.toolTipText")); // NOI18N
+
+        genreLabel.setLabelFor(genreList);
+        genreLabel.setText(bundle.getString("GUI.genreLabel.text")); // NOI18N
+        genreLabel.setToolTipText(bundle.getString("GUI.genreLabel.toolTipText")); // NOI18N
+
+        ratingComboBox.setMaximumRowCount(11);
+        List<String> ratings = new ArrayList<String>(100);
+        ratings.add(Str.str("any"));
+        Collections.addAll(ratings, Regex.split(360, Constant.SEPARATOR1));
+        UI.init(ratingComboBox, ratings.toArray(Constant.EMPTY_STRS));
+
+        ratingLabel.setLabelFor(ratingComboBox);
+        ratingLabel.setText(bundle.getString("GUI.ratingLabel.text")); // NOI18N
+        ratingLabel.setToolTipText(bundle.getString("GUI.ratingLabel.toolTipText")); // NOI18N
+
+        searchButton.setText(bundle.getString("GUI.searchButton.text")); // NOI18N
+        searchButton.setToolTipText(bundle.getString("GUI.searchButton.toolTipText")); // NOI18N
+        searchButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                searchButtonActionPerformed(evt);
+            }
+        });
+
+        List<String> genres = new ArrayList<String>(32);
+        genres.add(Str.str("any"));
+        Collections.addAll(genres, Regex.split(359, Constant.SEPARATOR1));
+        UI.init(genreList, genres.toArray(Constant.EMPTY_STRS));
+        genreList.setSelectedValue(Str.str("any"), true);
+        genreList.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent evt) {
+                genreListValueChanged(evt);
+            }
+        });
+        genreScrollPane.setViewportView(genreList);
+
+        typeLabel.setLabelFor(typeComboBox);
+        typeLabel.setText(bundle.getString("GUI.typeLabel.text")); // NOI18N
+        typeLabel.setToolTipText(bundle.getString("GUI.typeLabel.toolTipText")); // NOI18N
+
+        UI.init(typeComboBox, Str.strs("GUI.typeComboBox.model"));
+
+        releasedToLabel.setLabelFor(endDateChooser);
+        releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text")); // NOI18N
+
+        popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text")); // NOI18N
+        popularMoviesButton.setToolTipText(bundle.getString("GUI.popularMoviesButton.toolTipText")); // NOI18N
+        popularMoviesButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                popularMoviesButtonActionPerformed(evt);
+            }
+        });
+
+        popularPopupMenuButton.setText(null);
+        popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
+        popularPopupMenuButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                popularPopupMenuButtonActionPerformed(evt);
+            }
+        });
+
+        loadingLabel.setText(null);
+
         statusBarTextField.setEditable(false);
         statusBarTextField.setFont(new Font("Verdana", 0, 10)); // NOI18N
         statusBarTextField.setText(null);
@@ -3430,14 +3436,6 @@ public class GUI extends JFrame implements GuiListener {
         searchProgressTextField.setText(null);
         searchProgressTextField.setBorder(BorderFactory.createEtchedBorder());
         searchProgressUpdate(0, 0);
-
-        exitBackupModeButton.setBorderPainted(false);
-        exitBackupModeButton.setEnabled(false);
-        exitBackupModeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                exitBackupModeButtonActionPerformed(evt);
-            }
-        });
 
         connectionIssueButton.setText(null);
         connectionIssueButton.setBorder(BorderFactory.createEtchedBorder());
@@ -3454,6 +3452,37 @@ public class GUI extends JFrame implements GuiListener {
         findTextField.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent evt) {
                 findTextFieldKeyPressed(evt);
+            }
+        });
+
+        splitPane.setDividerLocation(Integer.MAX_VALUE);
+        splitPane.setDividerSize(10);
+        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setResizeWeight(0.69);
+        splitPane.setContinuousLayout(true);
+        Container divider = ((BasicSplitPaneUI) splitPane.getUI()).getDivider();
+        List<Component> dividerComponents = new ArrayList<Component>(3);
+        dividerComponents.add(divider);
+        Collections.addAll(dividerComponents, divider.getComponents());
+        if (dividerComponents.size() == 3) {
+            dividerComponents.remove(2);
+        }
+        for (Component dividerComponent : dividerComponents) {
+            dividerComponent.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent evt) {
+                    if (playlistShown.compareAndSet(false, true)) {
+                        playlistMenuItemActionPerformed(null);
+                    }
+                }
+            });
+        }
+        playlistPanel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent evt) {
+                if (!playlistShown.get()) {
+                    splitPane.setDividerLocation(Integer.MAX_VALUE);
+                }
             }
         });
 
@@ -3998,19 +4027,7 @@ public class GUI extends JFrame implements GuiListener {
             .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(Alignment.TRAILING)
-                    .addComponent(resultsScrollPane, Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(readSummaryButton)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(watchTrailerButton)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(downloadLink1Button)
-                        .addGap(1, 1, 1)
-                        .addComponent(downloadLink2Button)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(exitBackupModeButton)
-                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(loadMoreResultsButton))
+                    .addComponent(splitPane, Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -4055,9 +4072,6 @@ public class GUI extends JFrame implements GuiListener {
                 .addGap(0, 0, 0)
                 .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
-
-        layout.linkSize(SwingConstants.HORIZONTAL, new Component[] {downloadLink1Button, readSummaryButton, watchTrailerButton});
-
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -4089,16 +4103,7 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(searchButton)
                     .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
-                .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(exitBackupModeButton, Alignment.TRAILING)
-                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(readSummaryButton)
-                        .addComponent(watchTrailerButton)
-                        .addComponent(downloadLink1Button)
-                        .addComponent(downloadLink2Button)
-                        .addComponent(loadMoreResultsButton)))
+                .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
                 .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -4106,13 +4111,11 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
         );
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {endDateChooser, ratingComboBox, startDateChooser, titleTextField, typeComboBox});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {endDateChooser, findTextField, ratingComboBox, startDateChooser, titleTextField, typeComboBox});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {genreLabel, ratingLabel, releasedLabel});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularPopupMenuButton});
-
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, exitBackupModeButton, findTextField, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {connectionIssueButton, searchProgressTextField, statusBarTextField});
 
@@ -5425,6 +5428,13 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_movieSubtitleDownloadMatch1ButtonActionPerformed
 
     private void findMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_findMenuItemActionPerformed
+        for (Component component : new Component[]{playlistTable, playlistPlayButton, playlistFindTextField, playlistOpenButton, playlistMoveUpButton,
+            playlistMoveDownButton, playlistRemoveButton, playlistReloadGroupButton, playlistBanGroupButton}) {
+            if (component.isFocusOwner()) {
+                playlistFindControl.show();
+                return;
+            }
+        }
         findControl.show();
     }//GEN-LAST:event_findMenuItemActionPerformed
 
@@ -5473,11 +5483,17 @@ public class GUI extends JFrame implements GuiListener {
 
     private void formWindowClosing(WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         setVisible(false);
-        if (UI.trayIcon(playlistFrame) != null) {
-            playlistTrayIcon.displayMessage(Constant.APP_TITLE, playlistTrayIcon.getToolTip(), MessageType.INFO);
-            return;
-        }
-        if (!playlistFrame.isShowing() || !isPlaylistActive()) {
+        if (trayIcon != null && UI.trayIcon(this) == null && isPlaylistActive()) {
+            try {
+                SystemTray.getSystemTray().add(trayIcon);
+                trayIcon.displayMessage(Str.str("buffering"), trayIcon.getToolTip(), MessageType.INFO);
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+                System.exit(0);
+            }
+        } else {
             System.exit(0);
         }
     }//GEN-LAST:event_formWindowClosing
@@ -5722,7 +5738,9 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_portDialogComponentHidden
 
     private void playlistMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistMenuItemActionPerformed
-        UI.show(playlistFrame);
+        playlistShown.set(true);
+        splitPane.setDividerLocation(splitPane.getResizeWeight());
+        playlistSyncTable.requestFocusInWindow();
         if (!isPlaylistRestored.get()) {
             (new Worker() {
                 @Override
@@ -5898,27 +5916,6 @@ public class GUI extends JFrame implements GuiListener {
         return isPlaylistActive;
     }
 
-    private void closePlaylistFrameToTray() {
-        if (playlistTrayIcon != null && UI.trayIcon(playlistFrame) == null && isPlaylistActive()) {
-            try {
-                SystemTray.getSystemTray().add(playlistTrayIcon);
-                playlistTrayIcon.displayMessage(Str.str("buffering"), playlistTrayIcon.getToolTip(), MessageType.INFO);
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
-                }
-            }
-        }
-    }
-
-    private void playlistFrameWindowClosing(WindowEvent evt) {//GEN-FIRST:event_playlistFrameWindowClosing
-        playlistFrame.setVisible(false);
-        if (UI.trayIcon(this) == null && !isVisible()) {
-            System.exit(0);
-        }
-        closePlaylistFrameToTray();
-    }//GEN-LAST:event_playlistFrameWindowClosing
-
     private void activationUpgradeButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationUpgradeButtonActionPerformed
         workerListener.license(activationTextField.getText().trim());
     }//GEN-LAST:event_activationUpgradeButtonActionPerformed
@@ -5943,33 +5940,6 @@ public class GUI extends JFrame implements GuiListener {
     private void playlistPlayMenuItemMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayMenuItemMousePressed
         playlistPlayButtonMousePressed(evt);
     }//GEN-LAST:event_playlistPlayMenuItemMousePressed
-
-    private void playlistTableKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistTableKeyPressed
-        KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(evt);
-        if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0))) {
-            playlistRemoveButtonActionPerformed(null);
-        } else if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))) {
-            playlistPlayButtonActionPerformed(null);
-        } else {
-            playlistKeyPressed(evt);
-        }
-    }//GEN-LAST:event_playlistTableKeyPressed
-
-    private void playlistPlayButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistPlayButtonKeyPressed
-        playlistKeyPressed(evt);
-    }//GEN-LAST:event_playlistPlayButtonKeyPressed
-
-    private void playlistMoveUpButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistMoveUpButtonKeyPressed
-        playlistKeyPressed(evt);
-    }//GEN-LAST:event_playlistMoveUpButtonKeyPressed
-
-    private void playlistMoveDownButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistMoveDownButtonKeyPressed
-        playlistKeyPressed(evt);
-    }//GEN-LAST:event_playlistMoveDownButtonKeyPressed
-
-    private void playlistRemoveButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistRemoveButtonKeyPressed
-        playlistKeyPressed(evt);
-    }//GEN-LAST:event_playlistRemoveButtonKeyPressed
 
     private void playlistTableMouseClicked(MouseEvent evt) {//GEN-FIRST:event_playlistTableMouseClicked
         if (evt.getClickCount() == 2) {
@@ -6047,10 +6017,6 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_activationTextFieldKeyPressed
 
-    private void playlistOpenButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistOpenButtonKeyPressed
-        playlistKeyPressed(evt);
-    }//GEN-LAST:event_playlistOpenButtonKeyPressed
-
     private void playlistOpenButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistOpenButtonActionPerformed
         playlistFindControl.hide(false);
         PlaylistItem playlistItem = selectedPlaylistItem();
@@ -6066,10 +6032,6 @@ public class GUI extends JFrame implements GuiListener {
             workerListener.reloadGroup(playlistItem);
         }
     }//GEN-LAST:event_playlistReloadGroupButtonActionPerformed
-
-    private void playlistReloadGroupButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistReloadGroupButtonKeyPressed
-        playlistKeyPressed(evt);
-    }//GEN-LAST:event_playlistReloadGroupButtonKeyPressed
 
     private void playlistBanGroupButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistBanGroupButtonActionPerformed
         playlistFindControl.hide(false);
@@ -6091,10 +6053,6 @@ public class GUI extends JFrame implements GuiListener {
         playlistBanGroupMenuItem.setText(Str.str(textKey));
     }//GEN-LAST:event_playlistBanGroupButtonActionPerformed
 
-    private void playlistBanGroupButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistBanGroupButtonKeyPressed
-        playlistKeyPressed(evt);
-    }//GEN-LAST:event_playlistBanGroupButtonKeyPressed
-
     private void popularTVShowsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularTVShowsMenuItemActionPerformed
         doPopularVideosSearch(true, false, false, popularTVShowsMenuItem);
     }//GEN-LAST:event_popularTVShowsMenuItemActionPerformed
@@ -6107,17 +6065,14 @@ public class GUI extends JFrame implements GuiListener {
         doPopularVideosSearch(true, true, false, popularNewHQTVShowsMenuItem);
     }//GEN-LAST:event_popularNewHQTVShowsMenuItemActionPerformed
 
-    private void playlistKeyPressed(KeyEvent evt) {
+    private void playlistTableKeyPressed(KeyEvent evt) {//GEN-FIRST:event_playlistTableKeyPressed
         KeyStroke keyStroke = KeyStroke.getKeyStrokeForEvent(evt);
-        if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK))) {
-            playlistFindControl.show();
-        } else if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_MASK))) {
-            UI.show(this);
-        } else if (menuBarAccelerators.contains(keyStroke)) {
-            UI.show(this);
-            menuBar.dispatchEvent(evt);
+        if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0))) {
+            playlistRemoveButtonActionPerformed(null);
+        } else if (keyStroke.equals(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))) {
+            playlistPlayButtonActionPerformed(null);
         }
-    }
+    }//GEN-LAST:event_playlistTableKeyPressed
 
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
@@ -6396,7 +6351,7 @@ public class GUI extends JFrame implements GuiListener {
                 i += restoreComboBoxes(settings, i, dummyComboBox); // Backward compatibility
                 i += restoreComboBoxes(settings, i, dummyComboBox2); // Backward compatibility
                 i += restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
-                i += restoreWindows(settings, i, playlistFrame);
+                ++i; // Backward compatibility
                 activationDialog.pack();
 
                 playlistDir = getPath(settings, ++i);
@@ -6453,7 +6408,7 @@ public class GUI extends JFrame implements GuiListener {
             saveComboBoxes(settings, dummyComboBox); // Backward compatibility
             saveComboBoxes(settings, dummyComboBox2); // Backward compatibility
             saveButtons(settings, emailWithDefaultAppCheckBoxMenuItem);
-            settings.append(savePosition(playlistFrame));
+            settings.append(savePosition(dummyDialog2));
             savePaths(settings, playlistDir);
             settings.append(usePeerBlock).append(Constant.NEWLINE);
             saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */, playlistShowNonVideoItemsCheckBoxMenuItem,
@@ -6871,17 +6826,13 @@ public class GUI extends JFrame implements GuiListener {
         resultsScrollPane.setVerticalScrollBar(resultsScrollBarCopy); // Stop scrolling
         if (permanent) {
             summaryDialog.setVisible(false);
-            playlistFrame.setVisible(false);
-            closePlaylistFrameToTray();
         } else {
             summaryDialog.setAlwaysOnTop(false);
-            playlistFrame.setAlwaysOnTop(false);
         }
     }
 
     void resultsToForeground(Window alwaysOnTopFocus) {
         summaryDialog.setAlwaysOnTop(true);
-        playlistFrame.setAlwaysOnTop(true);
         if (alwaysOnTopFocus != null) {
             alwaysOnTopFocus.setAlwaysOnTop(true);
         }
@@ -7422,8 +7373,13 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void showPlaylist() {
-        synchronized (optionDialogLock) {
-            UI.show(playlistFrame);
+        if (playlistShown.compareAndSet(false, true)) {
+            UI.run(false, new Runnable() {
+                @Override
+                public void run() {
+                    splitPane.setDividerLocation(splitPane.getResizeWeight());
+                }
+            });
         }
         restorePlaylist(false);
     }
@@ -7462,8 +7418,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void playlistError(String msg) {
         synchronized (optionDialogLock) {
-            showOptionDialog(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing(), getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG,
-                    false);
+            showOptionDialog(showing(), getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG, false);
         }
     }
 
@@ -7857,7 +7812,7 @@ public class GUI extends JFrame implements GuiListener {
         int count = preferences.getInt(Constant.APP_TITLE, 0);
         activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
         activationDialog.pack();
-        activationDialog.setLocationRelativeTo(UI.deiconifyThenIsShowing(playlistFrame) ? playlistFrame : showing());
+        activationDialog.setLocationRelativeTo(showing());
         resultsToBackground(true);
         UI.setVisible(activationDialog);
         preferences.putInt(Constant.APP_TITLE, ++count);
@@ -8043,7 +7998,6 @@ public class GUI extends JFrame implements GuiListener {
         playlistBanGroupButton.setToolTipText(Str.str("GUI.playlistBanGroupButton.toolTipText"));
         playlistCopyMenuItem.setText(Str.str("GUI.playlistCopyMenuItem.text"));
         playlistDownloaderRadioButtonMenuItem.setText(Str.str("GUI.playlistDownloaderRadioButtonMenuItem.text"));
-        playlistFrame.setTitle(Str.str("GUI.playlistFrame.title"));
         playlistMenu.setText(Str.str("GUI.playlistMenu.text"));
         playlistMenuItem.setText(Str.str("GUI.playlistMenuItem.text"));
         playlistMoveDownButton.setToolTipText(Str.str("GUI.playlistMoveDownButton.toolTipText"));
@@ -8255,9 +8209,6 @@ public class GUI extends JFrame implements GuiListener {
             if (trayIcon != null) {
                 UI.updateTrayIconLabels(trayIcon, this);
             }
-            if (playlistTrayIcon != null) {
-                UI.updateTrayIconLabels(playlistTrayIcon, playlistFrame);
-            }
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -8450,7 +8401,6 @@ public class GUI extends JFrame implements GuiListener {
     JRadioButtonMenuItem playlistDownloaderRadioButtonMenuItem;
     JFileChooser playlistFileChooser;
     JTextField playlistFindTextField;
-    JFrame playlistFrame;
     JMenu playlistMenu;
     JMenuItem playlistMenuItem;
     Separator playlistMenuSeparator1;
@@ -8460,6 +8410,7 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem playlistMoveUpMenuItem;
     JButton playlistOpenButton;
     JMenuItem playlistOpenMenuItem;
+    JPanel playlistPanel;
     JButton playlistPlayButton;
     JMenuItem playlistPlayMenuItem;
     JCheckBoxMenuItem playlistPlayWithDefaultAppCheckBoxMenuItem;
@@ -8550,6 +8501,7 @@ public class GUI extends JFrame implements GuiListener {
     JButton removeProxiesRemoveButton;
     JScrollPane removeProxiesScrollPane;
     JMenuItem resetWindowMenuItem;
+    JPanel resultsPanel;
     JButton resultsPerSearchButton;
     JDialog resultsPerSearchDialog;
     JMenuItem resultsPerSearchMenuItem;
@@ -8573,6 +8525,7 @@ public class GUI extends JFrame implements GuiListener {
     JLabel seasonLabel;
     JMenuItem selectAllMenuItem;
     JRadioButtonMenuItem spanishRadioButtonMenuItem;
+    JSplitPane splitPane;
     JDateChooser startDateChooser;
     JTextField statusBarTextField;
     JFileChooser subtitleFileChooser;

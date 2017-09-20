@@ -39,7 +39,7 @@ public class Constant implements IOConstant {
     public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
     public static final String TXT = ".txt", HTML = ".html", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
-    public static final int UPDATE_FILE_VERSION = 83;
+    public static final int UPDATE_FILE_VERSION = 84;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 78;

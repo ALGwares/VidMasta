@@ -196,7 +196,7 @@ public class Regex {
 
             int startRegexEnd = startMatcher.end(), endIndex = -1;
 
-            Matcher endMatcher = matcher(endRegex, input.substring(startRegexEnd));
+            Matcher endMatcher = matcher(endRegex, input).region(startRegexEnd, input.length());
             while (!endMatcher.hitEnd()) {
                 if (endMatcher.find()) {
                     endIndex = endMatcher.start();
@@ -208,7 +208,7 @@ public class Regex {
                 continue;
             }
 
-            result.add(input.substring(startRegexEnd, endIndex + startRegexEnd).trim());
+            result.add(input.substring(startRegexEnd, endIndex).trim());
         }
 
         return result;
@@ -227,7 +227,7 @@ public class Regex {
 
             int startRegexEnd = startMatcher.end(), endIndex = -1;
 
-            Matcher endMatcher = matcher(endRegex, input.substring(startRegexEnd));
+            Matcher endMatcher = matcher(endRegex, input).region(startRegexEnd, input.length());
             while (!endMatcher.hitEnd()) {
                 if (endMatcher.find()) {
                     endIndex = endMatcher.start();
@@ -239,7 +239,7 @@ public class Regex {
                 return "";
             }
 
-            return input.substring(startRegexEnd, endIndex + startRegexEnd).trim();
+            return input.substring(startRegexEnd, endIndex).trim();
         }
 
         return "";

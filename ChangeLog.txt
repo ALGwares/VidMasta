@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2017.09.20   | VidMasta 24.2
+
+CHANGE: UI   | Moved playlist window into main window
+CHANGE: UI   | Automatically added next TV show episode to playlist
+CHANGE: CORE | Normalized title ID to prevent duplication
+
+
+
+
 2017.05.27   | VidMasta 24.1
 
 CHANGE: CORE | Improved automatic watchlist/wishlist management for subtitles

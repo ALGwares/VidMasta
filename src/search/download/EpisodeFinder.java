@@ -26,24 +26,27 @@ import util.Worker;
 public class EpisodeFinder extends Worker {
 
     private GuiListener guiListener;
-    private final int ROW;
+    private int row;
     private Video video;
     private Element nextEpisodeElement, prevEpisodeElement;
-    private String nextEpisodeText = Str.str("unknown"), prevEpisodeText = nextEpisodeText, prevSeasonNum, prevEpisodeNum;
+    String nextEpisodeText = Str.str("unknown"), prevEpisodeText = nextEpisodeText, prevSeasonNum, prevEpisodeNum;
 
     EpisodeFinder(GuiListener guiListener, int row, Video video) {
         this.guiListener = guiListener;
-        ROW = row;
+        this.row = row;
         this.video = video;
         nextEpisodeElement = guiListener.getSummaryElement(Constant.TV_NEXT_EPISODE_HTML_ID);
         prevEpisodeElement = guiListener.getSummaryElement(Constant.TV_PREV_EPISODE_HTML_ID);
+    }
+
+    EpisodeFinder() {
     }
 
     @Override
     protected void doWork() {
         boolean updateSummary = true;
         try {
-            findEpisodes();
+            findEpisodes(VideoSearch.url(video));
         } catch (ConnectionException e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -60,13 +63,13 @@ public class EpisodeFinder extends Worker {
                 String summary = showEpisode(prevEpisodeElement, prevEpisodeText, Constant.TV_PREV_EPISODE_HTML_ID, showEpisode(nextEpisodeElement,
                         nextEpisodeText, Constant.TV_NEXT_EPISODE_HTML_ID, updateSummary ? video.summary : null));
                 if (summary != null) {
-                    guiListener.setSummary(summary, ROW, video.ID);
+                    guiListener.setSummary(summary, row, video.ID);
                     video.summary = summary;
                 }
-                String season = guiListener.getSeason(ROW, video.ID);
+                String season = guiListener.getSeason(row, video.ID);
                 if (season != null && season.isEmpty() && prevSeasonNum != null && prevEpisodeNum != null) {
-                    guiListener.setSeason(prevSeasonNum, ROW, video.ID);
-                    guiListener.setEpisode(prevEpisodeNum, ROW, video.ID);
+                    guiListener.setSeason(prevSeasonNum, row, video.ID);
+                    guiListener.setEpisode(prevEpisodeNum, row, video.ID);
                 }
             }
         }
@@ -118,14 +121,14 @@ public class EpisodeFinder extends Worker {
         }
     }
 
-    private void findEpisodes() throws Exception {
+    void findEpisodes(String url) throws Exception {
         Calendar currDate = Calendar.getInstance();
         currDate.set(Calendar.HOUR_OF_DAY, 0);
         currDate.set(Calendar.MINUTE, 0);
         currDate.set(Calendar.SECOND, 0);
         currDate.set(Calendar.MILLISECOND, 0);
 
-        String url = VideoSearch.url(video), source = Connection.getSourceCode(url, DomainType.VIDEO_INFO, false);
+        String source = Connection.getSourceCode(url, DomainType.VIDEO_INFO, false);
         List<String> seasons = Regex.matches(source, 520);
         seasons.add(Regex.match(source, 550));
         seasons = sortedNumListSet(seasons, false);

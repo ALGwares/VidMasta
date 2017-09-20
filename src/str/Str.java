@@ -43,8 +43,7 @@ public class Str extends I18nStr {
 
     public static long hashCode(String str) {
         long hashCode = 0;
-        int len = str.length();
-        for (int i = 0; i < len; i++) {
+        for (int i = 0, len = str.length(); i < len; i++) {
             hashCode = 31 * hashCode + str.charAt(i);
         }
         return hashCode;
