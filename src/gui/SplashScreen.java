@@ -15,6 +15,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -166,13 +167,22 @@ public class SplashScreen extends JFrame {
         loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text"));
         loadMoreResultsButton.setEnabled(false);
 
+        JScrollPane summaryScrollPane = new JScrollPane();
+        summaryScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        JEditorPane summaryEditorPane = new JEditorPane();
+        summaryEditorPane.setEditable(false);
+        summaryEditorPane.setContentType("text/html");
+        summaryEditorPane.setEnabled(false);
+        summaryScrollPane.setViewportView(summaryEditorPane);
+
         GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
         resultsPanel.setLayout(resultsPanelLayout);
         resultsPanelLayout.setHorizontalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
                 .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
                         .addGap(0, 0, 0)
                         .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(resultsScrollPane, Alignment.LEADING)
+                                .addComponent(resultsScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 693, Short.MAX_VALUE)
                                 .addGroup(resultsPanelLayout.createSequentialGroup()
                                         .addComponent(readSummaryButton)
                                         .addPreferredGap(ComponentPlacement.UNRELATED)
@@ -183,8 +193,11 @@ public class SplashScreen extends JFrame {
                                         .addComponent(downloadLink2Button)
                                         .addPreferredGap(ComponentPlacement.UNRELATED)
                                         .addComponent(exitBackupModeButton)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(loadMoreResultsButton)))
+                                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                                .addComponent(summaryScrollPane, GroupLayout.PREFERRED_SIZE, 615, GroupLayout.PREFERRED_SIZE)
+                                .addComponent(loadMoreResultsButton, Alignment.TRAILING))
                         .addGap(0, 0, 0))
         );
 
@@ -193,16 +206,19 @@ public class SplashScreen extends JFrame {
         resultsPanelLayout.setVerticalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
                 .addGroup(resultsPanelLayout.createSequentialGroup()
                         .addGap(0, 0, 0)
-                        .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
-                                .addComponent(exitBackupModeButton, Alignment.TRAILING)
-                                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
-                                        .addComponent(readSummaryButton)
-                                        .addComponent(watchTrailerButton)
-                                        .addComponent(downloadLink1Button)
-                                        .addComponent(downloadLink2Button)
-                                        .addComponent(loadMoreResultsButton))))
+                                .addComponent(summaryScrollPane)
+                                .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE))
+                        .addPreferredGap(ComponentPlacement.UNRELATED)
+                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
+                                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                                        .addComponent(exitBackupModeButton, Alignment.TRAILING)
+                                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                                                .addComponent(readSummaryButton)
+                                                .addComponent(watchTrailerButton)
+                                                .addComponent(downloadLink1Button)
+                                                .addComponent(downloadLink2Button)))
+                                .addComponent(loadMoreResultsButton)))
         );
 
         resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton,

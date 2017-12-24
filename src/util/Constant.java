@@ -26,7 +26,7 @@ public class Constant implements IOConstant {
     public static final String OLD_TITLE_COL = "2", SUMMARY_COL = "3", IMAGE_LINK_COL = "4", IS_TV_SHOW_COL = "5", IS_TV_SHOW_AND_MOVIE_COL = "6";
     public static final String PLAYLIST_ITEM_COL = "0";
     public static final String SEASON_COL = "7", EPISODE_COL = "8";
-    public static final String STOP_KEY = "stop", STOP_ICON_KEY = "stopIcon", START_ICON_KEY = "startIcon";
+    public static final String STOP_KEY = "stop";
     public static final String TV_EPISODE_FORMAT = "%02d", RATING_FORMAT = "#.0", NO_RATING = "-";
     public static final String ZERO_WIDTH_SPACE;
     public static final String GENRE_HTML_ID = "genre", STORYLINE_HTML_ID = "storyline";
@@ -42,7 +42,7 @@ public class Constant implements IOConstant {
     public static final int UPDATE_FILE_VERSION = 84;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
-    public static final int SETTINGS_LEN = 78;
+    public static final int SETTINGS_LEN = 79;
     public static final int SETTINGS_VERSION = 11;
     public static final String PROFILE = "profile" + SETTINGS_VERSION + "_";
     public static final String USER_SETTINGS = "userSettings" + SETTINGS_VERSION + TXT;

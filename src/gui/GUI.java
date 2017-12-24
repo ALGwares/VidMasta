@@ -62,6 +62,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.prefs.Preferences;
+import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -209,10 +210,9 @@ public class GUI extends JFrame implements GuiListener {
     private volatile Worker timedMsgThread;
     final Object timedMsgLock = new Object();
     private final FindControl findControl, playlistFindControl;
-    JDialog dummyDialog = new JDialog(), dummyDialog2 = new JDialog();
-    JMenuItem dummyMenuItem = new JMenuItem(), dummyMenuItem2 = new JMenuItem(), dummyMenuItem3 = new JMenuItem(), dummyMenuItem4 = new JMenuItem(),
-            dummyMenuItem5 = new JMenuItem(), dummyMenuItem6 = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
-    JComboBox dummyComboBox = new JComboBox(), dummyComboBox2 = new JComboBox();
+    JDialog dummyDialog = new JDialog();
+    JMenuItem dummyMenuItem = new JMenuItem(), peerBlockMenuItem, playDefaultAppMenuItem;
+    JComboBox dummyComboBox = new JComboBox();
     ButtonGroup trailerPlayerButtonGroup2;
 
     public GUI(WorkerListener workerListener) throws Exception {
@@ -220,10 +220,7 @@ public class GUI extends JFrame implements GuiListener {
 
         initComponents();
         updateToggleButtons(true);
-        UI.initToggleButton(summaryTextToSpeechButton, "speaker.png");
         initFileNameExtensionFilters();
-
-        dummyComboBox.setEditable(true);
 
         findControl = new FindControl(findTextField);
         playlistFindControl = new FindControl(playlistFindTextField);
@@ -456,8 +453,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.setIcon(popularPopupMenuButton, "more");
         loadingIcon = UI.icon("loading.gif");
         notLoadingIcon = UI.icon("notLoading.gif");
-        for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel,
-            summaryLoadingLabel}) {
+        for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel}) {
             label.setIcon(notLoadingIcon);
         }
         warningIcon = UI.icon("warning.png");
@@ -679,12 +675,6 @@ public class GUI extends JFrame implements GuiListener {
         safetyLoadingLabel = new JLabel();
         safetyScrollPane = new JScrollPane();
         safetyEditorPane = new JEditorPane();
-        summaryDialog = new JDialog();
-        summaryCloseButton = new JButton();
-        summaryScrollPane = new JScrollPane();
-        summaryEditorPane = new JEditorPane();
-        summaryTextToSpeechButton = new JButton();
-        summaryLoadingLabel = new JLabel();
         faqFrame = new JFrame() {
             private static final long serialVersionUID = 1L;
 
@@ -749,6 +739,7 @@ public class GUI extends JFrame implements GuiListener {
         languageCountryWarningTextArea = new JTextArea();
         tablePopupMenu = new JPopupMenu();
         readSummaryMenuItem = new JMenuItem();
+        hearSummaryMenuItem = new JMenuItem();
         watchTrailerMenuItem = new JMenuItem();
         downloadLink1MenuItem = new JMenuItem();
         downloadLink2MenuItem = new JMenuItem();
@@ -909,6 +900,8 @@ public class GUI extends JFrame implements GuiListener {
         downloadLink2Button = new JButton();
         exitBackupModeButton = new JButton();
         loadMoreResultsButton = new JButton();
+        summaryScrollPane = new JScrollPane();
+        summaryEditorPane = new JEditorPane();
         playlistPanel = new JPanel();
         playlistScrollPane = new JScrollPane();
         playlistTable = new JTable();
@@ -1109,71 +1102,6 @@ public class GUI extends JFrame implements GuiListener {
         );
 
         safetyDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {noButton, yesButton});
-
-        summaryDialog.setTitle(bundle.getString("GUI.summaryDialog.title")); // NOI18N
-        summaryDialog.setAlwaysOnTop(true);
-
-        summaryCloseButton.setText(bundle.getString("GUI.summaryCloseButton.text")); // NOI18N
-        summaryCloseButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                summaryCloseButtonActionPerformed(evt);
-            }
-        });
-        summaryCloseButton.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                summaryCloseButtonKeyPressed(evt);
-            }
-        });
-
-        summaryScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        summaryEditorPane.setEditable(false);
-        summaryEditorPane.setContentType("text/html"); // NOI18N
-        summaryScrollPane.setViewportView(summaryEditorPane);
-
-        summaryTextToSpeechButton.setText(null);
-        summaryTextToSpeechButton.setToolTipText(bundle.getString("GUI.summaryTextToSpeechButton.toolTipText")); // NOI18N
-        summaryTextToSpeechButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                summaryTextToSpeechButtonActionPerformed(evt);
-            }
-        });
-
-        summaryLoadingLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        summaryLoadingLabel.setText(null);
-
-        GroupLayout summaryDialogLayout = new GroupLayout(summaryDialog.getContentPane());
-        summaryDialog.getContentPane().setLayout(summaryDialogLayout);
-        summaryDialogLayout.setHorizontalGroup(summaryDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(summaryDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(summaryDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(summaryScrollPane, GroupLayout.DEFAULT_SIZE, 631, Short.MAX_VALUE)
-                    .addGroup(summaryDialogLayout.createSequentialGroup()
-                        .addComponent(summaryTextToSpeechButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 164, Short.MAX_VALUE)
-                        .addComponent(summaryCloseButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 164, Short.MAX_VALUE)
-                        .addComponent(summaryLoadingLabel)))
-                .addContainerGap())
-        );
-
-        summaryDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {summaryCloseButton, summaryLoadingLabel, summaryTextToSpeechButton});
-
-        summaryDialogLayout.setVerticalGroup(summaryDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(Alignment.TRAILING, summaryDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(summaryScrollPane, GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addGroup(summaryDialogLayout.createParallelGroup(Alignment.TRAILING)
-                    .addGroup(summaryDialogLayout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(summaryCloseButton)
-                        .addComponent(summaryTextToSpeechButton))
-                    .addComponent(summaryLoadingLabel))
-                .addContainerGap())
-        );
-
-        summaryDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {summaryCloseButton, summaryLoadingLabel, summaryTextToSpeechButton});
 
         faqFrame.setTitle(bundle.getString("GUI.faqFrame.title")); // NOI18N
         faqFrame.setAlwaysOnTop(true);
@@ -1696,6 +1624,15 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         tablePopupMenu.add(readSummaryMenuItem);
+
+        hearSummaryMenuItem.setText(bundle.getString("GUI.hearSummaryMenuItem.text")); // NOI18N
+        hearSummaryMenuItem.setEnabled(false);
+        hearSummaryMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                hearSummaryMenuItemActionPerformed(evt);
+            }
+        });
+        tablePopupMenu.add(hearSummaryMenuItem);
 
         watchTrailerMenuItem.setText(bundle.getString("GUI.watchTrailerMenuItem.text")); // NOI18N
         watchTrailerMenuItem.setEnabled(false);
@@ -3115,13 +3052,19 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
 
+        summaryScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        summaryEditorPane.setEditable(false);
+        summaryEditorPane.setContentType("text/html"); // NOI18N
+        summaryScrollPane.setViewportView(summaryEditorPane);
+
         GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
         resultsPanel.setLayout(resultsPanelLayout);
         resultsPanelLayout.setHorizontalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
                 .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
-                    .addComponent(resultsScrollPane, Alignment.LEADING)
+                    .addComponent(resultsScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 693, Short.MAX_VALUE)
                     .addGroup(resultsPanelLayout.createSequentialGroup()
                         .addComponent(readSummaryButton)
                         .addPreferredGap(ComponentPlacement.UNRELATED)
@@ -3132,8 +3075,11 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(downloadLink2Button)
                         .addPreferredGap(ComponentPlacement.UNRELATED)
                         .addComponent(exitBackupModeButton)
-                        .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(loadMoreResultsButton)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addPreferredGap(ComponentPlacement.RELATED)
+                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                    .addComponent(summaryScrollPane, GroupLayout.PREFERRED_SIZE, 615, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(loadMoreResultsButton, Alignment.TRAILING))
                 .addGap(0, 0, 0))
         );
 
@@ -3142,16 +3088,19 @@ public class GUI extends JFrame implements GuiListener {
         resultsPanelLayout.setVerticalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
             .addGroup(resultsPanelLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
-                .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE)
-                .addPreferredGap(ComponentPlacement.UNRELATED)
                 .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(exitBackupModeButton, Alignment.TRAILING)
-                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(readSummaryButton)
-                        .addComponent(watchTrailerButton)
-                        .addComponent(downloadLink1Button)
-                        .addComponent(downloadLink2Button)
-                        .addComponent(loadMoreResultsButton))))
+                    .addComponent(summaryScrollPane)
+                    .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE))
+                .addPreferredGap(ComponentPlacement.UNRELATED)
+                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
+                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                        .addComponent(exitBackupModeButton, Alignment.TRAILING)
+                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(readSummaryButton)
+                            .addComponent(watchTrailerButton)
+                            .addComponent(downloadLink1Button)
+                            .addComponent(downloadLink2Button)))
+                    .addComponent(loadMoreResultsButton)))
         );
 
         resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
@@ -3458,7 +3407,7 @@ public class GUI extends JFrame implements GuiListener {
         splitPane.setDividerLocation(Integer.MAX_VALUE);
         splitPane.setDividerSize(10);
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        splitPane.setResizeWeight(0.69);
+        splitPane.setResizeWeight(0.6893004115226338);
         splitPane.setContinuousLayout(true);
         Container divider = ((BasicSplitPaneUI) splitPane.getUI()).getDivider();
         List<Component> dividerComponents = new ArrayList<Component>(3);
@@ -4386,7 +4335,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_resetWindowMenuItemActionPerformed
 
     void timeoutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_timeoutMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         UI.setVisible(timeoutDialog);
     }//GEN-LAST:event_timeoutMenuItemActionPerformed
 
@@ -4408,7 +4357,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_tvCancelButtonActionPerformed
 
     void resultsPerSearchMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_resultsPerSearchMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         UI.setVisible(resultsPerSearchDialog);
     }//GEN-LAST:event_resultsPerSearchMenuItemActionPerformed
 
@@ -4454,7 +4403,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void downloadSizeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadSizeMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         updateDownloadSizeComboBoxes();
         UI.setVisible(downloadSizeDialog);
     }//GEN-LAST:event_downloadSizeMenuItemActionPerformed
@@ -4471,7 +4420,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_popularPopupMenuButtonActionPerformed
 
     void fileExtensionsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_fileExtensionsMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         customExtensionTextField.requestFocusInWindow();
         UI.setVisible(extensionsDialog);
     }//GEN-LAST:event_fileExtensionsMenuItemActionPerformed
@@ -4516,10 +4465,6 @@ public class GUI extends JFrame implements GuiListener {
         updateDownloadSizeComboBoxes();
     }//GEN-LAST:event_minDownloadSizeComboBoxActionPerformed
 
-    void summaryCloseButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_summaryCloseButtonActionPerformed
-        summaryDialog.setVisible(false);
-    }//GEN-LAST:event_summaryCloseButtonActionPerformed
-
     void timeoutButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_timeoutButtonActionPerformed
         timeoutDialog.setVisible(false);
     }//GEN-LAST:event_timeoutButtonActionPerformed
@@ -4537,7 +4482,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_extensionsButtonActionPerformed
 
     void editProfilesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_editProfilesMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         UI.setVisible(profileDialog);
     }//GEN-LAST:event_editProfilesMenuItemActionPerformed
 
@@ -4624,11 +4569,11 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        readSummaryActionPerformed(selectedRow(), null);
+        readSummaryActionPerformed(selectedRow(), evt != null && evt.getSource() == hearSummaryMenuItem, null);
     }//GEN-LAST:event_readSummaryButtonActionPerformed
 
-    void readSummaryActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
-        workerListener.summarySearchStarted(row.VAL, row.video, strExportListener);
+    void readSummaryActionPerformed(SelectedTableRow row, boolean read, VideoStrExportListener strExportListener) {
+        workerListener.summarySearchStarted(row.VAL, row.video, read, strExportListener);
     }
 
     void watchTrailerButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchTrailerButtonActionPerformed
@@ -4675,7 +4620,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_downloadLink2ButtonActionPerformed
 
     void languageCountryMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         UI.setVisible(languageCountryDialog);
     }//GEN-LAST:event_languageCountryMenuItemActionPerformed
 
@@ -4895,7 +4840,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_textComponentPopupMenuPopupMenuWillBecomeVisible
 
     void proxyMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         UI.setVisible(proxyDialog);
     }//GEN-LAST:event_proxyMenuItemActionPerformed
 
@@ -5396,7 +5341,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_resultsTableMouseClicked
 
     private void portMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_portMenuItemActionPerformed
-        resultsToBackground(true);
+        resultsToBackground2();
         if (!viewedPortBefore) {
             portRandomizeCheckBox.setSelected(false);
         }
@@ -5447,27 +5392,11 @@ public class GUI extends JFrame implements GuiListener {
         }, resultsSyncTable);
     }//GEN-LAST:event_findTextFieldKeyPressed
 
-    private void summaryCloseButtonKeyPressed(KeyEvent evt) {//GEN-FIRST:event_summaryCloseButtonKeyPressed
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            summaryCloseButtonActionPerformed(null);
-        }
-    }//GEN-LAST:event_summaryCloseButtonKeyPressed
-
     private void resultsTableKeyPressed(KeyEvent evt) {//GEN-FIRST:event_resultsTableKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER && resultsSyncTable.getSelectedRows().length == 1) {
             readSummaryButtonActionPerformed(null);
         }
     }//GEN-LAST:event_resultsTableKeyPressed
-
-    private void summaryTextToSpeechButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_summaryTextToSpeechButtonActionPerformed
-        if (UI.isStop(summaryTextToSpeechButton)) {
-            summaryTextToSpeechButton.setEnabled(false);
-            workerListener.summaryReadStopped();
-            return;
-        }
-
-        workerListener.summaryReadStarted(summaryEditorPane.getText());
-    }//GEN-LAST:event_summaryTextToSpeechButtonActionPerformed
 
     private void authenticationUsernameTextFieldAncestorAdded(AncestorEvent evt) {//GEN-FIRST:event_authenticationUsernameTextFieldAncestorAdded
         if (authenticationUsernameTextField.getText().isEmpty()) {
@@ -5641,7 +5570,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void copyFullTitleAndYearMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_copyFullTitleAndYearMenuItemActionPerformed
         SelectedTableRow row = selectedRow();
-        readSummaryActionPerformed(row, row.strExportListener(false));
+        readSummaryActionPerformed(row, false, row.strExportListener(false));
     }//GEN-LAST:event_copyFullTitleAndYearMenuItemActionPerformed
 
     private void trailerLinkExportActionPerformed(boolean exportToEmail) {
@@ -5698,7 +5627,7 @@ public class GUI extends JFrame implements GuiListener {
     private void emailEverythingMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_emailEverythingMenuItemActionPerformed
         SelectedTableRow row = selectedRow();
         VideoStrExportListener strExportListener = row.strExportListener(true, true, 6);
-        readSummaryActionPerformed(row, strExportListener);
+        readSummaryActionPerformed(row, false, strExportListener);
         exportPosterImage(row, strExportListener);
         downloadLinkActionPerformed(ContentType.DOWNLOAD1, row, strExportListener);
         watchTrailerActionPerformed(row, strExportListener);
@@ -5726,7 +5655,7 @@ public class GUI extends JFrame implements GuiListener {
         } else if ((portNum = portNum(port)) == -1) {
             if (isConfirmed(Str.str("invalidPortPart1", port) + ' ' + Str.str("invalidPortPart2") + ' ' + Str.str("invalidPortPart3") + ' ' + Str.str(
                     "invalidPortPart4"))) {
-                resultsToBackground(true);
+                resultsToBackground2();
                 UI.setVisible(portDialog);
             } else {
                 portTextField.setText(null);
@@ -6074,6 +6003,10 @@ public class GUI extends JFrame implements GuiListener {
         }
     }//GEN-LAST:event_playlistTableKeyPressed
 
+    private void hearSummaryMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_hearSummaryMenuItemActionPerformed
+        readSummaryButtonActionPerformed(evt);
+    }//GEN-LAST:event_hearSummaryMenuItemActionPerformed
+
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
     }
@@ -6287,9 +6220,9 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private Window[] windows() {
-        return new Window[]{this, safetyDialog, msgDialog, summaryDialog, faqFrame, aboutDialog, timeoutDialog, tvDialog, resultsPerSearchDialog,
-            downloadSizeDialog, extensionsDialog, languageCountryDialog, dummyDialog /* Backward compatibility */, proxyDialog, addProxiesDialog,
-            removeProxiesDialog, profileDialog, profileNameChangeDialog, commentsDialog, portDialog, tvSubtitleDialog, movieSubtitleDialog};
+        return new Window[]{this, safetyDialog, msgDialog, dummyDialog /* Backward compatibility */, faqFrame, aboutDialog, timeoutDialog, tvDialog,
+            resultsPerSearchDialog, downloadSizeDialog, extensionsDialog, languageCountryDialog, dummyDialog /* Backward compatibility */, proxyDialog,
+            addProxiesDialog, removeProxiesDialog, profileDialog, profileNameChangeDialog, commentsDialog, portDialog, tvSubtitleDialog, movieSubtitleDialog};
     }
 
     private AbstractButton[] languageButtons() {
@@ -6315,7 +6248,7 @@ public class GUI extends JFrame implements GuiListener {
                     settings = defaultSettings;
                 }
                 int i = -1;
-                changeLocale(settings[Constant.SETTINGS_LEN - 5]);
+                changeLocale(settings[Constant.SETTINGS_LEN - 6]);
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
                 i += restoreButtons(settings, i, buttonSet1());
                 ++i; // Backward compatibility
@@ -6341,7 +6274,7 @@ public class GUI extends JFrame implements GuiListener {
                 restoreList("languageList", settings[++i], languageList);
                 restoreList("countryList", settings[++i], countryList);
 
-                i += restoreButtons(settings, i, dummyMenuItem5 /* Backward compatibility */, feedCheckBoxMenuItem);
+                i += restoreButtons(settings, i, dummyMenuItem /* Backward compatibility */, feedCheckBoxMenuItem);
 
                 proxyImportFile = getPath(settings, ++i);
                 proxyExportFile = getPath(settings, ++i);
@@ -6349,14 +6282,14 @@ public class GUI extends JFrame implements GuiListener {
                 subtitleDir = getPath(settings, ++i);
 
                 i += restoreComboBoxes(settings, i, dummyComboBox); // Backward compatibility
-                i += restoreComboBoxes(settings, i, dummyComboBox2); // Backward compatibility
+                i += restoreComboBoxes(settings, i, dummyComboBox); // Backward compatibility
                 i += restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
                 ++i; // Backward compatibility
                 activationDialog.pack();
 
                 playlistDir = getPath(settings, ++i);
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
-                i += restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */,
+                i += restoreButtons(settings, i, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem /* Backward compatibility */,
                         playlistShowNonVideoItemsCheckBoxMenuItem, playDefaultAppMenuItem);
                 i += restoreColumnWidths(settings, i, resultsTable, yearCol, ratingCol);
                 ++i; // language
@@ -6365,6 +6298,7 @@ public class GUI extends JFrame implements GuiListener {
                 UI.select(downloaderButtonGroup, Integer.parseInt(settings[++i]));
                 UI.select(trailerPlayerButtonGroup2, Integer.parseInt(settings[++i]));
                 UI.select(downloadQualityButtonGroup, Integer.parseInt(settings[++i]));
+                splitPane.setResizeWeight(Double.parseDouble(settings[++i]));
                 subtitleFormat = getFormat();
 
                 if (!updateSettings) {
@@ -6392,7 +6326,7 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(port.isEmpty() ? Constant.NULL : port).append(Constant.NEWLINE);
             saveButtons(settings, portRandomizeCheckBox);
             settings.append(viewedPortBefore).append(Constant.NEWLINE);
-            saveButtons(settings, dummyMenuItem6); // Backward compatibility
+            saveButtons(settings, dummyMenuItem); // Backward compatibility
 
             settings.append(saveSize(GUI.this));
             for (Window window : windows()) {
@@ -6403,15 +6337,15 @@ public class GUI extends JFrame implements GuiListener {
             saveList(settings, "blacklist", blacklistListModel.toArray());
             saveList(settings, "languageList", languageList.getSelectedValues());
             saveList(settings, "countryList", countryList.getSelectedValues());
-            saveButtons(settings, dummyMenuItem5 /* Backward compatibility */, feedCheckBoxMenuItem);
+            saveButtons(settings, dummyMenuItem /* Backward compatibility */, feedCheckBoxMenuItem);
             savePaths(settings, proxyImportFile, proxyExportFile, torrentDir, subtitleDir);
             saveComboBoxes(settings, dummyComboBox); // Backward compatibility
-            saveComboBoxes(settings, dummyComboBox2); // Backward compatibility
+            saveComboBoxes(settings, dummyComboBox); // Backward compatibility
             saveButtons(settings, emailWithDefaultAppCheckBoxMenuItem);
-            settings.append(savePosition(dummyDialog2));
+            settings.append(savePosition(dummyDialog));
             savePaths(settings, playlistDir);
             settings.append(usePeerBlock).append(Constant.NEWLINE);
-            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem2 /* Backward compatibility */, playlistShowNonVideoItemsCheckBoxMenuItem,
+            saveButtons(settings, playlistAutoOpenCheckBoxMenuItem, dummyMenuItem /* Backward compatibility */, playlistShowNonVideoItemsCheckBoxMenuItem,
                     playDefaultAppMenuItem);
             saveColumnWidths(settings, resultsTable, yearCol, ratingCol);
 
@@ -6426,7 +6360,9 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(0).append(Constant.NEWLINE); // Backward compatibility
             settings.append(UI.selectedIndex(downloaderButtonGroup)).append(Constant.NEWLINE);
             settings.append(UI.selectedIndex(trailerPlayerButtonGroup2)).append(Constant.NEWLINE);
-            settings.append(UI.selectedIndex(downloadQualityButtonGroup));
+            settings.append(UI.selectedIndex(downloadQualityButtonGroup)).append(Constant.NEWLINE);
+            settings.append(playlistShown.get() ? (splitPane.getDividerLocation() / (double) (splitPane.getHeight() - splitPane.getDividerSize()))
+                    : splitPane.getResizeWeight());
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -6441,9 +6377,9 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         private AbstractButton[] buttonSet2() {
-            return new AbstractButton[]{dummyMenuItem4 /* Backward compatibility */, updateCheckBoxMenuItem, dummyMenuItem /* Backward compatibility */,
+            return new AbstractButton[]{dummyMenuItem /* Backward compatibility */, updateCheckBoxMenuItem, dummyMenuItem /* Backward compatibility */,
                 proxyDownloadLinkInfoCheckBox, proxyVideoInfoCheckBox, proxySearchEnginesCheckBox, proxyTrailersCheckBox,
-                dummyMenuItem3 /* Backward compatibility */, proxyUpdatesCheckBox, proxySubtitlesCheckBox, browserNotificationCheckBoxMenuItem};
+                dummyMenuItem /* Backward compatibility */, proxyUpdatesCheckBox, proxySubtitlesCheckBox, browserNotificationCheckBoxMenuItem};
         }
 
         private void saveComboBoxes(StringBuilder settings, JComboBox... comboBoxes) {
@@ -6583,7 +6519,7 @@ public class GUI extends JFrame implements GuiListener {
             String text;
             if ((evt.getActionCommand().equals(Constant.COPY) || evt.getActionCommand().equals(Constant.CUT)) && (text = summaryEditorPane.getSelectedText())
                     != null) {
-                UI.exportToClipboard(text.replace(Constant.ZERO_WIDTH_SPACE, "").replace("  ", Constant.NEWLINE2).trim());
+                UI.exportToClipboard(Regex.replaceAll(text.replace(Constant.ZERO_WIDTH_SPACE, ""), "\\s{2,}+", Constant.NEWLINE2).trim());
             }
         }
     }
@@ -6680,7 +6616,7 @@ public class GUI extends JFrame implements GuiListener {
         VideoStrExportListener strExportListener(boolean exportToEmail) {
             VideoStrExportListener strExportListener = strExportListener(exportToEmail, false, exportToEmail ? 3 : 1);
             if (exportToEmail) {
-                readSummaryActionPerformed(this, strExportListener);
+                readSummaryActionPerformed(this, false, strExportListener);
                 exportPosterImage(this, strExportListener);
             }
             return strExportListener;
@@ -6716,7 +6652,7 @@ public class GUI extends JFrame implements GuiListener {
         Component[] secondaryComponents1, secondaryComponents2 = null;
         if (contentType == ContentType.SUMMARY) {
             primaryButtons1 = new AbstractButton[]{readSummaryButton};
-            secondaryComponents1 = new Component[]{readSummaryMenuItem, copyFullTitleAndYearMenuItem};
+            secondaryComponents1 = new Component[]{readSummaryMenuItem, hearSummaryMenuItem, copyFullTitleAndYearMenuItem};
         } else if (contentType == ContentType.TRAILER) {
             primaryButtons1 = new AbstractButton[]{watchTrailerButton};
             secondaryComponents1 = new Component[]{watchTrailerMenuItem, emailTrailerLinkMenuItem, copyTrailerLinkMenuItem};
@@ -6806,7 +6742,7 @@ public class GUI extends JFrame implements GuiListener {
 
     Window resultsToBackground() {
         Window alwaysOnTopFocus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
-        resultsToBackground(false);
+        resultsToBackground2();
         if (alwaysOnTopFocus != null) {
             if (alwaysOnTopFocus.isAlwaysOnTop()) {
                 alwaysOnTopFocus.setAlwaysOnTop(false);
@@ -6817,22 +6753,16 @@ public class GUI extends JFrame implements GuiListener {
         return alwaysOnTopFocus;
     }
 
-    private void resultsToBackground(boolean permanent) {
+    private void resultsToBackground2() {
         JScrollBar resultsScrollBar = resultsScrollPane.getVerticalScrollBar();
         JScrollBar resultsScrollBarCopy = new JScrollBar(resultsScrollBar.getOrientation(), resultsScrollBar.getValue(),
                 resultsScrollBar.getVisibleAmount(), resultsScrollBar.getMinimum(), resultsScrollBar.getMaximum());
         resultsScrollBarCopy.setUnitIncrement(resultsScrollBar.getUnitIncrement());
         resultsScrollBarCopy.setBlockIncrement(resultsScrollBar.getBlockIncrement());
         resultsScrollPane.setVerticalScrollBar(resultsScrollBarCopy); // Stop scrolling
-        if (permanent) {
-            summaryDialog.setVisible(false);
-        } else {
-            summaryDialog.setAlwaysOnTop(false);
-        }
     }
 
     void resultsToForeground(Window alwaysOnTopFocus) {
-        summaryDialog.setAlwaysOnTop(true);
         if (alwaysOnTopFocus != null) {
             alwaysOnTopFocus.setAlwaysOnTop(true);
         }
@@ -6864,7 +6794,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void summary(String summary, String imagePath) {
-        String summaryPage = "<html><head><title></title></head><body><table><tr>";
+        String posterCol = "";
         if (imagePath != null) {
             String imageSize = "";
             String posterFilePath = Constant.TEMP_DIR + (new File(imagePath)).getName();
@@ -6884,14 +6814,11 @@ public class GUI extends JFrame implements GuiListener {
                     imageSize = " width=\"" + Str.get(495) + "\" height=\"" + Str.get(496) + "\"";
                 }
             }
-            summaryPage += "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, 237) + '"' + imageSize + "></td>";
+            posterCol = "<td align=\"left\" valign=\"top\"><img src=\"file:///" + Regex.replaceAll(posterFilePath, 237) + '"' + imageSize + "></td>";
         }
-        summaryEditorPane.setText(summaryPage + "<td align=\"left\" valign=\"top\">" + Constant.HTML_FONT + Regex.replaceFirst(summary, "\\</body\\>",
-                "</td></tr></table></body>"));
+        summaryEditorPane.setText(Regex.replaceFirst(summary, Pattern.quote("<!--poster-->"), posterCol));
         summaryEditorPane.setSelectionStart(0);
         summaryEditorPane.setSelectionEnd(0);
-        UI.setVisible(summaryDialog);
-        summaryCloseButton.requestFocusInWindow();
     }
 
     @Override
@@ -7065,7 +6992,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public boolean tvChoices(String season, String episode) {
-        resultsToBackground(true);
+        resultsToBackground2();
         tvSeasonComboBox.setSelectedItem(season);
         tvEpisodeComboBox.setSelectedItem(episode);
         cancelTVSelection = true;
@@ -7767,18 +7694,6 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    @Override
-    public void summaryReadStarted() {
-        UI.enable(new AbstractButton[]{summaryTextToSpeechButton}, false, null, null);
-        summaryLoadingLabel.setIcon(loadingIcon);
-    }
-
-    @Override
-    public void summaryReadStopped() {
-        UI.enable(new AbstractButton[]{summaryTextToSpeechButton}, true, null, null);
-        summaryLoadingLabel.setIcon(notLoadingIcon);
-    }
-
     private static int portNum(String port) {
         int portNum;
         return Regex.isMatch(port, "\\d{1,5}+") && (portNum = Integer.parseInt(port)) <= 65535 ? portNum : -1;
@@ -7813,7 +7728,7 @@ public class GUI extends JFrame implements GuiListener {
         activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
         activationDialog.pack();
         activationDialog.setLocationRelativeTo(showing());
-        resultsToBackground(true);
+        resultsToBackground2();
         UI.setVisible(activationDialog);
         preferences.putInt(Constant.APP_TITLE, ++count);
     }
@@ -8066,6 +7981,7 @@ public class GUI extends JFrame implements GuiListener {
         ratingLabel.setToolTipText(Str.str("GUI.ratingLabel.toolTipText"));
         readSummaryButton.setToolTipText(Str.str("GUI.readSummaryButton.toolTipText"));
         readSummaryMenuItem.setText(Str.str("GUI.readSummaryMenuItem.text"));
+        hearSummaryMenuItem.setText(Str.str("GUI.hearSummaryMenuItem.text"));
         regularResultsPerSearchLabel.setText(Str.str("GUI.regularResultsPerSearchLabel.text"));
         regularResultsPerSearchLabel.setToolTipText(Str.str("GUI.regularResultsPerSearchLabel.toolTipText"));
         releasedLabel.setText(Str.str("GUI.releasedLabel.text"));
@@ -8087,9 +8003,6 @@ public class GUI extends JFrame implements GuiListener {
         seasonLabel.setText(Str.str("GUI.seasonLabel.text"));
         seasonLabel.setToolTipText(Str.str("GUI.seasonLabel.toolTipText"));
         selectAllMenuItem.setText(Str.str("GUI.selectAllMenuItem.text"));
-        summaryCloseButton.setText(Str.str("GUI.summaryCloseButton.text"));
-        summaryDialog.setTitle(Str.str("GUI.summaryDialog.title"));
-        summaryTextToSpeechButton.setToolTipText(Str.str("GUI.summaryTextToSpeechButton.toolTipText"));
         textComponentCopyMenuItem.setText(Str.str("GUI.textComponentCopyMenuItem.text"));
         textComponentCutMenuItem.setText(Str.str("GUI.textComponentCutMenuItem.text"));
         textComponentDeleteMenuItem.setText(Str.str("GUI.textComponentDeleteMenuItem.text"));
@@ -8350,6 +8263,7 @@ public class GUI extends JFrame implements GuiListener {
     JLabel genreLabel;
     JList genreList;
     JScrollPane genreScrollPane;
+    JMenuItem hearSummaryMenuItem;
     JMenu helpMenu;
     Separator helpMenuSeparator1;
     Separator helpMenuSeparator2;
@@ -8529,12 +8443,8 @@ public class GUI extends JFrame implements GuiListener {
     JDateChooser startDateChooser;
     JTextField statusBarTextField;
     JFileChooser subtitleFileChooser;
-    JButton summaryCloseButton;
-    JDialog summaryDialog;
     JEditorPane summaryEditorPane;
-    JLabel summaryLoadingLabel;
     JScrollPane summaryScrollPane;
-    JButton summaryTextToSpeechButton;
     JPopupMenu tablePopupMenu;
     Separator tablePopupMenuSeparator1;
     Separator tablePopupMenuSeparator2;

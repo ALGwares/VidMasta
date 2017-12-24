@@ -40,7 +40,6 @@ import proxy.ProxyListDownloader;
 import search.PopularSearcher;
 import search.RegularSearcher;
 import search.SubtitleFinder;
-import search.SummaryReader;
 import search.download.Prefetcher;
 import search.download.VideoFinder;
 import str.Str;
@@ -70,8 +69,6 @@ public class Main implements WorkerListener {
     private ProxyListDownloader proxyDownloader;
     private SubtitleFinder subtitleFinder;
     private Prefetcher prefetcher;
-    private SummaryReader summaryReader;
-    private Video summaryReaderVideo;
 
     static {
         suppressStdOutput();
@@ -361,10 +358,13 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public void summarySearchStarted(int row, Video video, VideoStrExportListener strExportListener) {
+    public void summarySearchStarted(int row, Video video, boolean read, VideoStrExportListener strExportListener) {
         if (isSummarySearchDone()) {
-            summaryReaderVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
-            startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener));
+            startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener, false, read ? new Runnable() {
+                @Override
+                public void run() {
+                }
+            } : null));
             summaryFinder.execute();
         }
     }
@@ -410,19 +410,6 @@ public class Main implements WorkerListener {
         if (isWorkDone(proxyDownloader)) {
             (proxyDownloader = new ProxyListDownloader(gui)).execute();
         }
-    }
-
-    @Override
-    public void summaryReadStarted(String summary) {
-        if (isWorkDone(summaryReader) && summaryReaderVideo != null) {
-            summaryReaderVideo.summary = summary;
-            (summaryReader = new SummaryReader(gui, summaryReaderVideo)).execute();
-        }
-    }
-
-    @Override
-    public void summaryReadStopped() {
-        stop(summaryReader);
     }
 
     @Override

@@ -371,14 +371,6 @@ public class UI {
         }
     }
 
-    public static void initToggleButton(AbstractButton button, String startIconName) {
-        Icon startIcon = icon(startIconName);
-        button.setIcon(startIcon);
-        button.putClientProperty(Constant.STOP_KEY, new AtomicBoolean());
-        button.putClientProperty(Constant.STOP_ICON_KEY, icon("cancel.png"));
-        button.putClientProperty(Constant.START_ICON_KEY, startIcon);
-    }
-
     public static boolean isStop(AbstractButton button) {
         return ((AtomicBoolean) button.getClientProperty(Constant.STOP_KEY)).get();
     }
@@ -398,12 +390,7 @@ public class UI {
         if (startPrimary != null) {
             for (AbstractButton primaryButton : primaryButtons) {
                 ((AtomicBoolean) primaryButton.getClientProperty(Constant.STOP_KEY)).set(!startPrimary);
-                Object icon = primaryButton.getClientProperty(startPrimary ? Constant.START_ICON_KEY : Constant.STOP_ICON_KEY);
-                if (icon == null) {
-                    primaryButton.setText(startPrimary ? primaryButton.getName() : Str.str(Constant.STOP_KEY));
-                } else {
-                    primaryButton.setIcon((Icon) icon);
-                }
+                primaryButton.setText(startPrimary ? primaryButton.getName() : Str.str(Constant.STOP_KEY));
             }
         }
         if (secondaryComponents2 != null && enableSecondary2 != null) {

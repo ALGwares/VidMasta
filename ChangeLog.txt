@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2017.12.23   | VidMasta 24.3
+
+CHANGE: UI   | Moved title summary window into main window
+CHANGE: UI   | Remembered main window split button location between restarts
+CHANGE: UI   | Improved automatic adding of next TV show episode to playlist
+CHANGE: CORE | Removed website prefix on emailed and copied download links
+
+
+
+
 2017.09.20   | VidMasta 24.2
 
 CHANGE: UI   | Moved playlist window into main window

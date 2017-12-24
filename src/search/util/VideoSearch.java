@@ -241,7 +241,7 @@ public class VideoSearch {
             summary.append(summary1);
         } else if (!isEmpty1) {
             summary.append(summary1);
-            storyline = br2 + "<font size=\"5\"><b id=\"" + Constant.STORYLINE_HTML_ID + "\">" + Str.str("storyline") + "</b></font>" + br1 + summary2;
+            storyline = "<font size=\"5\"><b id=\"" + Constant.STORYLINE_HTML_ID + "\">" + Str.str("storyline") + "</b></font>" + br1 + summary2;
         } else {
             summary.append(Str.get(159));
         }
@@ -279,11 +279,13 @@ public class VideoSearch {
             summary.append("<b>").append(Str.str("releaseDate")).append(" </b>").append(releaseDate);
         }
 
+        summary.insert(0, Constant.HTML_FONT).insert(0, "<td align=\"left\" valign=\"top\" width=\"100%\">").append("</font>").append(br2).append("</td></tr>");
         if (storyline != null) {
-            summary.append(storyline);
+            summary.append("<tr><td align=\"left\" valign=\"top\" colspan=\"2\">").append(Constant.HTML_FONT).append(storyline).append(
+                    "</font></td></tr>");
         }
-
-        return summary.append(br2).append("</font></body></html>").toString();
+        return summary.insert(0, "<html><head><title></title></head><body><table><tr><!--poster-->").append(
+                "</table></body></html>").toString();
     }
 
     private static void getNames(String names, String type, Collection<StringBuilder> nameLists) {

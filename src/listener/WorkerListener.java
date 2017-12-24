@@ -32,7 +32,7 @@ public interface WorkerListener {
 
     String getSafetyComments();
 
-    void summarySearchStarted(int row, Video video, VideoStrExportListener strExportListener);
+    void summarySearchStarted(int row, Video video, boolean read, VideoStrExportListener strExportListener);
 
     void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
@@ -47,10 +47,6 @@ public interface WorkerListener {
     Future<?> subtitleSearchStarted(String format, String languageID, Video video);
 
     void subtitleSearchStopped();
-
-    void summaryReadStarted(String summary);
-
-    void summaryReadStopped();
 
     void updateStarted(boolean isStartUp);
 

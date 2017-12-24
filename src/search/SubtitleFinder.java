@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import listener.ContentType;
 import listener.DomainType;
 import listener.GuiListener;
@@ -168,6 +169,18 @@ public class SubtitleFinder extends Worker {
         searchStopped();
         guiListener.msg(Str.str("subtitleNotFound"), Constant.INFO_MSG);
         complete = true;
+        String settings = "";
+        if (!languageID.equals(Regex.subtitleLanguages.get(Constant.ANY))) {
+            for (Entry<String, String> subtitleLanguagesEntry : Regex.subtitleLanguages.entrySet()) {
+                if (subtitleLanguagesEntry.getValue().equals(languageID)) {
+                    settings += ' ' + subtitleLanguagesEntry.getKey();
+                    break;
+                }
+            }
+        }
+        if (!format.equals(Constant.ANY)) {
+            settings += ' ' + format;
+        }
     }
 
     private void saveSubtitle(List<String> results, boolean isExactResult) throws Exception {

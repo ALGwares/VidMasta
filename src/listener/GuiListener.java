@@ -185,10 +185,6 @@ public interface GuiListener {
 
     void subtitleSearchStopped();
 
-    void summaryReadStarted();
-
-    void summaryReadStopped();
-
     int getPort();
 
     String wideSpace();
