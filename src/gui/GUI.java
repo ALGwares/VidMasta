@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dialog.ModalExclusionType;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
@@ -29,6 +30,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -227,12 +230,9 @@ public class GUI extends JFrame implements GuiListener {
 
         JOptionPane tempOptionPane = new JOptionPane();
         Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
-        Font font = tempOptionPane.getFont();
-        for (JComponent component : new JComponent[]{optionalMsgTextArea, optionalMsgCheckBox, optionalMsgPanel, timedMsgLabel}) {
-            component.setForeground(fgColor);
-            component.setBackground(bgColor);
-            component.setFont(font);
-        }
+        timedMsgLabel.setForeground(fgColor);
+        timedMsgLabel.setBackground(bgColor);
+        timedMsgLabel.setFont(tempOptionPane.getFont());
 
         resultsSyncTable = new SyncTable(resultsTable);
         JScrollBar resultsScrollBar = resultsScrollPane.getVerticalScrollBar();
@@ -284,8 +284,8 @@ public class GUI extends JFrame implements GuiListener {
                 show(textComponentPopupMenu, evt);
             }
         }, titleTextField, findTextField, playlistFindTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField, portTextField,
-                optionalMsgTextArea, commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane,
-                authenticationUsernameTextField, authenticationPasswordField, startDateTextField, endDateTextField, activationTextField);
+                commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane, authenticationUsernameTextField,
+                authenticationPasswordField, startDateTextField, endDateTextField, activationTextField);
 
         UI.addMouseListener(new AbstractPopupListener() {
             @Override
@@ -832,9 +832,6 @@ public class GUI extends JFrame implements GuiListener {
         portTextField = new JTextField();
         portRandomizeCheckBox = new JCheckBox();
         portOkButton = new JButton();
-        optionalMsgPanel = new JPanel();
-        optionalMsgCheckBox = new JCheckBox();
-        optionalMsgTextArea = new JTextArea();
         tvSubtitleDialog = new JDialog();
         tvSubtitleLanguageLabel = new JLabel();
         tvSubtitleLanguageComboBox = new JComboBox();
@@ -2407,40 +2404,6 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(portTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(portRandomizeCheckBox)
                     .addComponent(portOkButton))
-                .addContainerGap())
-        );
-
-        optionalMsgPanel.setOpaque(false);
-
-        optionalMsgCheckBox.setText(bundle.getString("GUI.optionalMsgCheckBox.text")); // NOI18N
-        optionalMsgCheckBox.setBorder(null);
-        optionalMsgCheckBox.setFocusPainted(false);
-        optionalMsgCheckBox.setMargin(new Insets(2, 0, 2, 2));
-        optionalMsgCheckBox.setOpaque(false);
-
-        optionalMsgTextArea.setEditable(false);
-        optionalMsgTextArea.setColumns(20);
-        optionalMsgTextArea.setLineWrap(true);
-        optionalMsgTextArea.setRows(5);
-        optionalMsgTextArea.setWrapStyleWord(true);
-        optionalMsgTextArea.setOpaque(false);
-
-        GroupLayout optionalMsgPanelLayout = new GroupLayout(optionalMsgPanel);
-        optionalMsgPanel.setLayout(optionalMsgPanelLayout);
-        optionalMsgPanelLayout.setHorizontalGroup(optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(optionalMsgPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING, false)
-                    .addComponent(optionalMsgCheckBox)
-                    .addComponent(optionalMsgTextArea, GroupLayout.PREFERRED_SIZE, 354, GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-        );
-        optionalMsgPanelLayout.setVerticalGroup(optionalMsgPanelLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(Alignment.TRAILING, optionalMsgPanelLayout.createSequentialGroup()
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(optionalMsgTextArea, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addComponent(optionalMsgCheckBox)
                 .addContainerGap())
         );
 
@@ -6084,24 +6047,104 @@ public class GUI extends JFrame implements GuiListener {
         return editorPane;
     }
 
-    int showOptionDialog(Object msg, String title, int type, boolean confirm) {
-        return showOptionDialog(showing(), msg, title, type, confirm);
+    private JPanel getOptionalPanel(String msg, final JMenuItem menuItem) {
+        JTextArea textArea = new JTextArea();
+        textArea.setSize(300, 200);
+        textArea.setOpaque(false);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setColumns(20);
+        textArea.setRows(5);
+        textArea.setText(msg);
+        textArea.addMouseListener(textComponentPopupListener);
+
+        final JCheckBox checkBox = new JCheckBox();
+        checkBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
+        checkBox.setBorder(null);
+        checkBox.setFocusPainted(false);
+        checkBox.setMargin(new Insets(2, 0, 2, 2));
+        checkBox.setOpaque(false);
+        checkBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent evt) {
+                menuItem.setSelected(!checkBox.isSelected());
+            }
+        });
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        GroupLayout layout = new GroupLayout(panel);
+        panel.setLayout(layout);
+        layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
+                layout.createParallelGroup(Alignment.LEADING, false).addComponent(checkBox).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 354,
+                        GroupLayout.PREFERRED_SIZE)).addContainerGap())
+        );
+        layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING, layout.createSequentialGroup().addContainerGap(
+                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE).addPreferredGap(
+                        ComponentPlacement.RELATED).addComponent(checkBox).addContainerGap())
+        );
+
+        JOptionPane tempOptionPane = new JOptionPane();
+        Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
+        Font font = tempOptionPane.getFont();
+        for (JComponent component : new JComponent[]{textArea, checkBox, panel}) {
+            component.setForeground(fgColor);
+            component.setBackground(bgColor);
+            component.setFont(font);
+        }
+
+        return panel;
     }
 
-    private int showOptionDialog(Component parent, Object msg, String title, int type, boolean confirm) {
+    int showOptionDialog(Object msg, String title, int type, Boolean confirm) {
         Window alwaysOnTopFocus = resultsToBackground();
-        int result;
-        if (confirm) {
-            result = JOptionPane.showConfirmDialog(parent, msg, title, type);
+        Component parent = showing();
+        int result = -1;
+        Collection<Window> windows = new ArrayList<Window>(4);
+        Boolean showConfirm = confirm;
+        for (Window window : Window.getWindows()) {
+            if (window.isVisible() && window instanceof Dialog) {
+                if (((Dialog) window).isModal()) {
+                    if (showConfirm == null) {
+                        showConfirm = false;
+                    }
+                } else {
+                    windows.add(window);
+                }
+            }
+        }
+        if (showConfirm == null) {
+            JDialog dialog = (new JOptionPane(msg, type)).createDialog(parent, title);
+            dialog.setModal(false);
+            if (parent != null) {
+                Point location = summaryScrollPane.getLocationOnScreen();
+                int y = location.y + summaryScrollPane.getHeight() - dialog.getHeight();
+                dialog.setLocation(location.x, y < 0 ? 0 : y);
+            }
+            dialog.setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(parent, msg, title, type);
-            result = -1;
+            for (Window window : windows) {
+                window.setVisible(false);
+            }
+            if (showConfirm) {
+                result = JOptionPane.showConfirmDialog(parent, msg, title, type);
+            } else {
+                JOptionPane.showMessageDialog(parent, msg, title, type);
+            }
+            for (Window window : windows) {
+                window.setVisible(true);
+            }
         }
         resultsToForeground(alwaysOnTopFocus);
         return result;
     }
 
     void showException(Exception e) {
+        showException(e, false);
+    }
+
+    private void showException(Exception e, Boolean confirm) {
         if (Debug.DEBUG) {
             Debug.print(e);
         }
@@ -6109,22 +6152,23 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        showMsg(ThrowableUtil.toString(e), Constant.ERROR_MSG);
+        showMsg(ThrowableUtil.toString(e), Constant.ERROR_MSG, confirm);
         IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
     }
 
     private void showOptionalMsg(String msg, JMenuItem menuItem) {
         synchronized (optionDialogLock) {
-            optionalMsgTextArea.setSize(300, 200);
-            optionalMsgTextArea.setText(msg);
-            showOptionDialog(optionalMsgPanel, Constant.APP_TITLE, Constant.INFO_MSG, false);
-            updateOptionalMsgCheckBox(menuItem);
+            showOptionDialog(getOptionalPanel(msg, menuItem), Constant.APP_TITLE, Constant.INFO_MSG, null);
         }
     }
 
     private void showMsg(String msg, int msgType) {
+        showMsg(msg, msgType, false);
+    }
+
+    private void showMsg(String msg, int msgType, Boolean confirm) {
         synchronized (optionDialogLock) {
-            showOptionDialog(getTextArea(msg), Constant.APP_TITLE, msgType, false);
+            showOptionDialog(getTextArea(msg), Constant.APP_TITLE, msgType, confirm);
         }
     }
 
@@ -6193,13 +6237,9 @@ public class GUI extends JFrame implements GuiListener {
         }).execute();
     }
 
-    private int showOptionalConfirm(Component parent, String msg, JMenuItem menuItem) {
+    private int showOptionalConfirm(String msg, JMenuItem menuItem) {
         synchronized (optionDialogLock) {
-            optionalMsgTextArea.setSize(300, 200);
-            optionalMsgTextArea.setText(msg);
-            int result = showOptionDialog(parent, optionalMsgPanel, Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
-            updateOptionalMsgCheckBox(menuItem);
-            return result;
+            return showOptionDialog(getOptionalPanel(msg, menuItem), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
         }
     }
 
@@ -6299,6 +6339,13 @@ public class GUI extends JFrame implements GuiListener {
                 UI.select(trailerPlayerButtonGroup2, Integer.parseInt(settings[++i]));
                 UI.select(downloadQualityButtonGroup, Integer.parseInt(settings[++i]));
                 splitPane.setResizeWeight(Double.parseDouble(settings[++i]));
+                if (playlistShown.get()) {
+                    if (splitPane.getDividerLocation() + splitPane.getDividerSize() < splitPane.getHeight()) {
+                        splitPane.setDividerLocation(splitPane.getResizeWeight());
+                    } else {
+                        splitPane.setLastDividerLocation((int) ((splitPane.getHeight() - splitPane.getDividerSize()) * splitPane.getResizeWeight()));
+                    }
+                }
                 subtitleFormat = getFormat();
 
                 if (!updateSettings) {
@@ -6641,7 +6688,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void error(Exception e) {
         showConnectionException(e);
-        showException(e);
+        showException(e, null);
     }
 
     @Override
@@ -6700,7 +6747,7 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public void msg(String msg, int msgType) {
-        showMsg(msg, msgType);
+        showMsg(msg, msgType, null);
     }
 
     @Override
@@ -6879,13 +6926,6 @@ public class GUI extends JFrame implements GuiListener {
                 (proxyParts = Regex.split(proxy, 256))[0], proxyParts[1])), browserNotificationCheckBoxMenuItem);
     }
 
-    private void updateOptionalMsgCheckBox(JMenuItem menuItem) {
-        if (optionalMsgCheckBox.isSelected()) {
-            menuItem.setSelected(false);
-            optionalMsgCheckBox.setSelected(false);
-        }
-    }
-
     @Override
     public void startPeerBlock() {
         if (!workerListener.canFilterIpsWithoutBlocking()) {
@@ -6901,7 +6941,7 @@ public class GUI extends JFrame implements GuiListener {
             IO.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
         }
-        if (canShowPeerBlock && showOptionalConfirm(showing(), Str.str("startPeerblock"), peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION) {
+        if (canShowPeerBlock && showOptionalConfirm(Str.str("startPeerblock"), peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION) {
             usePeerBlock = false;
             return;
         }
@@ -7244,10 +7284,10 @@ public class GUI extends JFrame implements GuiListener {
     public boolean unbanDownload(Long downloadID, String downloadName) {
         if (bannedDownloadIDs.contains(downloadID)) {
             if (isConfirmed(Str.str("banDownloadConfirm", downloadName))) {
-                bannedDownloadIDs.remove(downloadID);
-                return true;
+                return false;
             }
-            return false;
+            bannedDownloadIDs.remove(downloadID);
+            return true;
         }
         return true;
     }
@@ -7345,7 +7385,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void playlistError(String msg) {
         synchronized (optionDialogLock) {
-            showOptionDialog(showing(), getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG, false);
+            showOptionDialog(getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG, null);
         }
     }
 
@@ -7639,7 +7679,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void updateMsg(String msg) {
         synchronized (optionDialogLock) {
-            showOptionDialog(getEditorPane(msg), Constant.APP_TITLE, Constant.INFO_MSG, false);
+            showOptionDialog(getEditorPane(msg), Constant.APP_TITLE, Constant.INFO_MSG, null);
         }
     }
 
@@ -7692,6 +7732,11 @@ public class GUI extends JFrame implements GuiListener {
                 movieSubtitleDownloadMatch2Button, movieSubtitleDownloadMatch1Button}, true);
             movieSubtitleLoadingLabel.setIcon(notLoadingIcon);
         }
+    }
+
+    @Override
+    public void summarySearchStarted(Video video) {
+        workerListener.summarySearchStarted(0, video, false, null);
     }
 
     private static int portNum(String port) {
@@ -7906,7 +7951,6 @@ public class GUI extends JFrame implements GuiListener {
         noButton.setText(Str.str("GUI.noButton.text"));
         noButton.setToolTipText(Str.str("GUI.noButton.toolTipText"));
         noDownloaderRadioButtonMenuItem.setText(Str.str("GUI.noDownloaderRadioButtonMenuItem.text"));
-        optionalMsgCheckBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
         pasteMenuItem.setText(Str.str("GUI.pasteMenuItem.text"));
         peerBlockNotificationCheckBoxMenuItem.setText(Str.str("GUI.peerBlockNotificationCheckBoxMenuItem.text"));
         playlistAutoOpenCheckBoxMenuItem.setText(Str.str("GUI.playlistAutoOpenCheckBoxMenuItem.text"));
@@ -8303,9 +8347,6 @@ public class GUI extends JFrame implements GuiListener {
     JScrollPane msgScrollPane;
     JButton noButton;
     JRadioButtonMenuItem noDownloaderRadioButtonMenuItem;
-    JCheckBox optionalMsgCheckBox;
-    JPanel optionalMsgPanel;
-    JTextArea optionalMsgTextArea;
     JMenuItem pasteMenuItem;
     JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
     JCheckBoxMenuItem playlistAutoOpenCheckBoxMenuItem;

@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.01.12   | VidMasta 24.4
+
+CHANGE: UI   | Made some modal dialogs non-modal
+CHANGE: UI   | Automatically loaded summary of first title search result
+
+
+
+
 2017.12.23   | VidMasta 24.3
 
 CHANGE: UI   | Moved title summary window into main window

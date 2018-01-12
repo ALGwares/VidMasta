@@ -146,6 +146,7 @@ public class RegularSearcher extends AbstractSearcher {
         guiListener.newResult(VideoSearch.toTableRow(guiListener, video, true));
         incrementProgress();
         isInitialSearchSuccessful = true;
+        guiListener.summarySearchStarted(video);
     }
 
     @Override
