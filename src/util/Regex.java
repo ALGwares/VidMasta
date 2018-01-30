@@ -141,6 +141,17 @@ public class Regex {
         return result.trim();
     }
 
+    public static String cleanAbbreviations(String str) {
+        StringBuffer result = new StringBuffer(16);
+        Matcher matcher = matcher(772, str);
+        while (!matcher.hitEnd()) {
+            if (matcher.find()) {
+                matcher.appendReplacement(result, Matcher.quoteReplacement(replaceAll(matcher.group(), 773)));
+            }
+        }
+        return matcher.appendTail(result).toString();
+    }
+
     public static String toFileName(String str) {
         return replaceAll(replaceAll(clean(str), "[^\\p{Alnum}]", " ").trim(), " ++", "-");
     }

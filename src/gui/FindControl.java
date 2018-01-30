@@ -3,7 +3,6 @@ package gui;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -64,8 +63,12 @@ public class FindControl {
     }
 
     private static List<String> findables(String str) {
-        String findable = Regex.htmlToPlainText(str);
-        return Arrays.asList(findable, Regex.replaceFirst(findable, 327), findable = Regex.clean(findable), Regex.replaceFirst(findable, 327));
+        List<String> findables = new ArrayList<String>(8);
+        for (String currStr : new String[]{str, Regex.cleanAbbreviations(str)}) {
+            String findable = Regex.htmlToPlainText(currStr);
+            Collections.addAll(findables, findable, Regex.replaceFirst(findable, 327), findable = Regex.clean(findable), Regex.replaceFirst(findable, 327));
+        }
+        return findables;
     }
 
     public void addFindable(String str, Map<String, List<String>> cache) {
@@ -99,13 +102,13 @@ public class FindControl {
 
         boolean continueFind = (findRow != -2 && selectedRow != -1 && (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_UP));
         int numFindables = findables.size();
-        List<Integer> foundRows = new ArrayList<Integer>((numFindables / 16) + 1);
-        for (int i = 0; i < numFindables; i += 4) {
-            for (int j = i, k = i + 4; j < k; j++) {
+        List<Integer> foundRows = new ArrayList<Integer>((numFindables / 32) + 1);
+        for (int i = 0, n = 8; i < numFindables; i += n) {
+            for (int j = i, k = i + n; j < k; j++) {
                 if (!findables.get(j).toLowerCase(Locale.ENGLISH).contains(text)) {
                     continue;
                 }
-                int foundRow = table.convertRowIndexToView(i / 4);
+                int foundRow = table.convertRowIndexToView(i / n);
                 if (continueFind) {
                     if (foundRow != findRow) {
                         foundRows.add(foundRow);

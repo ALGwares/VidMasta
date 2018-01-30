@@ -568,9 +568,16 @@ public class GUI extends JFrame implements GuiListener {
         settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS);
         playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
 
-        String downloadIDs = preferences.get(Constant.BANNED_DOWNLOAD_IDS, "").trim();
+        String downloadIDs = preferences.get("bannedDownloadIDs", "").trim(); // Backward compatibility
         if (!downloadIDs.isEmpty()) {
             for (String downloadID : downloadIDs.split(Constant.STD_NEWLINE)) {
+                bannedDownloadIDs.add(Long.valueOf(downloadID));
+            }
+            preferences.remove("bannedDownloadIDs");
+        }
+        File downloadIDsFile = new File(Constant.APP_DIR, Constant.BANNED_DOWNLOAD_IDS);
+        if (downloadIDsFile.exists() && !(downloadIDs = IO.read(downloadIDsFile)).isEmpty()) {
+            for (String downloadID : downloadIDs.split(Constant.NEWLINE)) {
                 bannedDownloadIDs.add(Long.valueOf(downloadID));
             }
         }
@@ -4053,9 +4060,15 @@ public class GUI extends JFrame implements GuiListener {
 
         StringBuilder downloadIDs = new StringBuilder(96);
         for (Long downloadID : bannedDownloadIDs) {
-            downloadIDs.append(downloadID).append(Constant.STD_NEWLINE);
+            downloadIDs.append(downloadID).append(Constant.NEWLINE);
         }
-        preferences.put(Constant.BANNED_DOWNLOAD_IDS, downloadIDs.toString().trim());
+        try {
+            IO.write(Constant.APP_DIR + Constant.BANNED_DOWNLOAD_IDS, downloadIDs.toString().trim());
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+        }
     }
 
     public void savePlaylist() {
@@ -6078,12 +6091,10 @@ public class GUI extends JFrame implements GuiListener {
         panel.setLayout(layout);
         layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
                 layout.createParallelGroup(Alignment.LEADING, false).addComponent(checkBox).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 354,
-                        GroupLayout.PREFERRED_SIZE)).addContainerGap())
-        );
+                        GroupLayout.PREFERRED_SIZE)).addContainerGap()));
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING, layout.createSequentialGroup().addContainerGap(
                 GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE).addPreferredGap(
-                        ComponentPlacement.RELATED).addComponent(checkBox).addContainerGap())
-        );
+                        ComponentPlacement.RELATED).addComponent(checkBox).addContainerGap()));
 
         JOptionPane tempOptionPane = new JOptionPane();
         Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
@@ -6818,6 +6829,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void showSafetyDialog() {
         Window alwaysOnTopFocus = resultsToBackground();
+        noButton.requestFocusInWindow();
         UI.setVisible(safetyDialog);
         resultsToForeground(alwaysOnTopFocus);
     }

@@ -39,7 +39,7 @@ public class Constant implements IOConstant {
     public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
     public static final String TXT = ".txt", HTML = ".html", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
-    public static final int UPDATE_FILE_VERSION = 84;
+    public static final int UPDATE_FILE_VERSION = 85;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 79;
@@ -54,7 +54,7 @@ public class Constant implements IOConstant {
     public static final String ZIP = ".zip";
     public static final String PROXY_VERSION = "proxyVersion" + TXT;
     public static final String PLAYLIST = "playlist2" + TXT;
-    public static final String BANNED_DOWNLOAD_IDS = "bannedDownloadIDs";
+    public static final String BANNED_DOWNLOAD_IDS = "bannedDownloadIDs" + TXT;
     public static final String PROXIES = "proxies" + TXT;
     public static final String ERROR_LOG = "errorLog" + TXT;
     public static final String NO_PROXY = "NO PROXY";

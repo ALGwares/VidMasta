@@ -882,11 +882,14 @@ public class VideoFinder extends Worker {
 
     private void addFinder(String title, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle, boolean isTitlePrefix, List<BoxSetVideo> boxSet,
             boolean altSearch, boolean singleOrderByMode) {
-        Video vid = new Video(video.ID, title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
-        vid.season = video.season;
-        vid.episode = video.episode;
-        torrentFinders.add(new TorrentFinder(guiListener, torrentFinders, torrents, vid, seasonAndEpisode, isDownload1, magnetLinkOnly(), ignoreYear, isOldTitle,
-                isTitlePrefix, new TorrentSearchState(searchState), boxSet, altSearch, singleOrderByMode));
+        String newTitle = Regex.cleanAbbreviations(title);
+        for (String currTitle : newTitle.equals(title) ? new String[]{title} : new String[]{title, newTitle}) {
+            Video vid = new Video(video.ID, currTitle, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+            vid.season = video.season;
+            vid.episode = video.episode;
+            torrentFinders.add(new TorrentFinder(guiListener, torrentFinders, torrents, vid, seasonAndEpisode, isDownload1, magnetLinkOnly(), ignoreYear,
+                    isOldTitle, isTitlePrefix, new TorrentSearchState(searchState), boxSet, altSearch, singleOrderByMode));
+        }
     }
 
     private void findDownloadLink() throws Exception {

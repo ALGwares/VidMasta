@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.01.30   | VidMasta 24.5
+
+CHANGE: CORE | Improved accuracy of download link searches
+CHANGE: CORE | Fixed issue that can prevent proper closing of application
+
+
+
+
 2018.01.12   | VidMasta 24.4
 
 CHANGE: UI   | Made some modal dialogs non-modal
