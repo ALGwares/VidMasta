@@ -1,13 +1,6 @@
 VIDMASTA CHANGELOG
 ------------------
 
-2018.02.22   | VidMasta 24.6
-
-CHANGE: UI   | Added ability to block being able to re-search specific titles via the result table's right-click popup menu item "Ban"
-
-
-
-
 2018.01.30   | VidMasta 24.5
 
 CHANGE: CORE | Improved accuracy of download link searches
