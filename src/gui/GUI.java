@@ -8,7 +8,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.Dialog;
 import java.awt.Dialog.ModalExclusionType;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
@@ -30,8 +29,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -40,8 +37,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.RenderedImage;
 import java.io.File;
-import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -54,12 +51,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -180,6 +179,7 @@ public class GUI extends JFrame implements GuiListener {
     private MenuElement popularSearchMenuElement;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean(), playlistShown = new AtomicBoolean();
+    private final Set<String> bannedTitles = new ConcurrentSkipListSet<String>();
     private final Set<Long> bannedDownloadIDs = new CopyOnWriteArraySet<Long>();
     private FileFilter torrentFileFilter, proxyListFileFilter, subtitleFileFilter;
     String proxyImportFile, proxyExportFile, torrentDir, subtitleDir, playlistDir;
@@ -568,17 +568,20 @@ public class GUI extends JFrame implements GuiListener {
         settings.loadSettings(Constant.APP_DIR + Constant.USER_SETTINGS);
         playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
 
-        String downloadIDs = preferences.get("bannedDownloadIDs", "").trim(); // Backward compatibility
-        if (!downloadIDs.isEmpty()) {
-            for (String downloadID : downloadIDs.split(Constant.STD_NEWLINE)) {
-                bannedDownloadIDs.add(Long.valueOf(downloadID));
+        File idsFile = new File(Constant.APP_DIR, Constant.BANNED_TITLES);
+        String ids;
+        if (idsFile.exists() && !(ids = IO.read(idsFile)).isEmpty()) {
+            Collections.addAll(bannedTitles, ids.split(Constant.NEWLINE));
+        }
+        if (!(ids = preferences.get("bannedDownloadIDs", "").trim()).isEmpty()) { // Backward compatibility
+            for (String id : ids.split(Constant.STD_NEWLINE)) {
+                bannedDownloadIDs.add(Long.valueOf(id));
             }
             preferences.remove("bannedDownloadIDs");
         }
-        File downloadIDsFile = new File(Constant.APP_DIR, Constant.BANNED_DOWNLOAD_IDS);
-        if (downloadIDsFile.exists() && !(downloadIDs = IO.read(downloadIDsFile)).isEmpty()) {
-            for (String downloadID : downloadIDs.split(Constant.NEWLINE)) {
-                bannedDownloadIDs.add(Long.valueOf(downloadID));
+        if ((idsFile = new File(Constant.APP_DIR, Constant.BANNED_DOWNLOAD_IDS)).exists() && !(ids = IO.read(idsFile)).isEmpty()) {
+            for (String id : ids.split(Constant.NEWLINE)) {
+                bannedDownloadIDs.add(Long.valueOf(id));
             }
         }
     }
@@ -772,6 +775,8 @@ public class GUI extends JFrame implements GuiListener {
         watchOnDeviceMenuItem = new JMenuItem();
         tablePopupMenuSeparator3 = new Separator();
         findSubtitleMenuItem = new JMenuItem();
+        tablePopupMenuSeparator4 = new Separator();
+        banTitleMenu = new JMenu();
         popularPopupMenu = new JPopupMenu();
         popularNewHQMoviesMenuItem = new JMenuItem();
         popularTVShowsMenuItem = new JMenuItem();
@@ -979,20 +984,22 @@ public class GUI extends JFrame implements GuiListener {
         viewMenuSeparator1 = new Separator();
         resetWindowMenuItem = new JMenuItem();
         searchMenu = new JMenu();
-        resultsPerSearchMenuItem = new JMenuItem();
+        searchBanTitleMenu = new JMenu();
         searchMenuSeparator1 = new Separator();
-        timeoutMenuItem = new JMenuItem();
+        resultsPerSearchMenuItem = new JMenuItem();
         searchMenuSeparator2 = new Separator();
-        proxyMenuItem = new JMenuItem();
+        timeoutMenuItem = new JMenuItem();
         searchMenuSeparator3 = new Separator();
-        languageCountryMenuItem = new JMenuItem();
+        proxyMenuItem = new JMenuItem();
         searchMenuSeparator4 = new Separator();
-        feedCheckBoxMenuItem = new JCheckBoxMenuItem();
+        languageCountryMenuItem = new JMenuItem();
         searchMenuSeparator5 = new Separator();
-        browserNotificationCheckBoxMenuItem = new JCheckBoxMenuItem();
+        feedCheckBoxMenuItem = new JCheckBoxMenuItem();
         searchMenuSeparator6 = new Separator();
-        emailWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
+        browserNotificationCheckBoxMenuItem = new JCheckBoxMenuItem();
         searchMenuSeparator7 = new Separator();
+        emailWithDefaultAppCheckBoxMenuItem = new JCheckBoxMenuItem();
+        searchMenuSeparator8 = new Separator();
         trailerPlayerMenu = new JMenu();
         trailerMediaPlayerRadioButtonMenuItem = new JRadioButtonMenuItem();
         trailerMediaPlayer1080RadioButtonMenuItem = new JRadioButtonMenuItem();
@@ -1119,7 +1126,11 @@ public class GUI extends JFrame implements GuiListener {
         faqEditorPane.setText(null);
         UI.addHyperlinkListener(faqEditorPane, new HyperlinkListener() {
             public void hyperlinkUpdate(HyperlinkEvent evt) {
-                faqEditorPaneHyperlinkUpdate(evt);
+                try {
+                    UI.hyperlinkHandler(evt);
+                } catch (Exception e) {
+                    showException(e);
+                }
             }
         });
         faqScrollPane.setViewportView(faqEditorPane);
@@ -1813,6 +1824,19 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         tablePopupMenu.add(findSubtitleMenuItem);
+        tablePopupMenu.add(tablePopupMenuSeparator4);
+
+        banTitleMenu.setText(bundle.getString("GUI.banTitleMenu.text")); // NOI18N
+        banTitleMenu.addMenuListener(new MenuListener() {
+            public void menuCanceled(MenuEvent evt) {
+            }
+            public void menuDeselected(MenuEvent evt) {
+            }
+            public void menuSelected(MenuEvent evt) {
+                banTitleMenuMenuSelected(evt);
+            }
+        });
+        tablePopupMenu.add(banTitleMenu);
 
         popularNewHQMoviesMenuItem.setText(bundle.getString("GUI.popularNewHQMoviesMenuItem.text")); // NOI18N
         popularNewHQMoviesMenuItem.setToolTipText(bundle.getString("GUI.popularNewHQMoviesMenuItem.toolTipText")); // NOI18N
@@ -3658,6 +3682,19 @@ public class GUI extends JFrame implements GuiListener {
 
         searchMenu.setText(bundle.getString("GUI.searchMenu.text")); // NOI18N
 
+        searchBanTitleMenu.setText(bundle.getString("GUI.searchBanTitleMenu.text")); // NOI18N
+        searchBanTitleMenu.addMenuListener(new MenuListener() {
+            public void menuCanceled(MenuEvent evt) {
+            }
+            public void menuDeselected(MenuEvent evt) {
+            }
+            public void menuSelected(MenuEvent evt) {
+                searchBanTitleMenuMenuSelected(evt);
+            }
+        });
+        searchMenu.add(searchBanTitleMenu);
+        searchMenu.add(searchMenuSeparator1);
+
         resultsPerSearchMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK));
         resultsPerSearchMenuItem.setText(bundle.getString("GUI.resultsPerSearchMenuItem.text")); // NOI18N
         resultsPerSearchMenuItem.addActionListener(new ActionListener() {
@@ -3666,7 +3703,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         searchMenu.add(resultsPerSearchMenuItem);
-        searchMenu.add(searchMenuSeparator1);
+        searchMenu.add(searchMenuSeparator2);
 
         timeoutMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_MASK));
         timeoutMenuItem.setText(bundle.getString("GUI.timeoutMenuItem.text")); // NOI18N
@@ -3676,7 +3713,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         searchMenu.add(timeoutMenuItem);
-        searchMenu.add(searchMenuSeparator2);
+        searchMenu.add(searchMenuSeparator3);
 
         proxyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK));
         proxyMenuItem.setText(bundle.getString("GUI.proxyMenuItem.text")); // NOI18N
@@ -3686,7 +3723,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         searchMenu.add(proxyMenuItem);
-        searchMenu.add(searchMenuSeparator3);
+        searchMenu.add(searchMenuSeparator4);
 
         languageCountryMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK));
         languageCountryMenuItem.setText(bundle.getString("GUI.languageCountryMenuItem.text")); // NOI18N
@@ -3696,22 +3733,22 @@ public class GUI extends JFrame implements GuiListener {
             }
         });
         searchMenu.add(languageCountryMenuItem);
-        searchMenu.add(searchMenuSeparator4);
+        searchMenu.add(searchMenuSeparator5);
 
         feedCheckBoxMenuItem.setText(bundle.getString("GUI.feedCheckBoxMenuItem.text")); // NOI18N
         feedCheckBoxMenuItem.setToolTipText(bundle.getString("GUI.feedCheckBoxMenuItem.toolTipText")); // NOI18N
         searchMenu.add(feedCheckBoxMenuItem);
-        searchMenu.add(searchMenuSeparator5);
+        searchMenu.add(searchMenuSeparator6);
 
         browserNotificationCheckBoxMenuItem.setSelected(true);
         browserNotificationCheckBoxMenuItem.setText(bundle.getString("GUI.browserNotificationCheckBoxMenuItem.text")); // NOI18N
         searchMenu.add(browserNotificationCheckBoxMenuItem);
-        searchMenu.add(searchMenuSeparator6);
+        searchMenu.add(searchMenuSeparator7);
 
         emailWithDefaultAppCheckBoxMenuItem.setSelected(true);
         emailWithDefaultAppCheckBoxMenuItem.setText(bundle.getString("GUI.emailWithDefaultAppCheckBoxMenuItem.text")); // NOI18N
         searchMenu.add(emailWithDefaultAppCheckBoxMenuItem);
-        searchMenu.add(searchMenuSeparator7);
+        searchMenu.add(searchMenuSeparator8);
 
         trailerPlayerMenu.setText(bundle.getString("GUI.trailerPlayerMenu.text")); // NOI18N
 
@@ -4058,15 +4095,18 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        StringBuilder downloadIDs = new StringBuilder(96);
-        for (Long downloadID : bannedDownloadIDs) {
-            downloadIDs.append(downloadID).append(Constant.NEWLINE);
-        }
-        try {
-            IO.write(Constant.APP_DIR + Constant.BANNED_DOWNLOAD_IDS, downloadIDs.toString().trim());
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
+        for (Entry<String, Iterable<?>> bannedEntry : new Entry[]{new SimpleImmutableEntry<String, Iterable<?>>(Constant.BANNED_TITLES, bannedTitles),
+            new SimpleImmutableEntry<String, Iterable<?>>(Constant.BANNED_DOWNLOAD_IDS, bannedDownloadIDs)}) {
+            StringBuilder ids = new StringBuilder(96);
+            for (Object id : bannedEntry.getValue()) {
+                ids.append(id).append(Constant.NEWLINE);
+            }
+            try {
+                IO.write(Constant.APP_DIR + bannedEntry.getKey(), ids.toString().trim());
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
             }
         }
     }
@@ -4340,25 +4380,6 @@ public class GUI extends JFrame implements GuiListener {
     void genreListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_genreListValueChanged
         UI.updateList(genreList);
     }//GEN-LAST:event_genreListValueChanged
-
-    void faqEditorPaneHyperlinkUpdate(HyperlinkEvent evt) {
-        try {
-            hyperlinkHandler(evt);
-        } catch (Exception e) {
-            showException(e);
-        }
-    }
-
-    private static void hyperlinkHandler(HyperlinkEvent evt) throws IOException {
-        if (evt.getEventType().equals(EventType.ACTIVATED)) {
-            String url = evt.getURL().toString();
-            if (url.startsWith("mailto:")) {
-                Connection.email(url);
-            } else {
-                Connection.browse(url);
-            }
-        }
-    }
 
     void popularMoviesButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularMoviesButtonActionPerformed
         doPopularVideosSearch(false, false, false, null);
@@ -5983,6 +6004,65 @@ public class GUI extends JFrame implements GuiListener {
         readSummaryButtonActionPerformed(evt);
     }//GEN-LAST:event_hearSummaryMenuItemActionPerformed
 
+    private void banTitleMenuMenuSelected(MenuEvent evt) {//GEN-FIRST:event_banTitleMenuMenuSelected
+        JMenu menu = (JMenu) evt.getSource();
+        menu.removeAll();
+        List<String> titles = new ArrayList<String>(100);
+
+        synchronized (resultsSyncTable.lock) {
+            int row = resultsSyncTable.table.getSelectedRow();
+            if (row != -1) {
+                int modelRow = resultsSyncTable.table.convertRowIndexToModel(row);
+                String title = bannedTitle((String) resultsSyncTable.tableModel.getValueAt(modelRow, idCol), (String) resultsSyncTable.tableModel.getValueAt(
+                        modelRow, currTitleCol), (String) resultsSyncTable.tableModel.getValueAt(modelRow, yearCol));
+                if (!bannedTitles.contains(title)) {
+                    titles.add(title);
+                }
+            }
+        }
+
+        boolean unbannedTitle = !titles.isEmpty();
+        titles.addAll(bannedTitles);
+        int numTitles = titles.size();
+
+        if (numTitles == 0) {
+            JMenuItem menuItem = new JMenuItem(Str.str("empty"));
+            menuItem.setEnabled(false);
+            menu.add(menuItem);
+        } else {
+            JMenu currMenu = menu;
+            for (int i = 0, j = 35; i < numTitles; i++) {
+                final String title = titles.get(i);
+                final AbstractButton banTitleButton = new JCheckBoxMenuItem(title, null, bannedTitles.contains(title));
+                banTitleButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent evt) {
+                        if (banTitleButton.isSelected()) {
+                            bannedTitles.add(title);
+                        } else {
+                            bannedTitles.remove(title);
+                        }
+                    }
+                });
+                if ((unbannedTitle && (i == 1 || (i != 0 && (i - 1) % j == 0))) || (!unbannedTitle && i % j == 0)) {
+                    menu.add(currMenu = new JMenu(Str.str("unban")));
+                }
+                currMenu.add(banTitleButton);
+                if (i == 0 && unbannedTitle && numTitles > 1) {
+                    currMenu.add(new Separator());
+                }
+            }
+        }
+    }//GEN-LAST:event_banTitleMenuMenuSelected
+
+    private static String bannedTitle(String id, String title, String year) {
+        return Regex.htmlToPlainText(title) + " (" + UI.innerHTML(year) + ") (" + id + ')';
+    }
+
+    private void searchBanTitleMenuMenuSelected(MenuEvent evt) {//GEN-FIRST:event_searchBanTitleMenuMenuSelected
+        banTitleMenuMenuSelected(evt);
+    }//GEN-LAST:event_searchBanTitleMenuMenuSelected
+
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
     }
@@ -6018,135 +6098,9 @@ public class GUI extends JFrame implements GuiListener {
         subtitleEpisodes.add(-1);
     }
 
-    private JTextArea getTextArea(String msg) {
-        JTextArea textArea = new JTextArea();
-        textArea.setSize(300, 200);
-        JOptionPane tempOptionPane = new JOptionPane();
-        textArea.setForeground(tempOptionPane.getForeground());
-        textArea.setBackground(tempOptionPane.getBackground());
-        textArea.setFont(tempOptionPane.getFont());
-        textArea.setOpaque(false);
-        textArea.setEditable(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setText(msg);
-        textArea.addMouseListener(textComponentPopupListener);
-        return textArea;
-    }
-
-    private JEditorPane getEditorPane(String msg) {
-        JEditorPane editorPane = new JEditorPane("text/html", msg);
-        editorPane.setOpaque(false);
-        editorPane.setEditable(false);
-        editorPane.setMaximumSize(null);
-        editorPane.setMinimumSize(null);
-        UI.addHyperlinkListener(editorPane, new HyperlinkListener() {
-            @Override
-            public void hyperlinkUpdate(HyperlinkEvent evt) {
-                try {
-                    hyperlinkHandler(evt);
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                    Window alwaysOnTopFocus = resultsToBackground();
-                    JOptionPane.showMessageDialog(showing(), getTextArea(ThrowableUtil.toString(e)), Constant.APP_TITLE, Constant.ERROR_MSG);
-                    resultsToForeground(alwaysOnTopFocus);
-                    IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
-                }
-            }
-        });
-        editorPane.addMouseListener(textComponentPopupListener);
-        return editorPane;
-    }
-
-    private JPanel getOptionalPanel(String msg, final JMenuItem menuItem) {
-        JTextArea textArea = new JTextArea();
-        textArea.setSize(300, 200);
-        textArea.setOpaque(false);
-        textArea.setEditable(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setColumns(20);
-        textArea.setRows(5);
-        textArea.setText(msg);
-        textArea.addMouseListener(textComponentPopupListener);
-
-        final JCheckBox checkBox = new JCheckBox();
-        checkBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
-        checkBox.setBorder(null);
-        checkBox.setFocusPainted(false);
-        checkBox.setMargin(new Insets(2, 0, 2, 2));
-        checkBox.setOpaque(false);
-        checkBox.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent evt) {
-                menuItem.setSelected(!checkBox.isSelected());
-            }
-        });
-
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        GroupLayout layout = new GroupLayout(panel);
-        panel.setLayout(layout);
-        layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
-                layout.createParallelGroup(Alignment.LEADING, false).addComponent(checkBox).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 354,
-                        GroupLayout.PREFERRED_SIZE)).addContainerGap()));
-        layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING, layout.createSequentialGroup().addContainerGap(
-                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE).addPreferredGap(
-                        ComponentPlacement.RELATED).addComponent(checkBox).addContainerGap()));
-
-        JOptionPane tempOptionPane = new JOptionPane();
-        Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
-        Font font = tempOptionPane.getFont();
-        for (JComponent component : new JComponent[]{textArea, checkBox, panel}) {
-            component.setForeground(fgColor);
-            component.setBackground(bgColor);
-            component.setFont(font);
-        }
-
-        return panel;
-    }
-
     int showOptionDialog(Object msg, String title, int type, Boolean confirm) {
         Window alwaysOnTopFocus = resultsToBackground();
-        Component parent = showing();
-        int result = -1;
-        Collection<Window> windows = new ArrayList<Window>(4);
-        Boolean showConfirm = confirm;
-        for (Window window : Window.getWindows()) {
-            if (window.isVisible() && window instanceof Dialog) {
-                if (((Dialog) window).isModal()) {
-                    if (showConfirm == null) {
-                        showConfirm = false;
-                    }
-                } else {
-                    windows.add(window);
-                }
-            }
-        }
-        if (showConfirm == null) {
-            JDialog dialog = (new JOptionPane(msg, type)).createDialog(parent, title);
-            dialog.setModal(false);
-            if (parent != null) {
-                Point location = summaryScrollPane.getLocationOnScreen();
-                int y = location.y + summaryScrollPane.getHeight() - dialog.getHeight();
-                dialog.setLocation(location.x, y < 0 ? 0 : y);
-            }
-            dialog.setVisible(true);
-        } else {
-            for (Window window : windows) {
-                window.setVisible(false);
-            }
-            if (showConfirm) {
-                result = JOptionPane.showConfirmDialog(parent, msg, title, type);
-            } else {
-                JOptionPane.showMessageDialog(parent, msg, title, type);
-            }
-            for (Window window : windows) {
-                window.setVisible(true);
-            }
-        }
+        int result = UI.showOptionDialog(showing(), summaryScrollPane, msg, title, type, confirm);
         resultsToForeground(alwaysOnTopFocus);
         return result;
     }
@@ -6169,7 +6123,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void showOptionalMsg(String msg, JMenuItem menuItem) {
         synchronized (optionDialogLock) {
-            showOptionDialog(getOptionalPanel(msg, menuItem), Constant.APP_TITLE, Constant.INFO_MSG, null);
+            showOptionDialog(UI.optionalPanel(msg, menuItem, textComponentPopupListener), Constant.APP_TITLE, Constant.INFO_MSG, null);
         }
     }
 
@@ -6179,7 +6133,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void showMsg(String msg, int msgType, Boolean confirm) {
         synchronized (optionDialogLock) {
-            showOptionDialog(getTextArea(msg), Constant.APP_TITLE, msgType, confirm);
+            showOptionDialog(UI.textArea(msg, textComponentPopupListener), Constant.APP_TITLE, msgType, confirm);
         }
     }
 
@@ -6250,13 +6204,13 @@ public class GUI extends JFrame implements GuiListener {
 
     private int showOptionalConfirm(String msg, JMenuItem menuItem) {
         synchronized (optionDialogLock) {
-            return showOptionDialog(getOptionalPanel(msg, menuItem), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
+            return showOptionDialog(UI.optionalPanel(msg, menuItem, textComponentPopupListener), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
         }
     }
 
     private int showConfirm(String msg) {
         synchronized (optionDialogLock) {
-            return showOptionDialog(getTextArea(msg), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
+            return showOptionDialog(UI.textArea(msg, textComponentPopupListener), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
         }
     }
 
@@ -7293,6 +7247,11 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public boolean isBanned(String id, String title, String year) {
+        return bannedTitles.contains(bannedTitle(id, title, year));
+    }
+
+    @Override
     public boolean unbanDownload(Long downloadID, String downloadName) {
         if (bannedDownloadIDs.contains(downloadID)) {
             if (isConfirmed(Str.str("banDownloadConfirm", downloadName))) {
@@ -7397,7 +7356,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void playlistError(String msg) {
         synchronized (optionDialogLock) {
-            showOptionDialog(getTextArea(msg), Constant.APP_TITLE, Constant.ERROR_MSG, null);
+            showOptionDialog(UI.textArea(msg, textComponentPopupListener), Constant.APP_TITLE, Constant.ERROR_MSG, null);
         }
     }
 
@@ -7691,7 +7650,25 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void updateMsg(String msg) {
         synchronized (optionDialogLock) {
-            showOptionDialog(getEditorPane(msg), Constant.APP_TITLE, Constant.INFO_MSG, null);
+            JEditorPane editorPane = UI.editorPane(msg, textComponentPopupListener);
+            UI.addHyperlinkListener(editorPane, new HyperlinkListener() {
+                @Override
+                public void hyperlinkUpdate(HyperlinkEvent evt) {
+                    try {
+                        UI.hyperlinkHandler(evt);
+                    } catch (Exception e) {
+                        if (Debug.DEBUG) {
+                            Debug.print(e);
+                        }
+                        Window alwaysOnTopFocus = resultsToBackground();
+                        JOptionPane.showMessageDialog(showing(), UI.textArea(ThrowableUtil.toString(e), textComponentPopupListener), Constant.APP_TITLE,
+                                Constant.ERROR_MSG);
+                        resultsToForeground(alwaysOnTopFocus);
+                        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+                    }
+                }
+            });
+            showOptionDialog(editorPane, Constant.APP_TITLE, Constant.INFO_MSG, null);
         }
     }
 
@@ -7880,6 +7857,7 @@ public class GUI extends JFrame implements GuiListener {
         authenticationMessageLabel.setText(Str.str("GUI.authenticationMessageLabel.text"));
         authenticationPasswordLabel.setText(Str.str("GUI.authenticationPasswordLabel.text"));
         authenticationUsernameLabel.setText(Str.str("GUI.authenticationUsernameLabel.text"));
+        banTitleMenu.setText(Str.str("GUI.banTitleMenu.text"));
         blacklistedLabel.setText(Str.str("GUI.blacklistedLabel.text"));
         blacklistedToWhitelistedButton.setToolTipText(Str.str("GUI.blacklistedToWhitelistedButton.toolTipText"));
         browserNotificationCheckBoxMenuItem.setText(Str.str("GUI.browserNotificationCheckBoxMenuItem.text"));
@@ -8054,6 +8032,7 @@ public class GUI extends JFrame implements GuiListener {
         safetyCheckBoxMenuItem.setText(Str.str("GUI.safetyCheckBoxMenuItem.text"));
         safetyCheckBoxMenuItem.setToolTipText(Str.str("GUI.safetyCheckBoxMenuItem.toolTipText"));
         safetyDialog.setTitle(Str.str("GUI.safetyDialog.title"));
+        searchBanTitleMenu.setText(Str.str("GUI.searchBanTitleMenu.text"));
         searchButton.setToolTipText(Str.str("GUI.searchButton.toolTipText"));
         searchMenu.setText(Str.str("GUI.searchMenu.text"));
         seasonLabel.setText(Str.str("GUI.seasonLabel.text"));
@@ -8229,6 +8208,7 @@ public class GUI extends JFrame implements GuiListener {
     JLabel authenticationPasswordLabel;
     JLabel authenticationUsernameLabel;
     JTextField authenticationUsernameTextField;
+    JMenu banTitleMenu;
     JLabel blacklistedLabel;
     JList blacklistedList;
     JScrollPane blacklistedScrollPane;
@@ -8479,6 +8459,7 @@ public class GUI extends JFrame implements GuiListener {
     JEditorPane safetyEditorPane;
     JLabel safetyLoadingLabel;
     JScrollPane safetyScrollPane;
+    JMenu searchBanTitleMenu;
     JButton searchButton;
     JMenu searchMenu;
     Separator searchMenuSeparator1;
@@ -8488,6 +8469,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator searchMenuSeparator5;
     Separator searchMenuSeparator6;
     Separator searchMenuSeparator7;
+    Separator searchMenuSeparator8;
     JTextField searchProgressTextField;
     JLabel seasonLabel;
     JMenuItem selectAllMenuItem;
@@ -8502,6 +8484,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator tablePopupMenuSeparator1;
     Separator tablePopupMenuSeparator2;
     Separator tablePopupMenuSeparator3;
+    Separator tablePopupMenuSeparator4;
     JMenuItem textComponentCopyMenuItem;
     JMenuItem textComponentCutMenuItem;
     JMenuItem textComponentDeleteMenuItem;

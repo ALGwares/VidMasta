@@ -210,10 +210,7 @@ public class RegularSearcher extends AbstractSearcher {
         boolean tvShow = isTVShow(titleMatch);
         Video video = new Video(VideoSearch.normalize(Regex.firstMatch(Regex.match(titleMatch, 23), 628)), Regex.match(titleMatch, 25), Regex.firstMatch(
                 yearAndType, 29), tvShow, !Regex.firstMatch(yearAndType, tvShow ? 591 : 592).isEmpty());
-        if (video.title.isEmpty() || video.year.isEmpty() || video.ID.isEmpty()) {
-            if (Debug.DEBUG) {
-                Debug.println("video ('" + video.title + "' '" + video.year + "' '" + video.ID + "') is invalid!");
-            }
+        if (video.ID.isEmpty() || video.title.isEmpty() || video.year.isEmpty() || guiListener.isBanned(video.ID, video.title, video.year)) {
             return;
         }
         video.rating = VideoSearch.rating(Regex.firstMatch(Regex.match(titleMatch, 30), 32));
