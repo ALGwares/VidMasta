@@ -54,7 +54,7 @@ public class Constant implements IOConstant {
     public static final String ZIP = ".zip";
     public static final String PROXY_VERSION = "proxyVersion" + TXT;
     public static final String PLAYLIST = "playlist2" + TXT;
-    public static final String BANNED_TITLES = "bannedTitles" + TXT, BANNED_DOWNLOAD_IDS = "bannedDownloadIDs" + TXT;
+    public static final String BANNED_DOWNLOAD_IDS = "bannedDownloadIDs" + TXT;
     public static final String PROXIES = "proxies" + TXT;
     public static final String ERROR_LOG = "errorLog" + TXT;
     public static final String NO_PROXY = "NO PROXY";

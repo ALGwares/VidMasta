@@ -154,7 +154,7 @@
                 </Property>
               </Properties>
               <AuxValues>
-                <AuxValue name="JavaCodeGenerator_AddingCodePre" type="java.lang.String" value="UI.addHyperlinkListener(faqEditorPane, new HyperlinkListener() {&#xd;&#xa;&#x9;public void hyperlinkUpdate(HyperlinkEvent evt) {&#xd;&#xa;try {&#xd;&#xa;    UI.hyperlinkHandler(evt);&#xd;&#xa;} catch (Exception e) {&#xd;&#xa;    showException(e);&#xd;&#xa;}&#xd;&#xa;&#x9;}&#xd;&#xa;});&#xd;&#xa;"/>
+                <AuxValue name="JavaCodeGenerator_AddingCodePre" type="java.lang.String" value="UI.addHyperlinkListener(faqEditorPane, new HyperlinkListener() {&#xd;&#xa;&#x9;public void hyperlinkUpdate(HyperlinkEvent evt) {&#xd;&#xa;&#x9;&#x9;faqEditorPaneHyperlinkUpdate(evt);&#xd;&#xa;&#x9;}&#xd;&#xa;});"/>
               </AuxValues>
             </Component>
           </SubComponents>
@@ -1203,18 +1203,6 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="findSubtitleMenuItemActionPerformed"/>
           </Events>
         </MenuItem>
-        <Component class="javax.swing.JPopupMenu$Separator" name="tablePopupMenuSeparator4">
-        </Component>
-        <Menu class="javax.swing.JMenu" name="banTitleMenu">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="i18n/Bundle.properties" key="GUI.banTitleMenu.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-            </Property>
-          </Properties>
-          <Events>
-            <EventHandler event="menuSelected" listener="javax.swing.event.MenuListener" parameters="javax.swing.event.MenuEvent" handler="banTitleMenuMenuSelected"/>
-          </Events>
-        </Menu>
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPopupMenu" name="popularPopupMenu">
@@ -3792,18 +3780,6 @@
             </Property>
           </Properties>
           <SubComponents>
-            <Menu class="javax.swing.JMenu" name="searchBanTitleMenu">
-              <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="i18n/Bundle.properties" key="GUI.searchBanTitleMenu.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                </Property>
-              </Properties>
-              <Events>
-                <EventHandler event="menuSelected" listener="javax.swing.event.MenuListener" parameters="javax.swing.event.MenuEvent" handler="searchBanTitleMenuMenuSelected"/>
-              </Events>
-            </Menu>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator1">
-            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="resultsPerSearchMenuItem">
               <Properties>
                 <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
@@ -3817,7 +3793,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="resultsPerSearchMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator2">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator1">
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="timeoutMenuItem">
               <Properties>
@@ -3832,7 +3808,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="timeoutMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator3">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator2">
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="proxyMenuItem">
               <Properties>
@@ -3847,7 +3823,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="proxyMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator4">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator3">
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="languageCountryMenuItem">
               <Properties>
@@ -3862,7 +3838,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="languageCountryMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator5">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator4">
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="feedCheckBoxMenuItem">
               <Properties>
@@ -3874,7 +3850,7 @@
                 </Property>
               </Properties>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator6">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator5">
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="browserNotificationCheckBoxMenuItem">
               <Properties>
@@ -3884,7 +3860,7 @@
                 </Property>
               </Properties>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator7">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator6">
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="emailWithDefaultAppCheckBoxMenuItem">
               <Properties>
@@ -3894,7 +3870,7 @@
                 </Property>
               </Properties>
             </MenuItem>
-            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator8">
+            <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator7">
             </MenuItem>
             <Menu class="javax.swing.JMenu" name="trailerPlayerMenu">
               <Properties>
