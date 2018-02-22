@@ -235,7 +235,8 @@ public class PopularSearcher extends AbstractSearcher {
 
         String sourceCode = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO);
         TitleParts titleParts = VideoSearch.getImdbTitleParts(sourceCode);
-        if (titleParts.title.isEmpty() || titleParts.year.isEmpty() || (isFeed && !isTitleYearValid(titleParts.year))) {
+        if (titleParts.title.isEmpty() || titleParts.year.isEmpty() || (isFeed && !isTitleYearValid(titleParts.year)) || guiListener.isBanned(titleID,
+                titleParts.title, titleParts.year)) {
             return null;
         }
 

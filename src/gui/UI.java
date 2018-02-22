@@ -1,6 +1,7 @@
 package gui;
 
 import debug.Debug;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
@@ -32,16 +33,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -57,10 +62,14 @@ import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultRowSorter;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
@@ -68,9 +77,13 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListModel;
 import javax.swing.SortOrder;
 import javax.swing.event.HyperlinkEvent;
@@ -85,6 +98,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTML.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import str.Str;
+import util.Connection;
 import util.Constant;
 import util.ThrowableUtil;
 
@@ -828,6 +842,131 @@ public class UI {
                 accelerators(menu.getItem(j), accelerators, excludedMenuItems);
             }
         }
+    }
+
+    public static JTextArea textArea(String msg, MouseListener listener) {
+        JTextArea textArea = new JTextArea();
+        textArea.setSize(300, 200);
+        JOptionPane tempOptionPane = new JOptionPane();
+        textArea.setForeground(tempOptionPane.getForeground());
+        textArea.setBackground(tempOptionPane.getBackground());
+        textArea.setFont(tempOptionPane.getFont());
+        textArea.setOpaque(false);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setText(msg);
+        textArea.addMouseListener(listener);
+        return textArea;
+    }
+
+    public static JEditorPane editorPane(String msg, MouseListener listener) {
+        JEditorPane editorPane = new JEditorPane("text/html", msg);
+        editorPane.setOpaque(false);
+        editorPane.setEditable(false);
+        editorPane.setMaximumSize(null);
+        editorPane.setMinimumSize(null);
+        editorPane.addMouseListener(listener);
+        return editorPane;
+    }
+
+    public static JPanel optionalPanel(String msg, final JMenuItem menuItem, MouseListener listener) {
+        JTextArea textArea = new JTextArea();
+        textArea.setSize(300, 200);
+        textArea.setOpaque(false);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setColumns(20);
+        textArea.setRows(5);
+        textArea.setText(msg);
+        textArea.addMouseListener(listener);
+
+        final JCheckBox checkBox = new JCheckBox();
+        checkBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
+        checkBox.setBorder(null);
+        checkBox.setFocusPainted(false);
+        checkBox.setMargin(new Insets(2, 0, 2, 2));
+        checkBox.setOpaque(false);
+        checkBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent evt) {
+                menuItem.setSelected(!checkBox.isSelected());
+            }
+        });
+
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        GroupLayout layout = new GroupLayout(panel);
+        panel.setLayout(layout);
+        layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
+                layout.createParallelGroup(Alignment.LEADING, false).addComponent(checkBox).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 354,
+                        GroupLayout.PREFERRED_SIZE)).addContainerGap()));
+        layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING, layout.createSequentialGroup().addContainerGap(
+                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE).addPreferredGap(
+                        ComponentPlacement.RELATED).addComponent(checkBox).addContainerGap()));
+
+        JOptionPane tempOptionPane = new JOptionPane();
+        Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
+        Font font = tempOptionPane.getFont();
+        for (JComponent component : new JComponent[]{textArea, checkBox, panel}) {
+            component.setForeground(fgColor);
+            component.setBackground(bgColor);
+            component.setFont(font);
+        }
+
+        return panel;
+    }
+
+    public static void hyperlinkHandler(HyperlinkEvent evt) throws IOException {
+        if (evt.getEventType().equals(EventType.ACTIVATED)) {
+            String url = evt.getURL().toString();
+            if (url.startsWith("mailto:")) {
+                Connection.email(url);
+            } else {
+                Connection.browse(url);
+            }
+        }
+    }
+
+    public static int showOptionDialog(Component parent, Component parentChild, Object msg, String title, int type, Boolean confirm) {
+        int result = -1;
+        Collection<Window> windows = new ArrayList<Window>(4);
+        Boolean showConfirm = confirm;
+        for (Window window : Window.getWindows()) {
+            if (window.isVisible() && window instanceof Dialog) {
+                if (((Dialog) window).isModal()) {
+                    if (showConfirm == null) {
+                        showConfirm = false;
+                    }
+                } else {
+                    windows.add(window);
+                }
+            }
+        }
+        if (showConfirm == null) {
+            JDialog dialog = (new JOptionPane(msg, type)).createDialog(parent, title);
+            dialog.setModal(false);
+            if (parent != null) {
+                Point location = parentChild.getLocationOnScreen();
+                int y = location.y + parentChild.getHeight() - dialog.getHeight();
+                dialog.setLocation(location.x, y < 0 ? 0 : y);
+            }
+            dialog.setVisible(true);
+        } else {
+            for (Window window : windows) {
+                window.setVisible(false);
+            }
+            if (showConfirm) {
+                result = JOptionPane.showConfirmDialog(parent, msg, title, type);
+            } else {
+                JOptionPane.showMessageDialog(parent, msg, title, type);
+            }
+            for (Window window : windows) {
+                window.setVisible(true);
+            }
+        }
+        return result;
     }
 
     private UI() {
