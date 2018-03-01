@@ -34,8 +34,8 @@ class Updater extends Worker {
     protected void doWork() {
         guiListener.updateStarted();
         if (silent) {
-            Str.update(false, guiListener);
-            (new AppUpdater()).update(guiListener);
+            //Str.update(false, guiListener);
+            //(new AppUpdater()).update(guiListener);
             try {
                 updateJavaDeployment();
             } catch (Exception e) {

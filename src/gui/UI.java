@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
-import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -86,6 +85,8 @@ import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListModel;
 import javax.swing.SortOrder;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkEvent.EventType;
 import javax.swing.event.HyperlinkListener;
@@ -471,14 +472,14 @@ public class UI {
                 }
             }
         }
-        setVisible(frame);
+        show((Window) frame);
         deiconify(frame);
     }
 
-    public static void setVisible(final Window window) {
+    public static void show(final Window window) {
         if (window.isAlwaysOnTop()) {
             for (final Window currWindow : Window.getWindows()) {
-                if (currWindow.isVisible() && currWindow instanceof Dialog && ((Dialog) currWindow).getModalityType() != ModalityType.MODELESS) {
+                if (currWindow.isVisible() && currWindow instanceof Dialog && ((Dialog) currWindow).isModal()) {
                     window.setAlwaysOnTop(false);
                     currWindow.addComponentListener(new ComponentAdapter() {
                         @Override
@@ -491,7 +492,62 @@ public class UI {
                 }
             }
         }
+        show2(window);
+    }
+
+    public static void show2(final Window window) {
+        if (window instanceof Dialog && ((Dialog) window).isModal()) {
+            final Iterable<Window> windows = hideNonModalDialogs();
+            window.addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentHidden(ComponentEvent evt) {
+                    window.removeComponentListener(this);
+                    for (Window currWindow : windows) {
+                        currWindow.setVisible(true);
+                    }
+                }
+            });
+        }
         window.setVisible(true);
+    }
+
+    public static void hide(Component component) {
+        component.setVisible(false);
+        component.dispatchEvent(new ComponentEvent(component, ComponentEvent.COMPONENT_HIDDEN));
+    }
+
+    public static void nonModalDialogsToBackground(final JComponent futureModalDialogDecendant) {
+        final Iterable<Window> windows = hideNonModalDialogs();
+        futureModalDialogDecendant.addAncestorListener(new AncestorListener() {
+            @Override
+            public void ancestorAdded(AncestorEvent evt) {
+            }
+
+            @Override
+            public void ancestorRemoved(AncestorEvent evt) {
+                futureModalDialogDecendant.removeAncestorListener(this);
+                for (Window window : windows) {
+                    window.setVisible(true);
+                }
+            }
+
+            @Override
+            public void ancestorMoved(AncestorEvent evt) {
+            }
+        });
+    }
+
+    public static Iterable<Window> hideNonModalDialogs() {
+        Collection<Window> windows = new ArrayList<Window>(4);
+        for (Window window : Window.getWindows()) {
+            if (window.isVisible() && window instanceof Dialog && !((Dialog) window).isModal()) {
+                windows.add(window);
+            }
+        }
+        for (Window window : windows) {
+            window.setVisible(false);
+        }
+        return windows;
     }
 
     public static void deiconify(Frame frame) {

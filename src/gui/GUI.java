@@ -9,7 +9,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dialog.ModalExclusionType;
-import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
@@ -1050,7 +1049,7 @@ public class GUI extends JFrame implements GuiListener {
         safetyDialog.setTitle(bundle.getString("GUI.safetyDialog.title")); // NOI18N
         safetyDialog.setAlwaysOnTop(true);
         safetyDialog.setIconImage(null);
-        safetyDialog.setModalityType(ModalityType.APPLICATION_MODAL);
+        safetyDialog.setModal(true);
 
         yesButton.setText(bundle.getString("GUI.yesButton.text")); // NOI18N
         yesButton.setToolTipText(bundle.getString("GUI.yesButton.toolTipText")); // NOI18N
@@ -2369,7 +2368,7 @@ public class GUI extends JFrame implements GuiListener {
         );
 
         commentsDialog.setTitle(bundle.getString("GUI.commentsDialog.title")); // NOI18N
-        commentsDialog.setModalityType(ModalityType.APPLICATION_MODAL);
+        commentsDialog.setModal(true);
 
         commentsTextPane.setEditable(false);
         commentsTextPane.setFont(new Font("Verdana", 0, 12)); // NOI18N
@@ -4247,13 +4246,13 @@ public class GUI extends JFrame implements GuiListener {
     void faqMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_faqMenuItemActionPerformed
         faqEditorPane.setSelectionStart(0);
         faqEditorPane.setSelectionEnd(0);
-        UI.setVisible(faqFrame);
+        UI.show((Window) faqFrame);
     }//GEN-LAST:event_faqMenuItemActionPerformed
 
     void aboutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
         aboutEditorPane.setSelectionStart(0);
         aboutEditorPane.setSelectionEnd(0);
-        UI.setVisible(aboutDialog);
+        UI.show(aboutDialog);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
     void exitMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
@@ -4273,10 +4272,14 @@ public class GUI extends JFrame implements GuiListener {
                 Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR), defaultCursor = Cursor.getDefaultCursor();
                 rootPane.setCursor(waitCursor);
                 resultsSyncTable.table.setCursor(waitCursor);
+                Iterable<Window> windows = UI.hideNonModalDialogs();
                 try {
                     resultsSyncTable.table.print(PrintMode.FIT_WIDTH);
                 } catch (Exception e) {
                     showException(e);
+                }
+                for (Window window : windows) {
+                    window.setVisible(true);
                 }
                 rootPane.setCursor(defaultCursor);
                 resultsSyncTable.table.setCursor(defaultCursor);
@@ -4352,7 +4355,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void timeoutMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_timeoutMenuItemActionPerformed
         resultsToBackground2();
-        UI.setVisible(timeoutDialog);
+        UI.show(timeoutDialog);
     }//GEN-LAST:event_timeoutMenuItemActionPerformed
 
     void tvSubmitButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubmitButtonActionPerformed
@@ -4374,7 +4377,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void resultsPerSearchMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_resultsPerSearchMenuItemActionPerformed
         resultsToBackground2();
-        UI.setVisible(resultsPerSearchDialog);
+        UI.show(resultsPerSearchDialog);
     }//GEN-LAST:event_resultsPerSearchMenuItemActionPerformed
 
     void genreListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_genreListValueChanged
@@ -4402,7 +4405,7 @@ public class GUI extends JFrame implements GuiListener {
     void downloadSizeMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadSizeMenuItemActionPerformed
         resultsToBackground2();
         updateDownloadSizeComboBoxes();
-        UI.setVisible(downloadSizeDialog);
+        UI.show(downloadSizeDialog);
     }//GEN-LAST:event_downloadSizeMenuItemActionPerformed
 
     void maxDownloadSizeComboBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_maxDownloadSizeComboBoxActionPerformed
@@ -4419,7 +4422,7 @@ public class GUI extends JFrame implements GuiListener {
     void fileExtensionsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_fileExtensionsMenuItemActionPerformed
         resultsToBackground2();
         customExtensionTextField.requestFocusInWindow();
-        UI.setVisible(extensionsDialog);
+        UI.show(extensionsDialog);
     }//GEN-LAST:event_fileExtensionsMenuItemActionPerformed
 
     void whitelistedToBlacklistedButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_whitelistedToBlacklistedButtonActionPerformed
@@ -4480,7 +4483,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void editProfilesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_editProfilesMenuItemActionPerformed
         resultsToBackground2();
-        UI.setVisible(profileDialog);
+        UI.show(profileDialog);
     }//GEN-LAST:event_editProfilesMenuItemActionPerformed
 
     void resultsTableValueChanged(ListSelectionEvent evt) {
@@ -4540,7 +4543,7 @@ public class GUI extends JFrame implements GuiListener {
             commentsTextPane.setText(workerListener.getSafetyComments());
             commentsTextPane.setSelectionStart(0);
             commentsTextPane.setSelectionEnd(0);
-            commentsDialog.setVisible(true);
+            UI.show2(commentsDialog);
             resultsToForeground(alwaysOnTopFocus);
         }
     }//GEN-LAST:event_safetyEditorPaneHyperlinkUpdate
@@ -4618,7 +4621,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void languageCountryMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_languageCountryMenuItemActionPerformed
         resultsToBackground2();
-        UI.setVisible(languageCountryDialog);
+        UI.show(languageCountryDialog);
     }//GEN-LAST:event_languageCountryMenuItemActionPerformed
 
     void languageListValueChanged(ListSelectionEvent evt) {//GEN-FIRST:event_languageListValueChanged
@@ -4838,7 +4841,7 @@ public class GUI extends JFrame implements GuiListener {
 
     void proxyMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyMenuItemActionPerformed
         resultsToBackground2();
-        UI.setVisible(proxyDialog);
+        UI.show(proxyDialog);
     }//GEN-LAST:event_proxyMenuItemActionPerformed
 
     void proxyOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyOKButtonActionPerformed
@@ -4855,9 +4858,9 @@ public class GUI extends JFrame implements GuiListener {
 
     void proxyAddButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyAddButtonActionPerformed
         enableProxyButtons(false);
-        proxyDialog.setVisible(false);
+        UI.hide(proxyDialog);
         addProxiesTextArea.setText("");
-        UI.setVisible(addProxiesDialog);
+        UI.show(addProxiesDialog);
     }//GEN-LAST:event_proxyAddButtonActionPerformed
 
     void addProxiesCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_addProxiesCancelButtonActionPerformed
@@ -4882,7 +4885,7 @@ public class GUI extends JFrame implements GuiListener {
             return numProxies;
         }
 
-        proxyDialog.setVisible(false);
+        UI.hide(proxyDialog);
         return numProxies;
     }
 
@@ -4897,19 +4900,19 @@ public class GUI extends JFrame implements GuiListener {
             removeProxiesListModel.addElement(proxyComboBox.getItemAt(i));
         }
 
-        UI.setVisible(removeProxiesDialog);
+        UI.show(removeProxiesDialog);
     }//GEN-LAST:event_proxyRemoveButtonActionPerformed
 
     private void restoreProxyDialog(boolean addButtonPressed) {
         if (addButtonPressed) {
-            addProxiesDialog.setVisible(false);
+            UI.hide(addProxiesDialog);
             addProxiesAddButton.setEnabled(true);
         } else {
-            removeProxiesDialog.setVisible(false);
+            UI.hide(removeProxiesDialog);
             removeProxiesRemoveButton.setEnabled(true);
         }
         enableProxyButtons(true);
-        UI.setVisible(proxyDialog);
+        UI.show(proxyDialog);
     }
 
     void removeProxiesRemoveButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_removeProxiesRemoveButtonActionPerformed
@@ -5030,13 +5033,14 @@ public class GUI extends JFrame implements GuiListener {
 
     void proxyImportButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyImportButtonActionPerformed
         enableProxyButtons(false);
-        proxyDialog.setVisible(false);
+        UI.hide(proxyDialog);
 
         proxyFileChooser.setFileFilter(proxyListFileFilter);
         proxyFileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
         if (!proxyImportFile.isEmpty()) {
             proxyFileChooser.setSelectedFile(new File(proxyImportFile));
         }
+        UI.nonModalDialogsToBackground(proxyFileChooser);
         if (proxyFileChooser.showOpenDialog(showing()) == JFileChooser.APPROVE_OPTION) {
             try {
                 File proxyFile = proxyFileChooser.getSelectedFile();
@@ -5048,7 +5052,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         enableProxyButtons(true);
-        UI.setVisible(proxyDialog);
+        UI.show(proxyDialog);
     }//GEN-LAST:event_proxyImportButtonActionPerformed
 
     void proxyExportButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_proxyExportButtonActionPerformed
@@ -5060,6 +5064,7 @@ public class GUI extends JFrame implements GuiListener {
         proxyFileChooser.setFileFilter(proxyListFileFilter);
         proxyFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         proxyFileChooser.setSelectedFile(new File(proxyExportFile.isEmpty() ? Constant.PROXIES : proxyExportFile));
+        UI.nonModalDialogsToBackground(proxyFileChooser);
         if (proxyFileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION) {
             try {
                 Collection<String> proxies = new ArrayList<String>(numProxies - 1);
@@ -5083,7 +5088,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         enableProxyButtons(true);
-        UI.setVisible(proxyDialog);
+        UI.show(proxyDialog);
     }//GEN-LAST:event_proxyExportButtonActionPerformed
 
     void msgOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_msgOKButtonActionPerformed
@@ -5234,10 +5239,10 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_profileMenuMenuSelected
 
     void profileRenameButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileRenameButtonActionPerformed
-        profileDialog.setVisible(false);
+        UI.hide(profileDialog);
         profileNameChangeTextField.setText("");
         profileNameChangeTextField.requestFocusInWindow();
-        UI.setVisible(profileNameChangeDialog);
+        UI.show(profileNameChangeDialog);
     }//GEN-LAST:event_profileRenameButtonActionPerformed
 
     void profileNameChangeOKButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileNameChangeOKButtonActionPerformed
@@ -5257,18 +5262,16 @@ public class GUI extends JFrame implements GuiListener {
         profileComboBox.setSelectedIndex(profile);
         preferences.put("GUI.profile" + profile + "MenuItem.text", profileName);
 
-        profileNameChangeDialog.setVisible(false);
-        UI.setVisible(profileDialog);
+        profileNameChangeDialogWindowClosing(null);
     }//GEN-LAST:event_profileNameChangeOKButtonActionPerformed
 
     void profileNameChangeCancelButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileNameChangeCancelButtonActionPerformed
-        profileNameChangeDialog.setVisible(false);
-        UI.setVisible(profileDialog);
+        profileNameChangeDialogWindowClosing(null);
     }//GEN-LAST:event_profileNameChangeCancelButtonActionPerformed
 
     void profileNameChangeDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_profileNameChangeDialogWindowClosing
-        profileNameChangeDialog.setVisible(false);
-        UI.setVisible(profileDialog);
+        UI.hide(profileNameChangeDialog);
+        UI.show(profileDialog);
     }//GEN-LAST:event_profileNameChangeDialogWindowClosing
 
     void profileClearButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_profileClearButtonActionPerformed
@@ -5288,7 +5291,7 @@ public class GUI extends JFrame implements GuiListener {
         if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK) {
             msgDialogWindowClosing(null);
         } else {
-            UI.setVisible(msgDialog);
+            UI.show(msgDialog);
         }
     }//GEN-LAST:event_connectionIssueButtonActionPerformed
 
@@ -5324,10 +5327,10 @@ public class GUI extends JFrame implements GuiListener {
                 subtitleEpisodes.remove(-1);
             }
             tvSubtitleDownloadMatch1Button.requestFocusInWindow();
-            UI.setVisible(tvSubtitleDialog);
+            UI.show(tvSubtitleDialog);
         } else {
             movieSubtitleDownloadMatch1Button.requestFocusInWindow();
-            UI.setVisible(movieSubtitleDialog);
+            UI.show(movieSubtitleDialog);
         }
     }
 
@@ -5343,7 +5346,7 @@ public class GUI extends JFrame implements GuiListener {
             portRandomizeCheckBox.setSelected(false);
         }
         viewedPortBefore = true;
-        UI.setVisible(portDialog);
+        UI.show(portDialog);
     }//GEN-LAST:event_portMenuItemActionPerformed
 
     private void portOkButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_portOkButtonActionPerformed
@@ -5653,7 +5656,7 @@ public class GUI extends JFrame implements GuiListener {
             if (isConfirmed(Str.str("invalidPortPart1", port) + ' ' + Str.str("invalidPortPart2") + ' ' + Str.str("invalidPortPart3") + ' ' + Str.str(
                     "invalidPortPart4"))) {
                 resultsToBackground2();
-                UI.setVisible(portDialog);
+                UI.show(portDialog);
             } else {
                 portTextField.setText(null);
                 portRandomizeCheckBox.setSelected(true);
@@ -5869,6 +5872,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private void playlistTableMouseClicked(MouseEvent evt) {//GEN-FIRST:event_playlistTableMouseClicked
         if (evt.getClickCount() == 2) {
+            playlistPlayButtonMousePressed(evt);
             playlistPlayButtonActionPerformed(null);
         }
     }//GEN-LAST:event_playlistTableMouseClicked
@@ -6045,7 +6049,7 @@ public class GUI extends JFrame implements GuiListener {
                     }
                 });
                 if ((unbannedTitle && (i == 1 || (i != 0 && (i - 1) % j == 0))) || (!unbannedTitle && i % j == 0)) {
-                    menu.add(currMenu = new JMenu(Str.str("unban")));
+                    menu.add(currMenu = new JMenu(" "));
                 }
                 currMenu.add(banTitleButton);
                 if (i == 0 && unbannedTitle && numTitles > 1) {
@@ -6727,7 +6731,7 @@ public class GUI extends JFrame implements GuiListener {
                     timedMsgLabel.setText(msg);
                     timedMsgDialog.pack();
                     timedMsgDialog.setLocationRelativeTo(GUI.this);
-                    UI.setVisible(timedMsgDialog);
+                    UI.show(timedMsgDialog);
                     try {
                         Thread.sleep(Regex.split(msg, " ").length * 400L);
                         timedMsgDialog.setVisible(false);
@@ -6784,7 +6788,7 @@ public class GUI extends JFrame implements GuiListener {
     public void showSafetyDialog() {
         Window alwaysOnTopFocus = resultsToBackground();
         noButton.requestFocusInWindow();
-        UI.setVisible(safetyDialog);
+        UI.show(safetyDialog);
         resultsToForeground(alwaysOnTopFocus);
     }
 
@@ -6975,6 +6979,7 @@ public class GUI extends JFrame implements GuiListener {
 
     private boolean save(JFileChooser fileChooser) {
         Window alwaysOnTopFocus = resultsToBackground();
+        UI.nonModalDialogsToBackground(fileChooser);
         boolean result = (fileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION);
         resultsToForeground(alwaysOnTopFocus);
         return result;
@@ -6998,11 +7003,12 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public boolean tvChoices(String season, String episode) {
-        resultsToBackground2();
+        Window alwaysOnTopFocus = resultsToBackground();
         tvSeasonComboBox.setSelectedItem(season);
         tvEpisodeComboBox.setSelectedItem(episode);
         cancelTVSelection = true;
-        tvDialog.setVisible(true);
+        UI.show2(tvDialog);
+        resultsToForeground(alwaysOnTopFocus);
         return cancelTVSelection;
     }
 
@@ -7660,10 +7666,7 @@ public class GUI extends JFrame implements GuiListener {
                         if (Debug.DEBUG) {
                             Debug.print(e);
                         }
-                        Window alwaysOnTopFocus = resultsToBackground();
-                        JOptionPane.showMessageDialog(showing(), UI.textArea(ThrowableUtil.toString(e), textComponentPopupListener), Constant.APP_TITLE,
-                                Constant.ERROR_MSG);
-                        resultsToForeground(alwaysOnTopFocus);
+                        showMsg(ThrowableUtil.toString(e), Constant.ERROR_MSG);
                         IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
                     }
                 }
@@ -7759,11 +7762,12 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void showLicenseActivation() {
         int count = preferences.getInt(Constant.APP_TITLE, 0);
+        Window alwaysOnTopFocus = resultsToBackground();
         activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
         activationDialog.pack();
         activationDialog.setLocationRelativeTo(showing());
-        resultsToBackground2();
-        UI.setVisible(activationDialog);
+        UI.show(activationDialog);
+        resultsToForeground(alwaysOnTopFocus);
         preferences.putInt(Constant.APP_TITLE, ++count);
     }
 

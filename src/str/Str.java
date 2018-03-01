@@ -38,7 +38,7 @@ public class Str extends I18nStr {
     }
 
     public static void waitForUpdate() {
-        strUpdateListener.waitForUpdate();
+        //strUpdateListener.waitForUpdate();
     }
 
     public static long hashCode(String str) {
