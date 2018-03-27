@@ -289,8 +289,15 @@ public class TorrentFinder extends Worker {
                         titleName = name;
                     }
                 } else if (anyEpisode) {
-                    if (isBoxSet && !isRightSeason(titleName)) {
-                        continue;
+                    if (isBoxSet) {
+                        if (!isRightSeason(titleName)) {
+                            continue;
+                        }
+                    } else {
+                        TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);
+                        if (!titleParts.season.isEmpty() && !video.season.equals(titleParts.season)) {
+                            continue;
+                        }
                     }
                 } else {
                     TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);

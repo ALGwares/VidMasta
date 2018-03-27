@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.03.27   | VidMasta 24.8
+
+CHANGE: CORE | Improved accuracy of TV show season download link searches
+
+
+
+
 2018.03.01   | VidMasta 24.7
 
 CHANGE: UI   | Improved ability to block being able to re-search specific titles

@@ -395,7 +395,9 @@ public class VideoFinder extends Worker {
                 TorrentFinder.saveOrdering(torrent.ID, Constant.ANY, video.episode, orderByLeechers);
             }
 
-            if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
+            if (!guiListener.unbanDownload(Str.hashCode(torrent.MAGNET_LINK), torrent.name())) {
+                addVideoToPlaylist();
+            } else if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                 saveTorrentHelper(torrent);
             } else if (torrent.ID.isEmpty()) {
                 if (guiListener.canProceedWithUnsafeDownload(torrent.name())) {
@@ -430,11 +432,6 @@ public class VideoFinder extends Worker {
     private void saveTorrentHelper(Torrent torrent) throws Exception {
         if (strExportListener != null) {
             export = torrent.MAGNET_LINK;
-            return;
-        }
-
-        if (!guiListener.unbanDownload(Str.hashCode(torrent.MAGNET_LINK), torrent.name())) {
-            addVideoToPlaylist();
             return;
         }
 
