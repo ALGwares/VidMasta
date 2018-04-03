@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.04.03   | VidMasta 24.9
+
+CHANGE: CORE | Fixed bug in New HQ Movies and New HQ TV Shows searches in which HQ (e.g. DVD or HD) aspect is ignored
+CHANGE: CORE | Updated list of untrusty IPs that are automatically filtered
+
+
+
+
 2018.03.27   | VidMasta 24.8
 
 CHANGE: CORE | Improved accuracy of TV show season download link searches

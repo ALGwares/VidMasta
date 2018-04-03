@@ -176,12 +176,16 @@ public class PopularSearcher extends AbstractSearcher {
     protected void addVideo(String titleMatch) {
         String video = Regex.match(titleMatch, 123);
         String titleName = Regex.match(video, 125);
-        if (!titleName.isEmpty() && (!isFeed || isTitleValid(titleName, video))) {
+        if (!titleName.isEmpty() && (!isFeed || isTitleValid(video))) {
             addCurrVideo(titleName);
         }
     }
 
     private void addCurrVideo(String titleName) {
+        if (isFeed && Regex.firstMatch(Regex.replaceAll(titleName, 77), 569).isEmpty()) {
+            return; // Wrong format
+        }
+
         TitleParts titleParts = VideoSearch.getTitleParts(titleName, isTVShow);
         Video video = new Video(titleParts.title.toLowerCase(Locale.ENGLISH) + titleParts.year, titleParts.title, titleParts.year, isTVShow, false);
         if (allBufferVideos.add(video.ID)) {
@@ -203,7 +207,7 @@ public class PopularSearcher extends AbstractSearcher {
             currSourceCode = Connection.getSourceCode(Str.get(isTVShow ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO);
             String[] results = Regex.split(Regex.replaceAll(currSourceCode, Pattern.quote(Constant.NEWLINE), Constant.STD_NEWLINE), Constant.STD_NEWLINE);
             for (int i = 0; i < results.length; i += 5) {
-                if (!isFeed || isTitleValid(results[i + 2], results[i + 3], results[i + 1])) {
+                if (!isFeed || isTitleValid(results[i + 3], results[i + 1])) {
                     addCurrVideo(results[i + 2].trim());
                 }
             }
@@ -264,9 +268,9 @@ public class PopularSearcher extends AbstractSearcher {
         return isFeed;
     }
 
-    private static boolean isTitleValid(String titleName, String video) {
-        if (Regex.firstMatch(Regex.replaceAll(titleName, 77), 569).isEmpty() || (Boolean.parseBoolean(Str.get(565)) && Regex.match(video, 74).isEmpty())) {
-            return false; // Wrong format or unsafe source
+    private static boolean isTitleValid(String video) {
+        if (Boolean.parseBoolean(Str.get(565)) && Regex.match(video, 74).isEmpty()) {
+            return false; // Unsafe source
         }
         String size = Regex.match(video, 64);
         if (!size.isEmpty() && (int) Math.ceil(Double.parseDouble(size)) > Integer.parseInt(Str.get(567))) {
@@ -279,9 +283,8 @@ public class PopularSearcher extends AbstractSearcher {
         return numSeeders.isEmpty() || Integer.parseInt(numSeeders) >= Integer.parseInt(Str.get(566)); // Seeders too few if false
     }
 
-    private static boolean isTitleValid(String titleName, String isSafe, String year) {
-        return !Regex.firstMatch(Regex.replaceAll(titleName.trim(), 77), 569).isEmpty() && (!Boolean.parseBoolean(Str.get(565))
-                || Integer.parseInt(isSafe.trim()) == 1) && isTitleYearValid(year.trim()); // Wrong format or unsafe source or year too old if false
+    private static boolean isTitleValid(String isSafe, String year) {
+        return (!Boolean.parseBoolean(Str.get(565)) || Integer.parseInt(isSafe.trim()) == 1) && isTitleYearValid(year.trim()); // Unsafe source or year too old if false
     }
 
     private static boolean isTitleYearValid(String year) {

@@ -1,4 +1,4 @@
-291
+292
 http://www.bing.com/search?q=
 https://www.google.com/search?q=
 http://search.yahoo.com/search?q=
@@ -725,7 +725,7 @@ https://thehiddenbay.ws
 https://thehiddenbay.ws
 https://thehiddenbay.ws/search/
 https://thehiddenbay.ws
-https://thehiddenbay.ws:::https://depiratenbaai.nl:::https://pirateproxy.win
+https://thehiddenbay.ws:::https://pirateproxy.sh:::https://pirateproxy.net
 https://thehiddenbay.ws
 https://thehiddenbay.ws
 https://thehiddenbay.ws/browse/
