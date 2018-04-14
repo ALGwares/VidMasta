@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.04.13   | VidMasta 25.0
+
+CHANGE: CORE | Added support for Java 9 and higher
+
+
+
+
 2018.04.03   | VidMasta 24.9
 
 CHANGE: CORE | Fixed bug in New HQ Movies and New HQ TV Shows searches in which HQ (e.g. DVD or HD) aspect is ignored

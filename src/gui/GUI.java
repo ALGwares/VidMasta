@@ -8122,7 +8122,7 @@ public class GUI extends JFrame implements GuiListener {
 
         synchronized (resultsSyncTable.lock) {
             @SuppressWarnings("unchecked")
-            List<List<Object>> rows = resultsSyncTable.tableModel.getDataVector();
+            Collection<? extends List> rows = resultsSyncTable.tableModel.getDataVector();
             if (!rows.isEmpty()) {
                 try {
                     for (List<Object> row : rows) {
@@ -8140,7 +8140,7 @@ public class GUI extends JFrame implements GuiListener {
 
         synchronized (playlistSyncTable.lock) {
             @SuppressWarnings("unchecked")
-            List<List<Object>> rows = playlistSyncTable.tableModel.getDataVector();
+            Collection<? extends List> rows = playlistSyncTable.tableModel.getDataVector();
             if (!rows.isEmpty()) {
                 try {
                     for (List<Object> row : rows) {

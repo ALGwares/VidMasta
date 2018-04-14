@@ -42,7 +42,7 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.codec.binary.Base64;
 
 public class IO {
 
@@ -70,7 +70,7 @@ public class IO {
     public static List<?> readListFromBase64(String list) {
         ObjectInputStream ois = null;
         try {
-            return (List<?>) (ois = new ObjectInputStream(new ByteArrayInputStream(DatatypeConverter.parseBase64Binary(list)))).readObject();
+            return (List<?>) (ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(list)))).readObject();
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -151,7 +151,7 @@ public class IO {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             (oos = new ObjectOutputStream(baos)).writeObject(list);
-            return DatatypeConverter.printBase64Binary(baos.toByteArray());
+            return Base64.encodeBase64String(baos.toByteArray());
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
