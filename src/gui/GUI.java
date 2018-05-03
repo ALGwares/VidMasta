@@ -62,6 +62,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -201,7 +203,8 @@ public class GUI extends JFrame implements GuiListener {
     private AbstractPopupListener textComponentPopupListener;
     private final ActionListener htmlCopyListener = new HTMLCopyListener(), tableCopyListener = new TableCopyListener(),
             playlistTableCopyListener = new PlaylistTableCopyListener();
-    private final Object msgDialogLock = new Object(), optionDialogLock = new Object(), playlistRestorationLock = new Object();
+    private final Object msgDialogLock = new Object(), optionDialogLock = new Object();
+    private final Lock playlistRestorationLock = new ReentrantLock();
     private final Settings settings = new Settings();
     private final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
     final BlockingQueue<String> posterImagePaths = new LinkedBlockingQueue<String>();
@@ -3443,6 +3446,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile0MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.CTRL_MASK));
         profile0MenuItem.setText(bundle.getString("GUI.profile0MenuItem.text")); // NOI18N
+        profile0MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, InputEvent.CTRL_MASK), "doClick");
         profile0MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile0MenuItemActionPerformed(evt);
@@ -3452,6 +3456,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile1MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_MASK));
         profile1MenuItem.setText(bundle.getString("GUI.profile1MenuItem.text")); // NOI18N
+        profile1MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD1, InputEvent.CTRL_MASK), "doClick");
         profile1MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile1MenuItemActionPerformed(evt);
@@ -3461,6 +3466,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile2MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_MASK));
         profile2MenuItem.setText(bundle.getString("GUI.profile2MenuItem.text")); // NOI18N
+        profile2MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, InputEvent.CTRL_MASK), "doClick");
         profile2MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile2MenuItemActionPerformed(evt);
@@ -3470,6 +3476,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile3MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_MASK));
         profile3MenuItem.setText(bundle.getString("GUI.profile3MenuItem.text")); // NOI18N
+        profile3MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD3, InputEvent.CTRL_MASK), "doClick");
         profile3MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile3MenuItemActionPerformed(evt);
@@ -3479,6 +3486,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile4MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.CTRL_MASK));
         profile4MenuItem.setText(bundle.getString("GUI.profile4MenuItem.text")); // NOI18N
+        profile4MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, InputEvent.CTRL_MASK), "doClick");
         profile4MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile4MenuItemActionPerformed(evt);
@@ -3488,6 +3496,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile5MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5, InputEvent.CTRL_MASK));
         profile5MenuItem.setText(bundle.getString("GUI.profile5MenuItem.text")); // NOI18N
+        profile5MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, InputEvent.CTRL_MASK), "doClick");
         profile5MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile5MenuItemActionPerformed(evt);
@@ -3497,6 +3506,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile6MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_6, InputEvent.CTRL_MASK));
         profile6MenuItem.setText(bundle.getString("GUI.profile6MenuItem.text")); // NOI18N
+        profile6MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, InputEvent.CTRL_MASK), "doClick");
         profile6MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile6MenuItemActionPerformed(evt);
@@ -3506,6 +3516,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile7MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_7, InputEvent.CTRL_MASK));
         profile7MenuItem.setText(bundle.getString("GUI.profile7MenuItem.text")); // NOI18N
+        profile7MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, InputEvent.CTRL_MASK), "doClick");
         profile7MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile7MenuItemActionPerformed(evt);
@@ -3515,6 +3526,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile8MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_8, InputEvent.CTRL_MASK));
         profile8MenuItem.setText(bundle.getString("GUI.profile8MenuItem.text")); // NOI18N
+        profile8MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, InputEvent.CTRL_MASK), "doClick");
         profile8MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile8MenuItemActionPerformed(evt);
@@ -3524,6 +3536,7 @@ public class GUI extends JFrame implements GuiListener {
 
         profile9MenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_9, InputEvent.CTRL_MASK));
         profile9MenuItem.setText(bundle.getString("GUI.profile9MenuItem.text")); // NOI18N
+        profile9MenuItem.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, InputEvent.CTRL_MASK), "doClick");
         profile9MenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 profile9MenuItemActionPerformed(evt);
@@ -3532,7 +3545,7 @@ public class GUI extends JFrame implements GuiListener {
         profileMenu.add(profile9MenuItem);
         profileMenu.add(profileMenuSeparator1);
 
-        editProfilesMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.CTRL_MASK));
+        editProfilesMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
         editProfilesMenuItem.setText(bundle.getString("GUI.editProfilesMenuItem.text")); // NOI18N
         editProfilesMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3544,7 +3557,7 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.add(profileMenu);
         fileMenu.add(fileMenuSeparator1);
 
-        printMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK | InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
+        printMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK));
         printMenuItem.setText(bundle.getString("GUI.printMenuItem.text")); // NOI18N
         printMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3828,7 +3841,7 @@ public class GUI extends JFrame implements GuiListener {
 
         downloadQualityMenu.setText(bundle.getString("GUI.downloadQualityMenu.text")); // NOI18N
 
-        downloadAnyQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.ALT_MASK));
+        downloadAnyQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         downloadAnyQualityRadioButtonMenuItem.setSelected(true);
         downloadAnyQualityRadioButtonMenuItem.setText(Str.str("any"));
         downloadAnyQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
@@ -3838,7 +3851,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(downloadAnyQualityRadioButtonMenuItem);
 
-        downloadHighQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, InputEvent.ALT_MASK));
+        downloadHighQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         downloadHighQualityRadioButtonMenuItem.setText(Constant.HQ);
         downloadHighQualityRadioButtonMenuItem.setToolTipText(bundle.getString("GUI.downloadHighQualityRadioButtonMenuItem.toolTipText")); // NOI18N
         downloadHighQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
@@ -3848,7 +3861,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(downloadHighQualityRadioButtonMenuItem);
 
-        downloadDVDQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_MASK));
+        downloadDVDQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         downloadDVDQualityRadioButtonMenuItem.setText(Constant.DVD);
         downloadDVDQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3857,7 +3870,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(downloadDVDQualityRadioButtonMenuItem);
 
-        download720HDQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.ALT_MASK));
+        download720HDQualityRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         download720HDQualityRadioButtonMenuItem.setText(Constant.HD720);
         download720HDQualityRadioButtonMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3866,7 +3879,7 @@ public class GUI extends JFrame implements GuiListener {
         });
         downloadQualityMenu.add(download720HDQualityRadioButtonMenuItem);
 
-        download1080HDRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.ALT_MASK));
+        download1080HDRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         download1080HDRadioButtonMenuItem.setText(Constant.HD1080);
         download1080HDRadioButtonMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -4138,48 +4151,52 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void restorePlaylist(boolean initPlaylist) {
-        synchronized (playlistRestorationLock) {
-            if (isPlaylistRestored.get()) {
-                return;
-            }
-            File playlist = new File(Constant.APP_DIR + Constant.PLAYLIST);
-            boolean isFirstVersion = !playlist.exists();
-            if (isFirstVersion) { // Backward compatibility
-                playlist = new File(Constant.APP_DIR + "playlist" + Constant.TXT);
-            }
-            String[] playlistEntries;
-
+        if (playlistRestorationLock.tryLock()) {
             try {
-                if ((isFirstVersion && !playlist.exists()) || (playlistEntries = Regex.split(IO.read(playlist), Constant.NEWLINE)).length % 8 != 0) {
+                if (isPlaylistRestored.get()) {
                     return;
                 }
+                File playlist = new File(Constant.APP_DIR + Constant.PLAYLIST);
+                boolean isFirstVersion = !playlist.exists();
+                if (isFirstVersion) { // Backward compatibility
+                    playlist = new File(Constant.APP_DIR + "playlist" + Constant.TXT);
+                }
+                String[] playlistEntries;
 
-                if (initPlaylist) {
-                    workerListener.initPlaylist();
-                }
-                for (int i = 0; i < playlistEntries.length; i += 8) {
-                    String groupFileName = playlistEntries[i + 5];
-                    if (groupFileName.equals(Constant.NULL)) {
-                        workerListener.stream(playlistEntries[i + 4], playlistEntries[i]);
-                        continue;
+                try {
+                    if ((isFirstVersion && !playlist.exists()) || (playlistEntries = Regex.split(IO.read(playlist), Constant.NEWLINE)).length % 8 != 0) {
+                        return;
                     }
-                    File groupFile = new File(groupFileName);
-                    if (groupFile.exists()) {
-                        newPlaylistItem(makePlaylistRow(playlistEntries[i], workerListener.playlistItemSize(Long.parseLong(playlistEntries[i + 1])),
-                                workerListener.playlistItemProgress(Double.parseDouble(playlistEntries[i + 2])), workerListener.playlistItem(playlistEntries[i
-                                        + 3], playlistEntries[i + 4], groupFile, Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7],
-                                        isFirstVersion)), -1);
+
+                    if (initPlaylist) {
+                        workerListener.initPlaylist();
                     }
-                }
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
+                    for (int i = 0; i < playlistEntries.length; i += 8) {
+                        String groupFileName = playlistEntries[i + 5];
+                        if (groupFileName.equals(Constant.NULL)) {
+                            workerListener.stream(playlistEntries[i + 4], playlistEntries[i]);
+                            continue;
+                        }
+                        File groupFile = new File(groupFileName);
+                        if (groupFile.exists()) {
+                            newPlaylistItem(makePlaylistRow(playlistEntries[i], workerListener.playlistItemSize(Long.parseLong(playlistEntries[i + 1])),
+                                    workerListener.playlistItemProgress(Double.parseDouble(playlistEntries[i + 2])), workerListener.playlistItem(playlistEntries[i
+                                            + 3], playlistEntries[i + 4], groupFile, Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7],
+                                            isFirstVersion)), -1);
+                        }
+                    }
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
+                    }
+                } finally {
+                    isPlaylistRestored.set(true);
+                    if (isFirstVersion) {
+                        IO.fileOp(playlist, IO.RM_FILE);
+                    }
                 }
             } finally {
-                isPlaylistRestored.set(true);
-                if (isFirstVersion) {
-                    IO.fileOp(playlist, IO.RM_FILE);
-                }
+                playlistRestorationLock.unlock();
             }
         }
     }
@@ -6037,7 +6054,20 @@ public class GUI extends JFrame implements GuiListener {
             JMenu currMenu = menu;
             for (int i = 0, j = 35; i < numTitles; i++) {
                 final String title = titles.get(i);
-                final AbstractButton banTitleButton = new JCheckBoxMenuItem(title, null, bannedTitles.contains(title));
+                final AbstractButton banTitleButton = (i == 0 && unbannedTitle ? new JCheckBoxMenuItem(title, null, bannedTitles.contains(title))
+                        : new JCheckBoxMenuItem(title, null, bannedTitles.contains(title)) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void processMouseEvent(MouseEvent evt) {
+                                if (evt.getID() == MouseEvent.MOUSE_RELEASED && contains(evt.getPoint())) {
+                                    doClick();
+                                    setArmed(true);
+                                } else {
+                                    super.processMouseEvent(evt);
+                                }
+                            }
+                        });
                 banTitleButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent evt) {

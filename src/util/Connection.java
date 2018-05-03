@@ -225,12 +225,18 @@ public class Connection {
                         Debug.print(e);
                     }
                     if (domainType == DomainType.DOWNLOAD_LINK_INFO && showStatus) {
-                        String downloadLinkInfoUrl = deproxyDownloadLinkInfoProxyUrl(url);
-                        if (downloadLinkInfoUrl != null) {
-                            selectNextDownloadLinkInfoProxy();
-                            return getSourceCode(downloadLinkInfoUrl, domainType, showStatus, emptyOK, throwables);
-                        } else if (url.startsWith(Str.get(731))) {
+                        String proxy, proxies; // Store because variables are concurrently set
+                        if (url.startsWith(Str.get(731))) {
                             downloadLinkInfoFail.set(true);
+                        } else if (url.startsWith(proxy = Str.get(723))) {
+                            selectNextDownloadLinkInfoProxy();
+                            return getSourceCode(Str.get(731) + url.substring(proxy.length()), domainType, showStatus, emptyOK, throwables);
+                        } else if (!(proxies = Str.get(726)).isEmpty()) {
+                            for (String currProxy : Regex.split(proxies, Constant.SEPARATOR1)) {
+                                if (url.startsWith(currProxy)) {
+                                    return getSourceCode(Str.get(731) + url.substring(currProxy.length()), domainType, showStatus, emptyOK, throwables);
+                                }
+                            }
                         }
                     }
                     throw new ConnectionException(error(url), e, connection == null ? null : connection.getURL().toString());
@@ -252,11 +258,6 @@ public class Connection {
 
     public static String serverError(String url) {
         return Str.str("serverProblem", getShortUrl(url, false)) + ' ' + Str.str("pleaseRetry");
-    }
-
-    private static String deproxyDownloadLinkInfoProxyUrl(String downloadLinkInfoProxyUrl) {
-        return !downloadLinkInfoProxyUrl.startsWith(Str.get(731)) && downloadLinkInfoProxyUrl.startsWith(Str.get(723)) ? Str.get(731)
-                + downloadLinkInfoProxyUrl.substring(Str.get(723).length()) : null;
     }
 
     public static void runDownloadLinkInfoDeproxier(Task deproxier) throws Exception {
@@ -414,9 +415,18 @@ public class Connection {
 
     public static void removeDownloadLinkInfoFromCache(String url) {
         removeFromCache(url);
-        String url2 = deproxyDownloadLinkInfoProxyUrl(url);
-        if (url2 != null) {
-            removeFromCache(url2);
+        if (!url.startsWith(Str.get(731))) {
+            String proxy = Str.get(723), proxies; // Store because variables are concurrently set
+            if (url.startsWith(proxy)) {
+                removeFromCache(Str.get(731) + url.substring(proxy.length()));
+            } else if (!(proxies = Str.get(726)).isEmpty()) {
+                for (String currProxy : Regex.split(proxies, Constant.SEPARATOR1)) {
+                    if (url.startsWith(currProxy)) {
+                        removeFromCache(Str.get(731) + url.substring(currProxy.length()));
+                        return;
+                    }
+                }
+            }
         }
     }
 

@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.05.03   | VidMasta 25.1
+
+CHANGE: CORE | Improved download error handling
+CHANGE: UI   | Updated menu item keyboard shortcuts
+
+
+
+
 2018.04.13   | VidMasta 25.0
 
 CHANGE: CORE | Added support for Java 9 and higher

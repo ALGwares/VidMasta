@@ -73,6 +73,8 @@ public class Main implements WorkerListener {
     static {
         suppressStdOutput();
         System.setProperty("https.protocols", "TLSv1.2");
+        System.setProperty("jdk.tls.allowUnsafeServerCertChange", String.valueOf(true));
+        System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", String.valueOf(true));
         I18n.setLocale(new Locale("en", "US"));
         Str.init(new StrUpdater());
         setLookAndFeel();
