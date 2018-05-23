@@ -8,7 +8,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.Dialog.ModalExclusionType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
@@ -1169,7 +1168,6 @@ public class GUI extends JFrame implements GuiListener {
         timeoutDialog.setTitle(bundle.getString("GUI.timeoutDialog.title")); // NOI18N
         timeoutDialog.setAlwaysOnTop(true);
         timeoutDialog.setModal(true);
-        timeoutDialog.setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
 
         timeoutLabel.setText(bundle.getString("GUI.timeoutLabel.text")); // NOI18N
         timeoutLabel.setToolTipText(bundle.getString("GUI.timeoutLabel.toolTipText")); // NOI18N
@@ -1206,6 +1204,7 @@ public class GUI extends JFrame implements GuiListener {
         );
 
         tvDialog.setTitle(bundle.getString("GUI.tvDialog.title")); // NOI18N
+        tvDialog.setAlwaysOnTop(true);
         tvDialog.setModal(true);
 
         UI.init(tvSeasonComboBox, UI.items(1, 100, 1, true, Str.str("any"), null));
@@ -2371,6 +2370,7 @@ public class GUI extends JFrame implements GuiListener {
         );
 
         commentsDialog.setTitle(bundle.getString("GUI.commentsDialog.title")); // NOI18N
+        commentsDialog.setAlwaysOnTop(true);
         commentsDialog.setModal(true);
 
         commentsTextPane.setEditable(false);
@@ -5733,19 +5733,16 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        int i = 0;
-        boolean play = playlistItems[i].canPlay();
-        if (play) {
-            playlistItems[i].play(force);
-        } else {
-            playlistItems[i].stop();
-        }
-        for (++i; i < playlistItems.length; i++) {
+        boolean play = false;
+        for (int i = 0; i < playlistItems.length; i++) {
+            if (i == 0) {
+                play = playlistItems[i].canPlay();
+            }
             if (play) {
                 if (playlistItems[i].canPlay()) {
-                    playlistItems[i].play(false);
+                    playlistItems[i].play(i == 0 && force);
                 }
-            } else {
+            } else if (playlistItems[i].isStoppable()) {
                 playlistItems[i].stop();
             }
         }
@@ -7421,7 +7418,7 @@ public class GUI extends JFrame implements GuiListener {
         boolean play = playlistItem.canPlay(), active = playlistItem.isActive();
         playlistPlayButton.setIcon(play ? playIcon : stopIcon);
         playlistPlayMenuItem.setText(Str.str(play ? "play" : Constant.STOP_KEY));
-        UI.enable((play && !active) || (!play && active), playlistPlayButton, playlistPlayMenuItem);
+        UI.enable((play && !active) || (!play && active && playlistItem.isStoppable()), playlistPlayButton, playlistPlayMenuItem);
     }
 
     @Override
@@ -7820,13 +7817,11 @@ public class GUI extends JFrame implements GuiListener {
     public void licenseActivationStarted() {
         activationUpgradeButton.setEnabled(false);
         activationUpgradeButton.setIcon(loadingIcon);
-        activationUpgradeButton.setDisabledIcon(loadingIcon);
     }
 
     @Override
     public void licenseActivationStopped() {
         activationUpgradeButton.setIcon(null);
-        activationUpgradeButton.setDisabledIcon(null);
         activationUpgradeButton.setEnabled(true);
     }
 

@@ -8,6 +8,8 @@ public interface PlaylistItem {
 
     boolean isActive();
 
+    boolean isStoppable();
+
     void play(boolean force);
 
     void stop();

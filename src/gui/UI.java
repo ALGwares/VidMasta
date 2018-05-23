@@ -986,7 +986,6 @@ public class UI {
     }
 
     public static int showOptionDialog(Component parent, Component parentChild, Object msg, String title, int type, Boolean confirm) {
-        int result = -1;
         Collection<Window> windows = new ArrayList<Window>(4);
         Boolean showConfirm = confirm;
         for (Window window : Window.getWindows()) {
@@ -1000,29 +999,34 @@ public class UI {
                 }
             }
         }
+        int result;
         if (showConfirm == null) {
-            JDialog dialog = (new JOptionPane(msg, type)).createDialog(parent, title);
-            dialog.setModal(false);
-            if (parent != null) {
-                Point location = parentChild.getLocationOnScreen();
-                int y = location.y + parentChild.getHeight() - dialog.getHeight();
-                dialog.setLocation(location.x, y < 0 ? 0 : y);
-            }
-            dialog.setVisible(true);
+            result = showOptionDialog(parent, parentChild, msg, title, type, false, false);
         } else {
             for (Window window : windows) {
                 window.setVisible(false);
             }
-            if (showConfirm) {
-                result = JOptionPane.showConfirmDialog(parent, msg, title, type);
-            } else {
-                JOptionPane.showMessageDialog(parent, msg, title, type);
-            }
+            result = showOptionDialog(parent, null, msg, title, type, showConfirm, true);
             for (Window window : windows) {
                 window.setVisible(true);
             }
         }
         return result;
+    }
+
+    public static int showOptionDialog(Component parent, Component parentChild, Object msg, String title, int type, boolean confirm, boolean modal) {
+        JOptionPane optionPane = new JOptionPane(msg, confirm ? JOptionPane.QUESTION_MESSAGE : type, confirm ? type : JOptionPane.DEFAULT_OPTION);
+        JDialog dialog = optionPane.createDialog(parent, title);
+        dialog.setAlwaysOnTop(true);
+        dialog.setModal(modal);
+        if (parentChild != null && parent != null) {
+            Point location = parentChild.getLocationOnScreen();
+            int y = location.y + parentChild.getHeight() - dialog.getHeight();
+            dialog.setLocation(location.x, y < 0 ? 0 : y);
+        }
+        dialog.setVisible(true);
+        Object val = optionPane.getValue();
+        return val instanceof Integer ? (Integer) val : -1;
     }
 
     private UI() {

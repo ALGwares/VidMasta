@@ -573,8 +573,6 @@ public class Main implements WorkerListener {
                         -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6}, new byte[]{0, 29, -102, 0, 6}));
             UIManager.put("Synthetica.text.antialias", true);
             UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
-            UIManager.put("Synthetica.translucency4DisabledIcons.enabled", true);
-            UIManager.put("Synthetica.translucency4DisabledIcons.alpha", 25);
             SyntheticaLookAndFeel.setLookAndFeel("de.javasoft.plaf.synthetica.SyntheticaBlackMoonLookAndFeel");
         } catch (Throwable t) {
             if (Debug.DEBUG) {

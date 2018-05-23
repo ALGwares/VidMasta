@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.05.23   | VidMasta 25.2
+
+CHANGE: UI   | Improved positioning of windows
+CHANGE: UI   | Disabled the playlist play/stop button for a playlist item that is initializing
+
+
+
+
 2018.05.03   | VidMasta 25.1
 
 CHANGE: CORE | Improved download error handling
