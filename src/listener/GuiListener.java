@@ -20,15 +20,7 @@ public interface GuiListener {
 
     void timedMsg(String msg);
 
-    void initSafetyDialog(String name);
-
-    void safetyDialogMsg(String statistic, String link, String name);
-
-    void showSafetyDialog();
-
-    boolean canProceedWithUnsafeDownload();
-
-    boolean canProceedWithUnsafeDownload(String name);
+    boolean canProceedWithUnsafeDownload(String name, int numFakeComments, int numComments, String link, String comments);
 
     void summary(String summary, String imagePath);
 
@@ -165,10 +157,6 @@ public interface GuiListener {
     boolean canPlayWithDefaultApp();
 
     boolean canIgnoreDownloadSize();
-
-    void commentsFinderStarted();
-
-    void commentsFinderStopped();
 
     Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
             String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode);

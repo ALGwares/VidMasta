@@ -75,6 +75,10 @@ public class Main implements WorkerListener {
         System.setProperty("https.protocols", "TLSv1.2");
         System.setProperty("jdk.tls.allowUnsafeServerCertChange", String.valueOf(true));
         System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", String.valueOf(true));
+        System.setProperty("htmlFont1", "<font face=\"Verdana, Geneva, sans-serif\">");
+        System.setProperty("htmlFont2", "<font face=\"Tahoma\">");
+        System.setProperty("htmlFont3", "<font size=\"5\">");
+        System.setProperty("msgComponentPreferredHeight", "70");
         I18n.setLocale(new Locale("en", "US"));
         Str.init(new StrUpdater());
         setLookAndFeel();
@@ -355,11 +359,6 @@ public class Main implements WorkerListener {
     }
 
     @Override
-    public String getSafetyComments() {
-        return VideoFinder.getComments();
-    }
-
-    @Override
     public void summarySearchStarted(int row, Video video, boolean read, VideoStrExportListener strExportListener) {
         if (isSummarySearchDone()) {
             startPrefetcher(summaryFinder = new VideoFinder(gui, ContentType.SUMMARY, row, video, strExportListener, false, read ? new Runnable() {
@@ -571,7 +570,6 @@ public class Main implements WorkerListener {
             ModClass.mod(Constant.PROGRAM_DIR + "lib" + Constant.FILE_SEPARATOR + "libs" + Constant.JAR, new ModClass(rootPaneUIClass, new byte[]{0, 2, 4, -84, 0},
                     new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{71, 16, 16, 96, -75}, new byte[]{71, 16, 0, 96,
                         -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6}, new byte[]{0, 29, -102, 0, 6}));
-            UIManager.put("Synthetica.text.antialias", true);
             UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
             SyntheticaLookAndFeel.setLookAndFeel("de.javasoft.plaf.synthetica.SyntheticaBlackMoonLookAndFeel");
         } catch (Throwable t) {
@@ -579,11 +577,16 @@ public class Main implements WorkerListener {
                 Debug.print(t);
             }
             try {
+                System.setProperty("htmlFont1", "<font face=\"Verdana, Geneva, sans-serif\" size=\"3\">");
+                System.setProperty("htmlFont2", "<font face=\"Tahoma\" size=\"3\">");
+                System.setProperty("htmlFont3", "<font size=\"4\">");
+                System.setProperty("msgComponentPreferredHeight", "77");
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Throwable t2) {
                 if (Debug.DEBUG) {
                     Debug.print(t2);
                 }
+                System.setProperty("msgComponentPreferredHeight", "85");
             }
         }
     }

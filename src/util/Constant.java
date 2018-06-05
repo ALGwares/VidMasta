@@ -35,14 +35,13 @@ public class Constant implements IOConstant {
     public static final String TV_EPISODE_PLACEHOLDER;
     public static final String TITLE_INDENT = "&nbsp;&nbsp;&nbsp;";
     public static final int TITLE_INDENT_LEN = TITLE_INDENT.length();
-    public static final String HTML_FONT = "<font face=\"Verdana, Geneva, sans-serif\" size=\"4\">";
     public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
     public static final String TXT = ".txt", HTML = ".html", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
     public static final int UPDATE_FILE_VERSION = 85;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
-    public static final int SETTINGS_LEN = 79;
+    public static final int SETTINGS_LEN = 80;
     public static final int SETTINGS_VERSION = 11;
     public static final String PROFILE = "profile" + SETTINGS_VERSION + "_";
     public static final String USER_SETTINGS = "userSettings" + SETTINGS_VERSION + TXT;

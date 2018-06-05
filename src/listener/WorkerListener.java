@@ -30,8 +30,6 @@ public interface WorkerListener {
 
     boolean areWorkersDone();
 
-    String getSafetyComments();
-
     void summarySearchStarted(int row, Video video, boolean read, VideoStrExportListener strExportListener);
 
     void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);

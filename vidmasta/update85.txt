@@ -1,7 +1,7 @@
-294
-http://www.bing.com/search?q=
+297
+https://www.bing.com/search?q=
 https://www.google.com/search?q=
-http://search.yahoo.com/search?q=
+https://search.yahoo.com/search?q=
 \s++
 SPACE
 Next&nbsp;&raquo;
@@ -128,7 +128,7 @@ EMPTY
 \<\s*+/a\s*+\>
 <\s*+span\s++itemprop\s*+=\s*+"ratingValue"\s*+>
 <\s*+/span\s*+>
-(<\s*+p\s*+>\s*+<\s*+/p\s*+>\s*+<\s*+p(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(<\s*+div\s++class\s*+=\s*+"summary_text"\s++itemprop\s*+=\s*+"description"\s*+>)
+(<\s*+p\s*+>\s*+<\s*+/p\s*+>\s*+<\s*+p(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(<\s*+div\s++class\s*+=\s*+"summary_text"(\s++itemprop\s*+=\s*+"description")?+\s*+>)
 (<\s*+/p\s*+>\s*+<\s*+p\s*+>\s*+<\s*+/p\s*+>)|(<\s*+/div\s*+>)
 <\s*+h2\s*+>\s*+Storyline\s*+<\s*+/h2\s*+>\s*+(<div[^>]++>)?+\s*+<\s*+p\s*+>
 <\s*+/p\s*+>
@@ -766,7 +766,7 @@ vlc-2.2.1
 3
 -1
 (?i)magnet:\?(?s).*
-https://code.responsivevoice.org/getvoice.php?t=%s&tl=en-US&sv=&vn=&pitch=0.5&rate=0.5&vol=1
+https://text-to-speech-demo.ng.bluemix.net/api/synthesize?text=%s&voice=en-US_AllisonVoice&download=true&accept=audio/mp3
 .mp3
 <!DOCTYPE html>NEWLINE<html>NEWLINE  <head>NEWLINE    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">NEWLINE    <title>TTS_TITLE: Audio Summary</title>NEWLINE  </head>NEWLINE  <body>NEWLINE    <div style="text-align: center; margin-left: auto; margin-right: auto;"><br>NEWLINE      <br>NEWLINE      <br>NEWLINE      <span style="font-weight: bold; font-family: Verdana; font-size: 3;">TTS_TITLE</span><br>NEWLINE      <span style="font-family: Verdana; font-size: 2;">Audio Summary</span><br>NEWLINE      <br>NEWLINE      <img src="file:///TTS_POSTER" alt="poster">NEWLINE      <br>NEWLINE      <br>NEWLINE      <audio controls autoplay>NEWLINE        <source src="file:///TTS_AUDIO_CLIP" type="audio/mpeg">NEWLINE        <object data="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50">NEWLINE          <embed src="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50"/>NEWLINE        </object>NEWLINE      </audio>NEWLINE    </div>NEWLINE  </body>NEWLINE</html>
 \d++

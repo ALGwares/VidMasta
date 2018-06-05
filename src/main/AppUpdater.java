@@ -88,7 +88,7 @@ class AppUpdater {
             }
             double version = Double.parseDouble(appUpdateStrs[0]);
             if (Constant.APP_VERSION < version) {
-                guiListener.updateMsg("<html><head><title></title></head><body><font face=\"tahoma\" size=\"4\">" + Str.htmlLinkStr("newAppVersion",
+                guiListener.updateMsg("<html><head><title></title></head><body>" + System.getProperty("htmlFont2") + Str.htmlLinkStr("newAppVersion",
                         Constant.WINDOWS ? appUpdateStrs[1] : appUpdateStrs[2], Str.getNumFormat(Constant.VERSION_FORMAT).format(version))
                         + "</font></body></html>");
             } else if (showConfirmation) {

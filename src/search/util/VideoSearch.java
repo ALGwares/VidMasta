@@ -230,7 +230,7 @@ public class VideoSearch {
         String summary2 = Regex.match(sourceCode, 131);
         summary2 = Regex.replaceAll(summary2, 205).trim();
         summary2 = Regex.replaceAll(Regex.replaceAll(summary2, 245), 247);
-        String storyline = null;
+        StringBuilder storyline = null;
         boolean isEmpty1 = summary1.isEmpty(), isEmpty2 = summary2.isEmpty();
 
         if ((!isEmpty1 && !isEmpty2) && Regex.htmlToPlainText(summary1).equalsIgnoreCase(Regex.htmlToPlainText(summary2))) {
@@ -241,7 +241,8 @@ public class VideoSearch {
             summary.append(summary1);
         } else if (!isEmpty1) {
             summary.append(summary1);
-            storyline = "<font size=\"5\"><b id=\"" + Constant.STORYLINE_HTML_ID + "\">" + Str.str("storyline") + "</b></font>" + br1 + summary2;
+            storyline = (new StringBuilder(System.getProperty("htmlFont3"))).append("<b id=\"").append(Constant.STORYLINE_HTML_ID).append("\">").append(Str.str(
+                    "storyline")).append("</b></font>").append(br1).append(summary2);
         } else {
             summary.append(Str.get(159));
         }
@@ -279,9 +280,10 @@ public class VideoSearch {
             summary.append("<b>").append(Str.str("releaseDate")).append(" </b>").append(releaseDate);
         }
 
-        summary.insert(0, Constant.HTML_FONT).insert(0, "<td align=\"left\" valign=\"top\" width=\"100%\">").append("</font>").append(br2).append("</td></tr>");
+        summary.insert(0, System.getProperty("htmlFont1")).insert(0, "<td align=\"left\" valign=\"top\" width=\"100%\">").append("</font>").append(br2).append(
+                "</td></tr>");
         if (storyline != null) {
-            summary.append("<tr><td align=\"left\" valign=\"top\" colspan=\"2\">").append(Constant.HTML_FONT).append(storyline).append(
+            summary.append("<tr><td align=\"left\" valign=\"top\" colspan=\"2\">").append(System.getProperty("htmlFont1")).append(storyline).append(
                     "</font></td></tr>");
         }
         return summary.insert(0, "<html><head><title></title></head><body><table><tr><!--poster-->").append(

@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.06.05   | VidMasta 25.3
+
+CHANGE: UI   | Made some modal dialogs non-modal by default
+CHANGE: UI   | Improved positioning of windows
+
+
+
+
 2018.05.23   | VidMasta 25.2
 
 CHANGE: UI   | Improved positioning of windows

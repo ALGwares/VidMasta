@@ -174,8 +174,7 @@ public class GUI extends JFrame implements GuiListener {
     private static final Preferences preferences = Preferences.userNodeForPackage(GUI.class);
 
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, proceedWithDownload, cancelTVSelection, isAltSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay,
-            forcePlaylistDownloader = true;
+    private boolean isRegularSearcher = true, cancelTVSelection, isAltSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay, forcePlaylistDownloader = true;
     private MenuElement popularSearchMenuElement;
     boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean(), playlistShown = new AtomicBoolean();
@@ -285,8 +284,8 @@ public class GUI extends JFrame implements GuiListener {
                 show(textComponentPopupMenu, evt);
             }
         }, titleTextField, findTextField, playlistFindTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField, portTextField,
-                commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, safetyEditorPane, authenticationUsernameTextField,
-                authenticationPasswordField, startDateTextField, endDateTextField, activationTextField);
+                commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, authenticationUsernameTextField, authenticationPasswordField,
+                startDateTextField, endDateTextField, activationTextField);
 
         UI.addMouseListener(new AbstractPopupListener() {
             @Override
@@ -454,7 +453,7 @@ public class GUI extends JFrame implements GuiListener {
         UI.setIcon(popularPopupMenuButton, "more");
         loadingIcon = UI.icon("loading.gif");
         notLoadingIcon = UI.icon("notLoading.gif");
-        for (JLabel label : new JLabel[]{loadingLabel, safetyLoadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel}) {
+        for (JLabel label : new JLabel[]{loadingLabel, proxyLoadingLabel, tvSubtitleLoadingLabel, movieSubtitleLoadingLabel}) {
             label.setIcon(notLoadingIcon);
         }
         warningIcon = UI.icon("warning.png");
@@ -680,12 +679,6 @@ public class GUI extends JFrame implements GuiListener {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        safetyDialog = new JDialog();
-        yesButton = new JButton();
-        noButton = new JButton();
-        safetyLoadingLabel = new JLabel();
-        safetyScrollPane = new JScrollPane();
-        safetyEditorPane = new JEditorPane();
         faqFrame = new JFrame() {
             private static final long serialVersionUID = 1L;
 
@@ -923,6 +916,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistRemoveButton = new JButton();
         playlistReloadGroupButton = new JButton();
         playlistBanGroupButton = new JButton();
+        autoConfirmCheckBoxMenuItem = new JCheckBoxMenuItem();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -1048,73 +1042,6 @@ public class GUI extends JFrame implements GuiListener {
         aboutMenuItem = new JMenuItem();
 
         ResourceBundle bundle = ResourceBundle.getBundle("i18n/Bundle"); // NOI18N
-        safetyDialog.setTitle(bundle.getString("GUI.safetyDialog.title")); // NOI18N
-        safetyDialog.setAlwaysOnTop(true);
-        safetyDialog.setIconImage(null);
-        safetyDialog.setModal(true);
-
-        yesButton.setText(bundle.getString("GUI.yesButton.text")); // NOI18N
-        yesButton.setToolTipText(bundle.getString("GUI.yesButton.toolTipText")); // NOI18N
-        yesButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                yesButtonActionPerformed(evt);
-            }
-        });
-
-        noButton.setText(bundle.getString("GUI.noButton.text")); // NOI18N
-        noButton.setToolTipText(bundle.getString("GUI.noButton.toolTipText")); // NOI18N
-        noButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                noButtonActionPerformed(evt);
-            }
-        });
-
-        safetyLoadingLabel.setText(null);
-
-        safetyScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        safetyEditorPane.setContentType("text/html"); // NOI18N
-        safetyEditorPane.setEditable(false);
-        safetyEditorPane.addHyperlinkListener(new HyperlinkListener() {
-            public void hyperlinkUpdate(HyperlinkEvent evt) {
-                safetyEditorPaneHyperlinkUpdate(evt);
-            }
-        });
-        safetyScrollPane.setViewportView(safetyEditorPane);
-
-        GroupLayout safetyDialogLayout = new GroupLayout(safetyDialog.getContentPane());
-        safetyDialog.getContentPane().setLayout(safetyDialogLayout);
-        safetyDialogLayout.setHorizontalGroup(safetyDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(safetyDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(safetyDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addGroup(safetyDialogLayout.createSequentialGroup()
-                        .addComponent(noButton, GroupLayout.PREFERRED_SIZE, 69, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(yesButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 194, Short.MAX_VALUE)
-                        .addComponent(safetyLoadingLabel))
-                    .addComponent(safetyScrollPane, GroupLayout.DEFAULT_SIZE, 404, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-
-        safetyDialogLayout.linkSize(SwingConstants.HORIZONTAL, new Component[] {noButton, yesButton});
-
-        safetyDialogLayout.setVerticalGroup(safetyDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(Alignment.TRAILING, safetyDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(safetyScrollPane, GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addGroup(safetyDialogLayout.createParallelGroup(Alignment.TRAILING)
-                    .addGroup(safetyDialogLayout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(yesButton)
-                        .addComponent(noButton))
-                    .addComponent(safetyLoadingLabel))
-                .addContainerGap())
-        );
-
-        safetyDialogLayout.linkSize(SwingConstants.VERTICAL, new Component[] {noButton, yesButton});
-
         faqFrame.setTitle(bundle.getString("GUI.faqFrame.title")); // NOI18N
         faqFrame.setAlwaysOnTop(true);
         faqFrame.setIconImage(null);
@@ -2371,7 +2298,6 @@ public class GUI extends JFrame implements GuiListener {
 
         commentsDialog.setTitle(bundle.getString("GUI.commentsDialog.title")); // NOI18N
         commentsDialog.setAlwaysOnTop(true);
-        commentsDialog.setModal(true);
 
         commentsTextPane.setEditable(false);
         commentsTextPane.setFont(new Font("Verdana", 0, 12)); // NOI18N
@@ -4247,15 +4173,6 @@ public class GUI extends JFrame implements GuiListener {
         workerListener.regularSearchStarted(numResultsPerSearch, isTVShow, startDate, endDate, title, genres, languages, countries, minRating);
     }//GEN-LAST:event_searchButtonActionPerformed
 
-    void yesButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_yesButtonActionPerformed
-        proceedWithDownload = true;
-        safetyDialog.setVisible(false);
-    }//GEN-LAST:event_yesButtonActionPerformed
-
-    void noButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_noButtonActionPerformed
-        safetyDialog.setVisible(false);
-    }//GEN-LAST:event_noButtonActionPerformed
-
     void loadMoreResultsButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_loadMoreResultsButtonActionPerformed
         workerListener.loadMoreSearchResults(isRegularSearcher);
     }//GEN-LAST:event_loadMoreResultsButtonActionPerformed
@@ -4553,17 +4470,6 @@ public class GUI extends JFrame implements GuiListener {
     void updateMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_updateMenuItemActionPerformed
         workerListener.updateStarted(false);
     }//GEN-LAST:event_updateMenuItemActionPerformed
-
-    void safetyEditorPaneHyperlinkUpdate(HyperlinkEvent evt) {//GEN-FIRST:event_safetyEditorPaneHyperlinkUpdate
-        if (evt.getEventType().equals(EventType.ACTIVATED)) {
-            Window alwaysOnTopFocus = resultsToBackground();
-            commentsTextPane.setText(workerListener.getSafetyComments());
-            commentsTextPane.setSelectionStart(0);
-            commentsTextPane.setSelectionEnd(0);
-            UI.show2(commentsDialog);
-            resultsToForeground(alwaysOnTopFocus);
-        }
-    }//GEN-LAST:event_safetyEditorPaneHyperlinkUpdate
 
     private SelectedTableRow selectedRow() {
         findControl.hide(false);
@@ -6152,9 +6058,14 @@ public class GUI extends JFrame implements GuiListener {
         IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
     }
 
-    private void showOptionalMsg(String msg, JMenuItem menuItem) {
+    private void showOptionalMsg(final String msg, final JMenuItem menuItem) {
         synchronized (optionDialogLock) {
-            showOptionDialog(UI.optionalPanel(msg, menuItem, textComponentPopupListener), Constant.APP_TITLE, Constant.INFO_MSG, null);
+            UI.run(true, new Runnable() {
+                @Override
+                public void run() {
+                    showOptionDialog(UI.container(msg, null, menuItem, textComponentPopupListener), Constant.APP_TITLE, Constant.INFO_MSG, null);
+                }
+            });
         }
     }
 
@@ -6162,9 +6073,14 @@ public class GUI extends JFrame implements GuiListener {
         showMsg(msg, msgType, false);
     }
 
-    private void showMsg(String msg, int msgType, Boolean confirm) {
+    private int showMsg(final String msg, final int msgType, final Boolean confirm) {
         synchronized (optionDialogLock) {
-            showOptionDialog(UI.textArea(msg, textComponentPopupListener), Constant.APP_TITLE, msgType, confirm);
+            return UI.run(new Callable<Integer>() {
+                @Override
+                public Integer call() {
+                    return showOptionDialog(UI.container(msg, null, null, textComponentPopupListener), Constant.APP_TITLE, msgType, confirm);
+                }
+            });
         }
     }
 
@@ -6233,32 +6149,15 @@ public class GUI extends JFrame implements GuiListener {
         }).execute();
     }
 
-    private int showOptionalConfirm(String msg, JMenuItem menuItem) {
-        synchronized (optionDialogLock) {
-            return showOptionDialog(UI.optionalPanel(msg, menuItem, textComponentPopupListener), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
-        }
-    }
-
-    private int showConfirm(String msg) {
-        synchronized (optionDialogLock) {
-            return showOptionDialog(UI.textArea(msg, textComponentPopupListener), Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true);
-        }
-    }
-
     Component showing() {
         return UI.isShowing(this) ? this : null;
     }
 
-    private void setSafetyDialog(String statistic, String link, String name) {
-        safetyEditorPane.setText("<html><head><title></title></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Str.str(
-                "linkSafetyWarningPart1", name) + (statistic == null || link == null ? "" : " " + Str.htmlLinkStr("linkSafetyWarningPart2", link, statistic))
-                + "<br><br><b>" + Str.str("linkSafetyWarningPart3") + "</b></font></td></tr></table></body></html>");
-    }
-
     private Window[] windows() {
-        return new Window[]{this, safetyDialog, msgDialog, dummyDialog /* Backward compatibility */, faqFrame, aboutDialog, timeoutDialog, tvDialog,
-            resultsPerSearchDialog, downloadSizeDialog, extensionsDialog, languageCountryDialog, dummyDialog /* Backward compatibility */, proxyDialog,
-            addProxiesDialog, removeProxiesDialog, profileDialog, profileNameChangeDialog, commentsDialog, portDialog, tvSubtitleDialog, movieSubtitleDialog};
+        return new Window[]{this, dummyDialog /* Backward compatibility */, msgDialog, dummyDialog /* Backward compatibility */, faqFrame, aboutDialog,
+            timeoutDialog, tvDialog, resultsPerSearchDialog, downloadSizeDialog, extensionsDialog, languageCountryDialog, dummyDialog /* Backward compatibility */,
+            proxyDialog, addProxiesDialog, removeProxiesDialog, profileDialog, profileNameChangeDialog, commentsDialog, portDialog, tvSubtitleDialog,
+            movieSubtitleDialog};
     }
 
     private AbstractButton[] languageButtons() {
@@ -6284,7 +6183,7 @@ public class GUI extends JFrame implements GuiListener {
                     settings = defaultSettings;
                 }
                 int i = -1;
-                changeLocale(settings[Constant.SETTINGS_LEN - 6]);
+                changeLocale(settings[Constant.SETTINGS_LEN - 7]);
                 i += restoreComboBoxes(settings, i, comboBoxSet1());
                 i += restoreButtons(settings, i, buttonSet1());
                 ++i; // Backward compatibility
@@ -6334,6 +6233,7 @@ public class GUI extends JFrame implements GuiListener {
                 UI.select(downloaderButtonGroup, Integer.parseInt(settings[++i]));
                 UI.select(trailerPlayerButtonGroup2, Integer.parseInt(settings[++i]));
                 UI.select(downloadQualityButtonGroup, Integer.parseInt(settings[++i]));
+                subtitleFormat = getFormat();
                 splitPane.setResizeWeight(Double.parseDouble(settings[++i]));
                 if (playlistShown.get()) {
                     if (splitPane.getDividerLocation() + splitPane.getDividerSize() < splitPane.getHeight()) {
@@ -6342,7 +6242,7 @@ public class GUI extends JFrame implements GuiListener {
                         splitPane.setLastDividerLocation((int) ((splitPane.getHeight() - splitPane.getDividerSize()) * splitPane.getResizeWeight()));
                     }
                 }
-                subtitleFormat = getFormat();
+                restoreButtons(settings, i, autoConfirmCheckBoxMenuItem);
 
                 if (!updateSettings) {
                     return;
@@ -6405,7 +6305,8 @@ public class GUI extends JFrame implements GuiListener {
             settings.append(UI.selectedIndex(trailerPlayerButtonGroup2)).append(Constant.NEWLINE);
             settings.append(UI.selectedIndex(downloadQualityButtonGroup)).append(Constant.NEWLINE);
             settings.append(playlistShown.get() ? (splitPane.getDividerLocation() / (double) (splitPane.getHeight() - splitPane.getDividerSize()))
-                    : splitPane.getResizeWeight());
+                    : splitPane.getResizeWeight()).append(Constant.NEWLINE);
+            saveButtons(settings, autoConfirmCheckBoxMenuItem);
 
             IO.write(fileName, settings.toString().trim());
         }
@@ -6772,17 +6673,6 @@ public class GUI extends JFrame implements GuiListener {
         }).execute();
     }
 
-    @Override
-    public void initSafetyDialog(String name) {
-        proceedWithDownload = false;
-        setSafetyDialog(null, null, name);
-    }
-
-    @Override
-    public void safetyDialogMsg(String statistic, String link, String name) {
-        setSafetyDialog(statistic, link, name);
-    }
-
     Window resultsToBackground() {
         Window alwaysOnTopFocus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
         resultsToBackground2();
@@ -6812,28 +6702,45 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void showSafetyDialog() {
-        Window alwaysOnTopFocus = resultsToBackground();
-        noButton.requestFocusInWindow();
-        UI.show(safetyDialog);
-        resultsToForeground(alwaysOnTopFocus);
-    }
-
-    @Override
-    public boolean canProceedWithUnsafeDownload() {
-        return proceedWithDownload;
-    }
-
-    @Override
-    public boolean canProceedWithUnsafeDownload(String name) {
-        if (!safetyCheckBoxMenuItem.isSelected()) {
-            return true;
+    public boolean canProceedWithUnsafeDownload(final String name, final int numFakeComments, final int numComments, final String link, final String comments) {
+        synchronized (optionDialogLock) {
+            return UI.run(new Callable<Boolean>() {
+                @Override
+                public Boolean call() {
+                    final boolean autoConfirm = autoConfirmCheckBoxMenuItem.isSelected();
+                    Container container = UI.container("<html><head><title></title></head><body>" + System.getProperty("htmlFont2") + Str.str(
+                            "linkSafetyWarningPart1", name) + (numComments == 0 ? "" : " " + Str.htmlLinkStr("linkSafetyWarningPart2", link, numFakeComments + "/"
+                                            + numComments + " (" + Str.percent(numFakeComments / (double) numComments, 1) + ')')) + "<br><br>" + Str.str(
+                                    "linkSafetyWarningPart3") + (autoConfirm ? ' ' + UIManager.getString("OptionPane.yesButtonText") + '.' : "")
+                            + "</font></body></html>", autoConfirmCheckBoxMenuItem, null, textComponentPopupListener);
+                    UI.addHyperlinkListener((JEditorPane) ((JScrollPane) container.getComponent(0)).getViewport().getView(), new HyperlinkListener() {
+                        @Override
+                        public void hyperlinkUpdate(HyperlinkEvent evt) {
+                            if (evt.getEventType().equals(EventType.ACTIVATED)) {
+                                commentsTextPane.setText(comments);
+                                commentsTextPane.setSelectionStart(0);
+                                commentsTextPane.setSelectionEnd(0);
+                                if (autoConfirm) {
+                                    commentsDialog.setModal(false);
+                                    UI.show(commentsDialog);
+                                } else {
+                                    commentsDialog.setModal(true);
+                                    Window alwaysOnTopFocus = resultsToBackground();
+                                    UI.show(commentsDialog);
+                                    resultsToForeground(alwaysOnTopFocus);
+                                }
+                            }
+                        }
+                    });
+                    if (autoConfirm) {
+                        showOptionDialog(container, Constant.APP_TITLE, JOptionPane.WARNING_MESSAGE, null);
+                        return false;
+                    } else {
+                        return showOptionDialog(container, Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true) == JOptionPane.NO_OPTION;
+                    }
+                }
+            });
         }
-
-        proceedWithDownload = false;
-        setSafetyDialog(null, null, name);
-        showSafetyDialog();
-        return proceedWithDownload;
     }
 
     @Override
@@ -6874,7 +6781,7 @@ public class GUI extends JFrame implements GuiListener {
     public void insertAfterSummaryElement(Element element, String text) {
         try {
             if (text.length() > Constant.TV_EPISODE_PLACEHOLDER_LEN) {
-                summaryEditorPaneDocument.insertAfterEnd(element, Constant.HTML_FONT + text + "</font>");
+                summaryEditorPaneDocument.insertAfterEnd(element, System.getProperty("htmlFont1") + text + "</font>");
                 return;
             }
 
@@ -6938,7 +6845,7 @@ public class GUI extends JFrame implements GuiListener {
             IO.fileOp(Constant.APP_DIR + Constant.PEER_BLOCK + "Exit", IO.RM_FILE_NOW_AND_ON_EXIT);
             return;
         }
-        if (canShowPeerBlock && showOptionalConfirm(Str.str("startPeerblock"), peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION) {
+        if (canShowPeerBlock && showConfirm(Str.str("startPeerblock"), peerBlockNotificationCheckBoxMenuItem) != JOptionPane.YES_OPTION) {
             usePeerBlock = false;
             return;
         }
@@ -7034,7 +6941,7 @@ public class GUI extends JFrame implements GuiListener {
         tvSeasonComboBox.setSelectedItem(season);
         tvEpisodeComboBox.setSelectedItem(episode);
         cancelTVSelection = true;
-        UI.show2(tvDialog);
+        UI.show(tvDialog);
         resultsToForeground(alwaysOnTopFocus);
         return cancelTVSelection;
     }
@@ -7287,7 +7194,7 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public boolean unbanDownload(Long downloadID, String downloadName) {
         if (bannedDownloadIDs.contains(downloadID)) {
-            if (isConfirmed(Str.str("banDownloadConfirm", downloadName))) {
+            if (showConfirm(Str.str("banDownloadConfirm", downloadName), null) == JOptionPane.YES_OPTION) {
                 return false;
             }
             bannedDownloadIDs.remove(downloadID);
@@ -7387,9 +7294,14 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void playlistError(String msg) {
+    public void playlistError(final String msg) {
         synchronized (optionDialogLock) {
-            showOptionDialog(UI.textArea(msg, textComponentPopupListener), Constant.APP_TITLE, Constant.ERROR_MSG, null);
+            UI.run(true, new Runnable() {
+                @Override
+                public void run() {
+                    showOptionDialog(UI.container(msg, null, null, textComponentPopupListener), Constant.APP_TITLE, Constant.ERROR_MSG, null);
+                }
+            });
         }
     }
 
@@ -7437,16 +7349,39 @@ public class GUI extends JFrame implements GuiListener {
         playlistPlayMenuItem.setToolTipText(playlistPlayMenuItem.getToolTipText() + msg);
     }
 
-    @Override
-    public boolean isConfirmed(String msg) {
-        return showConfirm(msg) == JOptionPane.YES_OPTION;
+    private int showConfirm(final String msg, final JMenuItem menuItem) {
+        synchronized (optionDialogLock) {
+            return UI.run(new Callable<Integer>() {
+                @Override
+                public Integer call() {
+                    if (autoConfirmCheckBoxMenuItem.isSelected()) {
+                        showOptionDialog(UI.container(msg + ' ' + UIManager.getString("OptionPane.yesButtonText") + '.', autoConfirmCheckBoxMenuItem, menuItem,
+                                textComponentPopupListener), Constant.APP_TITLE, Constant.INFO_MSG, null);
+                        return JOptionPane.YES_OPTION;
+                    } else {
+                        return showOptionDialog(UI.container(msg, autoConfirmCheckBoxMenuItem, menuItem, textComponentPopupListener), Constant.APP_TITLE,
+                                JOptionPane.YES_NO_OPTION, true);
+                    }
+                }
+            });
+        }
     }
 
     @Override
-    public boolean isAuthorizationConfirmed(String msg) {
+    public boolean isConfirmed(String msg) {
+        return showMsg(msg, JOptionPane.YES_NO_OPTION, true) == JOptionPane.YES_OPTION;
+    }
+
+    @Override
+    public boolean isAuthorizationConfirmed(final String msg) {
         synchronized (optionDialogLock) {
-            authenticationMessageLabel.setText(msg);
-            return showOptionDialog(authenticationPanel, Str.str("authenticationRequired"), JOptionPane.OK_CANCEL_OPTION, true) == JOptionPane.OK_OPTION;
+            return UI.run(new Callable<Boolean>() {
+                @Override
+                public Boolean call() {
+                    authenticationMessageLabel.setText(msg);
+                    return showOptionDialog(authenticationPanel, Str.str("authenticationRequired"), JOptionPane.OK_CANCEL_OPTION, true) == JOptionPane.OK_OPTION;
+                }
+            });
         }
     }
 
@@ -7629,16 +7564,6 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void commentsFinderStarted() {
-        safetyLoadingLabel.setIcon(loadingIcon);
-    }
-
-    @Override
-    public void commentsFinderStopped() {
-        safetyLoadingLabel.setIcon(notLoadingIcon);
-    }
-
-    @Override
     public Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
             String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode) {
         String[] row = new String[13];
@@ -7681,24 +7606,29 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public void updateMsg(String msg) {
+    public void updateMsg(final String msg) {
         synchronized (optionDialogLock) {
-            JEditorPane editorPane = UI.editorPane(msg, textComponentPopupListener);
-            UI.addHyperlinkListener(editorPane, new HyperlinkListener() {
+            UI.run(true, new Runnable() {
                 @Override
-                public void hyperlinkUpdate(HyperlinkEvent evt) {
-                    try {
-                        UI.hyperlinkHandler(evt);
-                    } catch (Exception e) {
-                        if (Debug.DEBUG) {
-                            Debug.print(e);
+                public void run() {
+                    Container container = UI.container(msg, null, null, textComponentPopupListener);
+                    UI.addHyperlinkListener((JEditorPane) ((JScrollPane) container.getComponent(0)).getViewport().getView(), new HyperlinkListener() {
+                        @Override
+                        public void hyperlinkUpdate(HyperlinkEvent evt) {
+                            try {
+                                UI.hyperlinkHandler(evt);
+                            } catch (Exception e) {
+                                if (Debug.DEBUG) {
+                                    Debug.print(e);
+                                }
+                                showMsg(ThrowableUtil.toString(e), Constant.ERROR_MSG);
+                                IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+                            }
                         }
-                        showMsg(ThrowableUtil.toString(e), Constant.ERROR_MSG);
-                        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
-                    }
+                    });
+                    showOptionDialog(container, Constant.APP_TITLE, Constant.INFO_MSG, null);
                 }
             });
-            showOptionDialog(editorPane, Constant.APP_TITLE, Constant.INFO_MSG, null);
         }
     }
 
@@ -7967,8 +7897,6 @@ public class GUI extends JFrame implements GuiListener {
         movieSubtitleFormatLabel.setText(Str.str("GUI.movieSubtitleFormatLabel.text"));
         movieSubtitleLanguageLabel.setText(Str.str("GUI.movieSubtitleLanguageLabel.text"));
         msgOKButton.setText(Str.str("GUI.msgOKButton.text"));
-        noButton.setText(Str.str("GUI.noButton.text"));
-        noButton.setToolTipText(Str.str("GUI.noButton.toolTipText"));
         noDownloaderRadioButtonMenuItem.setText(Str.str("GUI.noDownloaderRadioButtonMenuItem.text"));
         pasteMenuItem.setText(Str.str("GUI.pasteMenuItem.text"));
         peerBlockNotificationCheckBoxMenuItem.setText(Str.str("GUI.peerBlockNotificationCheckBoxMenuItem.text"));
@@ -8060,7 +7988,6 @@ public class GUI extends JFrame implements GuiListener {
         resultsPerSearchMenuItem.setText(Str.str("GUI.resultsPerSearchMenuItem.text"));
         safetyCheckBoxMenuItem.setText(Str.str("GUI.safetyCheckBoxMenuItem.text"));
         safetyCheckBoxMenuItem.setToolTipText(Str.str("GUI.safetyCheckBoxMenuItem.toolTipText"));
-        safetyDialog.setTitle(Str.str("GUI.safetyDialog.title"));
         searchBanTitleMenu.setText(Str.str("GUI.searchBanTitleMenu.text"));
         searchButton.setToolTipText(Str.str("GUI.searchButton.toolTipText"));
         searchMenu.setText(Str.str("GUI.searchMenu.text"));
@@ -8116,8 +8043,6 @@ public class GUI extends JFrame implements GuiListener {
         webBrowserAppDownloaderRadioButtonMenuItem.setText(Str.str("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text"));
         whitelistLabel.setText(Str.str("GUI.whitelistLabel.text"));
         whitelistedToBlacklistedButton.setToolTipText(Str.str("GUI.whitelistedToBlacklistedButton.toolTipText"));
-        yesButton.setText(Str.str("GUI.yesButton.text"));
-        yesButton.setToolTipText(Str.str("GUI.yesButton.toolTipText"));
 
         updateToggleButtons(false);
 
@@ -8237,6 +8162,7 @@ public class GUI extends JFrame implements GuiListener {
     JLabel authenticationPasswordLabel;
     JLabel authenticationUsernameLabel;
     JTextField authenticationUsernameTextField;
+    JCheckBoxMenuItem autoConfirmCheckBoxMenuItem;
     JMenu banTitleMenu;
     JLabel blacklistedLabel;
     JList blacklistedList;
@@ -8366,7 +8292,6 @@ public class GUI extends JFrame implements GuiListener {
     JEditorPane msgEditorPane;
     JButton msgOKButton;
     JScrollPane msgScrollPane;
-    JButton noButton;
     JRadioButtonMenuItem noDownloaderRadioButtonMenuItem;
     JMenuItem pasteMenuItem;
     JCheckBoxMenuItem peerBlockNotificationCheckBoxMenuItem;
@@ -8484,10 +8409,6 @@ public class GUI extends JFrame implements GuiListener {
     JScrollPane resultsScrollPane;
     JTable resultsTable;
     JCheckBoxMenuItem safetyCheckBoxMenuItem;
-    JDialog safetyDialog;
-    JEditorPane safetyEditorPane;
-    JLabel safetyLoadingLabel;
-    JScrollPane safetyScrollPane;
     JMenu searchBanTitleMenu;
     JButton searchButton;
     JMenu searchMenu;
@@ -8576,6 +8497,5 @@ public class GUI extends JFrame implements GuiListener {
     JList whitelistedList;
     JScrollPane whitelistedScrollPane;
     JButton whitelistedToBlacklistedButton;
-    JButton yesButton;
     // End of variables declaration//GEN-END:variables
 }

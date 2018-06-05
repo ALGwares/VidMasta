@@ -13,6 +13,8 @@ import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.MenuItem;
@@ -43,6 +45,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,25 +53,25 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
+import javax.swing.Box.Filler;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultRowSorter;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
@@ -79,11 +82,11 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SortOrder;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
@@ -124,21 +127,10 @@ public class UI {
         }
     }
 
-    public static void addMouseListener(MouseListener mouseListener, JComponent... components) {
-        for (JComponent component : components) {
+    public static void addMouseListener(MouseListener mouseListener, Component... components) {
+        for (Component component : components) {
             component.addMouseListener(mouseListener);
         }
-    }
-
-    public static void addPopupMenu(final JPopupMenu popupMenu, JComponent... components) {
-        addMouseListener(new AbstractPopupListener() {
-            @Override
-            protected void showPopup(MouseEvent evt) {
-                if (evt.isPopupTrigger()) {
-                    show(popupMenu, evt);
-                }
-            }
-        }, components);
     }
 
     public static void addPopupMenu(final JPopupMenu popupMenu, final SyncTable syncTable, final boolean oneSelectedRowMode) {
@@ -492,10 +484,6 @@ public class UI {
                 }
             }
         }
-        show2(window);
-    }
-
-    public static void show2(final Window window) {
         if (window instanceof Dialog && ((Dialog) window).isModal()) {
             final Iterable<Window> windows = hideNonModalDialogs();
             window.addComponentListener(new ComponentAdapter() {
@@ -782,8 +770,8 @@ public class UI {
     }
 
     public static String about() {
-        return "<html><head></head><body><table cellpadding=\"5\"><tr><td>" + Constant.HTML_FONT + Constant.APP_TITLE + "<br><br>" + Str.str("version") + ' '
-                + Str.getNumFormat(Constant.VERSION_FORMAT).format(Constant.APP_VERSION) + "<br><br>" + Str.str("createdBy")
+        return "<html><head></head><body><table cellpadding=\"5\"><tr><td>" + System.getProperty("htmlFont1") + Constant.APP_TITLE + "<br><br>" + Str.str(
+                "version") + ' ' + Str.getNumFormat(Constant.VERSION_FORMAT).format(Constant.APP_VERSION) + "<br><br>" + Str.str("createdBy")
                 + "</font></td></tr></table></body></html>";
     }
 
@@ -900,78 +888,71 @@ public class UI {
         }
     }
 
-    public static JTextArea textArea(String msg, MouseListener listener) {
-        JTextArea textArea = new JTextArea();
-        textArea.setSize(300, 200);
-        JOptionPane tempOptionPane = new JOptionPane();
-        textArea.setForeground(tempOptionPane.getForeground());
-        textArea.setBackground(tempOptionPane.getBackground());
-        textArea.setFont(tempOptionPane.getFont());
-        textArea.setOpaque(false);
-        textArea.setEditable(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setText(msg);
-        textArea.addMouseListener(listener);
-        return textArea;
-    }
+    public static Container container(String msg, AbstractButton autoConfirmButton, AbstractButton dontShowAgainButton, MouseListener listener) {
+        JTextComponent msgTextComponent = new JEditorPane("text/html", msg.startsWith("<html>") ? msg : "<html>" + System.getProperty("htmlFont2") + msg.replace(
+                "\n", "<br>") + "</font></html>");
+        msgTextComponent.setOpaque(false);
+        msgTextComponent.setEditable(false);
+        msgTextComponent.setMargin(new Insets(0, 0, 0, 0));
+        msgTextComponent.addMouseListener(listener);
 
-    public static JEditorPane editorPane(String msg, MouseListener listener) {
-        JEditorPane editorPane = new JEditorPane("text/html", msg);
-        editorPane.setOpaque(false);
-        editorPane.setEditable(false);
-        editorPane.setMaximumSize(null);
-        editorPane.setMinimumSize(null);
-        editorPane.addMouseListener(listener);
-        return editorPane;
-    }
+        JScrollPane msgScrollPane = new JScrollPane();
+        msgScrollPane.setPreferredSize(new Dimension(543, Integer.parseInt(System.getProperty("msgComponentPreferredHeight"))));
+        msgScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        msgScrollPane.setOpaque(false);
+        msgScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        msgScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        msgScrollPane.setViewportView(msgTextComponent);
 
-    public static JPanel optionalPanel(String msg, final JMenuItem menuItem, MouseListener listener) {
-        JTextArea textArea = new JTextArea();
-        textArea.setSize(300, 200);
-        textArea.setOpaque(false);
-        textArea.setEditable(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setColumns(20);
-        textArea.setRows(5);
-        textArea.setText(msg);
-        textArea.addMouseListener(listener);
+        JComponent container = new JPanel(new GridBagLayout());
+        container.setOpaque(false);
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth++;
+        container.add(msgScrollPane, gridBagConstraints);
+        gridBagConstraints.insets = new Insets(4, 0, 0, 0);
+        gridBagConstraints.gridwidth = 1;
+        gridBagConstraints.gridy++;
 
-        final JCheckBox checkBox = new JCheckBox();
-        checkBox.setText(Str.str("GUI.optionalMsgCheckBox.text"));
-        checkBox.setBorder(null);
-        checkBox.setFocusPainted(false);
-        checkBox.setMargin(new Insets(2, 0, 2, 2));
-        checkBox.setOpaque(false);
-        checkBox.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent evt) {
-                menuItem.setSelected(!checkBox.isSelected());
+        Collection<Component> optionalComponents = new ArrayList<Component>(2);
+        List<SimpleEntry<String, AbstractButton>> buttons = Arrays.asList(new SimpleEntry<String, AbstractButton>("autoConfirm", autoConfirmButton),
+                new SimpleEntry<String, AbstractButton>("dontShowAgain", dontShowAgainButton));
+        for (Entry<String, AbstractButton> buttonsEntry : buttons) {
+            AbstractButton button = new JCheckBox("<html>" + System.getProperty("htmlFont2") + Str.str(buttonsEntry.getKey()) + "</font></html>");
+            button.setBorder(null);
+            button.setFocusPainted(false);
+            button.setMargin(new Insets(2, 0, 2, 2));
+            button.setOpaque(false);
+            AbstractButton currButton = buttonsEntry.getValue();
+            if (currButton == null) {
+                buttonsEntry.setValue(button);
+            } else {
+                bindBidirectional(currButton, button, currButton == dontShowAgainButton);
+                optionalComponents.add(button);
+                container.add(button, gridBagConstraints);
+                gridBagConstraints.gridx++;
+                gridBagConstraints.insets = new Insets(4, 4, 0, 0);
             }
-        });
+        }
+        if (optionalComponents.isEmpty()) {
+            Component component = buttons.get(0).getValue();
+            container.add(new Filler(component.getMinimumSize(), component.getPreferredSize(), component.getMaximumSize()), gridBagConstraints);
+        }
 
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        GroupLayout layout = new GroupLayout(panel);
-        panel.setLayout(layout);
-        layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
-                layout.createParallelGroup(Alignment.LEADING, false).addComponent(checkBox).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 354,
-                        GroupLayout.PREFERRED_SIZE)).addContainerGap()));
-        layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(Alignment.TRAILING, layout.createSequentialGroup().addContainerGap(
-                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(textArea, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE).addPreferredGap(
-                        ComponentPlacement.RELATED).addComponent(checkBox).addContainerGap()));
-
-        JOptionPane tempOptionPane = new JOptionPane();
+        Component tempOptionPane = new JOptionPane();
         Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
         Font font = tempOptionPane.getFont();
-        for (JComponent component : new JComponent[]{textArea, checkBox, panel}) {
+        Collection<Component> components = new ArrayList<Component>(optionalComponents);
+        components.add(container);
+        for (Component component : components) {
             component.setForeground(fgColor);
             component.setBackground(bgColor);
             component.setFont(font);
         }
 
-        return panel;
+        return container;
     }
 
     public static void hyperlinkHandler(HyperlinkEvent evt) throws IOException {
@@ -1014,12 +995,17 @@ public class UI {
         return result;
     }
 
-    public static int showOptionDialog(Component parent, Component parentChild, Object msg, String title, int type, boolean confirm, boolean modal) {
+    private static int showOptionDialog(Component parent, Component parentChild, Object msg, String title, int type, boolean confirm, boolean modal) {
         JOptionPane optionPane = new JOptionPane(msg, confirm ? JOptionPane.QUESTION_MESSAGE : type, confirm ? type : JOptionPane.DEFAULT_OPTION);
-        JDialog dialog = optionPane.createDialog(parent, title);
+        Dialog dialog = optionPane.createDialog(parent, title);
         dialog.setAlwaysOnTop(true);
         dialog.setModal(modal);
-        if (parentChild != null && parent != null) {
+        if (parent == null) {
+            centerOnScreen(dialog);
+        } else if (parentChild == null) {
+            Point location = parent.getLocationOnScreen();
+            dialog.setLocation(location.x + ((parent.getWidth() - dialog.getWidth()) / 2), location.y + ((parent.getHeight() - dialog.getHeight()) / 2));
+        } else {
             Point location = parentChild.getLocationOnScreen();
             int y = location.y + parentChild.getHeight() - dialog.getHeight();
             dialog.setLocation(location.x, y < 0 ? 0 : y);
@@ -1027,6 +1013,29 @@ public class UI {
         dialog.setVisible(true);
         Object val = optionPane.getValue();
         return val instanceof Integer ? (Integer) val : -1;
+    }
+
+    public static void bindBidirectional(final AbstractButton primaryButton, final AbstractButton secondaryButton, final boolean inverse) {
+        ItemListener primaryButtonItemListener = new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent evt) {
+                boolean isSelected = primaryButton.isSelected() ^ inverse;
+                if (secondaryButton.isSelected() != isSelected) {
+                    secondaryButton.setSelected(isSelected);
+                }
+            }
+        };
+        primaryButton.addItemListener(primaryButtonItemListener);
+        primaryButtonItemListener.itemStateChanged(null);
+        secondaryButton.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent evt) {
+                boolean isSelected = secondaryButton.isSelected() ^ inverse;
+                if (primaryButton.isSelected() != isSelected) {
+                    primaryButton.setSelected(isSelected);
+                }
+            }
+        });
     }
 
     private UI() {

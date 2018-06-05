@@ -50,7 +50,6 @@ public class VideoFinder extends Worker {
     private Collection<Torrent> torrents;
     private Collection<TorrentFinder> torrentFinders;
     private TorrentSearchState searchState;
-    private static volatile CommentsFinder commentsFinder;
     private static final Object TV_CHOICES_LOCK = new Object(), DOWNLOAD_LOCK = new Object(), VIDEO_LOCK = new Object();
     private final Runnable rerunner;
 
@@ -400,27 +399,36 @@ public class VideoFinder extends Worker {
             } else if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                 saveTorrentHelper(torrent);
             } else if (torrent.ID.isEmpty()) {
-                if (guiListener.canProceedWithUnsafeDownload(torrent.name())) {
+                if (guiListener.canProceedWithUnsafeDownload(torrent.name(), 0, 0, null, null)) {
                     saveTorrentHelper(torrent);
                 } else {
                     addVideoToPlaylist();
                 }
             } else {
-                String torrentSaveName = torrent.name();
-                guiListener.initSafetyDialog(torrentSaveName);
-
-                if (commentsFinder != null) {
-                    commentsFinder.cancel(true);
+                int numFakeComments = 0, numComments = 0;
+                String comments = null;
+                try {
+                    Collection<String> commentsArr = Regex.matches(Connection.getSourceCode(torrent.COMMENTS_LINK, DomainType.DOWNLOAD_LINK_INFO, true, true),
+                            151);
+                    if ((numComments = commentsArr.size()) != 0) {
+                        StringBuilder commentsBuf = new StringBuilder(4096);
+                        int number = 0;
+                        for (String comment : commentsArr) {
+                            commentsBuf.append(++number).append(". ").append(Regex.htmlToPlainText(Regex.replaceAllRepeatedly(comment, 672))).append(
+                                    Constant.STD_NEWLINE2);
+                            if (!Regex.firstMatch(comment, 153).isEmpty()) {
+                                numFakeComments++;
+                            }
+                        }
+                        comments = commentsBuf.toString();
+                    }
+                } catch (Exception e) {
+                    error(e);
                 }
-
-                commentsFinder = new CommentsFinder(guiListener, torrent.COMMENTS_LINK, torrentSaveName);
-                commentsFinder.execute();
-
-                guiListener.showSafetyDialog();
-
-                commentsFinder.cancel(true);
-
-                if (guiListener.canProceedWithUnsafeDownload()) {
+                if (isCancelled()) {
+                    return;
+                }
+                if (guiListener.canProceedWithUnsafeDownload(torrent.name(), numFakeComments, numComments, torrent.COMMENTS_LINK, comments)) {
                     saveTorrentHelper(torrent);
                 } else {
                     addVideoToPlaylist();
@@ -973,9 +981,5 @@ public class VideoFinder extends Worker {
             guiListener.setSummary(summary, ROW, video.ID);
             video.summary = summary;
         }
-    }
-
-    public static String getComments() {
-        return commentsFinder == null || commentsFinder.comments == null ? Str.str("noComments") + Constant.STD_NEWLINE2 : commentsFinder.comments;
     }
 }
