@@ -112,6 +112,9 @@ import javax.swing.JTextPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.RootPaneContainer;
@@ -540,7 +543,7 @@ public class GUI extends JFrame implements GuiListener {
         }
 
         try {
-            trayIcon = UI.addMinimizeToTraySupport(this);
+            trayIcon = UI.addMinimizeToTraySupport(this, iconifyMenuItem);
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -957,6 +960,7 @@ public class GUI extends JFrame implements GuiListener {
         fileMenuSeparator1 = new Separator();
         printMenuItem = new JMenuItem();
         fileMenuSeparator2 = new Separator();
+        iconifyMenuItem = new JMenuItem();
         exitMenuItem = new JMenuItem();
         editMenu = new JMenu();
         cutMenuItem = new JMenuItem();
@@ -3493,6 +3497,10 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.add(printMenuItem);
         fileMenu.add(fileMenuSeparator2);
 
+        iconifyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.SHIFT_MASK));
+        iconifyMenuItem.setText(bundle.getString("GUI.iconifyMenuItem.text")); // NOI18N
+        fileMenu.add(iconifyMenuItem);
+
         exitMenuItem.setText(bundle.getString("GUI.exitMenuItem.text")); // NOI18N
         exitMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -4964,7 +4972,7 @@ public class GUI extends JFrame implements GuiListener {
             proxyFileChooser.setSelectedFile(new File(proxyImportFile));
         }
         UI.nonModalDialogsToBackground(proxyFileChooser);
-        if (proxyFileChooser.showOpenDialog(showing()) == JFileChooser.APPROVE_OPTION) {
+        if (proxyFileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             try {
                 File proxyFile = proxyFileChooser.getSelectedFile();
                 proxyImportFile = proxyFile.getPath();
@@ -4988,7 +4996,7 @@ public class GUI extends JFrame implements GuiListener {
         proxyFileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
         proxyFileChooser.setSelectedFile(new File(proxyExportFile.isEmpty() ? Constant.PROXIES : proxyExportFile));
         UI.nonModalDialogsToBackground(proxyFileChooser);
-        if (proxyFileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION) {
+        if (proxyFileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             try {
                 Collection<String> proxies = new ArrayList<String>(numProxies - 1);
                 StringBuilder proxiesBuf = new StringBuilder(2048);
@@ -5929,7 +5937,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_hearSummaryMenuItemActionPerformed
 
     private void banTitleMenuMenuSelected(MenuEvent evt) {//GEN-FIRST:event_banTitleMenuMenuSelected
-        JMenu menu = (JMenu) evt.getSource();
+        Container menu = (Container) evt.getSource();
         menu.removeAll();
         List<String> titles = new ArrayList<String>(100);
 
@@ -5954,23 +5962,9 @@ public class GUI extends JFrame implements GuiListener {
             menuItem.setEnabled(false);
             menu.add(menuItem);
         } else {
-            JMenu currMenu = menu;
-            for (int i = 0, j = 35; i < numTitles; i++) {
-                final String title = titles.get(i);
-                final AbstractButton banTitleButton = (i == 0 && unbannedTitle ? new JCheckBoxMenuItem(title, null, bannedTitles.contains(title))
-                        : new JCheckBoxMenuItem(title, null, bannedTitles.contains(title)) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void processMouseEvent(MouseEvent evt) {
-                                if (evt.getID() == MouseEvent.MOUSE_RELEASED && contains(evt.getPoint())) {
-                                    doClick();
-                                    setArmed(true);
-                                } else {
-                                    super.processMouseEvent(evt);
-                                }
-                            }
-                        });
+            if (unbannedTitle) {
+                final String title = titles.get(0);
+                final AbstractButton banTitleButton = new JCheckBoxMenuItem(title);
                 banTitleButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent evt) {
@@ -5981,13 +5975,48 @@ public class GUI extends JFrame implements GuiListener {
                         }
                     }
                 });
-                if ((unbannedTitle && (i == 1 || (i != 0 && (i - 1) % j == 0))) || (!unbannedTitle && i % j == 0)) {
-                    menu.add(currMenu = new JMenu(" "));
+                menu.add(banTitleButton);
+                if (numTitles > 1) {
+                    menu.add(new Separator());
                 }
-                currMenu.add(banTitleButton);
-                if (i == 0 && unbannedTitle && numTitles > 1) {
-                    currMenu.add(new Separator());
-                }
+                titles.remove(0);
+            }
+            if (!titles.isEmpty()) {
+                JList list = new JList(titles.toArray(Constant.EMPTY_STRS));
+                list.setCellRenderer(new ListCellRenderer() {
+                    private static final long serialVersionUID = 1L;
+                    private final AbstractButton button = new JCheckBoxMenuItem(null, true);
+
+                    @Override
+                    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                        button.setComponentOrientation(list.getComponentOrientation());
+                        button.setForeground(isSelected ? Color.LIGHT_GRAY : list.getForeground());
+                        button.setText((String) value);
+                        button.setEnabled(list.isEnabled());
+                        button.setFont(list.getFont());
+                        button.setSelected(!isSelected);
+                        return button;
+                    }
+                });
+                final ListSelectionModel listSelectionModel = list.getSelectionModel();
+                final ListModel listModel = list.getModel();
+                listSelectionModel.addListSelectionListener(new ListSelectionListener() {
+                    @Override
+                    public void valueChanged(ListSelectionEvent evt) {
+                        for (int i = 0, size = listModel.getSize(); i < size; i++) {
+                            String title = (String) listModel.getElementAt(i);
+                            if (listSelectionModel.isSelectedIndex(i)) {
+                                bannedTitles.remove(title);
+                            } else {
+                                bannedTitles.add(title);
+                            }
+                        }
+                    }
+                });
+                JScrollPane scrollPane = new JScrollPane(list);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                scrollPane.setBorder(null);
+                ((Container) menu.add(new JMenu(" "))).add(scrollPane);
             }
         }
     }//GEN-LAST:event_banTitleMenuMenuSelected
@@ -6037,7 +6066,7 @@ public class GUI extends JFrame implements GuiListener {
 
     int showOptionDialog(Object msg, String title, int type, Boolean confirm) {
         Window alwaysOnTopFocus = resultsToBackground();
-        int result = UI.showOptionDialog(showing(), summaryScrollPane, msg, title, type, confirm);
+        int result = UI.showOptionDialog(this, summaryScrollPane, msg, title, type, confirm);
         resultsToForeground(alwaysOnTopFocus);
         return result;
     }
@@ -6147,10 +6176,6 @@ public class GUI extends JFrame implements GuiListener {
                 }
             }
         }).execute();
-    }
-
-    Component showing() {
-        return UI.isShowing(this) ? this : null;
     }
 
     private Window[] windows() {
@@ -6914,7 +6939,7 @@ public class GUI extends JFrame implements GuiListener {
     private boolean save(JFileChooser fileChooser) {
         Window alwaysOnTopFocus = resultsToBackground();
         UI.nonModalDialogsToBackground(fileChooser);
-        boolean result = (fileChooser.showSaveDialog(showing()) == JFileChooser.APPROVE_OPTION);
+        boolean result = (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION);
         resultsToForeground(alwaysOnTopFocus);
         return result;
     }
@@ -7722,7 +7747,7 @@ public class GUI extends JFrame implements GuiListener {
         Window alwaysOnTopFocus = resultsToBackground();
         activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
         activationDialog.pack();
-        activationDialog.setLocationRelativeTo(showing());
+        activationDialog.setLocationRelativeTo(this);
         UI.show(activationDialog);
         resultsToForeground(alwaysOnTopFocus);
         preferences.putInt(Constant.APP_TITLE, ++count);
@@ -7879,6 +7904,7 @@ public class GUI extends JFrame implements GuiListener {
         genreLabel.setToolTipText(Str.str("GUI.genreLabel.toolTipText"));
         helpMenu.setText(Str.str("GUI.helpMenu.text"));
         hideMenuItem.setText(Str.str("GUI.hideMenuItem.text"));
+        iconifyMenuItem.setText(Str.str("GUI.iconifyMenuItem.text"));
         languageCountryDialog.setTitle(Str.str("GUI.languageCountryDialog.title"));
         languageCountryMenuItem.setText(Str.str("GUI.languageCountryMenuItem.text"));
         languageCountryOkButton.setText(Str.str("GUI.languageCountryOkButton.text"));
@@ -8259,6 +8285,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator helpMenuSeparator1;
     Separator helpMenuSeparator2;
     JMenuItem hideMenuItem;
+    JMenuItem iconifyMenuItem;
     JRadioButtonMenuItem italianRadioButtonMenuItem;
     ButtonGroup languageButtonGroup;
     JDialog languageCountryDialog;

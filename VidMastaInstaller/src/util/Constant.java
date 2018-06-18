@@ -5,7 +5,7 @@ import java.util.Locale;
 
 public interface Constant {
 
-    double APP_VERSION = 25.3;
+    double APP_VERSION = 25.4;
     String EXE_INSTALLER = "https://github.com/ALGwares/VidMasta/releases/download/v" + APP_VERSION + "/vidmasta-setup-" + APP_VERSION + ".exe";
     String JAR_INSTALLER = "https://github.com/ALGwares/VidMasta/releases/download/v" + APP_VERSION + "/vidmasta-setup-" + APP_VERSION + ".jar";
     String EXE_UPDATE_INSTALLER = "https://github.com/ALGwares/VidMasta/releases/download/none/auto-vidmasta-setup-" + APP_VERSION + ".exe";

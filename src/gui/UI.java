@@ -21,6 +21,7 @@ import java.awt.MenuItem;
 import java.awt.Point;
 import java.awt.PopupMenu;
 import java.awt.Rectangle;
+import java.awt.SecondaryLoop;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
@@ -102,9 +103,11 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTML.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import str.Str;
+import util.AbstractWorker;
 import util.Connection;
 import util.Constant;
 import util.ThrowableUtil;
+import util.Worker;
 
 public class UI {
 
@@ -542,10 +545,6 @@ public class UI {
         frame.setExtendedState(frame.getExtendedState() & ~Frame.ICONIFIED);
     }
 
-    public static boolean isShowing(Frame frame) {
-        return frame.isShowing() && (frame.getExtendedState() & Frame.ICONIFIED) != Frame.ICONIFIED;
-    }
-
     public static void addHyperlinkListener(final JEditorPane editorPane, final HyperlinkListener hyperlinkListener) {
         if (!Constant.MAC) {
             editorPane.addHyperlinkListener(hyperlinkListener);
@@ -593,23 +592,10 @@ public class UI {
         return ((DefaultRowSorter<?, ?>) table.getRowSorter()).getRowFilter() == null ? table.getModel().getRowCount() : table.getRowCount();
     }
 
-    private static Component getIconifyComponent(JFrame frame) {
-        for (Component contentPaneComponent : frame.getRootPane().getLayeredPane().getComponentsInLayer(JLayeredPane.FRAME_CONTENT_LAYER)) {
-            if (contentPaneComponent instanceof Container && "RootPane.titlePane".equals(contentPaneComponent.getName())) {
-                for (Component titlePaneComponent : ((Container) contentPaneComponent).getComponents()) {
-                    if ("RootPane.titlePane.iconifyButton".equals(titlePaneComponent.getName())) {
-                        return titlePaneComponent;
-                    }
-                }
-                return null;
-            }
-        }
-        return null;
-    }
-
-    public static TrayIcon addMinimizeToTraySupport(final JFrame frame) {
-        Component iconify;
-        if (!SystemTray.isSupported() || (iconify = getIconifyComponent(frame)) == null) {
+    public static TrayIcon addMinimizeToTraySupport(final JFrame frame, AbstractButton iconify) {
+        if (!SystemTray.isSupported()) {
+            iconify.setEnabled(false);
+            iconify.setVisible(false);
             return null;
         }
 
@@ -651,21 +637,39 @@ public class UI {
         trayIcon.setPopupMenu(trayPopupMenu);
         updateTrayIconLabels(trayIcon, frame);
 
-        iconify.addMouseListener(new MouseAdapter() {
+        final ActionListener iconfiyActionListener = new ActionListener() {
             @Override
-            public void mousePressed(MouseEvent evt) {
-                if (evt.getButton() == MouseEvent.BUTTON3) {
-                    try {
-                        SystemTray.getSystemTray().add(trayIcon);
-                        frame.setVisible(false);
-                    } catch (Exception e) {
-                        if (Debug.DEBUG) {
-                            Debug.print(e);
-                        }
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    SystemTray.getSystemTray().add(trayIcon);
+                    frame.setVisible(false);
+                } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                        Debug.print(e);
                     }
                 }
             }
-        });
+        };
+        iconify.addActionListener(iconfiyActionListener);
+        outer:
+        for (Component contentPaneComponent : frame.getRootPane().getLayeredPane().getComponentsInLayer(JLayeredPane.FRAME_CONTENT_LAYER)) {
+            if (contentPaneComponent instanceof Container && "RootPane.titlePane".equals(contentPaneComponent.getName())) {
+                for (Component titlePaneComponent : ((Container) contentPaneComponent).getComponents()) {
+                    if ("RootPane.titlePane.iconifyButton".equals(titlePaneComponent.getName())) {
+                        titlePaneComponent.addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mousePressed(MouseEvent evt) {
+                                if (evt.getButton() == MouseEvent.BUTTON3) {
+                                    iconfiyActionListener.actionPerformed(null);
+                                }
+                            }
+                        });
+                        break outer;
+                    }
+                }
+                break;
+            }
+        }
 
         return trayIcon;
     }
@@ -995,24 +999,72 @@ public class UI {
         return result;
     }
 
-    private static int showOptionDialog(Component parent, Component parentChild, Object msg, String title, int type, boolean confirm, boolean modal) {
+    private static int showOptionDialog(final Component parent, Component parentChild, Object msg, String title, int type, boolean confirm, boolean modal) {
         JOptionPane optionPane = new JOptionPane(msg, confirm ? JOptionPane.QUESTION_MESSAGE : type, confirm ? type : JOptionPane.DEFAULT_OPTION);
         Dialog dialog = optionPane.createDialog(parent, title);
         dialog.setAlwaysOnTop(true);
         dialog.setModal(modal);
-        if (parent == null) {
-            centerOnScreen(dialog);
-        } else if (parentChild == null) {
-            Point location = parent.getLocationOnScreen();
-            dialog.setLocation(location.x + ((parent.getWidth() - dialog.getWidth()) / 2), location.y + ((parent.getHeight() - dialog.getHeight()) / 2));
-        } else {
-            Point location = parentChild.getLocationOnScreen();
-            int y = location.y + parentChild.getHeight() - dialog.getHeight();
-            dialog.setLocation(location.x, y < 0 ? 0 : y);
+        try {
+            wait(new Callable<Boolean>() {
+                @Override
+                public Boolean call() {
+                    return parent.isShowing() && (!(parent instanceof Frame) || (((Frame) parent).getExtendedState() & Frame.ICONIFIED) != Frame.ICONIFIED);
+                }
+            });
+            if (parentChild == null) {
+                Point location = parent.getLocationOnScreen();
+                dialog.setLocation(location.x + ((parent.getWidth() - dialog.getWidth()) / 2), location.y + ((parent.getHeight() - dialog.getHeight()) / 2));
+            } else {
+                Point location = parentChild.getLocationOnScreen();
+                int y = location.y + parentChild.getHeight() - dialog.getHeight();
+                dialog.setLocation(location.x, y < 0 ? 0 : y);
+            }
+        } catch (Exception e) {
+            if (Debug.DEBUG) {
+                Debug.print(e);
+            }
+            try {
+                centerOnScreen(dialog);
+            } catch (Exception e2) {
+                if (Debug.DEBUG) {
+                    Debug.print(e2);
+                }
+            }
         }
         dialog.setVisible(true);
         Object val = optionPane.getValue();
         return val instanceof Integer ? (Integer) val : -1;
+    }
+
+    public static void wait(final Callable<Boolean> wakeUp) throws Exception {
+        if (wakeUp.call()) {
+            return;
+        }
+
+        final SecondaryLoop loop = Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
+        Worker worker = new Worker() {
+            @Override
+            protected void doWork() throws Exception {
+                try {
+                    while (!UI.run(wakeUp)) {
+                        Thread.sleep(250);
+                    }
+                } finally {
+                    Callable<Boolean> exit = new Callable<Boolean>() {
+                        @Override
+                        public Boolean call() {
+                            return loop.exit();
+                        }
+                    };
+                    while (!UI.run(exit)) {
+                        Thread.sleep(250);
+                    }
+                }
+            }
+        };
+        worker.execute();
+        loop.enter();
+        AbstractWorker.get(worker);
     }
 
     public static void bindBidirectional(final AbstractButton primaryButton, final AbstractButton secondaryButton, final boolean inverse) {

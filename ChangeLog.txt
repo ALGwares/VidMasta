@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.06.18   | VidMasta 25.4
+
+CHANGE: UI   | Improved ability to block being able to re-search specific titles
+CHANGE: UI   | Improved positioning of windows
+
+
+
+
 2018.06.05   | VidMasta 25.3
 
 CHANGE: UI   | Made some modal dialogs non-modal by default
@@ -645,7 +653,7 @@ CHANGE: UI   | Added stop search popup menu item to summary, trailer, download, 
 
 CHANGE: UI   | Show previous episode in summary in addition to next/current episode that is already shown for TV shows
 CHANGE: UI   | Fixed bug in which next episode in summary for TV shows is sometimes too far in the future
-CHANGE: UI   | Fixed minor bug in which cancellation message is sometimes shown when emailing all links is cancelled
+CHANGE: UI   | Fixed minor bug in which cancellation message is sometimes shown when emailing all links is canceled
 CHANGE: UI   | Added ability to reset a profile before clearing it
 CHANGE: UI   | Added some tooltip messages
 
@@ -710,7 +718,7 @@ CHANGE: UI   | Selected all find text when find (under edit menu) functionality 
 
 2014.02.27   | VidMasta 17.1
 
-CHANGE: CORE | Fixed bug in which user interface can become temporarily unresponsive after cancelling a TV show download link search and then quickly starting a download link search again for the first time
+CHANGE: CORE | Fixed bug in which user interface can become temporarily unresponsive after canceling a TV show download link search and then quickly starting a download link search again for the first time
 CHANGE: CORE | Improved file IO error handling for reading files
 CHANGE: UI   | Enabled cancel button for download link searches sooner
 
