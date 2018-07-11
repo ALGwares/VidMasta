@@ -71,11 +71,9 @@ public class VideoFinder extends Worker {
         PREFETCH = prefetch;
         this.rerunner = rerunner;
         foreground = (row != -1);
-        if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD2) {
+        if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD2 || contentType == ContentType.DOWNLOAD3) {
             torrents = new CopyOnWriteArrayList<Torrent>();
             torrentFinders = new ArrayList<TorrentFinder>(12);
-        } else if (contentType == ContentType.DOWNLOAD3) {
-            torrents = new ArrayList<Torrent>(1);
         }
     }
 
@@ -686,12 +684,16 @@ public class VideoFinder extends Worker {
 
         guiListener.altVideoDownloadStarted();
 
+        findAlt2DownloadLink(true);
+        if (isCancelled() || !torrents.isEmpty()) {
+            return;
+        }
+
         String sourceCode;
         try {
             sourceCode = Connection.getSourceCode(Str.get(video.IS_TV_SHOW ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO);
         } catch (Exception e) {
             error(e);
-            findAlt2DownloadLink(true);
             return;
         }
 
@@ -725,22 +727,22 @@ public class VideoFinder extends Worker {
 
                 torrents.add(new Torrent("", magnet.MAGNET_LINK, results[i + 2].trim(), torrent, extensions, null, Integer.parseInt(results[i + 3].trim()) == 1, 0,
                         0));
-                return;
             } catch (Exception e) {
                 error(e);
             }
-            break;
+            return;
         }
-
-        findAlt2DownloadLink(true);
     }
 
     private void findAlt2DownloadLink(boolean singleOrderByMode) throws Exception {
-        if (!isCancelled() && torrents.isEmpty()) {
-            torrents = new CopyOnWriteArrayList<Torrent>();
-            torrentFinders = new ArrayList<TorrentFinder>(1);
-            Magnet.waitForAzureusToStart();
-            addFinder(video.title, "", false, false, false, null, true, singleOrderByMode);
+        torrentFinders.clear();
+        Magnet.waitForAzureusToStart();
+        addFinder(video.title, "", false, false, false, null, true, singleOrderByMode);
+        if (PREFETCH) {
+            for (TorrentFinder finder : torrentFinders) {
+                finder.getTorrents(true);
+            }
+        } else {
             AbstractWorker.executeAndWaitFor(torrentFinders);
         }
     }
@@ -941,7 +943,7 @@ public class VideoFinder extends Worker {
                 }
             }
         });
-        if (!PREFETCH) {
+        if (!isCancelled()) {
             findAlt2DownloadLink(false);
         }
     }

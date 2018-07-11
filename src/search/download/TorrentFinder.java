@@ -91,7 +91,7 @@ public class TorrentFinder extends Worker {
     protected void doWork() {
         if (altSearch) {
             try {
-                getTorrents();
+                getTorrents(false);
             } catch (Exception e) {
                 if (!isCancelled()) {
                     guiListener.error(e);
@@ -223,9 +223,9 @@ public class TorrentFinder extends Worker {
         return true;
     }
 
-    private void getTorrents() throws Exception {
+    public void getTorrents(boolean prefetch) throws Exception {
         String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.ID, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, true, true);
-        if (!isCancelled() && !sourceCode.isEmpty()) {
+        if (!isCancelled() && !sourceCode.isEmpty() && !prefetch) {
             Collection<Torrent> newTorrents = getTorrents(700, sourceCode);
             if (!newTorrents.isEmpty() && !isCancelled()) {
                 torrents.addAll(newTorrents);

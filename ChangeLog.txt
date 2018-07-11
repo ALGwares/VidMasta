@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.07.11   | VidMasta 25.5
+
+CHANGE: CORE | Improved download error handling
+
+
+
+
 2018.06.18   | VidMasta 25.4
 
 CHANGE: UI   | Improved ability to block being able to re-search specific titles
