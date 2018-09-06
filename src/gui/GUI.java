@@ -6736,7 +6736,7 @@ public class GUI extends JFrame implements GuiListener {
                     Container container = UI.container("<html><head><title></title></head><body>" + System.getProperty("htmlFont2") + Str.str(
                             "linkSafetyWarningPart1", name) + (numComments == 0 ? "" : " " + Str.htmlLinkStr("linkSafetyWarningPart2", link, numFakeComments + "/"
                                             + numComments + " (" + Str.percent(numFakeComments / (double) numComments, 1) + ')')) + "<br><br>" + Str.str(
-                                    "linkSafetyWarningPart3") + (autoConfirm ? ' ' + UIManager.getString("OptionPane.yesButtonText") + '.' : "")
+                                    "linkSafetyWarningPart3") + (autoConfirm ? ' ' + UIManager.getString("OptionPane.noButtonText") + '.' : "")
                             + "</font></body></html>", autoConfirmCheckBoxMenuItem, null, textComponentPopupListener);
                     UI.addHyperlinkListener((JEditorPane) ((JScrollPane) container.getComponent(0)).getViewport().getView(), new HyperlinkListener() {
                         @Override
@@ -6759,7 +6759,7 @@ public class GUI extends JFrame implements GuiListener {
                     });
                     if (autoConfirm) {
                         showOptionDialog(container, Constant.APP_TITLE, JOptionPane.WARNING_MESSAGE, null);
-                        return false;
+                        return true;
                     } else {
                         return showOptionDialog(container, Constant.APP_TITLE, JOptionPane.YES_NO_OPTION, true) == JOptionPane.NO_OPTION;
                     }

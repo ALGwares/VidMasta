@@ -1,4 +1,4 @@
-297
+298
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -126,7 +126,7 @@ EMPTY
 \<\s*+/tr\s*+\>
 \<\s*+div\s++class\s*+\=\s*+"detName"\s*+\>\s*+\<\s*+a\s+?[^\<\>]*+\>
 \<\s*+/a\s*+\>
-<\s*+span\s++itemprop\s*+=\s*+"ratingValue"\s*+>
+\=\s*+"ratingValue"\s*+>(\s*+\<\s*+strong[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)?+
 <\s*+/span\s*+>
 (<\s*+p\s*+>\s*+<\s*+/p\s*+>\s*+<\s*+p(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(<\s*+div\s++class\s*+=\s*+"summary_text"(\s++itemprop\s*+=\s*+"description")?+\s*+>)
 (<\s*+/p\s*+>\s*+<\s*+p\s*+>\s*+<\s*+/p\s*+>)|(<\s*+/div\s*+>)

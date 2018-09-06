@@ -684,6 +684,14 @@ public class VideoFinder extends Worker {
 
         guiListener.altVideoDownloadStarted();
 
+        if (video.IS_TV_SHOW) {
+            if (video.season.isEmpty()) {
+                video.season = Constant.ANY;
+            }
+            if (video.episode.isEmpty()) {
+                video.episode = Constant.ANY;
+            }
+        }
         findAlt2DownloadLink(true);
         if (isCancelled() || !torrents.isEmpty()) {
             return;
@@ -762,6 +770,12 @@ public class VideoFinder extends Worker {
                 video.season = guiListener.getSeason();
                 video.episode = guiListener.getEpisode();
             }
+        }
+        if (video.season.isEmpty()) {
+            video.season = Constant.ANY;
+        }
+        if (video.episode.isEmpty()) {
+            video.episode = Constant.ANY;
         }
 
         updateOldTitleAndSummary();

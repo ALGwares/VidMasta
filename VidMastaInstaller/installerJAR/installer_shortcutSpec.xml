@@ -4,7 +4,7 @@
     <programGroup defaultName="VidMasta" location="applications"/>
     <shortcut applications="no" desktop="yes"
         iconFile="$INSTALL_PATH/vidmasta/favicon.ico" iconIndex="0"
-        initialState="noShow" name="VidMasta 25.5" programGroup="yes"
+        initialState="noShow" name="VidMasta 25.6" programGroup="yes"
         startMenu="no" startup="no" target="$INSTALL_PATH/vidmasta/VidMasta.jar"/>
     <shortcut applications="no" desktop="no"
         iconFile="$INSTALL_PATH/vidmasta/favicon.ico" iconIndex="0"
