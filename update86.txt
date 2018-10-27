@@ -1,4 +1,4 @@
-298
+301
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -138,7 +138,7 @@ EMPTY
 (&#x\p{Alnum}++;)|(&#\p{Digit}++;)|(&\p{Alpha}{1,6}+;)
 <\s*+div\s++class\s*+=\s*+"((infobar)|(subtext))"\s*+>
 <\s*+/div\s*+>
-\s++href\s*+=\s*+"/genre/[^>]*+>(<\s*+span[^>]*+>)?+
+\s++href\s*+=\s*+"/((search/title\?genres\=)|(genre/))[^>]*+>(<\s*+span[^>]*+>)?+
 (<\s*+/span\s*+>)?+<\s*+/a\s*+>
 EMPTY
 EMPTY
@@ -682,7 +682,7 @@ EMPTY
 SPACE
 <br>Try using <a href="http://www.videolan.org/">VLC media player</a>.
 http://sourceforge.net/projects/unimediaserver/
-.*\.((?i)(txt)|(nfo)|(html)|(url)|(jpg)|(jpeg)|(png)|(gif)|(ico)|(mp3)|(exe)|(dll))
+.*\.((?i)(txt)|(nfo)|(html)|(url)|(jpg)|(jpeg)|(png)|(gif)|(ico)|(mp3))
 non-subtitle text, image, music, application
 2623383230333B
 (?i)(\s+?)((Episode\s*+)|E)(?!
@@ -720,16 +720,16 @@ https://kat.cr
 http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Windows/UMS-6.6.0-Java7.exe
 http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/OS%20X/UMS-6.6.0-Java7.dmg
 http://master.dl.sourceforge.net/project/unimediaserver/Official%20Releases/Linux/UMS-6.6.0-Java7.tgz
-https://thehiddenbay.ws/search/
-https://thehiddenbay.ws
-https://thehiddenbay.ws
-https://thehiddenbay.ws/search/
-https://thehiddenbay.ws
-https://thehiddenbay.ws:::https://pirateproxy.sh:::https://pirateproxy.net
-https://thehiddenbay.ws
-https://thehiddenbay.ws
-https://thehiddenbay.ws/browse/
-https://thehiddenbay.ws/ajax_details_comments.php?id=
+https://pirateproxy.net/search/
+https://pirateproxy.net
+https://pirateproxy.net
+https://pirateproxy.net/search/
+https://pirateproxy.net
+https://pirateproxy.net:::https://pirateproxy.sh:::https://tpbproxy.rocks
+https://pirateproxy.net
+https://pirateproxy.net
+https://pirateproxy.net/browse/
+https://pirateproxy.net/ajax_details_comments.php?id=
 https://thepiratebay.org
 721,722,723,724,725,727,729,730
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
@@ -774,4 +774,5 @@ https://text-to-speech-demo.ng.bluemix.net/api/synthesize?text=%s&voice=en-US_Al
 (\p{Alnum}++(\.|(&#(((?i)x2E)|(46));))++){2,}+\p{Alnum}*+
 \.|(&#(((?i)x2E)|(46));)
 EMPTY
+.*\.((?i)(lnk)|(tv)|(exe)|(dll)|(bat)|(com)|(reg)|(wma))
 eof

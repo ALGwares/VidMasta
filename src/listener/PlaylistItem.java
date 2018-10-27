@@ -22,6 +22,8 @@ public interface PlaylistItem {
 
     String uri();
 
+    String link();
+
     File groupFile();
 
     int groupIndex();

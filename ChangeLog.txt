@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2018.10.27   | VidMasta 25.7
+
+CHANGE: CORE | Disallowed playing of fake downloads in playlist
+CHANGE: UI   | Added ability to copy download links from playlist
+
+
+
+
 2018.09.06   | VidMasta 25.6
 
 CHANGE: CORE | Improved download error handling

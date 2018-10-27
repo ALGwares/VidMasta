@@ -350,6 +350,7 @@ public class Magnet extends Thread {
         COConfigurationManager.setParameter("UDP.Listen.Port.Enable", true);
         COConfigurationManager.setParameter("UDP.NonData.Listen.Port", port);
         COConfigurationManager.setParameter("UDP.NonData.Listen.Port.Same", true);
+        COConfigurationManager.setParameter("Listen.Port.Randomize.Enable", false);
     }
 
     public static void localeChanged() {

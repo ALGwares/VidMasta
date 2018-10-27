@@ -885,7 +885,10 @@ public class GUI extends JFrame implements GuiListener {
         playlistMoveUpMenuItem = new JMenuItem();
         playlistMoveDownMenuItem = new JMenuItem();
         playlistTablePopupMenuSeparator1 = new Separator();
-        playlistCopyMenuItem = new JMenuItem();
+        playlistCopyMenu = new JMenu();
+        playlistCopySelectionMenuItem = new JMenuItem();
+        playlistCopySeparator = new Separator();
+        playlistCopyDownloadLinkMenuItem = new JMenuItem();
         playlistTablePopupMenuSeparator2 = new Separator();
         playlistRemoveMenuItem = new JMenuItem();
         playlistReloadGroupMenuItem = new JMenuItem();
@@ -2747,14 +2750,27 @@ public class GUI extends JFrame implements GuiListener {
         playlistTablePopupMenu.add(playlistMoveDownMenuItem);
         playlistTablePopupMenu.add(playlistTablePopupMenuSeparator1);
 
-        playlistCopyMenuItem.setText(bundle.getString("GUI.playlistCopyMenuItem.text")); // NOI18N
-        playlistCopyMenuItem.setEnabled(false);
-        playlistCopyMenuItem.addActionListener(new ActionListener() {
+        playlistCopyMenu.setText(bundle.getString("GUI.copyMenu.text")); // NOI18N
+
+        playlistCopySelectionMenuItem.setText(bundle.getString("GUI.copySelectionMenuItem.text")); // NOI18N
+        playlistCopySelectionMenuItem.setEnabled(false);
+        playlistCopySelectionMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                playlistCopyMenuItemActionPerformed(evt);
+                playlistCopySelectionMenuItemActionPerformed(evt);
             }
         });
-        playlistTablePopupMenu.add(playlistCopyMenuItem);
+        playlistCopyMenu.add(playlistCopySelectionMenuItem);
+        playlistCopyMenu.add(playlistCopySeparator);
+
+        playlistCopyDownloadLinkMenuItem.setText(bundle.getString("GUI.copyDownloadLink1MenuItem.text")); // NOI18N
+        playlistCopyDownloadLinkMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                playlistCopyDownloadLinkMenuItemActionPerformed(evt);
+            }
+        });
+        playlistCopyMenu.add(playlistCopyDownloadLinkMenuItem);
+
+        playlistTablePopupMenu.add(playlistCopyMenu);
         playlistTablePopupMenu.add(playlistTablePopupMenuSeparator2);
 
         playlistRemoveMenuItem.setText(bundle.getString("GUI.playlistRemoveMenuItem.text")); // NOI18N
@@ -4464,13 +4480,14 @@ public class GUI extends JFrame implements GuiListener {
             return;
         }
 
-        Component[] components = {playlistRemoveButton, playlistRemoveMenuItem, playlistCopyMenuItem, playlistMoveDownButton, playlistMoveDownMenuItem,
+        Component[] components = {playlistRemoveButton, playlistRemoveMenuItem, playlistCopySelectionMenuItem, playlistMoveDownButton, playlistMoveDownMenuItem,
             playlistMoveUpButton, playlistMoveUpMenuItem};
         UI.enable(false, components);
         int[] selectedRows;
         if (evt.getFirstIndex() >= 0 && (selectedRows = playlistSyncTable.getSelectedRows()).length >= 1) {
             UI.enable(true, selectedRows.length == 1 ? (UI.getUnfilteredRowCount(playlistSyncTable) == 1 ? new Component[]{playlistRemoveButton,
-                playlistRemoveMenuItem, playlistCopyMenuItem} : components) : new Component[]{playlistRemoveButton, playlistRemoveMenuItem, playlistCopyMenuItem});
+                playlistRemoveMenuItem, playlistCopySelectionMenuItem} : components) : new Component[]{playlistRemoveButton, playlistRemoveMenuItem,
+                playlistCopySelectionMenuItem});
         }
         refreshPlaylistControls();
     }
@@ -5750,11 +5767,11 @@ public class GUI extends JFrame implements GuiListener {
         playlistRemoveButtonActionPerformed(null);
     }//GEN-LAST:event_playlistRemoveMenuItemActionPerformed
 
-    private void playlistCopyMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistCopyMenuItemActionPerformed
+    private void playlistCopySelectionMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistCopySelectionMenuItemActionPerformed
         if (playlistSyncTable.getSelectedRowCount() != 0) {
             playlistTableCopyListener.actionPerformed(new ActionEvent(playlistSyncTable, 0, Constant.COPY));
         }
-    }//GEN-LAST:event_playlistCopyMenuItemActionPerformed
+    }//GEN-LAST:event_playlistCopySelectionMenuItemActionPerformed
 
     private void playlistOpenMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistOpenMenuItemActionPerformed
         playlistOpenButtonActionPerformed(null);
@@ -6028,6 +6045,13 @@ public class GUI extends JFrame implements GuiListener {
     private void searchBanTitleMenuMenuSelected(MenuEvent evt) {//GEN-FIRST:event_searchBanTitleMenuMenuSelected
         banTitleMenuMenuSelected(evt);
     }//GEN-LAST:event_searchBanTitleMenuMenuSelected
+
+    private void playlistCopyDownloadLinkMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistCopyDownloadLinkMenuItemActionPerformed
+        PlaylistItem playlistItem = selectedPlaylistItem();
+        if (playlistItem != null) {
+            UI.exportToClipboard(playlistItem.link());
+        }
+    }//GEN-LAST:event_playlistCopyDownloadLinkMenuItemActionPerformed
 
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
@@ -7335,7 +7359,7 @@ public class GUI extends JFrame implements GuiListener {
             playlistBanGroupButton.setIcon(banIcon);
             playlistBanGroupMenuItem.setText(Str.str("banGroup"));
             UI.enable(false, playlistBanGroupButton, playlistBanGroupMenuItem, playlistReloadGroupButton, playlistReloadGroupMenuItem, playlistOpenButton,
-                    playlistOpenMenuItem);
+                    playlistOpenMenuItem, playlistCopyDownloadLinkMenuItem);
             if (playlistItems == null) {
                 playlistPlayButton.setIcon(playIcon);
                 playlistPlayMenuItem.setText(Str.str("play"));
@@ -7350,6 +7374,7 @@ public class GUI extends JFrame implements GuiListener {
             playlistBanGroupButton.setEnabled(canBan);
             playlistBanGroupMenuItem.setText(Str.str((isBanned ? "un" : "") + "banGroup"));
             playlistBanGroupMenuItem.setEnabled(canBan);
+            playlistCopyDownloadLinkMenuItem.setEnabled(canBan);
             UI.enable(playlistItem.canOpen(), playlistReloadGroupButton, playlistReloadGroupMenuItem, playlistOpenButton, playlistOpenMenuItem);
         }
         boolean play = playlistItem.canPlay(), active = playlistItem.isActive();
@@ -7928,7 +7953,9 @@ public class GUI extends JFrame implements GuiListener {
         peerBlockNotificationCheckBoxMenuItem.setText(Str.str("GUI.peerBlockNotificationCheckBoxMenuItem.text"));
         playlistAutoOpenCheckBoxMenuItem.setText(Str.str("GUI.playlistAutoOpenCheckBoxMenuItem.text"));
         playlistBanGroupButton.setToolTipText(Str.str("GUI.playlistBanGroupButton.toolTipText"));
-        playlistCopyMenuItem.setText(Str.str("GUI.playlistCopyMenuItem.text"));
+        playlistCopyDownloadLinkMenuItem.setText(Str.str("GUI.copyDownloadLink1MenuItem.text"));
+        playlistCopyMenu.setText(Str.str("GUI.copyMenu.text"));
+        playlistCopySelectionMenuItem.setText(Str.str("GUI.copySelectionMenuItem.text"));
         playlistDownloaderRadioButtonMenuItem.setText(Str.str("GUI.playlistDownloaderRadioButtonMenuItem.text"));
         playlistMenu.setText(Str.str("GUI.playlistMenu.text"));
         playlistMenuItem.setText(Str.str("GUI.playlistMenuItem.text"));
@@ -8325,7 +8352,10 @@ public class GUI extends JFrame implements GuiListener {
     JCheckBoxMenuItem playlistAutoOpenCheckBoxMenuItem;
     JButton playlistBanGroupButton;
     JMenuItem playlistBanGroupMenuItem;
-    JMenuItem playlistCopyMenuItem;
+    JMenuItem playlistCopyDownloadLinkMenuItem;
+    JMenu playlistCopyMenu;
+    JMenuItem playlistCopySelectionMenuItem;
+    Separator playlistCopySeparator;
     JRadioButtonMenuItem playlistDownloaderRadioButtonMenuItem;
     JFileChooser playlistFileChooser;
     JTextField playlistFindTextField;
