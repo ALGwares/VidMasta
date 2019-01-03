@@ -177,9 +177,8 @@ public class GUI extends JFrame implements GuiListener {
     private static final Preferences preferences = Preferences.userNodeForPackage(GUI.class);
 
     private WorkerListener workerListener;
-    private boolean isRegularSearcher = true, cancelTVSelection, isAltSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay, forcePlaylistDownloader = true;
+    private boolean isRegularSearcher = true, cancelTVSelection, isAltSearch, isSubtitleMatch1, isTVShowSubtitle, forcePlay;
     private MenuElement popularSearchMenuElement;
-    boolean viewedPortBefore;
     private final AtomicBoolean isPlaylistRestored = new AtomicBoolean(), playlistShown = new AtomicBoolean();
     private final Set<String> bannedTitles = new ConcurrentSkipListSet<String>();
     private final Set<Long> bannedDownloadIDs = new CopyOnWriteArraySet<Long>();
@@ -210,7 +209,7 @@ public class GUI extends JFrame implements GuiListener {
     private final Map<String, Icon> posters = new ConcurrentHashMap<String, Icon>(100);
     final BlockingQueue<String> posterImagePaths = new LinkedBlockingQueue<String>();
     private Thread posterCacher;
-    private JTextFieldDateEditor startDateTextField, endDateTextField;
+    private JTextComponent startDateTextComponent, endDateTextComponent;
     private TrayIcon trayIcon;
     boolean usePeerBlock;
     private volatile Worker timedMsgThread;
@@ -225,6 +224,10 @@ public class GUI extends JFrame implements GuiListener {
         this.workerListener = workerListener;
 
         initComponents();
+        startDateTextComponent = (JTextComponent) startDateChooser.getDateEditor().getUiComponent();
+        endDateTextComponent = (JTextComponent) endDateChooser.getDateEditor().getUiComponent();
+        UI.addUndoRedoSupport(titleTextField, findTextField, playlistFindTextField, startDateTextComponent, endDateTextComponent, profileNameChangeTextField,
+                addProxiesTextArea, customExtensionTextField, portTextField, authenticationUsernameTextField, authenticationPasswordField);
         updateToggleButtons(true);
         initFileNameExtensionFilters();
 
@@ -251,8 +254,6 @@ public class GUI extends JFrame implements GuiListener {
             calendar.setTodayButtonVisible(true);
             calendar.setNullDateButtonVisible(true);
         }
-        startDateTextField = (JTextFieldDateEditor) startDateChooser.getDateEditor().getUiComponent();
-        endDateTextField = (JTextFieldDateEditor) endDateChooser.getDateEditor().getUiComponent();
 
         ActionListener enterKeyListener = new ActionListener() {
             @Override
@@ -261,7 +262,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         };
         KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false);
-        for (JComponent component : new JComponent[]{titleTextField, genreList, typeComboBox, ratingComboBox, startDateTextField, endDateTextField}) {
+        for (JComponent component : new JComponent[]{titleTextField, genreList, typeComboBox, ratingComboBox, startDateTextComponent, endDateTextComponent}) {
             component.registerKeyboardAction(enterKeyListener, "Enter", enterKey, JComponent.WHEN_FOCUSED);
         }
 
@@ -288,7 +289,7 @@ public class GUI extends JFrame implements GuiListener {
             }
         }, titleTextField, findTextField, playlistFindTextField, addProxiesTextArea, profileNameChangeTextField, customExtensionTextField, portTextField,
                 commentsTextPane, msgEditorPane, faqEditorPane, aboutEditorPane, summaryEditorPane, authenticationUsernameTextField, authenticationPasswordField,
-                startDateTextField, endDateTextField, activationTextField);
+                startDateTextComponent, endDateTextComponent);
 
         UI.addMouseListener(new AbstractPopupListener() {
             @Override
@@ -451,7 +452,8 @@ public class GUI extends JFrame implements GuiListener {
         UI.add(downloadQualityButtonGroup, downloadAnyQualityRadioButtonMenuItem, downloadHighQualityRadioButtonMenuItem, downloadDVDQualityRadioButtonMenuItem,
                 download720HDQualityRadioButtonMenuItem, download1080HDRadioButtonMenuItem);
         UI.add(downloaderButtonGroup, playlistDownloaderRadioButtonMenuItem, webBrowserAppDownloaderRadioButtonMenuItem,
-                webBrowserAltAppDownloaderRadioButtonMenuItem, defaultApplicationDownloaderRadioButtonMenuItem, noDownloaderRadioButtonMenuItem);
+                webBrowserAppDownloaderRadioButtonMenuItem /* Backward compatibility */, defaultApplicationDownloaderRadioButtonMenuItem,
+                noDownloaderRadioButtonMenuItem);
 
         UI.setIcon(popularPopupMenuButton, "more");
         loadingIcon = UI.icon("loading.gif");
@@ -513,12 +515,9 @@ public class GUI extends JFrame implements GuiListener {
         String escapeKeyWindowClosingActionMapKey = "VK_ESCAPE:WINDOW_CLOSING", enterKeyWindowClosingActionMapKey = "VK_ENTER:WINDOW_CLOSING";
         KeyStroke escapeKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
         Image icon = Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png");
-
         timedMsgDialog.setIconImage(icon);
-        Collection<Window> windows = new ArrayList<Window>(Arrays.asList(windows()));
-        windows.add(activationDialog);
 
-        for (final Window window : windows) {
+        for (final Window window : windows()) {
             window.setIconImage(icon);
             if (window == this) {
                 continue;
@@ -536,10 +535,8 @@ public class GUI extends JFrame implements GuiListener {
             ActionMap actionMap = root.getActionMap();
             inputMap.put(escapeKey, escapeKeyWindowClosingActionMapKey);
             actionMap.put(escapeKeyWindowClosingActionMapKey, windowClosingAction);
-            if (window != activationDialog) {
-                inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
-                actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
-            }
+            inputMap.put(enterKey, enterKeyWindowClosingActionMapKey);
+            actionMap.put(enterKeyWindowClosingActionMapKey, windowClosingAction);
         }
 
         try {
@@ -618,10 +615,6 @@ public class GUI extends JFrame implements GuiListener {
             tvSubtitleDownloadMatch2Button}) {
             UI.resize(AbstractComponent.newInstance(button), stop, button.getName());
         }
-
-        licenseActivationStarted();
-        UI.resize(AbstractComponent.newInstance(activationUpgradeButton), activationUpgradeButton.getText());
-        licenseActivationStopped();
     }
 
     private void resizeExitBackupModeButton() {
@@ -894,9 +887,6 @@ public class GUI extends JFrame implements GuiListener {
         playlistReloadGroupMenuItem = new JMenuItem();
         playlistTablePopupMenuSeparator3 = new Separator();
         playlistBanGroupMenuItem = new JMenuItem();
-        activationDialog = new JDialog();
-        activationUpgradeButton = new JButton();
-        activationTextField = new JTextField();
         languageButtonGroup = new ButtonGroup();
         trailerPlayerButtonGroup = new ButtonGroup();
         downloadQualityButtonGroup = new ButtonGroup();
@@ -1037,7 +1027,6 @@ public class GUI extends JFrame implements GuiListener {
         downloaderMenu = new JMenu();
         playlistDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         webBrowserAppDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
-        webBrowserAltAppDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         defaultApplicationDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         noDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         helpMenu = new JMenu();
@@ -2799,48 +2788,6 @@ public class GUI extends JFrame implements GuiListener {
         });
         playlistTablePopupMenu.add(playlistBanGroupMenuItem);
 
-        activationDialog.setTitle(Constant.APP_TITLE);
-        activationDialog.setAlwaysOnTop(true);
-        activationDialog.setIconImage(null);
-        activationDialog.setModal(true);
-        activationDialog.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent evt) {
-                activationDialogWindowClosing(evt);
-            }
-        });
-
-        activationUpgradeButton.setText(bundle.getString("GUI.activationUpgradeButton.text")); // NOI18N
-        activationUpgradeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                activationUpgradeButtonActionPerformed(evt);
-            }
-        });
-
-        activationTextField.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                activationTextFieldKeyPressed(evt);
-            }
-        });
-
-        GroupLayout activationDialogLayout = new GroupLayout(activationDialog.getContentPane());
-        activationDialog.getContentPane().setLayout(activationDialogLayout);
-        activationDialogLayout.setHorizontalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(activationDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(activationUpgradeButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(activationTextField))
-                .addContainerGap())
-        );
-        activationDialogLayout.setVerticalGroup(activationDialogLayout.createParallelGroup(Alignment.LEADING)
-            .addGroup(activationDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(activationUpgradeButton)
-                .addGap(6, 6, 6)
-                .addComponent(activationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-
         resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         resultsScrollPane.setAutoscrolls(true);
 
@@ -3491,7 +3438,7 @@ public class GUI extends JFrame implements GuiListener {
         profileMenu.add(profile9MenuItem);
         profileMenu.add(profileMenuSeparator1);
 
-        editProfilesMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
+        editProfilesMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         editProfilesMenuItem.setText(bundle.getString("GUI.editProfilesMenuItem.text")); // NOI18N
         editProfilesMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -3513,7 +3460,7 @@ public class GUI extends JFrame implements GuiListener {
         fileMenu.add(printMenuItem);
         fileMenu.add(fileMenuSeparator2);
 
-        iconifyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.SHIFT_MASK));
+        iconifyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK));
         iconifyMenuItem.setText(bundle.getString("GUI.iconifyMenuItem.text")); // NOI18N
         fileMenu.add(iconifyMenuItem);
 
@@ -3888,9 +3835,6 @@ public class GUI extends JFrame implements GuiListener {
 
         webBrowserAppDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text")); // NOI18N
         downloaderMenu.add(webBrowserAppDownloaderRadioButtonMenuItem);
-
-        webBrowserAltAppDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.webBrowserAltAppDownloaderRadioButtonMenuItem.text")); // NOI18N
-        downloaderMenu.add(webBrowserAltAppDownloaderRadioButtonMenuItem);
 
         defaultApplicationDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.defaultApplicationDownloaderRadioButtonMenuItem.text")); // NOI18N
         downloaderMenu.add(defaultApplicationDownloaderRadioButtonMenuItem);
@@ -4653,7 +4597,7 @@ public class GUI extends JFrame implements GuiListener {
             findTextFieldKeyPressed(null);
         } else if (popupTextComponent == playlistFindTextField) {
             playlistFindTextFieldKeyPressed(null);
-        } else if (popupTextComponent == titleTextField || popupTextComponent == startDateTextField || popupTextComponent == endDateTextField) {
+        } else if (popupTextComponent == titleTextField || popupTextComponent == startDateTextComponent || popupTextComponent == endDateTextComponent) {
             searchButtonActionPerformed(null);
         }
     }//GEN-LAST:event_textComponentPasteSearchMenuItemActionPerformed
@@ -4738,7 +4682,7 @@ public class GUI extends JFrame implements GuiListener {
         textComponentPasteMenuItem.setVisible(isEditable);
         textComponentDeleteMenuItem.setVisible(isEditable);
         textComponentPasteSearchMenuItem.setVisible(popupTextComponent == findTextField || popupTextComponent == playlistFindTextField
-                || popupTextComponent == titleTextField || popupTextComponent == startDateTextField || popupTextComponent == endDateTextField);
+                || popupTextComponent == titleTextField || popupTextComponent == startDateTextComponent || popupTextComponent == endDateTextComponent);
 
         if (popupTextComponent.getCaret().isSelectionVisible() && popupTextComponent.getSelectedText() != null) {
             if (!textComponentCutMenuItem.isEnabled()) {
@@ -5290,10 +5234,6 @@ public class GUI extends JFrame implements GuiListener {
 
     private void portMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_portMenuItemActionPerformed
         resultsToBackground2();
-        if (!viewedPortBefore) {
-            portRandomizeCheckBox.setSelected(false);
-        }
-        viewedPortBefore = true;
         UI.show(portDialog);
     }//GEN-LAST:event_portMenuItemActionPerformed
 
@@ -5790,21 +5730,6 @@ public class GUI extends JFrame implements GuiListener {
         return isPlaylistActive;
     }
 
-    private void activationUpgradeButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_activationUpgradeButtonActionPerformed
-        workerListener.license(activationTextField.getText().trim());
-    }//GEN-LAST:event_activationUpgradeButtonActionPerformed
-
-    private void activationDialogWindowClosing(WindowEvent evt) {//GEN-FIRST:event_activationDialogWindowClosing
-        if (!isVisible()) {
-            setVisible(true);
-        }
-        if (Boolean.parseBoolean(Str.get(744))) {
-            downloadMenu.doClick();
-            downloaderMenu.doClick();
-            webBrowserAppDownloaderRadioButtonMenuItem.setArmed(true);
-        }
-    }//GEN-LAST:event_activationDialogWindowClosing
-
     private void playlistPlayButtonMousePressed(MouseEvent evt) {//GEN-FIRST:event_playlistPlayButtonMousePressed
         if ((ActionEvent.CTRL_MASK & evt.getModifiers()) == ActionEvent.CTRL_MASK) {
             forcePlay = true;
@@ -5885,12 +5810,6 @@ public class GUI extends JFrame implements GuiListener {
     private void downloadQualityButtonMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadQualityButtonMenuItemActionPerformed
         subtitleFormat = getFormat();
     }//GEN-LAST:event_downloadQualityButtonMenuItemActionPerformed
-
-    private void activationTextFieldKeyPressed(KeyEvent evt) {//GEN-FIRST:event_activationTextFieldKeyPressed
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            activationUpgradeButtonActionPerformed(null);
-        }
-    }//GEN-LAST:event_activationTextFieldKeyPressed
 
     private void playlistOpenButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistOpenButtonActionPerformed
         playlistFindControl.hide(false);
@@ -6247,7 +6166,7 @@ public class GUI extends JFrame implements GuiListener {
                         randomPort = String.valueOf(setRandomPort());
                     }
                 }
-                viewedPortBefore = Boolean.parseBoolean(settings[++i]);
+                ++i; // Backward compatibility
                 ++i; // Backward compatibility
 
                 restoreSize(GUI.this, settings[++i]);
@@ -6269,7 +6188,6 @@ public class GUI extends JFrame implements GuiListener {
                 i += restoreComboBoxes(settings, i, dummyComboBox); // Backward compatibility
                 i += restoreButtons(settings, i, emailWithDefaultAppCheckBoxMenuItem);
                 ++i; // Backward compatibility
-                activationDialog.pack();
 
                 playlistDir = getPath(settings, ++i);
                 usePeerBlock = Boolean.parseBoolean(settings[++i]);
@@ -6317,7 +6235,7 @@ public class GUI extends JFrame implements GuiListener {
             String port = portTextField.getText().trim();
             settings.append(port.isEmpty() ? Constant.NULL : port).append(Constant.NEWLINE);
             saveButtons(settings, portRandomizeCheckBox);
-            settings.append(viewedPortBefore).append(Constant.NEWLINE);
+            settings.append(false).append(Constant.NEWLINE); // Backward compatibility
             saveButtons(settings, dummyMenuItem); // Backward compatibility
 
             settings.append(saveSize(GUI.this));
@@ -7561,21 +7479,12 @@ public class GUI extends JFrame implements GuiListener {
 
     @Override
     public boolean canDownloadWithPlaylist() {
-        if (playlistDownloaderRadioButtonMenuItem.isSelected()) {
-            return true;
-        }
-        if (Boolean.parseBoolean(Str.get(747)) && preferences.getInt(Constant.APP_TITLE, 0) > 0 && !workerListener.isLicensePresent()
-                && (forcePlaylistDownloader = !forcePlaylistDownloader)) {
-            playlistDownloaderRadioButtonMenuItem.setSelected(true);
-            return true;
-        }
-        return false;
+        return playlistDownloaderRadioButtonMenuItem.isSelected();
     }
 
     @Override
     public String getWebBrowserAppDownloader() {
-        return webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(394) : (webBrowserAltAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(393)
-                : null);
+        return webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(394) : null;
     }
 
     @Override
@@ -7766,45 +7675,6 @@ public class GUI extends JFrame implements GuiListener {
         return UI.displayableStr(playlistSyncTable.table, "\u200b\u200b\u200b", "\u0009\u0009\u0009");
     }
 
-    @Override
-    public void showLicenseActivation() {
-        int count = preferences.getInt(Constant.APP_TITLE, 0);
-        Window alwaysOnTopFocus = resultsToBackground();
-        activationTextField.setVisible(count > Integer.parseInt(Str.get(765)));
-        activationDialog.pack();
-        activationDialog.setLocationRelativeTo(this);
-        UI.show(activationDialog);
-        resultsToForeground(alwaysOnTopFocus);
-        preferences.putInt(Constant.APP_TITLE, ++count);
-    }
-
-    @Override
-    public void licenseActivated(String activationCode) {
-        workerListener.licenseActivated();
-        activationTextField.setForeground(new Color(21, 138, 12));
-        activationTextField.setText(activationCode);
-        activationDialog.setVisible(false);
-        showMsg(Str.str("activationSuccessful"), Constant.INFO_MSG);
-    }
-
-    @Override
-    public void licenseDeactivated() {
-        activationTextField.setForeground(Color.BLACK);
-        showMsg(Str.str("activationFailed"), Constant.ERROR_MSG);
-    }
-
-    @Override
-    public void licenseActivationStarted() {
-        activationUpgradeButton.setEnabled(false);
-        activationUpgradeButton.setIcon(loadingIcon);
-    }
-
-    @Override
-    public void licenseActivationStopped() {
-        activationUpgradeButton.setIcon(null);
-        activationUpgradeButton.setEnabled(true);
-    }
-
     void changeLocale(String locale) {
         try {
             changeLocale(locale == null || locale.equals(Constant.NULL) ? null : new Locale(locale.substring(0, 2), locale.substring(3)));
@@ -7858,7 +7728,6 @@ public class GUI extends JFrame implements GuiListener {
 
         aboutDialog.setTitle(Str.str("GUI.aboutDialog.title"));
         aboutMenuItem.setText(Str.str("GUI.aboutMenuItem.text"));
-        activationUpgradeButton.setText(Str.str("GUI.activationUpgradeButton.text"));
         addProxiesAddButton.setText(Str.str("GUI.addProxiesAddButton.text"));
         addProxiesCancelButton.setText(Str.str("GUI.addProxiesCancelButton.text"));
         addProxiesDialog.setTitle(Str.str("GUI.addProxiesDialog.title"));
@@ -8092,7 +7961,6 @@ public class GUI extends JFrame implements GuiListener {
         watchOnDeviceMenuItem.setToolTipText(Str.str("GUI.watchOnDeviceMenuItem.toolTipText"));
         watchTrailerButton.setToolTipText(Str.str("GUI.watchTrailerButton.toolTipText"));
         watchTrailerMenuItem.setText(Str.str("GUI.watchTrailerMenuItem.text"));
-        webBrowserAltAppDownloaderRadioButtonMenuItem.setText(Str.str("GUI.webBrowserAltAppDownloaderRadioButtonMenuItem.text"));
         webBrowserAppDownloaderRadioButtonMenuItem.setText(Str.str("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text"));
         whitelistLabel.setText(Str.str("GUI.whitelistLabel.text"));
         whitelistedToBlacklistedButton.setToolTipText(Str.str("GUI.whitelistedToBlacklistedButton.toolTipText"));
@@ -8200,9 +8068,6 @@ public class GUI extends JFrame implements GuiListener {
     JEditorPane aboutEditorPane;
     JMenuItem aboutMenuItem;
     JScrollPane aboutScrollPane;
-    JDialog activationDialog;
-    JTextField activationTextField;
-    JButton activationUpgradeButton;
     JButton addProxiesAddButton;
     JButton addProxiesCancelButton;
     JDialog addProxiesDialog;
@@ -8548,7 +8413,6 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem watchOnDeviceMenuItem;
     JButton watchTrailerButton;
     JMenuItem watchTrailerMenuItem;
-    JRadioButtonMenuItem webBrowserAltAppDownloaderRadioButtonMenuItem;
     JRadioButtonMenuItem webBrowserAppDownloaderRadioButtonMenuItem;
     JLabel whitelistLabel;
     JList whitelistedList;

@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2019.01.03   | VidMasta 25.8
+
+CHANGE: UI   | Added undo/redo support to text components
+CHANGE: UI   | Improved some menu items
+
+
+
+
 2018.10.27   | VidMasta 25.7
 
 CHANGE: CORE | Disallowed playing of fake downloads in playlist

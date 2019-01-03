@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import listener.ContentType;
 import listener.DomainType;
 import listener.GuiListener;
@@ -16,6 +17,7 @@ import listener.Video;
 import listener.VideoStrExportListener;
 import search.util.VideoSearch;
 import str.Str;
+import torrent.StreamingTorrentUtil;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
@@ -168,6 +170,20 @@ public class SubtitleFinder extends Worker {
         searchStopped();
         guiListener.msg(Str.str("subtitleNotFound"), Constant.INFO_MSG);
         complete = true;
+        String settings = "";
+        if (!languageID.equals(Regex.subtitleLanguages.get(Constant.ANY))) {
+            for (Entry<String, String> subtitleLanguagesEntry : Regex.subtitleLanguages.entrySet()) {
+                if (subtitleLanguagesEntry.getValue().equals(languageID)) {
+                    settings += ' ' + subtitleLanguagesEntry.getKey();
+                    break;
+                }
+            }
+        }
+        if (!format.equals(Constant.ANY)) {
+            settings += ' ' + format;
+        }
+        StreamingTorrentUtil.stream(video, Str.str("subtitle2") + " (" + (settings.isEmpty() ? VideoSearch.describe(video) : VideoSearch.describe(video) + ','
+                + settings) + ')', true, format, languageID);
     }
 
     private void saveSubtitle(List<String> results, boolean isExactResult) throws Exception {

@@ -65,10 +65,4 @@ public interface WorkerListener {
     PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion);
 
     void changeLocale(Locale locale);
-
-    void license(String activationCode);
-
-    void licenseActivated();
-
-    boolean isLicensePresent();
 }

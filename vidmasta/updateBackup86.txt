@@ -1,4 +1,4 @@
-301
+302
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -459,9 +459,9 @@ http://www.opensubtitles.org
 (<\s*+/span\s*+>)?+<\s*+br\s*+/\s*+>
 10
 &genre=&director=&actor_name=&tag=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1&key=
-\<\s*+a\s++href\s*+\=\s*+"/torrent/[^/]++/[^"]++"
-/torrent/
-/
+"magnet:\?[^"]*+"
+[\?&](?i)xt\=
+[&"]
 /((bittorrentclient)|(download))\?torrent=file%3A%2F%2F%2F
 EMPTY
 https://docs.google.com/uc?id=0B3i91lMM4fZId2tQQ0h4ZWxORDQ&export=download&hl=en_US

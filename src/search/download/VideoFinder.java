@@ -23,6 +23,7 @@ import search.util.VideoSearch;
 import str.Str;
 import torrent.FileTypeChecker;
 import torrent.Magnet;
+import torrent.StreamingTorrentUtil;
 import torrent.Torrent;
 import util.AbstractWorker;
 import util.Connection;
@@ -396,29 +397,25 @@ public class VideoFinder extends Worker {
                 addVideoToPlaylist();
             } else if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
                 saveTorrentHelper(torrent);
-            } else if (torrent.ID.isEmpty()) {
-                if (guiListener.canProceedWithUnsafeDownload(torrent.name(), 0, 0, null, null)) {
-                    saveTorrentHelper(torrent);
-                } else {
-                    addVideoToPlaylist();
-                }
             } else {
                 int numFakeComments = 0, numComments = 0;
                 String comments = null;
                 try {
-                    Collection<String> commentsArr = Regex.matches(Connection.getSourceCode(torrent.COMMENTS_LINK, DomainType.DOWNLOAD_LINK_INFO, true, true),
-                            151);
-                    if ((numComments = commentsArr.size()) != 0) {
-                        StringBuilder commentsBuf = new StringBuilder(4096);
-                        int number = 0;
-                        for (String comment : commentsArr) {
-                            commentsBuf.append(++number).append(". ").append(Regex.htmlToPlainText(Regex.replaceAllRepeatedly(comment, 672))).append(
-                                    Constant.STD_NEWLINE2);
-                            if (!Regex.firstMatch(comment, 153).isEmpty()) {
-                                numFakeComments++;
+                    if (torrent.COMMENTS_LINK != null && !torrent.COMMENTS_LINK.isEmpty() && !torrent.COMMENTS_LINK.equals(Str.get(730) + Str.get(678))) {
+                        Collection<String> commentsArr = Regex.matches(Connection.getSourceCode(torrent.COMMENTS_LINK, DomainType.DOWNLOAD_LINK_INFO, true, true),
+                                151);
+                        if ((numComments = commentsArr.size()) != 0) {
+                            StringBuilder commentsBuf = new StringBuilder(4096);
+                            int number = 0;
+                            for (String comment : commentsArr) {
+                                commentsBuf.append(++number).append(". ").append(Regex.htmlToPlainText(Regex.replaceAllRepeatedly(comment, 672))).append(
+                                        Constant.STD_NEWLINE2);
+                                if (!Regex.firstMatch(comment, 153).isEmpty()) {
+                                    numFakeComments++;
+                                }
                             }
+                            comments = commentsBuf.toString();
                         }
-                        comments = commentsBuf.toString();
                     }
                 } catch (Exception e) {
                     error(e);
@@ -438,6 +435,49 @@ public class VideoFinder extends Worker {
     private void saveTorrentHelper(Torrent torrent) throws Exception {
         if (strExportListener != null) {
             export = torrent.MAGNET_LINK;
+            return;
+        }
+
+        if (play) {
+            if ((torrent.FILE == null || !torrent.FILE.exists()) && searchState.blacklistedFileExts.length != 0) {
+                torrentDownloadError(torrent);
+            }
+            startPeerBlock();
+            StreamingTorrentUtil.stream(torrent.MAGNET_LINK, VideoSearch.getTitleParts(torrent.NAME, video.IS_TV_SHOW).title + guiListener.invisibleSeparator()
+                    + Constant.FILE_SEPARATOR + torrent.NAME, true);
+
+            if (video.IS_TV_SHOW && !video.season.equals(Constant.ANY) && !video.episode.equals(Constant.ANY)) {
+                (new Worker() {
+                    @Override
+                    public void doWork() {
+                        try {
+                            EpisodeFinder episodeSearcher = new EpisodeFinder();
+                            episodeSearcher.findEpisodes(VideoSearch.url(video));
+                            String nextEpisode = Regex.firstMatch(episodeSearcher.nextEpisodeText, "\\AS\\d++E\\d++");
+                            if (nextEpisode.isEmpty()) {
+                                return;
+                            }
+                            Video nextVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+                            int index = nextEpisode.indexOf('E');
+                            nextVideo.season = nextEpisode.substring(1, index);
+                            nextVideo.episode = nextEpisode.substring(index + 1);
+                            String prevEpisode;
+                            if ((nextVideo.season.equals(video.season) && Integer.parseInt(nextVideo.episode) == Integer.parseInt(video.episode) + 1)
+                                    || (Integer.parseInt(nextVideo.season) == Integer.parseInt(video.season) + 1 && !(prevEpisode = Regex.firstMatch(
+                                            episodeSearcher.prevEpisodeText, "\\AS\\d++E\\d++")).isEmpty() && prevEpisode.substring(1, index = prevEpisode.indexOf(
+                                                    'E')).equals(video.season) && prevEpisode.substring(index + 1).equals(video.episode))) {
+                                nextVideo.oldTitle = video.oldTitle;
+                                StreamingTorrentUtil.stream(nextVideo, VideoSearch.describe(nextVideo) + episodeSearcher.nextEpisodeText.substring(
+                                        episodeSearcher.nextEpisodeText.indexOf(' ')), false);
+                            }
+                        } catch (Exception e) {
+                            if (Debug.DEBUG) {
+                                Debug.print(e);
+                            }
+                        }
+                    }
+                }).execute();
+            }
             return;
         }
 
@@ -501,6 +541,9 @@ public class VideoFinder extends Worker {
     }
 
     private void addVideoToPlaylist() {
+        if (foreground) {
+            StreamingTorrentUtil.stream(video, VideoSearch.describe(video), true);
+        }
     }
 
     private boolean tvChoices() {

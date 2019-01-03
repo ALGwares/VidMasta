@@ -35,6 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -60,7 +61,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box.Filler;
 import javax.swing.ButtonGroup;
@@ -70,6 +73,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.DefaultRowSorter;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -94,6 +98,8 @@ import javax.swing.event.AncestorListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkEvent.EventType;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.text.AttributeSet;
@@ -102,6 +108,7 @@ import javax.swing.text.ElementIterator;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTML.Attribute;
 import javax.swing.text.html.HTML.Tag;
+import javax.swing.undo.UndoManager;
 import str.Str;
 import util.AbstractWorker;
 import util.Connection;
@@ -153,6 +160,44 @@ public class UI {
                 show(popupMenu, evt);
             }
         }, syncTable.table);
+    }
+
+    public static void addUndoRedoSupport(JTextComponent... textComponents) {
+        String undoAction = "Undo";
+        String redoAction = "Redo";
+        for (JTextComponent textComponent : textComponents) {
+            final UndoManager undo = new UndoManager();
+            textComponent.getDocument().addUndoableEditListener(new UndoableEditListener() {
+                @Override
+                public void undoableEditHappened(UndoableEditEvent evt) {
+                    undo.addEdit(evt.getEdit());
+                }
+            });
+            ActionMap actionMap = textComponent.getActionMap();
+            actionMap.put(undoAction, new AbstractAction(undoAction) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent evt) {
+                    if (undo.canUndo()) {
+                        undo.undo();
+                    }
+                }
+            });
+            actionMap.put(redoAction, new AbstractAction(redoAction) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent evt) {
+                    if (undo.canRedo()) {
+                        undo.redo();
+                    }
+                }
+            });
+            InputMap inputMap = textComponent.getInputMap();
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK), undoAction);
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_MASK), redoAction);
+        }
     }
 
     public static boolean isClipboardEmpty() {

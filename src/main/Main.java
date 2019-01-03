@@ -44,6 +44,7 @@ import search.download.Prefetcher;
 import search.download.VideoFinder;
 import str.Str;
 import torrent.Magnet;
+import torrent.StreamingTorrentUtil;
 import util.AbstractWorker;
 import util.AbstractWorker.StateValue;
 import util.Connection;
@@ -68,6 +69,7 @@ public class Main implements WorkerListener {
     private VideoFinder summaryFinder, trailerFinder, torrentFinder;
     private ProxyListDownloader proxyDownloader;
     private SubtitleFinder subtitleFinder;
+    private Worker streamingTorrentReloader;
     private Prefetcher prefetcher;
 
     static {
@@ -123,6 +125,7 @@ public class Main implements WorkerListener {
         final Main main = new Main();
         final GUI gui = (GUI) main.gui;
         Connection.init(gui);
+        StreamingTorrentUtil.init(gui, main);
 
         for (int i = 0; i < Constant.MAX_SUBDIRECTORIES; i++) {
             IO.fileOp(Constant.CACHE_DIR + i, IO.MK_DIR);
@@ -139,6 +142,7 @@ public class Main implements WorkerListener {
                 removeTempFiles();
                 gui.stopPosterCacher();
                 Connection.stopStatusBar();
+                StreamingTorrentUtil.stopPlayer();
                 releaseSingleInstance();
                 Connection.clearCache();
                 Magnet.stopAzureus();
@@ -451,48 +455,42 @@ public class Main implements WorkerListener {
 
     @Override
     public void initPlaylist() throws Exception {
+        Magnet.startAzureus(gui);
+        Magnet.waitForAzureusToStart();
+        StreamingTorrentUtil.startPlayer();
     }
 
     @Override
     public void stream(String magnetLink, String name) {
+        StreamingTorrentUtil.stream(magnetLink, name, false);
     }
 
     @Override
     public void reloadGroup(PlaylistItem playlistItem) {
+        if (isWorkDone(streamingTorrentReloader)) {
+            (streamingTorrentReloader = StreamingTorrentUtil.torrentReloader(playlistItem)).execute();
+        }
     }
 
     @Override
     public FormattedNum playlistItemSize(long size) {
-        return null;
+        return StreamingTorrentUtil.size(size);
     }
 
     @Override
     public FormattedNum playlistItemProgress(double progress) {
-        return null;
+        return StreamingTorrentUtil.progress(progress, "");
     }
 
     @Override
     public PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion) {
-        return null;
+        return StreamingTorrentUtil.playlistItem(groupID, uri, groupFile, groupIndex, name, isFirstVersion);
     }
 
     @Override
     public synchronized void changeLocale(Locale locale) {
         I18n.setLocale(locale);
         Magnet.localeChanged();
-    }
-
-    @Override
-    public void license(String activationCode) {
-    }
-
-    @Override
-    public void licenseActivated() {
-    }
-
-    @Override
-    public boolean isLicensePresent() {
-        return true;
     }
 
     private void startPrefetcher(VideoFinder videoFinder) {
