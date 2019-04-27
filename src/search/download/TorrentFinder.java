@@ -224,7 +224,7 @@ public class TorrentFinder extends Worker {
     }
 
     public void getTorrents(boolean prefetch) throws Exception {
-        String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.ID, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, true, true);
+        String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.ID, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, !prefetch, true);
         if (!isCancelled() && !sourceCode.isEmpty() && !prefetch) {
             Collection<Torrent> newTorrents = getTorrents(700, sourceCode);
             if (!newTorrents.isEmpty() && !isCancelled()) {
@@ -260,7 +260,7 @@ public class TorrentFinder extends Worker {
             if ((!singleOrderByMode && (prevOrderByLeechers = orderings.get(new TorrentSearchID(torrentID, video.season, video.episode))) != null
                     && orderByLeechers != prevOrderByLeechers) || VideoSearch.isUploadYearTooOld(videoStr, 1, Integer.parseInt(video.year))
                     || !VideoSearch.isRightFormat(titleName, searchState.format) || (!(isBoxSet = !Regex.firstMatch(Regex.replaceAll(titleName, 220),
-                            video.IS_TV_SHOW ? 207 : 208).isEmpty()) && boxSet != null)) {
+                    video.IS_TV_SHOW ? 207 : 208).isEmpty()) && boxSet != null)) {
                 continue;
             }
 

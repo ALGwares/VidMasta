@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2019.04.27   | VidMasta 25.9
+
+CHANGE: UI   | Automatically added title to playlist when a download is not high video quality (TV video quality or better)
+CHANGE: UI   | Improved message/tooltip when application is in system tray
+CHANGE: UI   | Fixed issue that can prevent popular movies button or search button from being re-enabled
+CHANGE: CORE | Updated list of untrusty IPs that are automatically filtered
+
+
+
+
 2019.01.03   | VidMasta 25.8
 
 CHANGE: UI   | Added undo/redo support to text components

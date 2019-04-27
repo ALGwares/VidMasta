@@ -352,7 +352,7 @@ public class VideoFinder extends Worker {
             String imagePath;
             IO.write(speechPage, Str.get(769).replace(Str.get(480), speech.getPath().replace('\\', '/')).replace(Str.get(481), Regex.cleanWeirdChars(video.title)
                     + " (" + video.year + ')').replace(Str.get(482), ((new File(imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video))).exists()
-                                    ? imagePath : Constant.PROGRAM_DIR + "noPosterBig.jpg").replace('\\', '/')));
+                            ? imagePath : Constant.PROGRAM_DIR + "noPosterBig.jpg").replace('\\', '/')));
         }
 
         guiListener.browserNotification(DomainType.VIDEO_INFO);
@@ -381,7 +381,7 @@ public class VideoFinder extends Worker {
             String settings = searchState.toString();
             guiListener.msg(Str.str(("download" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? "" : (isDownload1 ? "1" : "2")))
                     + "LinkNotFound") + Constant.STD_NEWLINE2 + Str.str("settings", " " + (settings.isEmpty() ? VideoSearch.describe(video) : VideoSearch.describe(
-                                            video) + ',' + settings)), Constant.INFO_MSG);
+                            video) + ',' + settings)), Constant.INFO_MSG);
             addVideoToPlaylist();
         } else {
             if (Debug.DEBUG) {
@@ -438,6 +438,10 @@ public class VideoFinder extends Worker {
             return;
         }
 
+        if (!VideoSearch.isRightFormat(torrent.NAME, Constant.HQ)) {
+            addVideoToPlaylist();
+        }
+
         if (play) {
             if ((torrent.FILE == null || !torrent.FILE.exists()) && searchState.blacklistedFileExts.length != 0) {
                 torrentDownloadError(torrent);
@@ -464,8 +468,8 @@ public class VideoFinder extends Worker {
                             String prevEpisode;
                             if ((nextVideo.season.equals(video.season) && Integer.parseInt(nextVideo.episode) == Integer.parseInt(video.episode) + 1)
                                     || (Integer.parseInt(nextVideo.season) == Integer.parseInt(video.season) + 1 && !(prevEpisode = Regex.firstMatch(
-                                            episodeSearcher.prevEpisodeText, "\\AS\\d++E\\d++")).isEmpty() && prevEpisode.substring(1, index = prevEpisode.indexOf(
-                                                    'E')).equals(video.season) && prevEpisode.substring(index + 1).equals(video.episode))) {
+                                    episodeSearcher.prevEpisodeText, "\\AS\\d++E\\d++")).isEmpty() && prevEpisode.substring(1, index = prevEpisode.indexOf(
+                                            'E')).equals(video.season) && prevEpisode.substring(index + 1).equals(video.episode))) {
                                 nextVideo.oldTitle = video.oldTitle;
                                 StreamingTorrentUtil.stream(nextVideo, VideoSearch.describe(nextVideo) + episodeSearcher.nextEpisodeText.substring(
                                         episodeSearcher.nextEpisodeText.indexOf(' ')), false);

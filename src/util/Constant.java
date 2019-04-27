@@ -18,7 +18,7 @@ public class Constant implements IOConstant {
     public static final int MAX_SUBDIRECTORIES = 100;
     public static final String[] EMPTY_STRS = new String[0];
     public static final String TV_SHOW = "TV Show";
-    public static final String IP_FILTER = "ipfilter.dat";
+    public static final String IP_FILTER = "ipfilter.dat", IP_FILTER_P2P = "ipfilter.txt";
     public static final String PEER_BLOCK = "peerblock", PEER_BLOCK_CONF_VERSION = "peerblockConf" + APP_VERSION, PEER_BLOCK_VERSION;
     public static final String CONNECTIVITY = "connectivity";
     public static final String SEPARATOR1 = ":::", SEPARATOR2 = "~~~", SEPARATOR3 = ";;;";

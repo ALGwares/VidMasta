@@ -61,6 +61,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.ActionMap;
@@ -113,6 +114,7 @@ import str.Str;
 import util.AbstractWorker;
 import util.Connection;
 import util.Constant;
+import util.Regex;
 import util.ThrowableUtil;
 import util.Worker;
 
@@ -430,6 +432,18 @@ public class UI {
         return ((AtomicBoolean) button.getClientProperty(Constant.STOP_KEY)).get();
     }
 
+    public static boolean stop(AbstractButton button, Runnable stop) {
+        if (!button.isEnabled()) {
+            return true;
+        }
+        if (isStop(button)) {
+            button.setEnabled(false);
+            stop.run();
+            return true;
+        }
+        return false;
+    }
+
     public static void enable(AbstractButton[] primaryButtons, Boolean startPrimary, Component[] secondaryComponents, Boolean enableSecondary) {
         enable(primaryButtons, true, startPrimary, null, null, secondaryComponents, enableSecondary, null, null);
     }
@@ -612,7 +626,7 @@ public class UI {
                     Object anchor, url;
                     if (element.isLeaf() && position >= element.getStartOffset() && position <= element.getEndOffset() && (anchor
                             = element.getAttributes().getAttribute(Tag.A)) instanceof AttributeSet && (url = ((AttributeSet) anchor).getAttribute(
-                                    Attribute.HREF)) instanceof String) {
+                            Attribute.HREF)) instanceof String) {
                         try {
                             hyperlinkListener.hyperlinkUpdate(new HyperlinkEvent(source, EventType.ACTIVATED, new URL((String) url)));
                         } catch (Exception e) {
@@ -738,9 +752,9 @@ public class UI {
                 return null;
             }
 
-            String title = trayIconTitle(frame);
+            String titleRegex = Pattern.quote(trayIconTitle(frame)) + "(\n(?s).*+)?+";
             for (TrayIcon trayIcon : SystemTray.getSystemTray().getTrayIcons()) {
-                if (title.equals(trayIcon.getToolTip())) {
+                if (Regex.isMatch(trayIcon.getToolTip(), titleRegex)) {
                     return trayIcon;
                 }
             }

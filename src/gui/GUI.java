@@ -4075,8 +4075,8 @@ public class GUI extends JFrame implements GuiListener {
                         if (groupFile.exists()) {
                             newPlaylistItem(makePlaylistRow(playlistEntries[i], workerListener.playlistItemSize(Long.parseLong(playlistEntries[i + 1])),
                                     workerListener.playlistItemProgress(Double.parseDouble(playlistEntries[i + 2])), workerListener.playlistItem(playlistEntries[i
-                                            + 3], playlistEntries[i + 4], groupFile, Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7],
-                                            isFirstVersion)), -1);
+                                    + 3], playlistEntries[i + 4], groupFile, Integer.parseInt(playlistEntries[i + 6]), playlistEntries[i + 7],
+                                    isFirstVersion)), -1);
                         }
                     }
                 } catch (Exception e) {
@@ -4095,35 +4095,13 @@ public class GUI extends JFrame implements GuiListener {
         }
     }
 
-    private boolean stopSearch(AbstractButton button) {
-        if (UI.isStop(button)) {
-            button.setEnabled(false);
-            workerListener.searchStopped(isRegularSearcher);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean stopTorrentSearch(AbstractButton button) {
-        if (UI.isStop(button)) {
-            button.setEnabled(false);
-            workerListener.torrentSearchStopped();
-            return true;
-        }
-        return false;
-    }
-
-    private boolean stopSubtitleSearch(AbstractButton button) {
-        if (UI.isStop(button)) {
-            button.setEnabled(false);
-            workerListener.subtitleSearchStopped();
-            return true;
-        }
-        return false;
-    }
-
     void searchButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_searchButtonActionPerformed
-        if (stopSearch(searchButton)) {
+        if (UI.stop(searchButton, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.searchStopped(true);
+            }
+        })) {
             return;
         }
 
@@ -4291,7 +4269,12 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_popularMoviesButtonActionPerformed
 
     public void doPopularVideosSearch(boolean isTVShow, boolean isFeed, boolean isStartUp, MenuElement menuElement) {
-        if (stopSearch(popularMoviesButton) || (isFeed && isStartUp && !feedCheckBoxMenuItem.isSelected())) {
+        if (UI.stop(popularMoviesButton, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.searchStopped(false);
+            }
+        }) || (isFeed && isStartUp && !feedCheckBoxMenuItem.isSelected())) {
             return;
         }
 
@@ -4455,13 +4438,14 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void readSummaryButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_readSummaryButtonActionPerformed
-        if (UI.isStop(readSummaryButton)) {
-            readSummaryButton.setEnabled(false);
-            workerListener.summarySearchStopped();
-            return;
+        if (!UI.stop(readSummaryButton, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.summarySearchStopped();
+            }
+        })) {
+            readSummaryActionPerformed(selectedRow(), evt != null && evt.getSource() == hearSummaryMenuItem, null);
         }
-
-        readSummaryActionPerformed(selectedRow(), evt != null && evt.getSource() == hearSummaryMenuItem, null);
     }//GEN-LAST:event_readSummaryButtonActionPerformed
 
     void readSummaryActionPerformed(SelectedTableRow row, boolean read, VideoStrExportListener strExportListener) {
@@ -4469,13 +4453,14 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void watchTrailerButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchTrailerButtonActionPerformed
-        if (UI.isStop(watchTrailerButton)) {
-            watchTrailerButton.setEnabled(false);
-            workerListener.trailerSearchStopped();
-            return;
+        if (!UI.stop(watchTrailerButton, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.trailerSearchStopped();
+            }
+        })) {
+            watchTrailerActionPerformed(selectedRow(), null);
         }
-
-        watchTrailerActionPerformed(selectedRow(), null);
     }//GEN-LAST:event_watchTrailerButtonActionPerformed
 
     private void watchTrailerActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
@@ -4500,13 +4485,23 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     void downloadLink1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink1ButtonActionPerformed
-        if (!stopTorrentSearch(downloadLink1Button)) {
+        if (!UI.stop(downloadLink1Button, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.torrentSearchStopped();
+            }
+        })) {
             downloadLinkActionPerformed(ContentType.DOWNLOAD1, selectedRow(), null);
         }
     }//GEN-LAST:event_downloadLink1ButtonActionPerformed
 
     void downloadLink2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadLink2ButtonActionPerformed
-        if (!stopTorrentSearch(downloadLink2Button)) {
+        if (!UI.stop(downloadLink2Button, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.torrentSearchStopped();
+            }
+        })) {
             downloadLinkActionPerformed(ContentType.DOWNLOAD2, selectedRow(), null);
         }
     }//GEN-LAST:event_downloadLink2ButtonActionPerformed
@@ -5249,13 +5244,23 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     private void tvSubtitleDownloadMatch1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleDownloadMatch1ButtonActionPerformed
-        if (!stopSubtitleSearch(tvSubtitleDownloadMatch1Button)) {
+        if (!UI.stop(tvSubtitleDownloadMatch1Button, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.subtitleSearchStopped();
+            }
+        })) {
             startSubtitleSearch(tvSubtitleFormatComboBox, tvSubtitleLanguageComboBox, tvSubtitleSeasonComboBox, tvSubtitleEpisodeComboBox, true);
         }
     }//GEN-LAST:event_tvSubtitleDownloadMatch1ButtonActionPerformed
 
     private void movieSubtitleDownloadMatch1ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_movieSubtitleDownloadMatch1ButtonActionPerformed
-        if (!stopSubtitleSearch(movieSubtitleDownloadMatch1Button)) {
+        if (!UI.stop(movieSubtitleDownloadMatch1Button, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.subtitleSearchStopped();
+            }
+        })) {
             startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, true);
         }
     }//GEN-LAST:event_movieSubtitleDownloadMatch1ButtonActionPerformed
@@ -5303,7 +5308,13 @@ public class GUI extends JFrame implements GuiListener {
         if (trayIcon != null && UI.trayIcon(this) == null && isPlaylistActive()) {
             try {
                 SystemTray.getSystemTray().add(trayIcon);
-                trayIcon.displayMessage(Str.str("buffering"), trayIcon.getToolTip(), MessageType.INFO);
+                String title = trayIcon.getToolTip(), msg = null;
+                int index = title.indexOf('\n');
+                if (index != -1) {
+                    msg = title.substring(index + 1);
+                    title = title.substring(0, index);
+                }
+                trayIcon.displayMessage(title, msg, MessageType.INFO);
             } catch (Exception e) {
                 if (Debug.DEBUG) {
                     Debug.print(e);
@@ -5423,13 +5434,23 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_tvSubtitleLanguageComboBoxActionPerformed
 
     private void tvSubtitleDownloadMatch2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_tvSubtitleDownloadMatch2ButtonActionPerformed
-        if (!stopSubtitleSearch(tvSubtitleDownloadMatch2Button)) {
+        if (!UI.stop(tvSubtitleDownloadMatch2Button, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.subtitleSearchStopped();
+            }
+        })) {
             startSubtitleSearch(tvSubtitleFormatComboBox, tvSubtitleLanguageComboBox, tvSubtitleSeasonComboBox, tvSubtitleEpisodeComboBox, false);
         }
     }//GEN-LAST:event_tvSubtitleDownloadMatch2ButtonActionPerformed
 
     private void movieSubtitleDownloadMatch2ButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_movieSubtitleDownloadMatch2ButtonActionPerformed
-        if (!stopSubtitleSearch(movieSubtitleDownloadMatch2Button)) {
+        if (!UI.stop(movieSubtitleDownloadMatch2Button, new Runnable() {
+            @Override
+            public void run() {
+                workerListener.subtitleSearchStopped();
+            }
+        })) {
             startSubtitleSearch(movieSubtitleFormatComboBox, movieSubtitleLanguageComboBox, null, null, false);
         }
     }//GEN-LAST:event_movieSubtitleDownloadMatch2ButtonActionPerformed
@@ -5752,11 +5773,11 @@ public class GUI extends JFrame implements GuiListener {
         synchronized (playlistSyncTable.lock) {
             ((DefaultRowSorter<TableModel, Integer>) playlistSyncTable.table.getRowSorter()).setRowFilter(playlistShowNonVideoItemsCheckBoxMenuItem.isSelected()
                     ? null : new RowFilter<TableModel, Integer>() {
-                        @Override
-                        public boolean include(Entry<? extends TableModel, ? extends Integer> row) {
-                            return !Regex.isMatch(row.getStringValue(playlistNameCol), 683);
-                        }
-                    });
+                @Override
+                public boolean include(Entry<? extends TableModel, ? extends Integer> row) {
+                    return !Regex.isMatch(row.getStringValue(playlistNameCol), 683);
+                }
+            });
         }
     }//GEN-LAST:event_playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed
 
@@ -6678,7 +6699,7 @@ public class GUI extends JFrame implements GuiListener {
                     Container container = UI.container("<html><head><title></title></head><body>" + System.getProperty("htmlFont2") + Str.str(
                             "linkSafetyWarningPart1", name) + (numComments == 0 ? "" : " " + Str.htmlLinkStr("linkSafetyWarningPart2", link, numFakeComments + "/"
                                             + numComments + " (" + Str.percent(numFakeComments / (double) numComments, 1) + ')')) + "<br><br>" + Str.str(
-                                    "linkSafetyWarningPart3") + (autoConfirm ? ' ' + UIManager.getString("OptionPane.noButtonText") + '.' : "")
+                            "linkSafetyWarningPart3") + (autoConfirm ? ' ' + UIManager.getString("OptionPane.noButtonText") + '.' : "")
                             + "</font></body></html>", autoConfirmCheckBoxMenuItem, null, textComponentPopupListener);
                     UI.addHyperlinkListener((JEditorPane) ((JScrollPane) container.getComponent(0)).getViewport().getView(), new HyperlinkListener() {
                         @Override
@@ -6820,36 +6841,7 @@ public class GUI extends JFrame implements GuiListener {
         usePeerBlock = true;
 
         try {
-            File peerBlock = new File(Constant.APP_DIR + Constant.PEER_BLOCK_VERSION);
-            if (!peerBlock.exists()) {
-                try {
-                    IO.unzip(Constant.PROGRAM_DIR + Constant.PEER_BLOCK_VERSION + Constant.ZIP, Constant.APP_DIR);
-                } catch (Exception e) {
-                    IO.fileOp(peerBlock, IO.RM_DIR);
-                    throw e;
-                }
-            }
-            File confVersion = new File(Constant.APP_DIR, Constant.PEER_BLOCK_CONF_VERSION);
-            if (!confVersion.exists()) {
-                File conf = new File(peerBlock, "peerblock.conf");
-                try {
-                    String confStr = IO.read(conf);
-                    int startIndex = confStr.indexOf("<Lists>"), endIndex;
-                    if (startIndex != -1 && (endIndex = confStr.indexOf("</Lists>")) != -1) {
-                        IO.write(conf, confStr.substring(0, startIndex) + IO.read(new File(Constant.PROGRAM_DIR + "peerblockLists" + Constant.TXT))
-                                + confStr.substring(endIndex + 8, confStr.length()));
-                    }
-                    IO.fileOp(confVersion, IO.MK_FILE);
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                }
-            }
-            String peerBlockProgram = Constant.APP_DIR + Constant.PEER_BLOCK_VERSION + Constant.FILE_SEPARATOR + Constant.PEER_BLOCK + Constant.EXE;
-            WindowsUtil.addMicrosoftRegistryEntry("Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "SZ", peerBlockProgram, "RUNASADMIN");
-            WindowsUtil.runJavaAsAdmin(Arrays.asList(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR, peerBlockProgram, Constant.APP_TITLE,
-                    Constant.APP_DIR + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit"));
+            WindowsUtil.startPeerBlock();
         } catch (Exception e) {
             if (Debug.DEBUG) {
                 Debug.print(e);
@@ -7207,6 +7199,10 @@ public class GUI extends JFrame implements GuiListener {
                                 }
                             } else if (!progress.equals(oldProgress)) {
                                 playlistSyncTable.tableModel.setValueAt(progress, row, playlistProgressCol);
+                                if (trayIcon != null && playlistItem.isActive()) {
+                                    trayIcon.setToolTip(Regex.split(trayIcon.getToolTip(), "\n")[0] + "\n" + playlistSyncTable.tableModel.getValueAt(row,
+                                            playlistProgressCol) + "\n" + playlistSyncTable.tableModel.getValueAt(row, playlistNameCol));
+                                }
                             }
                             return;
                         }
