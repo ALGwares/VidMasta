@@ -588,7 +588,6 @@ public class GUI extends JFrame implements GuiListener {
 
     private void updateToggleButtons(boolean init) {
         UI.updateToggleButton(searchButton, "GUI.searchButton.text", init);
-        UI.updateToggleButton(popularMoviesButton, "GUI.popularMoviesButton.text", init);
         UI.updateToggleButton(readSummaryButton, "GUI.readSummaryButton.text", init);
         UI.updateToggleButton(watchTrailerButton, "GUI.watchTrailerButton.text", init);
         UI.updateToggleButton(downloadLink1Button, "GUI.downloadLink1Button.text", init);
@@ -603,7 +602,6 @@ public class GUI extends JFrame implements GuiListener {
         String stop = Str.str(Constant.STOP_KEY), readSummary = readSummaryButton.getName(), watchTrailer = watchTrailerButton.getName(), downloadLink1
                 = downloadLink1Button.getName(), downloadLink2 = downloadLink2Button.getName();
         UI.resize(AbstractComponent.newInstance(searchButton), stop, searchButton.getName());
-        UI.resize(AbstractComponent.newInstance(popularMoviesButton), stop, popularMoviesButton.getName());
         UI.resize(AbstractComponent.newInstance(readSummaryButton), watchTrailer, downloadLink1, downloadLink2, stop, readSummary);
         UI.resize(AbstractComponent.newInstance(watchTrailerButton), readSummary, downloadLink1, downloadLink2, stop, watchTrailer);
         UI.resize(AbstractComponent.newInstance(downloadLink1Button), readSummary, watchTrailer, downloadLink2, stop, downloadLink1);
@@ -768,6 +766,7 @@ public class GUI extends JFrame implements GuiListener {
         tablePopupMenuSeparator4 = new Separator();
         banTitleMenu = new JMenu();
         popularPopupMenu = new JPopupMenu();
+        popularMoviesMenuItem = new JMenuItem();
         popularNewHQMoviesMenuItem = new JMenuItem();
         popularTVShowsMenuItem = new JMenuItem();
         popularNewHQTVShowsMenuItem = new JMenuItem();
@@ -901,6 +900,7 @@ public class GUI extends JFrame implements GuiListener {
         loadMoreResultsButton = new JButton();
         summaryScrollPane = new JScrollPane();
         summaryEditorPane = new JEditorPane();
+        findTextField = new JTextField();
         playlistPanel = new JPanel();
         playlistScrollPane = new JScrollPane();
         playlistTable = new JTable();
@@ -925,7 +925,6 @@ public class GUI extends JFrame implements GuiListener {
         typeLabel = new JLabel();
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
-        popularMoviesButton = new JButton();
         popularPopupMenuButton = new JButton();
         loadingLabel = new JLabel();
         statusBarTextField = new JTextField();
@@ -933,7 +932,6 @@ public class GUI extends JFrame implements GuiListener {
         connectionIssueButton = new JButton();
         startDateChooser = new DateChooser(true);
         endDateChooser = new DateChooser(false);
-        findTextField = new JTextField();
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, playlistPanel);
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
@@ -1762,6 +1760,15 @@ public class GUI extends JFrame implements GuiListener {
         });
         tablePopupMenu.add(banTitleMenu);
 
+        popularMoviesMenuItem.setText(bundle.getString("GUI.popularMoviesMenuItem.text")); // NOI18N
+        popularMoviesMenuItem.setToolTipText(bundle.getString("GUI.popularMoviesMenuItem.toolTipText")); // NOI18N
+        popularMoviesMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                popularMoviesMenuItemActionPerformed(evt);
+            }
+        });
+        popularPopupMenu.add(popularMoviesMenuItem);
+
         popularNewHQMoviesMenuItem.setText(bundle.getString("GUI.popularNewHQMoviesMenuItem.text")); // NOI18N
         popularNewHQMoviesMenuItem.setToolTipText(bundle.getString("GUI.popularNewHQMoviesMenuItem.toolTipText")); // NOI18N
         popularNewHQMoviesMenuItem.addActionListener(new ActionListener() {
@@ -2586,10 +2593,10 @@ public class GUI extends JFrame implements GuiListener {
 
         authenticationUsernameTextField.setText(null);
         authenticationUsernameTextField.addAncestorListener(new AncestorListener() {
-            public void ancestorMoved(AncestorEvent evt) {
-            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationUsernameTextFieldAncestorAdded(evt);
+            }
+            public void ancestorMoved(AncestorEvent evt) {
             }
             public void ancestorRemoved(AncestorEvent evt) {
             }
@@ -2600,10 +2607,10 @@ public class GUI extends JFrame implements GuiListener {
         authenticationPasswordField.setText(null);
         authenticationPasswordField.setEchoChar('\u2022');
         authenticationPasswordField.addAncestorListener(new AncestorListener() {
-            public void ancestorMoved(AncestorEvent evt) {
-            }
             public void ancestorAdded(AncestorEvent evt) {
                 authenticationPasswordFieldAncestorAdded(evt);
+            }
+            public void ancestorMoved(AncestorEvent evt) {
             }
             public void ancestorRemoved(AncestorEvent evt) {
             }
@@ -2947,6 +2954,12 @@ public class GUI extends JFrame implements GuiListener {
         summaryEditorPane.setContentType("text/html"); // NOI18N
         summaryScrollPane.setViewportView(summaryEditorPane);
 
+        findTextField.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent evt) {
+                findTextFieldKeyPressed(evt);
+            }
+        });
+
         GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
         resultsPanel.setLayout(resultsPanelLayout);
         resultsPanelLayout.setHorizontalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
@@ -2966,9 +2979,12 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(exitBackupModeButton)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING, false)
                     .addComponent(summaryScrollPane, GroupLayout.PREFERRED_SIZE, 615, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(loadMoreResultsButton, Alignment.TRAILING))
+                    .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+                        .addComponent(findTextField)
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(loadMoreResultsButton)))
                 .addGap(0, 0, 0))
         );
 
@@ -2989,7 +3005,9 @@ public class GUI extends JFrame implements GuiListener {
                             .addComponent(watchTrailerButton)
                             .addComponent(downloadLink1Button)
                             .addComponent(downloadLink2Button)))
-                    .addComponent(loadMoreResultsButton)))
+                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                        .addComponent(loadMoreResultsButton)
+                        .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))))
         );
 
         resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[] {downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
@@ -3245,14 +3263,6 @@ public class GUI extends JFrame implements GuiListener {
         releasedToLabel.setLabelFor(endDateChooser);
         releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text")); // NOI18N
 
-        popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text")); // NOI18N
-        popularMoviesButton.setToolTipText(bundle.getString("GUI.popularMoviesButton.toolTipText")); // NOI18N
-        popularMoviesButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                popularMoviesButtonActionPerformed(evt);
-            }
-        });
-
         popularPopupMenuButton.setText(null);
         popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
         popularPopupMenuButton.addActionListener(new ActionListener() {
@@ -3284,12 +3294,6 @@ public class GUI extends JFrame implements GuiListener {
         connectionIssueButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 connectionIssueButtonActionPerformed(evt);
-            }
-        });
-
-        findTextField.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent evt) {
-                findTextFieldKeyPressed(evt);
             }
         });
 
@@ -3893,38 +3897,35 @@ public class GUI extends JFrame implements GuiListener {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(popularMoviesButton)
-                                .addGap(1, 1, 1)
-                                .addComponent(popularPopupMenuButton)
-                                .addGap(18, 18, 18)
-                                .addComponent(findTextField))
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(titleLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
                                 .addComponent(titleTextField))
                             .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(typeLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(typeComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(typeComboBox, 0, 74, Short.MAX_VALUE)
                                 .addGap(18, 18, 18)
                                 .addComponent(ratingLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(ratingComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(ratingComboBox, 0, 75, Short.MAX_VALUE)
                                 .addGap(18, 18, 18)
                                 .addComponent(releasedLabel)
                                 .addPreferredGap(ComponentPlacement.RELATED)
-                                .addComponent(startDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(startDateChooser, GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                                 .addGap(7, 7, 7)
                                 .addComponent(releasedToLabel)
                                 .addGap(6, 6, 6)
-                                .addComponent(endDateChooser, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addComponent(endDateChooser, GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)))
                         .addGap(18, 18, 18)
                         .addComponent(genreLabel)
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(genreScrollPane)
+                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                            .addComponent(searchButton, Alignment.TRAILING)
+                            .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(searchButton)
+                                .addGap(1, 1, 1)
+                                .addComponent(popularPopupMenuButton))
                             .addComponent(loadingLabel, Alignment.TRAILING))))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
@@ -3937,14 +3938,7 @@ public class GUI extends JFrame implements GuiListener {
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(loadingLabel)
-                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                        .addComponent(popularMoviesButton)
-                        .addComponent(popularPopupMenuButton)
-                        .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                             .addComponent(titleLabel)
@@ -3962,10 +3956,15 @@ public class GUI extends JFrame implements GuiListener {
                                 .addComponent(startDateChooser, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(endDateChooser, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                             .addComponent(releasedToLabel)))
-                    .addComponent(searchButton)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(searchButton)
+                            .addComponent(popularPopupMenuButton))
+                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(loadingLabel))
                     .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(ComponentPlacement.UNRELATED)
-                .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
+                .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
                 .addPreferredGap(ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                     .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -3973,13 +3972,13 @@ public class GUI extends JFrame implements GuiListener {
                     .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
         );
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {endDateChooser, findTextField, ratingComboBox, startDateChooser, titleTextField, typeComboBox});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {endDateChooser, ratingComboBox, startDateChooser, titleTextField, typeComboBox});
 
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {genreLabel, ratingLabel, releasedLabel});
 
-        layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularMoviesButton, popularPopupMenuButton});
-
         layout.linkSize(SwingConstants.VERTICAL, new Component[] {connectionIssueButton, searchProgressTextField, statusBarTextField});
+
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {popularPopupMenuButton, searchButton});
 
         setSize(new Dimension(1160, 773));
         setLocationRelativeTo(null);
@@ -4099,7 +4098,7 @@ public class GUI extends JFrame implements GuiListener {
         if (UI.stop(searchButton, new Runnable() {
             @Override
             public void run() {
-                workerListener.searchStopped(true);
+                workerListener.searchStopped(isRegularSearcher);
             }
         })) {
             return;
@@ -4110,7 +4109,7 @@ public class GUI extends JFrame implements GuiListener {
         int numResultsPerSearch = Integer.parseInt((String) regularResultsPerSearchComboBox.getSelectedItem());
         Object type = typeComboBox.getSelectedItem();
         Boolean isTVShow = (Constant.ANY.equals(type) ? null : Constant.TV_SHOW.equals(type));
-        Calendar startDate = ((DateChooser) startDateChooser).getTime(), endDate = ((DateChooser) endDateChooser).getTime();
+        Calendar startDate = ((DateChooser) startDateChooser).refreshDate(), endDate = ((DateChooser) endDateChooser).refreshDate();
         String title = titleTextField.getText().trim(), minRating = (String) ratingComboBox.getSelectedItem();
         String[] genres = UI.selectAnyIfNoSelectionAndCopy(genreList), languages = UI.selectAnyIfNoSelectionAndCopy(languageList), countries
                 = UI.selectAnyIfNoSelectionAndCopy(countryList);
@@ -4264,17 +4263,8 @@ public class GUI extends JFrame implements GuiListener {
         UI.updateList(genreList);
     }//GEN-LAST:event_genreListValueChanged
 
-    void popularMoviesButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularMoviesButtonActionPerformed
-        doPopularVideosSearch(false, false, false, null);
-    }//GEN-LAST:event_popularMoviesButtonActionPerformed
-
     public void doPopularVideosSearch(boolean isTVShow, boolean isFeed, boolean isStartUp, MenuElement menuElement) {
-        if (UI.stop(popularMoviesButton, new Runnable() {
-            @Override
-            public void run() {
-                workerListener.searchStopped(false);
-            }
-        }) || (isFeed && isStartUp && !feedCheckBoxMenuItem.isSelected())) {
+        if (isFeed && isStartUp && !feedCheckBoxMenuItem.isSelected()) {
             return;
         }
 
@@ -4298,7 +4288,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_maxDownloadSizeComboBoxActionPerformed
 
     void popularPopupMenuButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularPopupMenuButtonActionPerformed
-        popularPopupMenu.show(popularMoviesButton, 0, popularMoviesButton.getHeight() + 1);
+        popularPopupMenu.show(searchButton, 0, searchButton.getHeight() + 1);
         if (popularSearchMenuElement != null) {
             MenuSelectionManager.defaultManager().setSelectedPath(new MenuElement[]{popularPopupMenu, popularSearchMenuElement});
         }
@@ -5223,7 +5213,8 @@ public class GUI extends JFrame implements GuiListener {
 
     private void resultsTableMouseClicked(MouseEvent evt) {//GEN-FIRST:event_resultsTableMouseClicked
         if (evt.getClickCount() == 2 && resultsSyncTable.getSelectedRows().length == 1) {
-            readSummaryButtonActionPerformed(null);
+            workerListener.summarySearchStopped();
+            readSummaryActionPerformed(selectedRow(), false, null);
         }
     }//GEN-LAST:event_resultsTableMouseClicked
 
@@ -5287,7 +5278,8 @@ public class GUI extends JFrame implements GuiListener {
 
     private void resultsTableKeyPressed(KeyEvent evt) {//GEN-FIRST:event_resultsTableKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER && resultsSyncTable.getSelectedRows().length == 1) {
-            readSummaryButtonActionPerformed(null);
+            workerListener.summarySearchStopped();
+            readSummaryActionPerformed(selectedRow(), false, null);
         }
     }//GEN-LAST:event_resultsTableKeyPressed
 
@@ -5992,6 +5984,10 @@ public class GUI extends JFrame implements GuiListener {
             UI.exportToClipboard(playlistItem.link());
         }
     }//GEN-LAST:event_playlistCopyDownloadLinkMenuItemActionPerformed
+
+    private void popularMoviesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularMoviesMenuItemActionPerformed
+        doPopularVideosSearch(false, false, false, popularMoviesMenuItem);
+    }//GEN-LAST:event_popularMoviesMenuItemActionPerformed
 
     private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
         strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
@@ -6988,19 +6984,8 @@ public class GUI extends JFrame implements GuiListener {
     @Override
     public void searchStarted() {
         loading(true);
-
-        List<Component> secondaryComponents = new ArrayList<Component>(5);
-        Collections.addAll(secondaryComponents, loadMoreResultsButton, popularNewHQTVShowsMenuItem, popularTVShowsMenuItem, popularNewHQMoviesMenuItem);
-        AbstractButton primaryButton;
-        if (isRegularSearcher) {
-            secondaryComponents.add(popularMoviesButton);
-            primaryButton = searchButton;
-        } else {
-            secondaryComponents.add(1, searchButton);
-            primaryButton = popularMoviesButton;
-        }
-        UI.enable(new AbstractButton[]{primaryButton}, false, secondaryComponents.toArray(new Component[secondaryComponents.size()]), false);
-
+        UI.enable(new AbstractButton[]{searchButton}, false, new Component[]{loadMoreResultsButton, popularNewHQTVShowsMenuItem, popularTVShowsMenuItem,
+            popularNewHQMoviesMenuItem, popularMoviesMenuItem}, false);
         resultsSyncTable.requestFocusInWindow();
     }
 
@@ -7053,8 +7038,8 @@ public class GUI extends JFrame implements GuiListener {
             }
         }
 
-        UI.enable(new AbstractButton[]{isRegularSearcher ? searchButton : popularMoviesButton}, true, new Component[]{searchButton, popularNewHQTVShowsMenuItem,
-            popularTVShowsMenuItem, popularNewHQMoviesMenuItem, popularMoviesButton}, true);
+        UI.enable(new AbstractButton[]{searchButton}, true, new Component[]{popularNewHQTVShowsMenuItem, popularTVShowsMenuItem, popularNewHQMoviesMenuItem,
+            popularMoviesMenuItem}, true);
 
         if (popularPopupMenu.isVisible() && popularSearchMenuElement != null) {
             popularPopupMenu.setVisible(false);
@@ -7840,7 +7825,8 @@ public class GUI extends JFrame implements GuiListener {
         playlistSaveFolderMenuItem.setText(Str.str("GUI.playlistSaveFolderMenuItem.text"));
         playlistShowNonVideoItemsCheckBoxMenuItem.setText(Str.str("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.text"));
         playlistShowNonVideoItemsCheckBoxMenuItem.setToolTipText(Str.str("GUI.playlistShowNonVideoItemsCheckBoxMenuItem.toolTipText"));
-        popularMoviesButton.setToolTipText(Str.str("GUI.popularMoviesButton.toolTipText"));
+        popularMoviesMenuItem.setText(Str.str("GUI.popularMoviesMenuItem.text"));
+        popularMoviesMenuItem.setToolTipText(Str.str("GUI.popularMoviesMenuItem.toolTipText"));
         popularMoviesResultsPerSearchLabel.setText(Str.str("GUI.popularMoviesResultsPerSearchLabel.text"));
         popularMoviesResultsPerSearchLabel.setToolTipText(Str.str("GUI.popularMoviesResultsPerSearchLabel.toolTipText"));
         popularNewHQMoviesMenuItem.setText(Str.str("GUI.popularNewHQMoviesMenuItem.text"));
@@ -8245,7 +8231,7 @@ public class GUI extends JFrame implements GuiListener {
     Separator playlistTablePopupMenuSeparator1;
     Separator playlistTablePopupMenuSeparator2;
     Separator playlistTablePopupMenuSeparator3;
-    JButton popularMoviesButton;
+    JMenuItem popularMoviesMenuItem;
     JComboBox popularMoviesResultsPerSearchComboBox;
     JLabel popularMoviesResultsPerSearchLabel;
     JMenuItem popularNewHQMoviesMenuItem;

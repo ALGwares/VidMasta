@@ -67,6 +67,7 @@ public class SplashScreen extends JFrame {
         downloadLink2Button = new JButton();
         exitBackupModeButton = new JButton();
         loadMoreResultsButton = new JButton();
+        findTextField = new JTextField();
         titleTextField = new JTextField();
         titleLabel = new JLabel();
         releasedLabel = new JLabel();
@@ -79,7 +80,6 @@ public class SplashScreen extends JFrame {
         typeLabel = new JLabel();
         typeComboBox = new JComboBox();
         releasedToLabel = new JLabel();
-        popularMoviesButton = new JButton();
         popularPopupMenuButton = new JButton();
         loadingLabel = new JLabel();
         statusBarTextField = new JTextField();
@@ -87,7 +87,6 @@ public class SplashScreen extends JFrame {
         connectionIssueButton = new JButton();
         startDateTextField = new JTextField();
         endDateTextField = new JTextField();
-        findTextField = new JTextField();
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, null);
         menuBar = new JMenuBar();
         fileMenu = new JMenu();
@@ -195,9 +194,12 @@ public class SplashScreen extends JFrame {
                                         .addComponent(exitBackupModeButton)
                                         .addGap(0, 0, Short.MAX_VALUE)))
                         .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING, false)
                                 .addComponent(summaryScrollPane, GroupLayout.PREFERRED_SIZE, 615, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(loadMoreResultsButton, Alignment.TRAILING))
+                                .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+                                        .addComponent(findTextField)
+                                        .addPreferredGap(ComponentPlacement.RELATED)
+                                        .addComponent(loadMoreResultsButton)))
                         .addGap(0, 0, 0))
         );
 
@@ -218,11 +220,12 @@ public class SplashScreen extends JFrame {
                                                 .addComponent(watchTrailerButton)
                                                 .addComponent(downloadLink1Button)
                                                 .addComponent(downloadLink2Button)))
-                                .addComponent(loadMoreResultsButton)))
+                                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                                        .addComponent(loadMoreResultsButton)
+                                        .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))))
         );
 
-        resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton,
-            readSummaryButton, watchTrailerButton});
+        resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
 
         setTitle(Constant.APP_TITLE);
         setMinimumSize(null);
@@ -265,9 +268,6 @@ public class SplashScreen extends JFrame {
 
         releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text"));
         releasedToLabel.setEnabled(false);
-
-        popularMoviesButton.setText(bundle.getString("GUI.popularMoviesButton.text"));
-        popularMoviesButton.setEnabled(false);
 
         popularPopupMenuButton.setText(null);
         popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
@@ -346,38 +346,35 @@ public class SplashScreen extends JFrame {
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
                                                 .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(popularMoviesButton)
-                                                        .addGap(1, 1, 1)
-                                                        .addComponent(popularPopupMenuButton)
-                                                        .addGap(18, 18, 18)
-                                                        .addComponent(findTextField))
-                                                .addGroup(layout.createSequentialGroup()
                                                         .addComponent(titleLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
                                                         .addComponent(titleTextField))
                                                 .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
                                                         .addComponent(typeLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(typeComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(typeComboBox, 0, 74, Short.MAX_VALUE)
                                                         .addGap(18, 18, 18)
                                                         .addComponent(ratingLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(ratingComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(ratingComboBox, 0, 75, Short.MAX_VALUE)
                                                         .addGap(18, 18, 18)
                                                         .addComponent(releasedLabel)
                                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(startDateTextField, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(startDateTextField, GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
                                                         .addGap(7, 7, 7)
                                                         .addComponent(releasedToLabel)
                                                         .addGap(6, 6, 6)
-                                                        .addComponent(endDateTextField, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                                        .addComponent(endDateTextField, GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)))
                                         .addGap(18, 18, 18)
                                         .addComponent(genreLabel)
                                         .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(genreScrollPane)
+                                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
                                         .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addComponent(searchButton, Alignment.TRAILING)
+                                                .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                                                        .addComponent(searchButton)
+                                                        .addGap(1, 1, 1)
+                                                        .addComponent(popularPopupMenuButton))
                                                 .addComponent(loadingLabel, Alignment.TRAILING))))
                         .addContainerGap())
                 .addGroup(layout.createSequentialGroup()
@@ -390,14 +387,7 @@ public class SplashScreen extends JFrame {
         layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                .addComponent(loadingLabel)
-                                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                        .addComponent(popularMoviesButton)
-                                        .addComponent(popularPopupMenuButton)
-                                        .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(Alignment.LEADING, false)
                                 .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                                 .addComponent(titleLabel)
@@ -417,25 +407,25 @@ public class SplashScreen extends JFrame {
                                                         .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
                                                                 GroupLayout.PREFERRED_SIZE))
                                                 .addComponent(releasedToLabel)))
-                                .addComponent(searchButton)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                                                .addComponent(searchButton)
+                                                .addComponent(popularPopupMenuButton))
+                                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(loadingLabel))
                                 .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
+                        .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(Alignment.BASELINE)
                                 .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                                 .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
         );
-
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, findTextField, ratingComboBox, startDateTextField, titleTextField,
-            typeComboBox});
-
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{genreLabel, ratingLabel, releasedLabel});
-
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularMoviesButton, popularPopupMenuButton});
-
         layout.linkSize(SwingConstants.VERTICAL, new Component[]{connectionIssueButton, searchProgressTextField, statusBarTextField});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularPopupMenuButton, searchButton});
     }
 
     JButton connectionIssueButton;
@@ -455,7 +445,6 @@ public class SplashScreen extends JFrame {
     JLabel loadingLabel;
     JMenuBar menuBar;
     JMenu playlistMenu;
-    JButton popularMoviesButton;
     JButton popularPopupMenuButton;
     JComboBox ratingComboBox;
     JLabel ratingLabel;

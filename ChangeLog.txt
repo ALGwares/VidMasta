@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2019.05.25   | VidMasta 26.0
+
+CHANGE: UI   | Simplified UI
+CHANGE: UI   | Improved UI responsiveness
+
+
+
+
 2019.04.27   | VidMasta 25.9
 
 CHANGE: UI   | Automatically added title to playlist when a download is not high video quality (TV video quality or better)

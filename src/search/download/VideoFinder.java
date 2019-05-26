@@ -280,13 +280,19 @@ public class VideoFinder extends Worker {
             episodeFinder.cancel(true);
         }
 
+        String imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video);
+        boolean imageExists = (new File(imagePath)).exists();
+        if (video.summary.isEmpty()) {
+            guiListener.summary("<html><head><title></title></head><body><table><tr><!--poster--></tr></table></body></html>", imageExists ? imagePath
+                    : Constant.PROGRAM_DIR + "noPosterBig.jpg");
+        }
+
         updateOldTitleAndSummary();
         if (isCancelled()) {
             return;
         }
 
-        String imagePath = Constant.CACHE_DIR + VideoSearch.imagePath(video);
-        if (!(new File(imagePath)).exists()) {
+        if (!imageExists) {
             if (video.imageLink.isEmpty()) {
                 imagePath = null;
             } else {

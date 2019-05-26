@@ -22,7 +22,7 @@ public class DateChooser extends JDateChooser {
         this.isStartDateChooser = isStartDateChooser;
     }
 
-    public Calendar getTime() {
+    public Calendar refreshDate() {
         Calendar calendar = getCalendar();
         if (calendar != null) {
             return (Calendar) calendar.clone();
@@ -36,6 +36,7 @@ public class DateChooser extends JDateChooser {
                 calendar.set(Calendar.MONTH, Calendar.DECEMBER);
                 calendar.set(Calendar.DAY_OF_MONTH, 31);
             }
+            setDate(calendar.getTime());
             return calendar;
         }
         return null;
