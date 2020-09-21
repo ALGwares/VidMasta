@@ -1,6 +1,6 @@
 Synthetica 2.30.0 (libs) http://www.javasoft.de/synthetica/download
 Synthetica blackmoon theme 2.9.6 (libsbm) http://www.javasoft.de/synthetica/themes
-Vuze 5.7.6.0 (libv) http://dev.vuze.com
+BiglyBT 2.4.0.0 (libb) https://github.com/BiglySoftware/BiglyBT/releases/download/v2.4.0.0/GitHub_BiglyBT.jar
 org.jdesktop.swingx.autocomplete 1.6.4 (libac) http://grepcode.com/snapshot/repo1.maven.org/maven2/org.swinglabs.swingx/swingx-all/1.6.4
 JCalendar 1.4 (libjc) http://www.toedter.com/download/jcalendar-1.4.zip
 Java Native Access 4.3.0 (libj) http://repo1.maven.org/maven2/net/java/dev/jna/jna/4.3.0/jna-4.3.0.jar

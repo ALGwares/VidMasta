@@ -38,7 +38,7 @@ public class Constant implements IOConstant {
     public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
     public static final String TXT = ".txt", HTML = ".html", TORRENT = ".torrent";
     public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
-    public static final int UPDATE_FILE_VERSION = 86;
+    public static final int UPDATE_FILE_VERSION = 87;
     public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
     public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
     public static final int SETTINGS_LEN = 80;
@@ -63,7 +63,7 @@ public class Constant implements IOConstant {
     public static final String PROGRAM_JAR = APP_TITLE + JAR;
     public static final String HOME_DIR = System.getProperty("user.home", ""), WORKING_DIR = System.getProperty("user.dir", ".");
     public static final String PROGRAM_DIR, APP_DIR, CACHE_DIR, TEMP_DIR, TORRENTS_DIR, DESKTOP_DIR;
-    public static final String JAVA, JAVA_VERSION = System.getProperty("java.version", "");
+    public static final String JAVA;
 
     static {
         String java = System.getProperty("java.home", "java");

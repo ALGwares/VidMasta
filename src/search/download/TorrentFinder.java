@@ -7,6 +7,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
@@ -264,17 +265,15 @@ public class TorrentFinder extends Worker {
                 continue;
             }
 
-            int sizeInGiB = 1;
-            String size = Regex.match(videoStr, 62);
+            String size = Regex.match(videoStr, 779).toUpperCase(Locale.ENGLISH);
             if (size.isEmpty()) {
-                if (!(size = Regex.match(videoStr, 64)).isEmpty()) {
-                    sizeInGiB = (int) Math.ceil(Double.parseDouble(size));
-                    if ((!isBoxSet || !searchState.canIgnoreDownloadSize) && (sizeInGiB < Integer.parseInt(searchState.minSize)
-                            || (!searchState.maxSize.equals(Constant.INFINITY) && sizeInGiB > Integer.parseInt(searchState.maxSize)))) {
-                        continue;
-                    }
-                }
-            } else if ((!isBoxSet || !searchState.canIgnoreDownloadSize) && Integer.parseInt(searchState.minSize) >= 1) {
+                size = "1073741824";
+            }
+            int exp = (size.contains("G") ? 3 : (size.contains("M") ? 2 : (size.contains("K") ? 1 : 0)));
+            double sizeNum = Double.parseDouble(Regex.firstMatch(size, "[\\d\\.]++"));
+            int sizeInGiB = (int) Math.ceil((exp == 0 ? sizeNum : sizeNum * Math.pow(1024, exp)) / 1073741824);
+            if ((!isBoxSet || !searchState.canIgnoreDownloadSize) && (sizeInGiB < Integer.parseInt(searchState.minSize) || (!searchState.maxSize.equals(
+                    Constant.INFINITY) && sizeInGiB > Integer.parseInt(searchState.maxSize)))) {
                 continue;
             }
 

@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2020.09.21   | VidMasta 27.0
+
+CHANGE: CORE | Upgraded from Java 7 to Java 8
+CHANGE: CORE | Fixed download connectivity issues
+CHANGE: UI   | Simplified trailer search season selection
+CHANGE: UI   | Removed deprecated web browser downloader option
+
+
+
+
 2019.05.25   | VidMasta 26.0
 
 CHANGE: UI   | Simplified UI

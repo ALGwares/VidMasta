@@ -1,8 +1,20 @@
 package torrent;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
-import com.aelitis.azureus.core.download.EnhancedDownloadManager;
+import com.biglybt.core.CoreFactory;
+import com.biglybt.core.disk.DiskManagerFileInfo;
+import com.biglybt.core.disk.DiskManagerFileInfoSet;
+import com.biglybt.core.download.DownloadManager;
+import com.biglybt.core.download.DownloadManagerEnhancer;
+import com.biglybt.core.download.DownloadManagerStats;
+import com.biglybt.core.download.EnhancedDownloadManager;
+import com.biglybt.core.download.ForceRecheckListener;
+import com.biglybt.core.global.GlobalManager;
+import com.biglybt.core.torrent.TOTorrent;
+import com.biglybt.core.torrent.TOTorrentFile;
+import com.biglybt.core.util.ByteFormatter;
+import com.biglybt.core.util.DisplayFormatters;
+import com.biglybt.core.util.TimeFormatter;
+import com.biglybt.core.util.TorrentUtils;
 import debug.Debug;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -25,18 +37,6 @@ import listener.PlaylistItem;
 import listener.Video;
 import listener.WorkerListener;
 import org.apache.commons.codec.binary.Base64;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerStats;
-import org.gudy.azureus2.core3.download.ForceRecheckListener;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 import str.Str;
 import util.AbstractWorker.StateValue;
 import util.Constant;
@@ -77,7 +77,7 @@ public class StreamingTorrentUtil {
             if (player != null) {
                 return;
             }
-            DownloadManagerEnhancer.initialise(AzureusCoreFactory.getSingleton());
+            DownloadManagerEnhancer.initialise(CoreFactory.getSingleton());
             (player = new Thread() {
                 @Override
                 public void run() {
@@ -102,7 +102,7 @@ public class StreamingTorrentUtil {
             try {
                 playlist.clear();
                 player.interrupt();
-                AzureusCoreFactory.getSingleton().getGlobalManager().stopAllDownloads();
+                CoreFactory.getSingleton().getGlobalManager().stopAllDownloads();
                 rmSkippedFiles();
             } catch (Exception e) {
                 if (Debug.DEBUG) {
@@ -217,11 +217,11 @@ public class StreamingTorrentUtil {
                     PlaylistTorrentItem playlistItem = null;
                     PlaylistTorrentItem tempPlaylistItem = new PlaylistTorrentItem(null, magnetLink, Base64.encodeBase64String(magnetLink.getBytes(Constant.UTF8)),
                             null, 0) {
-                                @Override
-                                public boolean isStoppable() {
-                                    return false;
-                                }
-                            };
+                        @Override
+                        public boolean isStoppable() {
+                            return false;
+                        }
+                    };
                     Object[] item = guiListener.makePlaylistRow(name, size(-1L), progress(-1.0, Str.str("initializing") + wideSpace + wideSpace + wideSpace),
                             tempPlaylistItem);
 
@@ -356,7 +356,7 @@ public class StreamingTorrentUtil {
     }
 
     static void stream(PlaylistTorrentItem playlistItem) throws Exception {
-        GlobalManager globalManager = AzureusCoreFactory.getSingleton().getGlobalManager();
+        GlobalManager globalManager = CoreFactory.getSingleton().getGlobalManager();
         DownloadManager downloadManager;
         EnhancedDownloadManager enhancedDownloadManager;
         String savePath = guiListener.getPlaylistSaveDir();

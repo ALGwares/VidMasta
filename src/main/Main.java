@@ -519,8 +519,9 @@ public class Main implements WorkerListener {
 
             Pattern fileName = Pattern.compile("(?!((" + Pattern.quote(cleanVersion.getName()) + ")|(" + Pattern.quote(Constant.UPDATE_FILE) + ")|("
                     + Pattern.quote(Constant.USER_SETTINGS) + ")|(" + Pattern.quote(Magnet.VUZE_VERSION) + ")|(" + Pattern.quote(Magnet.IP_FILTER_VERSION) + ")|("
-                    + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATE_FAIL)
-                    + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(ipfilter[\\d\\.]*+)|(peerblockConf[\\d\\.]++)|(updateFail[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe))");
+                    + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION) + ")|("
+                    + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATE_FAIL)
+                    + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)|(ipfilter[\\d\\.]*+)|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(updateFail[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe))");
 
             for (File file : IO.listFiles(Constant.APP_DIR)) {
                 if (fileName.matcher(file.getName()).matches()) {

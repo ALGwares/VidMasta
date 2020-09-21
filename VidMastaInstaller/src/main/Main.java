@@ -93,7 +93,7 @@ public class Main {
     }
 
     static void innoExe() throws Exception {
-        File jre7Test = new File("jre7Test.jar"), jre = new File("jre-7u80-windows-i586.exe"), config = new File("config.iss");
+        File jreTest = new File("jre8Test.jar"), jre = new File("jre-8u261-windows-i586.exe"), config = new File("config.iss");
         String appDir = "{userappdata}" + Constant.FILE_SEPARATOR + Constant.APP_NAME + Constant.FILE_SEPARATOR, appJar = "{app}" + Constant.FILE_SEPARATOR
                 + Constant.APP_NAME + ".jar", publisher = "Anthony Gray", readme = "{app}" + Constant.FILE_SEPARATOR + "readme.html", homePage
                 = "https://sites.google.com/site/algwares/", vidMastaPage = homePage + "vidmasta", appId = Constant.APP_NAME + " " + Constant.APP_VERSION,
@@ -141,7 +141,7 @@ public class Main {
                 + "Name: \"tr\"; MessagesFile: \"compiler:Languages" + Constant.FILE_SEPARATOR + "Turkish.isl\"\n"
                 + '\n'
                 + "[Files]\n"
-                + "Source: \"" + jre7Test.getCanonicalPath() + "\"; DestDir: \"" + appDir + "\"; Flags: ignoreversion deleteafterinstall\n"
+                + "Source: \"" + jreTest.getCanonicalPath() + "\"; DestDir: \"" + appDir + "\"; Flags: ignoreversion deleteafterinstall\n"
                 + "Source: \"" + jre.getCanonicalPath() + "\"; DestDir: \"" + appDir + "\"; Flags: ignoreversion deleteafterinstall\n"
                 + "Source: \"C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR + "workspace"
                 + Constant.FILE_SEPARATOR + "Netbeans" + Constant.FILE_SEPARATOR + Constant.APP_NAME + Constant.FILE_SEPARATOR + Constant.APP_NAME
@@ -195,12 +195,7 @@ public class Main {
                 + "      else\n"
                 + "        begin\n"
                 + "          Try\n"
-                + "            Exec('javaw.exe', '-jar " + jre7Test.getName() + "', ExpandConstant('" + appDir + "'), SW_SHOW, ewWaitUntilTerminated, ReturnCode);\n"
-                + "            if ReturnCode = 1371298452 then\n"
-                + "              begin\n"
-                + "                ReturnCode := 0;\n"
-                + "                ShellExec('', '" + jre7Test.getName() + "', '', ExpandConstant('" + appDir + "'), SW_SHOW, ewWaitUntilTerminated, ReturnCode);\n"
-                + "              end;\n"
+                + "            ShellExec('', '" + jreTest.getName() + "', '', ExpandConstant('" + appDir + "'), SW_SHOW, ewWaitUntilTerminated, ReturnCode);\n"
                 + "          Except\n"
                 + "          end;\n"
                 + '\n'
@@ -223,7 +218,8 @@ public class Main {
                 + "  end;\n"
                 + '\n'
                 + "[Run]\n"
-                + "Filename: \"javaw.exe\"; Parameters: \"-jar \"\"" + appJar + "\"\"\"; WorkingDir: \"{app}\"; Flags: nowait postinstall skipifsilent\n");
+                + "Filename: \"cmd.exe\"; Parameters: \"/c start \"\"" + Constant.APP_NAME + "\"\" \"\"" + appJar
+                + "\"\"\"; WorkingDir: \"{app}\"; Flags: nowait postinstall skipifsilent\n");
         run(null, "C:" + Constant.FILE_SEPARATOR + "Program Files (x86)" + Constant.FILE_SEPARATOR + "Inno Setup 5" + Constant.FILE_SEPARATOR + "ISCC.exe",
                 config.getCanonicalPath());
         config.delete();

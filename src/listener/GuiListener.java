@@ -36,7 +36,7 @@ public interface GuiListener {
 
     void saveSubtitle(String saveFileName, File subtitleFile) throws Exception;
 
-    boolean tvChoices(String season, String episode);
+    boolean tvChoices(String season, String episode, boolean enableEpisode);
 
     String getTitle(int row, String titleID);
 
@@ -142,8 +142,6 @@ public interface GuiListener {
 
     boolean canDownloadWithPlaylist();
 
-    String getWebBrowserAppDownloader();
-
     String[] getWhitelistedFileExts();
 
     String[] getBlacklistedFileExts();
@@ -176,6 +174,8 @@ public interface GuiListener {
     void subtitleSearchStopped();
 
     void summarySearchStarted(Video video);
+
+    int setRandomPort();
 
     int getPort();
 

@@ -1,14 +1,31 @@
 package torrent;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.instancemanager.AZInstance;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.biglybt.core.Core;
+import com.biglybt.core.CoreFactory;
+import com.biglybt.core.config.COConfigurationManager;
+import com.biglybt.core.instancemanager.ClientInstance;
+import com.biglybt.core.internat.MessageText;
+import com.biglybt.core.ipfilter.IpFilter;
+import com.biglybt.core.ipfilter.impl.IpFilterImpl;
+import com.biglybt.core.ipfilter.impl.IpRangeImpl;
+import com.biglybt.core.util.BDecoder;
+import com.biglybt.core.util.Constants;
+import com.biglybt.core.util.DisplayFormatters;
+import com.biglybt.core.util.FileUtil;
+import com.biglybt.core.util.SystemProperties;
+import com.biglybt.pif.PluginInterface;
+import com.biglybt.pif.PluginManagerDefaults;
+import com.biglybt.pif.PluginState;
+import com.biglybt.pifimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+import com.biglybt.plugin.dht.DHTPlugin;
 import debug.Debug;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.DatagramSocket;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,26 +39,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import listener.GuiListener;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.ipfilter.IpFilter;
-import org.gudy.azureus2.core3.ipfilter.impl.IpFilterImpl;
-import org.gudy.azureus2.core3.ipfilter.impl.IpRangeImpl;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManagerDefaults;
-import org.gudy.azureus2.plugins.PluginState;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import str.Str;
 import util.AbstractWorker;
 import util.Connection;
 import util.Constant;
 import util.IO;
 import util.Regex;
+import util.ThrowableUtil;
 import util.Worker;
 
 public class Magnet extends Thread {
@@ -49,10 +53,10 @@ public class Magnet extends Thread {
     private static final Object saveTorrentLock = new Object(), azureusConfigLock = new Object();
     private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
     private static final AtomicBoolean isAzureusConfigured = new AtomicBoolean();
-    public static final String IP_FILTER_VERSION = "ipfilter" + Constant.APP_VERSION, VUZE_VERSION = "vuze" + Constants.AZUREUS_VERSION.replace(".", "");
-    private static final String VUZE_DIR = Constant.APP_DIR + VUZE_VERSION + Constant.FILE_SEPARATOR + "vuze" + Constant.FILE_SEPARATOR, IP_FILTER_TOGGLE
+    public static final String IP_FILTER_VERSION = "ipfilter" + Constant.APP_VERSION, VUZE_VERSION = "biglybt" + Constants.BIGLYBT_VERSION.replace(".", "");
+    private static final String VUZE_DIR = Constant.APP_DIR + VUZE_VERSION + Constant.FILE_SEPARATOR + "biglybt" + Constant.FILE_SEPARATOR, IP_FILTER_TOGGLE
             = "Ip Filter Enabled";
-    private static volatile AzureusCore core;
+    private static volatile Core core;
     public final String MAGNET_LINK;
     public final File TORRENT;
     private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
@@ -190,16 +194,17 @@ public class Magnet extends Thread {
 
             Str.waitForUpdate(); // Attempt a HTTPS connection to ensure HTTPS connections are not possibly prevented by Azureus javax.net.ssl.trustStore bug
 
-            System.setProperty("azureus.security.manager.install", "0");
-            System.setProperty("azureus.security.manager.permitexit", "1");
+            System.setProperty(SystemProperties.SYSPROP_SECURITY_MANAGER_INSTALL, "0");
+            System.setProperty(SystemProperties.SYSPROP_SECURITY_MANAGER_PERMITEXIT, "1");
             System.setProperty("MULTI_INSTANCE", String.valueOf(true));
-            System.setProperty("azureus.platform.manager.disable", String.valueOf(true));
+            System.setProperty(SystemProperties.SYSPROP_PLATFORM_MANAGER_DISABLE, String.valueOf(true));
             boolean canFilterIpsWithoutBlocking = canFilterIpsWithoutBlocking();
             IO.fileOp(VUZE_DIR, IO.MK_DIR);
-            System.setProperty("azureus.install.path", VUZE_DIR);
-            System.setProperty("azureus.config.path", VUZE_DIR);
-            System.setProperty("azureus.portable.root", VUZE_DIR);
+            System.setProperty(SystemProperties.SYSPROP_INSTALL_PATH, VUZE_DIR);
+            System.setProperty(SystemProperties.SYSPROP_CONFIG_PATH, VUZE_DIR);
+            System.setProperty(SystemProperties.SYSPROP_PORTABLE_ROOT, VUZE_DIR);
             SystemProperties.setUserPath(VUZE_DIR);
+            System.setProperty(SystemProperties.SYSPROP_DOC_PATH, VUZE_DIR + "Documents");
 
             COConfigurationManager.initialise();
             Connection.setAuthenticator();
@@ -236,9 +241,32 @@ public class Magnet extends Thread {
         try {
             Connection.setStatusBar(Str.str("connecting4"));
             configAzureus();
-            setPorts(guiListener.getPort());
 
-            core = AzureusCoreFactory.create();
+            int originalPort = guiListener.getPort();
+            int port = originalPort;
+            for (int i = 0, j = 11; i <= j; i++, port = guiListener.setRandomPort()) {
+                ServerSocket ss = null;
+                DatagramSocket ds = null;
+                try {
+                    ss = new ServerSocket(port);
+                    ss.setReuseAddress(true);
+                    ds = new DatagramSocket(port);
+                    ds.setReuseAddress(true);
+                    if (port != originalPort) {
+                        guiListener.msg(Str.str("portChanged", port, originalPort), Constant.INFO_MSG);
+                    }
+                    break;
+                } catch (IOException e) {
+                    if (i == j) {
+                        guiListener.error(new IOException(Str.str("portError", port) + ' ' + ThrowableUtil.toString(e)));
+                    }
+                } finally {
+                    IO.close(ds, ss);
+                }
+            }
+            setPorts(port);
+
+            core = CoreFactory.create();
 
             try {
                 ipFilterInitializerStartSignal.await();
@@ -257,15 +285,15 @@ public class Magnet extends Thread {
             Connection.setStatusBar(Str.str("connecting4") + ipBlockMsg);
 
             if (Debug.DEBUG) {
-                AZInstance instance = core.getInstanceManager().getMyInstance();
+                ClientInstance instance = core.getInstanceManager().getMyInstance();
                 Debug.println("TCP Port: " + instance.getTCPListenPort() + "\nUDP Port: " + instance.getUDPListenPort() + "\nUDP Non-Data Port: "
                         + instance.getUDPNonDataListenPort());
             }
 
             Collection<String> enabledPluginNames = new ArrayList<String>(16), enabledPluginIDs = new ArrayList<String>(8);
             Collections.addAll(enabledPluginNames, "DHT", "DHT Tracker", "Local Tracker", "Tracker Peer Auth", "uTP Plugin", "Distributed DB",
-                    "Distributed Tracker", "Magnet URI Handler", "External Seed", "LAN Peer Finder");
-            Collections.addAll(enabledPluginIDs, "azutp", "azbpdht", "azbpdhdtracker", "azbpmagnet", "azextseed", "azlocaltracker");
+                    "Distributed Tracker", "Magnet URI Handler", "External Seed", "LAN Peer Finder", "Client Identification");
+            Collections.addAll(enabledPluginIDs, "azutp", "azbpdht", "azbpdhdtracker", "azbpmagnet", "azextseed", "azlocaltracker", "bgclientid");
 
             PluginManagerDefaults pluginManagerDefaults = core.getPluginManagerDefaults();
             for (String pluginName : pluginManagerDefaults.getDefaultPlugins()) {
@@ -476,11 +504,5 @@ public class Magnet extends Thread {
                 IO.close(br);
             }
         }
-    }
-
-    public static String getIP(GuiListener guiListener) throws Exception {
-        startAzureus(guiListener);
-        waitForAzureusToStart();
-        return core.getInstanceManager().getMyInstance().getExternalAddress().getHostAddress();
     }
 }

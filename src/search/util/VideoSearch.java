@@ -267,7 +267,7 @@ public class VideoSearch {
         if (isTVShow) {
             summary.append("<b id=\"").append(Constant.TV_NEXT_EPISODE_HTML_ID).append("\">").append(Str.str("nextEpisode")).append(" </b>").append(
                     Constant.TV_EPISODE_PLACEHOLDER).append(br1).append("<b id=\"").append(Constant.TV_PREV_EPISODE_HTML_ID).append("\">").append(Str.str(
-                                    "prevEpisode")).append(" </b>").append(Constant.TV_EPISODE_PLACEHOLDER);
+                    "prevEpisode")).append(" </b>").append(Constant.TV_EPISODE_PLACEHOLDER);
         } else {
             String releaseDate = Regex.replaceAll(Regex.match(sourceCode, 539), 541);
             if (Regex.isMatch(releaseDate, 543)) {
@@ -430,12 +430,26 @@ public class VideoSearch {
     }
 
     public static boolean isUploadYearTooOld(String sourceCode, int maxYearsOld, int baseYear) {
-        String uploadTime = Regex.match(sourceCode, 668);
+        String uploadTime = Regex.match(sourceCode, 776);
         if (uploadTime.isEmpty()) {
             return false;
         }
 
-        int uploadYear = Integer.parseInt(uploadTime), currYear = Calendar.getInstance().get(Calendar.YEAR);
+        Calendar time = Calendar.getInstance();
+        if (Regex.isMatch(uploadTime, "\\d{10}+|\\d{13}+")) {
+            time.setTimeInMillis(Long.parseLong(uploadTime + (uploadTime.length() == 10 ? "000" : "")));
+        } else {
+            try {
+                time.setTime((new SimpleDateFormat(Str.get(778), Locale.ENGLISH)).parse(uploadTime));
+            } catch (Exception e) {
+                if (Debug.DEBUG) {
+                    Debug.print(e);
+                }
+                return false;
+            }
+        }
+
+        int uploadYear = time.get(Calendar.YEAR), currYear = Calendar.getInstance().get(Calendar.YEAR);
         if (Boolean.parseBoolean(Str.get(670))) {
             uploadYear = currYear - uploadYear;
         }

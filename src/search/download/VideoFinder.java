@@ -365,12 +365,6 @@ public class VideoFinder extends Worker {
         IO.browse(speechPage);
     }
 
-    private void browseDownloadURL(String url) throws IOException {
-        startPeerBlock();
-        guiListener.browserNotification(DomainType.DOWNLOAD_LINK_INFO);
-        Connection.browse(url);
-    }
-
     private static void browseMagnetLink(Torrent torrent) throws IOException {
         Connection.browse(torrent.MAGNET_LINK, "bitTorrentClient");
     }
@@ -444,7 +438,7 @@ public class VideoFinder extends Worker {
             return;
         }
 
-        if (!VideoSearch.isRightFormat(torrent.NAME, Constant.HQ)) {
+        if (!video.IS_TV_SHOW && !VideoSearch.isRightFormat(torrent.NAME, Constant.HQ)) {
             addVideoToPlaylist();
         }
 
@@ -492,12 +486,7 @@ public class VideoFinder extends Worker {
         }
 
         if (torrent.FILE == null || !torrent.FILE.exists()) {
-            if (guiListener.getWebBrowserAppDownloader() != null) {
-                if (searchState.blacklistedFileExts.length != 0) {
-                    torrentDownloadError(torrent);
-                }
-                browseDownloadURL(torrent.magnetLinkURL());
-            } else if (guiListener.canDownloadWithDefaultApp()) {
+            if (guiListener.canDownloadWithDefaultApp()) {
                 if (searchState.blacklistedFileExts.length != 0) {
                     torrentDownloadError(torrent);
                 }
@@ -524,10 +513,7 @@ public class VideoFinder extends Worker {
             IO.write(torrent.FILE, torrentFile);
         }
 
-        String webBrowserAppDownloader = guiListener.getWebBrowserAppDownloader();
-        if (webBrowserAppDownloader != null) {
-            browseDownloadURL(webBrowserAppDownloader + URLEncoder.encode(torrentFilePath, Constant.UTF8));
-        } else if (guiListener.canDownloadWithDefaultApp()) {
+        if (guiListener.canDownloadWithDefaultApp()) {
             startPeerBlock();
             try {
                 IO.open(torrentFile);
@@ -556,10 +542,10 @@ public class VideoFinder extends Worker {
         }
     }
 
-    private boolean tvChoices() {
+    private boolean tvChoices(boolean enableEpisode) {
         synchronized (TV_CHOICES_LOCK) {
             if (strExportListener == null || strExportListener.showTVChoices()) {
-                boolean cancelTVSelection = guiListener.tvChoices(video.season, video.episode);
+                boolean cancelTVSelection = guiListener.tvChoices(video.season, video.episode, enableEpisode);
                 if (strExportListener != null) {
                     strExportListener.setEpisode(guiListener.getSeason(), guiListener.getEpisode());
                 }
@@ -570,7 +556,7 @@ public class VideoFinder extends Worker {
     }
 
     private void findTrailer() throws Exception {
-        if (!PREFETCH && video.IS_TV_SHOW && rerunner != null && tvChoices()) {
+        if (!PREFETCH && video.IS_TV_SHOW && rerunner != null && tvChoices(false)) {
             return;
         }
 
@@ -810,7 +796,7 @@ public class VideoFinder extends Worker {
 
     private boolean findTVDownloadLink(boolean canShowTVChoices) throws Exception {
         if (canShowTVChoices) {
-            if (foreground && tvChoices()) {
+            if (foreground && tvChoices(true)) {
                 return false;
             }
 

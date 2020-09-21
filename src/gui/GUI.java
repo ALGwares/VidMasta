@@ -451,8 +451,8 @@ public class GUI extends JFrame implements GuiListener {
                 trailerMediaPlayer240RadioButtonMenuItem, trailerWebBrowserPlayerRadioButtonMenuItem);
         UI.add(downloadQualityButtonGroup, downloadAnyQualityRadioButtonMenuItem, downloadHighQualityRadioButtonMenuItem, downloadDVDQualityRadioButtonMenuItem,
                 download720HDQualityRadioButtonMenuItem, download1080HDRadioButtonMenuItem);
-        UI.add(downloaderButtonGroup, playlistDownloaderRadioButtonMenuItem, webBrowserAppDownloaderRadioButtonMenuItem,
-                webBrowserAppDownloaderRadioButtonMenuItem /* Backward compatibility */, defaultApplicationDownloaderRadioButtonMenuItem,
+        UI.add(downloaderButtonGroup, playlistDownloaderRadioButtonMenuItem, playlistDownloaderRadioButtonMenuItem /* Backward compatibility */,
+                playlistDownloaderRadioButtonMenuItem /* Backward compatibility */, defaultApplicationDownloaderRadioButtonMenuItem,
                 noDownloaderRadioButtonMenuItem);
 
         UI.setIcon(popularPopupMenuButton, "more");
@@ -1024,7 +1024,6 @@ public class GUI extends JFrame implements GuiListener {
         downloadMenuSeparator5 = new Separator();
         downloaderMenu = new JMenu();
         playlistDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
-        webBrowserAppDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         defaultApplicationDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         noDownloaderRadioButtonMenuItem = new JRadioButtonMenuItem();
         helpMenu = new JMenu();
@@ -1954,7 +1953,7 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(proxyUpdatesCheckBox)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(proxySubtitlesCheckBox)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 125, Short.MAX_VALUE))
                     .addGroup(proxyDialogLayout.createSequentialGroup()
                         .addComponent(proxyAddButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
@@ -1965,10 +1964,10 @@ public class GUI extends JFrame implements GuiListener {
                         .addComponent(proxyImportButton)
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addComponent(proxyExportButton)
-                        .addPreferredGap(ComponentPlacement.RELATED, 158, Short.MAX_VALUE)
-                        .addComponent(proxyOKButton)
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(proxyLoadingLabel)))
+                        .addGap(18, 18, Short.MAX_VALUE)
+                        .addComponent(proxyLoadingLabel)
+                        .addPreferredGap(ComponentPlacement.RELATED)
+                        .addComponent(proxyOKButton)))
                 .addContainerGap())
         );
         proxyDialogLayout.setVerticalGroup(proxyDialogLayout.createParallelGroup(Alignment.LEADING)
@@ -3836,9 +3835,6 @@ public class GUI extends JFrame implements GuiListener {
         playlistDownloaderRadioButtonMenuItem.setSelected(true);
         playlistDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.playlistDownloaderRadioButtonMenuItem.text")); // NOI18N
         downloaderMenu.add(playlistDownloaderRadioButtonMenuItem);
-
-        webBrowserAppDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text")); // NOI18N
-        downloaderMenu.add(webBrowserAppDownloaderRadioButtonMenuItem);
 
         defaultApplicationDownloaderRadioButtonMenuItem.setText(bundle.getString("GUI.defaultApplicationDownloaderRadioButtonMenuItem.text")); // NOI18N
         downloaderMenu.add(defaultApplicationDownloaderRadioButtonMenuItem);
@@ -6891,10 +6887,32 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public boolean tvChoices(String season, String episode) {
+    public boolean tvChoices(final String season, final String episode, boolean enableEpisode) {
         Window alwaysOnTopFocus = resultsToBackground();
         tvSeasonComboBox.setSelectedItem(season);
-        tvEpisodeComboBox.setSelectedItem(episode);
+        if (enableEpisode) {
+            tvEpisodeComboBox.setSelectedItem(episode);
+        } else {
+            final Object selectedEpisode = tvEpisodeComboBox.getSelectedItem();
+            final ActionListener tvSeasonComboBoxActionListener = tvSeasonComboBox.getActionListeners()[0];
+            tvSeasonComboBox.removeActionListener(tvSeasonComboBoxActionListener);
+            final ActionListener tvEpisodeComboBoxActionListener = tvEpisodeComboBox.getActionListeners()[0];
+            tvEpisodeComboBox.removeActionListener(tvEpisodeComboBoxActionListener);
+            tvEpisodeComboBox.setSelectedItem(Constant.ANY);
+            tvEpisodeComboBox.setEnabled(false);
+            tvDialog.addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentHidden(ComponentEvent evt) {
+                    if (season.equals(tvSeasonComboBox.getSelectedItem())) {
+                        tvEpisodeComboBox.setSelectedItem(episode.isEmpty() ? selectedEpisode : episode);
+                    }
+                    updateTVComboBoxes();
+                    tvSeasonComboBox.addActionListener(tvSeasonComboBoxActionListener);
+                    tvEpisodeComboBox.addActionListener(tvEpisodeComboBoxActionListener);
+                    tvDialog.removeComponentListener(this);
+                }
+            });
+        }
         cancelTVSelection = true;
         UI.show(tvDialog);
         resultsToForeground(alwaysOnTopFocus);
@@ -7464,11 +7482,6 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
-    public String getWebBrowserAppDownloader() {
-        return webBrowserAppDownloaderRadioButtonMenuItem.isSelected() ? Str.get(394) : null;
-    }
-
-    @Override
     public String[] getWhitelistedFileExts() {
         return UI.copy(whitelistListModel.toArray());
     }
@@ -7633,7 +7646,8 @@ public class GUI extends JFrame implements GuiListener {
         return Regex.isMatch(port, "\\d{1,5}+") && (portNum = Integer.parseInt(port)) <= 65535 ? portNum : -1;
     }
 
-    int setRandomPort() {
+    @Override
+    public int setRandomPort() {
         int portNum = (new Random()).nextInt(16373) + 49161;
         portTextField.setText(String.valueOf(portNum));
         return portNum;
@@ -7943,7 +7957,6 @@ public class GUI extends JFrame implements GuiListener {
         watchOnDeviceMenuItem.setToolTipText(Str.str("GUI.watchOnDeviceMenuItem.toolTipText"));
         watchTrailerButton.setToolTipText(Str.str("GUI.watchTrailerButton.toolTipText"));
         watchTrailerMenuItem.setText(Str.str("GUI.watchTrailerMenuItem.text"));
-        webBrowserAppDownloaderRadioButtonMenuItem.setText(Str.str("GUI.webBrowserAppDownloaderRadioButtonMenuItem.text"));
         whitelistLabel.setText(Str.str("GUI.whitelistLabel.text"));
         whitelistedToBlacklistedButton.setToolTipText(Str.str("GUI.whitelistedToBlacklistedButton.toolTipText"));
 
@@ -8395,7 +8408,6 @@ public class GUI extends JFrame implements GuiListener {
     JMenuItem watchOnDeviceMenuItem;
     JButton watchTrailerButton;
     JMenuItem watchTrailerMenuItem;
-    JRadioButtonMenuItem webBrowserAppDownloaderRadioButtonMenuItem;
     JLabel whitelistLabel;
     JList whitelistedList;
     JScrollPane whitelistedScrollPane;

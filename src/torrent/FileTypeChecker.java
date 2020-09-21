@@ -1,5 +1,7 @@
 package torrent;
 
+import com.biglybt.core.torrent.TOTorrentFile;
+import com.biglybt.core.torrent.impl.TOTorrentDeserialiseImpl;
 import debug.Debug;
 import java.io.File;
 import java.util.ArrayList;
@@ -7,8 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
-import org.gudy.azureus2.core3.torrent.impl.TOTorrentDeserialiseImpl;
 import str.Str;
 import util.Constant;
 

@@ -57,6 +57,7 @@ public class MediaPlayer {
             List<String> args = new ArrayList<String>(16);
             File oldMediaPlayerDir;
             String language = Str.locale().getISO3Language();
+            // When VLC stops playing YouTube update https://github.com/videolan/vlc/blob/master/share/lua/playlist/youtube.lua in vlc-win32.zip
             Collections.addAll(args, IO.findFile(MEDIA_PLAYER_DIR.exists() ? MEDIA_PLAYER_DIR : ((oldMediaPlayerDir = new File(Constant.APP_DIR, Str.get(
                     762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance",
                     "--audio-language=" + language, "--sub-language=" + language, "--avi-index=2", "--no-qt-updates-notif");
