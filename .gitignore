@@ -4,7 +4,7 @@
 *.war
 *.ear
 
-*.svn
+**/*.svn
 *.lnk
 *~
 
