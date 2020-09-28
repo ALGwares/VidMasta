@@ -380,7 +380,7 @@ public class VideoFinder extends Worker {
             }
             String settings = searchState.toString();
             guiListener.msg(Str.str(("download" + (strExportListener == null || !strExportListener.exportSecondaryContent() ? "" : (isDownload1 ? "1" : "2")))
-                    + "LinkNotFound") + Constant.STD_NEWLINE2 + Str.str("settings", " " + (settings.isEmpty() ? VideoSearch.describe(video) : VideoSearch.describe(
+                    + "LinkNotFound") + Constant.STD_NEWLINE2 + Str.str("settings", " " + (settings.isEmpty() ? VideoUtil.describe(video) : VideoUtil.describe(
                             video) + ',' + settings)), Constant.INFO_MSG);
             addVideoToPlaylist();
         } else {
@@ -471,8 +471,7 @@ public class VideoFinder extends Worker {
                                     episodeSearcher.prevEpisodeText, "\\AS\\d++E\\d++")).isEmpty() && prevEpisode.substring(1, index = prevEpisode.indexOf(
                                             'E')).equals(video.season) && prevEpisode.substring(index + 1).equals(video.episode))) {
                                 nextVideo.oldTitle = video.oldTitle;
-                                StreamingTorrentUtil.stream(nextVideo, VideoSearch.describe(nextVideo) + episodeSearcher.nextEpisodeText.substring(
-                                        episodeSearcher.nextEpisodeText.indexOf(' ')), false);
+                                StreamingTorrentUtil.stream(nextVideo, VideoUtil.describe(nextVideo), false);
                             }
                         } catch (Exception e) {
                             if (Debug.DEBUG) {
@@ -538,7 +537,7 @@ public class VideoFinder extends Worker {
 
     private void addVideoToPlaylist() {
         if (foreground) {
-            StreamingTorrentUtil.stream(video, VideoSearch.describe(video), true);
+            StreamingTorrentUtil.stream(video, VideoUtil.describe(video), true);
         }
     }
 

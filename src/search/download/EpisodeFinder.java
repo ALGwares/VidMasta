@@ -9,7 +9,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import javax.swing.text.Element;
 import listener.DomainType;
@@ -122,6 +124,17 @@ public class EpisodeFinder extends Worker {
     }
 
     void findEpisodes(String url) throws Exception {
+        findEpisodes(url, "", "");
+    }
+
+    void findEpisodes(String url, String seasonToFind, String episodeToFind) throws Exception {
+        boolean findSeasonAndEpisode = !seasonToFind.isEmpty() && !seasonToFind.equals(Constant.ANY) && !episodeToFind.isEmpty() && !episodeToFind.equals(
+                Constant.ANY);
+        DateFormat[] dateFormats = {new SimpleDateFormat(Str.get(538), Locale.ENGLISH), new SimpleDateFormat(Str.get(547), Locale.ENGLISH), new SimpleDateFormat(
+            Str.get(746), Locale.ENGLISH)};
+        if (findSeasonAndEpisode) {
+            setEpisodeText(seasonToFind, episodeToFind, "", dateFormats, true);
+        }
         Calendar currDate = Calendar.getInstance();
         currDate.set(Calendar.HOUR_OF_DAY, 0);
         currDate.set(Calendar.MINUTE, 0);
@@ -132,12 +145,23 @@ public class EpisodeFinder extends Worker {
         List<String> seasons = Regex.matches(source, 520);
         seasons.add(Regex.match(source, 550));
         seasons = sortedNumListSet(seasons, false);
+
+        BiConsumer<List<String>, String> select = (numStrs, numStr) -> {
+            if (findSeasonAndEpisode) {
+                int num = Integer.parseInt(numStr);
+                ListIterator<String> numStrsIt = numStrs.listIterator();
+                while (numStrsIt.hasNext()) {
+                    if (Integer.parseInt(numStrsIt.next()) != num) {
+                        numStrsIt.remove();
+                    }
+                }
+            }
+        };
+        select.accept(seasons, seasonToFind);
+
         if (seasons.isEmpty()) {
             return;
         }
-
-        DateFormat[] dateFormats = {new SimpleDateFormat(Str.get(538), Locale.ENGLISH), new SimpleDateFormat(Str.get(547), Locale.ENGLISH), new SimpleDateFormat(
-            Str.get(746), Locale.ENGLISH)};
         List<Episode> episodes = new ArrayList<Episode>(3), prevNextEpisodes = new ArrayList<Episode>(2);
 
         outer:
@@ -145,6 +169,7 @@ public class EpisodeFinder extends Worker {
             episodes.clear();
             List<String> currEpisodes = sortedNumListSet(Regex.matches(source = Connection.getSourceCode(url + Str.get(523) + season, DomainType.VIDEO_INFO, false),
                     Str.get(524) + season + Str.get(525), Str.get(526)), true);
+            select.accept(currEpisodes, episodeToFind);
             for (int i = 0, j = currEpisodes.size() - 1; i <= j; i++) {
                 String episode = currEpisodes.get(i), airdate = Regex.replaceAll(Regex.match(source, Str.get(528) + season + Str.get(529) + episode + Str.get(530),
                         Str.get(531)), Str.get(532), Str.get(533));
@@ -165,6 +190,9 @@ public class EpisodeFinder extends Worker {
 
                 Episode currEpisode = new Episode(season, episode, airdate);
                 episodes.add(currEpisode);
+                if (findSeasonAndEpisode) {
+                    break outer;
+                }
                 if (episodes.size() == 3) {
                     Episode prevPrevEpisode = episodes.get(0), prevEpisode = episodes.get(1);
                     if (prevPrevEpisode.airdate.equals(prevEpisode.airdate) && prevEpisode.airdate.equals(currEpisode.airdate) && !prevPrevEpisode.aired

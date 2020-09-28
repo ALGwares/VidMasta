@@ -39,8 +39,8 @@ import listener.WorkerListener;
 import proxy.ProxyListDownloader;
 import search.PopularSearcher;
 import search.RegularSearcher;
-import search.SubtitleFinder;
 import search.download.Prefetcher;
+import search.download.SubtitleFinder;
 import search.download.VideoFinder;
 import str.Str;
 import torrent.Magnet;
@@ -214,6 +214,9 @@ public class Main implements WorkerListener {
     private static void singleInstance() {
         try {
             if (showMainFrame()) {
+                if (Debug.DEBUG) {
+                    Debug.println("Only 1 instance of " + Constant.APP_TITLE + " can run.");
+                }
                 System.exit(-1);
             }
             appLockFile = new File(Constant.APP_DIR + "lock");
@@ -225,6 +228,9 @@ public class Main implements WorkerListener {
             if (appLockFileLock == null) {
                 IO.close(appLockFileChannel);
                 showMainFrame();
+                if (Debug.DEBUG) {
+                    Debug.println("Only 1 instance of " + Constant.APP_TITLE + " can run.");
+                }
                 System.exit(-1);
             }
         } catch (Exception e) {
@@ -251,9 +257,6 @@ public class Main implements WorkerListener {
     private static boolean showMainFrame() {
         try {
             ((RemoteInstance) Naming.lookup(RemoteSingleInstance.NAME)).showMainFrame();
-            if (Debug.DEBUG) {
-                Debug.println("Only 1 instance of " + Constant.APP_TITLE + " can run.");
-            }
             return true;
         } catch (Exception e) {
             return false;
@@ -521,8 +524,9 @@ public class Main implements WorkerListener {
                     + Pattern.quote(Constant.USER_SETTINGS) + ")|(" + Pattern.quote(Magnet.VUZE_VERSION) + ")|(" + Pattern.quote(Magnet.IP_FILTER_VERSION) + ")|("
                     + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION) + ")|("
                     + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATE_FAIL)
-                    + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)|(ipfilter[\\d\\.]*+)|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(updateFail[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe))");
-
+                    + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)|(ipfilter[\\d\\.]*+)"
+                    + "|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(updateFail[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)"
+                    + "|(vidmasta\\-setup\\-21\\.[67]\\.exe)|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer))");
             for (File file : IO.listFiles(Constant.APP_DIR)) {
                 if (fileName.matcher(file.getName()).matches()) {
                     IO.fileOp(file, file.isDirectory() ? IO.RM_DIR : IO.RM_FILE);

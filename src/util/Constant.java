@@ -13,6 +13,7 @@ public class Constant implements IOConstant {
 
     public static final int ERROR_MSG = JOptionPane.ERROR_MESSAGE;
     public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
+    public static final int WARN_MSG = JOptionPane.WARNING_MESSAGE;
     public static final String VERSION_FORMAT = "0.0";
     public static final boolean WINDOWS_XP_AND_HIGHER, WINDOWS_VISTA_AND_HIGHER;
     public static final int MAX_SUBDIRECTORIES = 100;

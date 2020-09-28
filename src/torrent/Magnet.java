@@ -252,13 +252,15 @@ public class Magnet extends Thread {
                     ss.setReuseAddress(true);
                     ds = new DatagramSocket(port);
                     ds.setReuseAddress(true);
-                    if (port != originalPort) {
-                        guiListener.msg(Str.str("portChanged", port, originalPort), Constant.INFO_MSG);
+                    if (port != originalPort && !guiListener.canRandomizePort()) {
+                        guiListener.msg(Str.str("portChanged", port, originalPort), Constant.WARN_MSG);
                     }
                     break;
                 } catch (IOException e) {
                     if (i == j) {
+                        guiListener.setPort(port = originalPort);
                         guiListener.error(new IOException(Str.str("portError", port) + ' ' + ThrowableUtil.toString(e)));
+                        break;
                     }
                 } finally {
                     IO.close(ds, ss);

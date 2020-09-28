@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2020.09.27   | VidMasta 27.1
+
+CHANGE: UI   | Always showed airdate when an unfound TV show episode is added to the playlist
+CHANGE: CORE | Improved download performance
+CHANGE: UI   | Only showed download port change message when absolutely necessary
+
+
+
+
 2020.09.21   | VidMasta 27.0
 
 CHANGE: CORE | Upgraded from Java 7 to Java 8

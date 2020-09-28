@@ -175,7 +175,11 @@ public interface GuiListener {
 
     void summarySearchStarted(Video video);
 
+    boolean canRandomizePort();
+
     int setRandomPort();
+
+    void setPort(int port);
 
     int getPort();
 

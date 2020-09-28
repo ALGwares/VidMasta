@@ -7647,10 +7647,20 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     @Override
+    public boolean canRandomizePort() {
+        return portRandomizeCheckBox.isSelected();
+    }
+
+    @Override
     public int setRandomPort() {
         int portNum = (new Random()).nextInt(16373) + 49161;
         portTextField.setText(String.valueOf(portNum));
         return portNum;
+    }
+
+    @Override
+    public void setPort(int port) {
+        portTextField.setText(String.valueOf(port));
     }
 
     @Override
