@@ -3635,6 +3635,9 @@
                     </Property>
                     <Property name="name" type="java.lang.String" value="en_US" noResource="true"/>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="spanishRadioButtonMenuItem">
                   <Properties>
@@ -3643,6 +3646,9 @@
                     </Property>
                     <Property name="name" type="java.lang.String" value="es_ES" noResource="true"/>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="frenchRadioButtonMenuItem">
                   <Properties>
@@ -3651,6 +3657,9 @@
                     </Property>
                     <Property name="name" type="java.lang.String" value="fr_FR" noResource="true"/>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="italianRadioButtonMenuItem">
                   <Properties>
@@ -3659,6 +3668,9 @@
                     </Property>
                     <Property name="name" type="java.lang.String" value="it_IT" noResource="true"/>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="dutchRadioButtonMenuItem">
                   <Properties>
@@ -3667,6 +3679,9 @@
                     </Property>
                     <Property name="name" type="java.lang.String" value="nl_NL" noResource="true"/>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="portugueseRadioButtonMenuItem">
                   <Properties>
@@ -3675,6 +3690,9 @@
                     </Property>
                     <Property name="name" type="java.lang.String" value="pt_PT" noResource="true"/>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="turkishRadioButtonMenuItem">
                   <Properties>
@@ -3683,6 +3701,9 @@
                     </Property>
                     <Property name="name" type="java.lang.String" value="tr_TR" noResource="true"/>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
               </SubComponents>
             </Menu>
@@ -3720,6 +3741,20 @@
                 <EventHandler event="menuSelected" listener="javax.swing.event.MenuListener" parameters="javax.swing.event.MenuEvent" handler="searchBanTitleMenuMenuSelected"/>
               </Events>
             </Menu>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="searchBanTitleEnableCheckBoxMenuItem">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+                  <ResourceString bundle="i18n/Bundle.properties" key="GUI.searchBanTitleEnableCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+                </Property>
+              </Properties>
+              <Events>
+                <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="searchBanTitleEnableCheckBoxMenuItemItemStateChanged"/>
+              </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
+            </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator1">
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="resultsPerSearchMenuItem">
@@ -3791,6 +3826,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.feedCheckBoxMenuItem.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator6">
             </MenuItem>
@@ -3801,6 +3839,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.browserNotificationCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator7">
             </MenuItem>
@@ -3811,6 +3852,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.emailWithDefaultAppCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="searchMenuSeparator8">
             </MenuItem>
@@ -3830,6 +3874,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.trailerMediaPlayerRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="trailerMediaPlayer1080RadioButtonMenuItem">
                   <Properties>
@@ -3840,6 +3887,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.trailerMediaPlayer1080RadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="trailerMediaPlayer720RadioButtonMenuItem">
                   <Properties>
@@ -3850,6 +3900,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.trailerMediaPlayer720RadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="trailerMediaPlayer480RadioButtonMenuItem">
                   <Properties>
@@ -3861,6 +3914,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.trailerMediaPlayer480RadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="trailerMediaPlayer360RadioButtonMenuItem">
                   <Properties>
@@ -3871,6 +3927,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.trailerMediaPlayer360RadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="trailerMediaPlayer240RadioButtonMenuItem">
                   <Properties>
@@ -3881,6 +3940,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.trailerMediaPlayer240RadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="trailerWebBrowserPlayerRadioButtonMenuItem">
                   <Properties>
@@ -3891,6 +3953,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.trailerWebBrowserPlayerRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
               </SubComponents>
             </Menu>
@@ -3938,6 +4003,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.playlistAutoOpenCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistPlayWithDefaultAppCheckBoxMenuItem">
               <Properties>
@@ -3945,6 +4013,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.playlistPlayWithDefaultAppCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="playlistShowNonVideoItemsCheckBoxMenuItem">
               <Properties>
@@ -3961,6 +4032,9 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed"/>
               </Events>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
           </SubComponents>
         </Menu>
@@ -3991,6 +4065,9 @@
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadQualityButtonMenuItemActionPerformed"/>
                   </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="downloadHighQualityRadioButtonMenuItem">
                   <Properties>
@@ -4007,6 +4084,9 @@
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadQualityButtonMenuItemActionPerformed"/>
                   </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="downloadDVDQualityRadioButtonMenuItem">
                   <Properties>
@@ -4020,6 +4100,9 @@
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadQualityButtonMenuItemActionPerformed"/>
                   </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="download720HDQualityRadioButtonMenuItem">
                   <Properties>
@@ -4033,6 +4116,9 @@
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadQualityButtonMenuItemActionPerformed"/>
                   </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="download1080HDRadioButtonMenuItem">
                   <Properties>
@@ -4046,6 +4132,9 @@
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="downloadQualityButtonMenuItemActionPerformed"/>
                   </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
               </SubComponents>
             </Menu>
@@ -4091,6 +4180,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.safetyCheckBoxMenuItem.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="peerBlockNotificationCheckBoxMenuItem">
               <Properties>
@@ -4099,6 +4191,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.peerBlockNotificationCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="downloadMenuSeparator4">
             </MenuItem>
@@ -4128,6 +4223,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.playlistDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="defaultApplicationDownloaderRadioButtonMenuItem">
                   <Properties>
@@ -4135,6 +4233,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.defaultApplicationDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
                 <MenuItem class="javax.swing.JRadioButtonMenuItem" name="noDownloaderRadioButtonMenuItem">
                   <Properties>
@@ -4142,6 +4243,9 @@
                       <ResourceString bundle="i18n/Bundle.properties" key="GUI.noDownloaderRadioButtonMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                     </Property>
                   </Properties>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJRadioButtonMenuItem();"/>
+                  </AuxValues>
                 </MenuItem>
               </SubComponents>
             </Menu>
@@ -4186,6 +4290,9 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.updateCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
+              </AuxValues>
             </MenuItem>
             <MenuItem class="javax.swing.JPopupMenu$Separator" name="helpMenuSeparator2">
             </MenuItem>

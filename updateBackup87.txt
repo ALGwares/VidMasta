@@ -1,4 +1,4 @@
-325
+339
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -106,10 +106,10 @@ EMPTY
 SPACE
 ((?i)(\s+?)((DVD(R|(RW)|\d++)??)|(DVDRip)|(PDVDRip)|(DVDScr)|(720[pi])|(1080[pi])|(HD)|(BD)|(HDRip)|(HDTV)|(HDTVRip)|(B[RD]rip)|(B[RD]Scr)|(Blu[\- ]?+ray)|(xvid)|(divx)|(mkv)|(h264)|(x264)|(R[0-8]\s*+line)|(R[0-8])|(LIMITED)|(TS)|(HDTS)|(TS2(DVD(R|(RW))??))|(TELESYNC)|(TELESYNC2(DVD(R|(RW))??))|(480[pi])|(240[pi])|(VHS)|(TVRip)|(PDTV)|(DVBRip)|(DVB[\- ]?+rip)|(WEBScr)|(WEBRip)|(SCREENER)|(CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM2(DVD(R|(RW))??))|(PPVRip)|(PPV)|(VODRip)|(VOD)|(VCD)|(VCDRip))(\z|\s+?))
 ((\s+?)(\d{4}+)(\z|\s+?))
-((?i)(\s+?)((S\d{1,3}+\s*+(E\d{1,3}+)+?)|(\d{1,3}+((\s*+x\s*+)|\s++)\d{1,3}+)|(S\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))|(All\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C))?+\s*+Seasons?+)|(All\s*+(\d{1,3}+((and)|&|(&amp;)|\s)+?\d{1,3}+(((and)|&|(&amp;)|\s)+?\d{1,3}+)*?)\s*+Seasons?+)|(All\s*+((I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)(((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C))*?)\s*+Seasons?+)|((The\s*+)?+(((Deluxe)|(Complete)|(Ultimate)|(Full)|(Entire)|(Total)|(Whole))\s*+)?+(((DVD(R|(RW)|\d++)??)|(DVDRip)|(PDVDRip)|(DVDScr)|(720[pi])|(1080[pi])|(HD)|(BD)|(HDRip)|(HDTV)|(HDTVRip)|(B[RD]rip)|(B[RD]Scr)|(Blu[\- ]?+ray)|(xvid)|(divx)|(mkv)|(h264)|(x264)|(R[0-8]\s*+line)|(R[0-8])|(LIMITED)|(TS)|(HDTS)|(TS2(DVD(R|(RW))??))|(TELESYNC)|(TELESYNC2(DVD(R|(RW))??))|(480[pi])|(240[pi])|(VHS)|(TVRip)|(PDTV)|(DVBRip)|(DVB[\- ]?+rip)|(WEBScr)|(WEBRip)|(SCREENER)|(CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM2(DVD(R|(RW))??))|(PPVRip)|(PPV)|(VODRip)|(VOD)|(VCD)|(VCDRip))\s*+)?+((Seasons?+)|(Box\s*+Set)|(Collection)|(Anthology)|(Series)|(Saga)|(Pack)|(Fun\s*Pack)))|((The\s*+)?+(((Deluxe)|(Complete)|(Ultimate)|(Full)|(Entire)|(Total)|(Whole))\s*+)?+(((DVD(R|(RW)|\d++)??)|(DVDRip)|(PDVDRip)|(DVDScr)|(720[pi])|(1080[pi])|(HD)|(BD)|(HDRip)|(HDTV)|(HDTVRip)|(B[RD]rip)|(B[RD]Scr)|(Blu[\- ]?+ray)|(xvid)|(divx)|(mkv)|(h264)|(x264)|(R[0-8]\s*+line)|(R[0-8])|(LIMITED)|(TS)|(HDTS)|(TS2(DVD(R|(RW))??))|(TELESYNC)|(TELESYNC2(DVD(R|(RW))??))|(480[pi])|(240[pi])|(VHS)|(TVRip)|(PDTV)|(DVBRip)|(DVB[\- ]?+rip)|(WEBScr)|(WEBRip)|(SCREENER)|(CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM2(DVD(R|(RW))??))|(PPVRip)|(PPV)|(VODRip)|(VOD)|(VCD)|(VCDRip))\s*+)?+(((duo)|(di)|(dy)|(tri)|(tetra)|(quadri)|(penta)|(hexa)|(hepta)|(ogdo)|(octa)|(octo)|(ennea)|(deca)|(hendeca)|(dodeca)|(triskaideca)|(tetrakaideca)|(pentakaideca)|(hexakaideca)|(hexadeca)|(heptakaideca)|(octakaideca)|(enneakaideca)|(icosa)|(icosi)|(eicosa)|(triaconta)|(tetraconta)|(pentaconta)|(hexaconta)|(heptaconta)|(octaconta)|(enneaconta)|(hecato)|(hecatont))logy))|((The\s*+)?+(((Deluxe)|(Complete)|(Ultimate)|(Full)|(Entire)|(Total)|(Whole))\s*+)?+(((DVD(R|(RW)|\d++)??)|(DVDRip)|(PDVDRip)|(DVDScr)|(720[pi])|(1080[pi])|(HD)|(BD)|(HDRip)|(HDTV)|(HDTVRip)|(B[RD]rip)|(B[RD]Scr)|(Blu[\- ]?+ray)|(xvid)|(divx)|(mkv)|(h264)|(x264)|(R[0-8]\s*+line)|(R[0-8])|(LIMITED)|(TS)|(HDTS)|(TS2(DVD(R|(RW))??))|(TELESYNC)|(TELESYNC2(DVD(R|(RW))??))|(480[pi])|(240[pi])|(VHS)|(TVRip)|(PDTV)|(DVBRip)|(DVB[\- ]?+rip)|(WEBScr)|(WEBRip)|(SCREENER)|(CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM2(DVD(R|(RW))??))|(PPVRip)|(PPV)|(VODRip)|(VOD)|(VCD)|(VCDRip))\s*+)?+(((Seasons?+)\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))|(S\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))))|(\d{1,3}+((and)|&|(&amp;)|\s)+?\d{1,3}+(((and)|&|(&amp;)|\s)+?\d{1,3}+)*?)|((I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)(((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C))*?)|((((Episode\s*+)|E)(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))+?))(\z|\s+?))
-((?i)(\s+?)((S\d{1,3}+\s*+(E\d{1,3}+)+?)|(\d{1,3}+((\s*+x\s*+)|\s++)\d{1,3}+))(\z|\s+?))
-[Ss]
-EMPTY
+((?i)(((?<=\sS)\d{1,3}+\s*+(E\d{1,3}+)+?)|((\s+?)((\d{1,3}+((\s*+x\s*+)|\s++)\d{1,3}+)|(S\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))|(All\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C))?+\s*+Seasons?+)|(All\s*+(\d{1,3}+((and)|&|(&amp;)|\s)+?\d{1,3}+(((and)|&|(&amp;)|\s)+?\d{1,3}+)*?)\s*+Seasons?+)|(All\s*+((I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)(((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C))*?)\s*+Seasons?+)|((The\s*+)?+(((Deluxe)|(Complete)|(Ultimate)|(Full)|(Entire)|(Total)|(Whole))\s*+)?+(((DVD(R|(RW)|\d++)??)|(DVDRip)|(PDVDRip)|(DVDScr)|(720[pi])|(1080[pi])|(HD)|(BD)|(HDRip)|(HDTV)|(HDTVRip)|(B[RD]rip)|(B[RD]Scr)|(Blu[\- ]?+ray)|(xvid)|(divx)|(mkv)|(h264)|(x264)|(R[0-8]\s*+line)|(R[0-8])|(LIMITED)|(TS)|(HDTS)|(TS2(DVD(R|(RW))??))|(TELESYNC)|(TELESYNC2(DVD(R|(RW))??))|(480[pi])|(240[pi])|(VHS)|(TVRip)|(PDTV)|(DVBRip)|(DVB[\- ]?+rip)|(WEBScr)|(WEBRip)|(SCREENER)|(CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM2(DVD(R|(RW))??))|(PPVRip)|(PPV)|(VODRip)|(VOD)|(VCD)|(VCDRip))\s*+)?+((Seasons?+)|(Box\s*+Set)|(Collection)|(Anthology)|(Series)|(Saga)|(Pack)|(Fun\s*Pack)))|((The\s*+)?+(((Deluxe)|(Complete)|(Ultimate)|(Full)|(Entire)|(Total)|(Whole))\s*+)?+(((DVD(R|(RW)|\d++)??)|(DVDRip)|(PDVDRip)|(DVDScr)|(720[pi])|(1080[pi])|(HD)|(BD)|(HDRip)|(HDTV)|(HDTVRip)|(B[RD]rip)|(B[RD]Scr)|(Blu[\- ]?+ray)|(xvid)|(divx)|(mkv)|(h264)|(x264)|(R[0-8]\s*+line)|(R[0-8])|(LIMITED)|(TS)|(HDTS)|(TS2(DVD(R|(RW))??))|(TELESYNC)|(TELESYNC2(DVD(R|(RW))??))|(480[pi])|(240[pi])|(VHS)|(TVRip)|(PDTV)|(DVBRip)|(DVB[\- ]?+rip)|(WEBScr)|(WEBRip)|(SCREENER)|(CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM2(DVD(R|(RW))??))|(PPVRip)|(PPV)|(VODRip)|(VOD)|(VCD)|(VCDRip))\s*+)?+(((duo)|(di)|(dy)|(tri)|(tetra)|(quadri)|(penta)|(hexa)|(hepta)|(ogdo)|(octa)|(octo)|(ennea)|(deca)|(hendeca)|(dodeca)|(triskaideca)|(tetrakaideca)|(pentakaideca)|(hexakaideca)|(hexadeca)|(heptakaideca)|(octakaideca)|(enneakaideca)|(icosa)|(icosi)|(eicosa)|(triaconta)|(tetraconta)|(pentaconta)|(hexaconta)|(heptaconta)|(octaconta)|(enneaconta)|(hecato)|(hecatont))logy))|((The\s*+)?+(((Deluxe)|(Complete)|(Ultimate)|(Full)|(Entire)|(Total)|(Whole))\s*+)?+(((DVD(R|(RW)|\d++)??)|(DVDRip)|(PDVDRip)|(DVDScr)|(720[pi])|(1080[pi])|(HD)|(BD)|(HDRip)|(HDTV)|(HDTVRip)|(B[RD]rip)|(B[RD]Scr)|(Blu[\- ]?+ray)|(xvid)|(divx)|(mkv)|(h264)|(x264)|(R[0-8]\s*+line)|(R[0-8])|(LIMITED)|(TS)|(HDTS)|(TS2(DVD(R|(RW))??))|(TELESYNC)|(TELESYNC2(DVD(R|(RW))??))|(480[pi])|(240[pi])|(VHS)|(TVRip)|(PDTV)|(DVBRip)|(DVB[\- ]?+rip)|(WEBScr)|(WEBRip)|(SCREENER)|(CAMRip)|(HDCAMRip)|(CAM)|(HDCAM)|(CAM2(DVD(R|(RW))??))|(PPVRip)|(PPV)|(VODRip)|(VOD)|(VCD)|(VCDRip))\s*+)?+(((Seasons?+)\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))|(S\s*+(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))))|(\d{1,3}+((and)|&|(&amp;)|\s)+?\d{1,3}+(((and)|&|(&amp;)|\s)+?\d{1,3}+)*?)|((I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)(((and)|&|(&amp;)|\s)+?(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C))*?)|((((Episode\s*+)|E)(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|(IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|C)))+?))))(\z|\s+?))
+((?i)((\d{1,3}+\s*+(E\d{1,3}+)+?)|(\s+?\d{1,3}+((\s*+x\s*+)|\s++)\d{1,3}+))(\z|\s+?))
+(?i)0{1,3}+(?=\s*+(E\d{1,3}+)+?)
+01
 (?i)((\s*+E)|(\s*+x\s*+)|\s++)
 EMPTY
 EMPTY
@@ -126,20 +126,20 @@ EMPTY
 \}
 "name"\s*+:\s*+"
 "
-\=\s*+"ratingValue"\s*+>(\s*+\<\s*+strong[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)?+
-<\s*+/span\s*+>
-(<\s*+p\s*+>\s*+<\s*+/p\s*+>\s*+<\s*+p(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(<\s*+div\s++class\s*+=\s*+"summary_text"(\s++itemprop\s*+=\s*+"description")?+\s*+>)
+(?i)(\=\s*+"ratingValue"\s*+>(\s*+\<\s*+strong[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)?+)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-((title\-block)|(rating\-bar))__aggregate\-rating__score"[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)
+\<\s*+/span\s*+\>
+(?i)(<\s*+p\s*+>\s*+<\s*+/p\s*+>\s*+<\s*+p(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(<\s*+div\s++class\s*+=\s*+"summary_text"(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"plot[^\>]*+\>)
 (<\s*+/p\s*+>\s*+<\s*+p\s*+>\s*+<\s*+/p\s*+>)|(<\s*+/div\s*+>)
-<\s*+h2\s*+>\s*+Storyline\s*+<\s*+/h2\s*+>\s*+(<div[^>]++>)?+\s*+<\s*+p\s*+>
-<\s*+/p\s*+>
+(?i)(<\s*+h2\s*+>\s*+Storyline\s*+<\s*+/h2\s*+>\s*+(<div[^>]++>)?+\s*+<\s*+p\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"storyline-plot-summary"[^\>]*+\>)
+(<\s*+/p\s*+>)|(<\s*+/div\s*+>)
 EMPTY
 ([\p{Print}\s]+?\.[\p{Alpha}\p{Digit}]++)
 \d{4}+
 (&#x\p{Alnum}++;)|(&#\p{Digit}++;)|(&\p{Alpha}{1,6}+;)
-<\s*+div\s++class\s*+=\s*+"((infobar)|(subtext))"\s*+>
-<\s*+/div\s*+>
-\s++href\s*+=\s*+"/((search/title\?genres\=)|(genre/))[^>]*+>(<\s*+span[^>]*+>)?+
-(<\s*+/span\s*+>)?+<\s*+/a\s*+>
+(?i)(\<\s*+div\s++class\s*+\=\s*+"((infobar)|(subtext))"\s*+\>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"genres"[^\>]*+\>)
+\<\s*+/div\s*+\>
+\s++href\s*+=\s*+"/((search/title\?genres\=)|(genre/))[^\>]*+\>\s*+(\<\s*+span[^\>]*+\>)?+
+(\<\s*+/span\s*+\>)?+\<\s*+/a\s*+\>
 EMPTY
 EMPTY
 EMPTY
@@ -171,10 +171,10 @@ leechers
 /
 10
 SPACEimdb
-(<\s*+span[^>]+?class\s*+=\s*+"title-extra"[^>]*+>(\s*+")?+)|(<\s*+div\s++class\s*+=\s*+"originalTitle"[^>]*+>)
-("\s*+)?+<\s*+(i|(span))[^>]*+>\s*+\(((?i)(original title))\)\s*+<\s*+/(i|(span))\s*+>
-(<\s*+span[^>]+?class\s*+=\s*+"title-extra"[^>]*+>(\s*+")?+)|(<\s*+div\s++class\s*+=\s*+"originalTitle"[^>]*+>)
-("\s*+)?+<\s*+(i|(span))[^>]*+>\s*+\(((?i)(original title))\)\s*+<\s*+/(i|(span))\s*+>
+(?i)(<\s*+span[^>]+?class\s*+=\s*+"title-extra"[^>]*+>(\s*+")?+)|(<\s*+div\s++class\s*+=\s*+"originalTitle"[^>]*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-title\-block__original\-title"[^\>]*+\>)\s*+(Original title:)?+
+(("\s*+)?+<\s*+(i|(span))[^>]*+>\s*+\(((?i)(original title))\)\s*+<\s*+/(i|(span))\s*+>)|(\<\s*+/\s*+div\>)
+(?i)(<\s*+span[^>]+?class\s*+=\s*+"title-extra"[^>]*+>(\s*+")?+)|(<\s*+div\s++class\s*+=\s*+"originalTitle"[^>]*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-title\-block__original\-title"[^\>]*+\>)\s*+(Original title:)?+
+(("\s*+)?+<\s*+(i|(span))[^>]*+>\s*+\(((?i)(original title))\)\s*+<\s*+/(i|(span))\s*+>)|(\<\s*+/\s*+div\>)
 2
 +category%3Atv/?startIndex=1
 +category%3Amovies/?startIndex=1
@@ -187,15 +187,15 @@ EMPTY
 \s++href\s*+\=\s*+"[^"]*?[&\?/]countr(y|(ies))(_of_origin)?+[\=/]
 [&\?"]
 https?+://www\.imdb\.com/((title/[^/]++/)|(Title%3f[^"]++))
-(<\s*+div[^>]+?class\s*+=\s*+"poster"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(\sid\s*+=\s*+"img_primary"[^>]*+>\s*+<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")
+(?i)(<\s*+div[^>]+?class\s*+=\s*+"poster"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(\sid\s*+=\s*+"img_primary"[^>]*+>\s*+<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-media__poster"[^\>]*+\>\s*+(\<\s*+div[^\>]*+\>)?+\s*+\<\s*+img[^\>]*?\ssrc\s*+\=\s*+")
 "
-(<\s*+div[^>]+?class\s*+=\s*+"poster"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(\sid\s*+=\s*+"img_primary"[^>]*+>\s*+<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")
+(?i)(<\s*+div[^>]+?class\s*+=\s*+"poster"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(\sid\s*+=\s*+"img_primary"[^>]*+>\s*+<\s*+div[^>]+?class\s*+=\s*+"image"(?s).*?<\s*+img[^>]+?src\s*+=\s*+")|(/rg/title-overview/primary(-\p{Alnum})?+/((images)|(media))/[^<]+?<\s*+img\s++src\s*+=\s*+")|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-media__poster"[^\>]*+\>\s*+(\<\s*+div[^\>]*+\>)?+\s*+\<\s*+img[^\>]*?\ssrc\s*+\=\s*+")
 "
-<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Directors*+:\s*+<\s*+/h4\s*+>
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Directors*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Directors*+\s*+\<.+?\<\s*+ul\s)
 <\s*+/div\s*+>
-<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Writers*+:\s*+<\s*+/h4\s*+>
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Writers*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Writers*+\s*+\<.+?\<\s*+ul\s)
 <\s*+/div\s*+>
-<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Stars*+:\s*+<\s*+/h4\s*+>
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Stars*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Stars*+\s*+\<.+?\<\s*+ul\s)
 <\s*+/div\s*+>
 <\s*+a[^>]++>(<\s*+span[^>]*+>)?+
 (<\s*+/span\s*+>)?+<\s*+/a\s*+>
@@ -242,11 +242,11 @@ Arabic:ar~Bulgarian:bg~Chinese:zh~Croatian:hr~Dutch:nl~English:en~Finnish:fi~Fre
 EMPTY
 <\s*+a\s(?s).*?(?<=\s)href\s*+=\s*+(("[^"]++")|('[^']++'))[^>]*+>
 EMPTY
-<\s*+/a\s*+>
+(<\s*+/a\s*+>)|(\<\s*+/?+\s*+((div)|(span))[^\>]*+\>)
 EMPTY
 <\s*+a\s(?s).*?(?<=\s)href\s*+=\s*+(("[^"]++")|('[^']++'))[^>]*+>
 EMPTY
-<\s*+/a\s*+>
+(<\s*+/a\s*+>)|(\<\s*+/?+\s*+((div)|(span))[^\>]*+\>)
 EMPTY
 http://tpb\.elfnet\.org/browse/((205)|(201))/\d++/9
 (\d{1,3}+\s*+\.\s*+\d{1,3}+\s*+\.\s*+\d{1,3}+\s*+\.\s*+\d{1,3}+\s*+:\s*+\d{1,5}+(\s++(\p{Print}|\p{Blank})++)?+)
@@ -519,8 +519,8 @@ http://kat.unbanthe.net:::http://kat.unbanthe.org
 33,39,41,47,117,466,491,505,518
 http://kat.unbanthe.net
 https://www.imdb.com/title/tt
-href\s*+=\s*+"[^"]*?episodes\?season=
-(&[^"]*+)?+"
+(?i)(href\s*+=\s*+"[^"]*?episodes\?season=)|(\<\s*+option[^\>]*+\>(?=\s*+\d{1,3}\s*+\<(?s).+?\sid\s*+\=\s*+\"browse\-episodes\-year\"))
+((&[^"]*+)?+")|\<
 \d++
 /episodes?season=
 <\s*+div\s*+>\s*+S
@@ -538,12 +538,12 @@ SPACE
 EMPTY
 (?i)(Unknown)
 d MMMM yyyy
-<\s*+h4[^>]*+>\s*+Release Date:\s*+<\s*+/h4\s*+>\s*+(<\s*+time[^>]*+>)?+
-[<\(]
-\s++
-SPACE
-\d{1,2}+\s++((?i)((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)))\s++\d{4}+
-d MMMM yyyy
+(<\s*+h4[^>]*+>\s*+Release Date:\s*+<\s*+/h4\s*+>\s*+(<\s*+time[^>]*+>)?+)|(\=tt_dt_rdat"\>)
+[\<\(]
+(\d{1,2}+)?+\s*+((?i)(?:(?:January)|(?:February)|(?:March)|(?:April)|(?:May)|(?:June)|(?:July)|(?:August)|(?:September)|(?:October)|(?:November)|(?:December)))\s*?(\d{1,2}+)?+,?+\s++(\d{4}+)
+$2 $1$3 $4
+((?i)((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)))\s++\d{1,2}+\s++\d{4}+
+MMMM d yyyy
 (?i)(Unknown)
 ((?i)((Jan)|(Feb)|(Mar)|(Apr)|(May)|(Jun)|(Jul)|(Aug)|(Sep)|(Oct)|(Nov)|(Dec)))\.?+\s++\d{4}+
 MMMM yyyy
@@ -559,8 +559,8 @@ true
 false
 true
 false
-<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Creators*+:\s*+<\s*+/h4\s*+>
-<\s*+/div\s*+>
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Creators*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Creators*+\s*+\<.+?\<\s*+ul\s)
+\<\s*+/div\s*+\>
 20[58]
 20[127]
 azureus.install.path
@@ -583,8 +583,8 @@ https://www.youtube.com
 http://www.primewire.ag
 https://docs.google.com
 http://www.opensubtitles.org
-(<\s*+div\s++class\s*+=\s*+"infobar"[^>]*+>)|(\stitle\s*+=\s*+"(?i)See more release dates"[^>]*+>)
-<|&|\(|\d|((?i)((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)))
+(?i)(<\s*+div\s++class\s*+=\s*+"infobar"[^>]*+>)|(\stitle\s*+=\s*+"See more release dates"[^>]*+>)|(\sdata\-testid\s*+\=\s*+"hero\-title\-block__metadata"\>\s*+\<\s*+li[^\>]*+\>)
+\<|&|\(|\d|((?i)((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)))
 (?i)(TV\s((Series)|(Movie)|(Mini\-Series)|(Special)))
 (\A\z)|((?i)((TV\sMovie)|(Video(?!(\sGame)))|(Feature)|(Documentary)|(Short)))
 20[12758]
@@ -696,7 +696,7 @@ http://mirror.nexcess.net/videolan/vlc/2.2.1/win32/vlc-2.2.1-win32.zip
 vlc-2.2.1
 vlc-2.2.1/vlc.exe
 /
-vlc-3.0.11.0.1
+vlc-3.0.16.0.1
 .*\.((?i)(3g2)|(3ga)|(3gp)|(3gp2)|(3gpp)|(669)|(a52)|(aac)|(ac3)|(adt)|(adts)|(aif)|(aifc)|(aiff)|(amr)|(amv)|(aob)|(ape)|(asf)|(asx)|(au)|(avi)|(b4s)|(bik)|(bin)|(caf)|(cda)|(cue)|(divx)|(drc)|(dts)|(dv)|(f4v)|(flac)|(flv)|(gvi)|(gxf)|(ifo)|(it)|(m1v)|(m2t)|(m2ts)|(m2v)|(m3u)|(m3u8)|(m4a)|(m4p)|(m4v)|(mid)|(mka)|(mkv)|(mlp)|(mod)|(mov)|(mp1)|(mp2)|(mp2v)|(mp3)|(mp4)|(mp4v)|(mpa)|(mpc)|(mpe)|(mpeg)|(mpeg1)|(mpeg2)|(mpeg4)|(mpg)|(mpga)|(mpv2)|(mts)|(mtv)|(mxf)|(nsv)|(nuv)|(oga)|(ogg)|(ogm)|(ogv)|(ogx)|(oma)|(opus)|(pls)|(qcp)|(ra)|(ram)|(rec)|(rm)|(rmbv)|(rmi)|(rpl)|(s3m)|(sdp)|(snd)|(spx)|(swf)|(thp)|(tod)|(ts)|(tta)|(tts)|(vlc)|(vlt)|(vob)|(voc)|(vqf)|(vro)|(w64)|(wav)|(webm)|(wma)|(wmv)|(wsz)|(wv)|(wvx)|(xa)|(xesc)|(xm)|(xspf))
 https://sites.google.com/site/algwares/vidmasta
 http://tpbcrawler.appspot.com/fetch?v=2&id=
@@ -721,15 +721,15 @@ https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9
 https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9.8.1/UMS-9.8.1.dmg
 https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9.8.1/UMS-9.8.1-x86.tgz
 https://postman-echo.com/get?
-https://tpb.email/api?url=/q.php?q=
-https://tpb.email/api?url=
-https://tpb.email/api?url=/q.php?q=
-https://tpb.email/api?url=
-https://tpb.email:::https://openpirate.org:::https://pirateproxy.ink
-https://tpb.email
-https://tpb.email
-https://tpb.email/api?url=/precompiled/data_top100_
-https://tpb.email/ajax_details_comments.php?id=
+https://openpirate.org/api?url=/q.php?q=
+https://openpirate.org/api?url=
+https://openpirate.org/api?url=/q.php?q=
+https://openpirate.org/api?url=
+https://openpirate.org:::https://pirateproxy.ink:::https://tpb.red
+https://openpirate.org
+https://openpirate.org
+https://openpirate.org/api?url=/precompiled/data_top100_
+https://openpirate.org/ajax_details_comments.php?id=
 https://mypiratebay.wtf
 722,723,724,725,727,729,730
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
@@ -738,7 +738,7 @@ https://mypiratebay.wtf
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C343F
 200
 true
-(?i)((Couldn't extract youtube video URL)|(open of \p{Graph}++ failed))
+(?i)((Couldn't ((extract)|(process)) youtube video URL)|(open of \p{Graph}++ failed)|(access stream error))
 (?<=\>)[^\<]*+(?=\<)
 ((?<=\<)\s*+(?i)script[\s\>])|(\<\s*+/\s*+(?i)script\s*+(?=\>))|(\<%)|(%\>)
 !--
@@ -760,7 +760,7 @@ https://www.imdb.com/video/screenplay/%s/imdb/single
 (?i)"videoUrl"\s*+:\s*+"
 "
 (?i)"videoMimeType"\s*+:\s*+"video
-https://github.com/ALGwares/VidMasta/releases/download/none/vlc-3.0.11-win32.zip
+https://github.com/ALGwares/VidMasta/releases/download/none/vlc-3.0.16.0.1-win32.zip
 vlc-2.2.1
 .*?(?i)vlc\.exe
 3
@@ -774,7 +774,7 @@ https://text-to-speech-demo.ng.bluemix.net/api/v3/synthesize?text=%s&voice=en-US
 (\p{Alnum}++(\.|(&#(((?i)x2E)|(46));))++){2,}+\p{Alnum}*+
 \.|(&#(((?i)x2E)|(46));)
 EMPTY
-.*\.((?i)(lnk)|(tv)|(exe)|(dll)|(bat)|(com)|(reg)|(wma))
+.*?(?<!(?i)DO_NOT_MIRROR)\.((?i)(lnk)|(tv)|(exe)|(dll)|(bat)|(com)|(reg)|(wma))
 "added(_year)?+"\s*+:\s*+"?+
 "|,|\z
 yyyy
