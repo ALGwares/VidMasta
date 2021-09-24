@@ -5,7 +5,7 @@
     <shortcut KdeUsername="" applications="no" createForAll="true"
         desktop="yes" encoding="UTF-8"
         iconFile="$INSTALL_PATH/vidmasta/favicon.ico" iconIndex="0"
-        initialState="normal" name="VidMasta 27.2" programGroup="yes"
+        initialState="normal" name="VidMasta 27.3" programGroup="yes"
         startMenu="no" startup="no"
         target="java" commandLine="-jar $INSTALL_PATH/vidmasta/VidMasta.jar" type="Application"
         workingDirectory="$INSTALL_PATH/vidmasta"/>

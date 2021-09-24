@@ -411,7 +411,7 @@ public class VideoSearch {
   }
 
   public static String url(Video video) {
-    return Str.get(519) + video.ID;
+    return String.format(Str.get(781), video.ID);
   }
 
   public static String tooOldOrNonexistentImagePath(Video video) {

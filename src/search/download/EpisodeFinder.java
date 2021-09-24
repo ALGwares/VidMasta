@@ -167,8 +167,8 @@ public class EpisodeFinder extends Worker {
     outer:
     for (String season : seasons) {
       episodes.clear();
-      List<String> currEpisodes = sortedNumListSet(Regex.matches(source = Connection.getSourceCode(url + Str.get(523) + season, DomainType.VIDEO_INFO, false,
-              Constant.MS_1DAY), Str.get(524) + season + Str.get(525), Str.get(526)), true);
+      List<String> currEpisodes = sortedNumListSet(Regex.matches(source = Connection.getSourceCode(String.format(Str.get(782), url, season),
+              DomainType.VIDEO_INFO, false, Constant.MS_1DAY), Str.get(524) + season + Str.get(525), Str.get(526)), true);
       select.accept(currEpisodes, episodeToFind);
       for (int i = 0, j = currEpisodes.size() - 1; i <= j; i++) {
         String episode = currEpisodes.get(i), airdate = Regex.replaceAll(Regex.match(source, Str.get(528) + season + Str.get(529) + episode + Str.get(530),

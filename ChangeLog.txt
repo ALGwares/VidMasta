@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2021.09.24   | VidMasta 27.3
+
+CHANGE: CORE | Fixed connection issues due to changes in video info source
+
+
+
+
 2021.09.12   | VidMasta 27.2
 
 CHANGE: CORE | Improved performance and mitigated connection errors (due to throttling) by improving cache management

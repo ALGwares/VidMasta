@@ -1,4 +1,4 @@
-339
+341
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -696,7 +696,7 @@ http://mirror.nexcess.net/videolan/vlc/2.2.1/win32/vlc-2.2.1-win32.zip
 vlc-2.2.1
 vlc-2.2.1/vlc.exe
 /
-vlc-3.0.16.0.1
+vlc-3.0.16.0.2
 .*\.((?i)(3g2)|(3ga)|(3gp)|(3gp2)|(3gpp)|(669)|(a52)|(aac)|(ac3)|(adt)|(adts)|(aif)|(aifc)|(aiff)|(amr)|(amv)|(aob)|(ape)|(asf)|(asx)|(au)|(avi)|(b4s)|(bik)|(bin)|(caf)|(cda)|(cue)|(divx)|(drc)|(dts)|(dv)|(f4v)|(flac)|(flv)|(gvi)|(gxf)|(ifo)|(it)|(m1v)|(m2t)|(m2ts)|(m2v)|(m3u)|(m3u8)|(m4a)|(m4p)|(m4v)|(mid)|(mka)|(mkv)|(mlp)|(mod)|(mov)|(mp1)|(mp2)|(mp2v)|(mp3)|(mp4)|(mp4v)|(mpa)|(mpc)|(mpe)|(mpeg)|(mpeg1)|(mpeg2)|(mpeg4)|(mpg)|(mpga)|(mpv2)|(mts)|(mtv)|(mxf)|(nsv)|(nuv)|(oga)|(ogg)|(ogm)|(ogv)|(ogx)|(oma)|(opus)|(pls)|(qcp)|(ra)|(ram)|(rec)|(rm)|(rmbv)|(rmi)|(rpl)|(s3m)|(sdp)|(snd)|(spx)|(swf)|(thp)|(tod)|(ts)|(tta)|(tts)|(vlc)|(vlt)|(vob)|(voc)|(vqf)|(vro)|(w64)|(wav)|(webm)|(wma)|(wmv)|(wsz)|(wv)|(wvx)|(xa)|(xesc)|(xm)|(xspf))
 https://sites.google.com/site/algwares/vidmasta
 http://tpbcrawler.appspot.com/fetch?v=2&id=
@@ -760,7 +760,7 @@ https://www.imdb.com/video/screenplay/%s/imdb/single
 (?i)"videoUrl"\s*+:\s*+"
 "
 (?i)"videoMimeType"\s*+:\s*+"video
-https://github.com/ALGwares/VidMasta/releases/download/none/vlc-3.0.16.0.1-win32.zip
+https://github.com/ALGwares/VidMasta/releases/download/none/vlc-3.0.16.0.2-win32.zip
 vlc-2.2.1
 .*?(?i)vlc\.exe
 3
@@ -769,7 +769,7 @@ vlc-2.2.1
 https://text-to-speech-demo.ng.bluemix.net/api/v3/synthesize?text=%s&voice=en-US_AllisonV3Voice&download=true&accept=audio/mp3
 .mp3
 <!DOCTYPE html>NEWLINE<html>NEWLINE  <head>NEWLINE    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">NEWLINE    <title>TTS_TITLE: Audio Summary</title>NEWLINE  </head>NEWLINE  <body>NEWLINE    <div style="text-align: center; margin-left: auto; margin-right: auto;"><br>NEWLINE      <br>NEWLINE      <br>NEWLINE      <span style="font-weight: bold; font-family: Verdana; font-size: 3;">TTS_TITLE</span><br>NEWLINE      <span style="font-family: Verdana; font-size: 2;">Audio Summary</span><br>NEWLINE      <br>NEWLINE      <img src="file:///TTS_POSTER" alt="poster">NEWLINE      <br>NEWLINE      <br>NEWLINE      <audio controls autoplay>NEWLINE        <source src="file:///TTS_AUDIO_CLIP" type="audio/mpeg">NEWLINE        <object data="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50">NEWLINE          <embed src="file:///TTS_AUDIO_CLIP" type="audio/mpeg" height="50"/>NEWLINE        </object>NEWLINE      </audio>NEWLINE    </div>NEWLINE  </body>NEWLINE</html>
-\d++
+0
 %08d
 (\p{Alnum}++(\.|(&#(((?i)x2E)|(46));))++){2,}+\p{Alnum}*+
 \.|(&#(((?i)x2E)|(46));)
@@ -780,4 +780,6 @@ EMPTY
 yyyy
 "size"\s*+:\s*+"?+
 "|,|\z
+https://www.imdb.com/title/tt%s/
+%sepisodes?season=%s
 eof

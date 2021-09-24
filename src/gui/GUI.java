@@ -6004,7 +6004,7 @@ public class GUI extends JFrame implements GuiListener {
   }//GEN-LAST:event_searchBanTitleEnableCheckBoxMenuItemItemStateChanged
 
   private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
-    strExportListener.export(ContentType.TITLE, Str.get(519) + row.video.ID, false, this);
+    strExportListener.export(ContentType.TITLE, String.format(Str.get(781), row.video.ID), false, this);
   }
 
   private void exportPosterImage(SelectedTableRow row, VideoStrExportListener strExportListener) {
