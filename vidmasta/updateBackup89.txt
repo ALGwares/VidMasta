@@ -1,4 +1,4 @@
-341
+344
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -128,8 +128,8 @@ EMPTY
 "
 (?i)(\=\s*+"ratingValue"\s*+>(\s*+\<\s*+strong[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)?+)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-((title\-block)|(rating\-bar))__aggregate\-rating__score"[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)
 \<\s*+/span\s*+\>
-(?i)(<\s*+p\s*+>\s*+<\s*+/p\s*+>\s*+<\s*+p(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(<\s*+div\s++class\s*+=\s*+"summary_text"(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"plot[^\>]*+\>)
-(<\s*+/p\s*+>\s*+<\s*+p\s*+>\s*+<\s*+/p\s*+>)|(<\s*+/div\s*+>)
+(?i)(<\s*+p\s*+>\s*+<\s*+/p\s*+>\s*+<\s*+p(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(<\s*+div\s++class\s*+=\s*+"summary_text"(\s++itemprop\s*+=\s*+"description")?+\s*+>)|(\<\s*+((div)|p|(span))[^>]*?\sdata\-testid\s*+\=\s*+"plot\-xl"[^\>]*+\>)
+(<\s*+/p\s*+>\s*+<\s*+p\s*+>\s*+<\s*+/p\s*+>)|(<\s*+/((div)|p|(span))\s*+>)
 (?i)(<\s*+h2\s*+>\s*+Storyline\s*+<\s*+/h2\s*+>\s*+(<div[^>]++>)?+\s*+<\s*+p\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"storyline-plot-summary"[^\>]*+\>)
 (<\s*+/p\s*+>)|(<\s*+/div\s*+>)
 EMPTY
@@ -731,7 +731,7 @@ https://openpirate.org
 https://openpirate.org/api?url=/precompiled/data_top100_
 https://openpirate.org/ajax_details_comments.php?id=
 https://mypiratebay.wtf
-722,723,724,725,727,729,730
+722,723,724,725,727,729,730,785,786,787
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z)(?![01](\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z))
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C333F
@@ -782,4 +782,9 @@ yyyy
 "|,|\z
 https://www.imdb.com/title/tt%s/
 %sepisodes?season=%s
+false
+https://postman-echo.com/get?%s%s
+https://openpirate.org/api?url=/q.php?q=%s
+https://openpirate.org/api?url=/q.php?q=%s%s
+https://openpirate.org/api?url=/q.php?q=%s/%s%s
 eof

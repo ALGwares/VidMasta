@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2021.10.09   | VidMasta 27.4
+
+CHANGE: CORE | Fixed intermittent download resume progress calculation bug introduced in version 27.2
+
+
+
+
 2021.09.24   | VidMasta 27.3
 
 CHANGE: CORE | Fixed connection issues due to changes in video info source

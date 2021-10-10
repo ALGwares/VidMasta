@@ -140,37 +140,41 @@ public class TorrentFinder extends Worker {
   }
 
   public Collection<Torrent> getTorrents(boolean prefetch, boolean generalSearch) throws Exception {
-    String urlForm = Str.get(721), urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (ignoreYear ? "" : (' ' + video.year)) + seasonAndEpisode,
-            Constant.UTF8) + (generalSearch ? Str.get(657) : categorySearch);
     if (isCancelled()) {
       return null;
     }
 
-    String sourceCode;
-    try {
-      sourceCode = Connection.getSourceCode(url = urlForm + urlFormOptions, DomainType.DOWNLOAD_LINK_INFO, !prefetch, false, true, Constant.MS_1HR,
-              FileNotFoundException.class);
-    } catch (IOException2 e) {
-      if (Debug.DEBUG) {
-        Debug.println(e);
+    String urlFormOptionsPart1 = URLEncoder.encode(Regex.clean(video.title) + (ignoreYear ? "" : (' ' + video.year)) + seasonAndEpisode, Constant.UTF8),
+            urlFormOptionsPart2 = (generalSearch ? Str.get(657) : categorySearch), sourceCode;
+    if (Boolean.parseBoolean(Str.get(783))) {
+      try {
+        sourceCode = Connection.getSourceCode(url = String.format(Str.get(784), urlFormOptionsPart1, urlFormOptionsPart2), DomainType.DOWNLOAD_LINK_INFO,
+                !prefetch, false, true, Constant.MS_1HR, FileNotFoundException.class);
+      } catch (IOException2 e) {
+        if (Debug.DEBUG) {
+          Debug.println(e);
+        }
+        if (Regex.firstMatch(e.extraMsg, 146).isEmpty()) {
+          return null;
+        }
+        sourceCode = e.extraMsg;
       }
-      if (Regex.firstMatch(e.extraMsg, 146).isEmpty()) {
+
+      if (!isSourceCodeValid(sourceCode) || isCancelled()) {
         return null;
       }
-      sourceCode = e.extraMsg;
+
+      String firstPageLink = Regex.firstMatch(sourceCode, Str.get(orderByLeechers ? 660 : 661));
+      firstPageLink = Regex.replaceAllRepeatedly(firstPageLink, 666);
+      if (firstPageLink.isEmpty()) {
+        return null;
+      }
+      url = String.format(Str.get(785), firstPageLink);
+    } else {
+      url = String.format(Str.get(786), urlFormOptionsPart1, urlFormOptionsPart2);
     }
 
-    if (!isSourceCodeValid(sourceCode) || isCancelled()) {
-      return null;
-    }
-
-    String firstPageLink = Regex.firstMatch(sourceCode, Str.get(orderByLeechers ? 660 : 661));
-    firstPageLink = Regex.replaceAllRepeatedly(firstPageLink, 666);
-    if (firstPageLink.isEmpty()) {
-      return null;
-    }
-
-    sourceCode = Connection.getSourceCode(url = Str.get(722) + firstPageLink, DomainType.DOWNLOAD_LINK_INFO, !prefetch, Constant.MS_1HR);
+    sourceCode = Connection.getSourceCode(url, DomainType.DOWNLOAD_LINK_INFO, !prefetch, Constant.MS_1HR);
     if (!isSourceCodeValid(sourceCode) || isCancelled() || prefetch) {
       return null;
     }
@@ -201,7 +205,7 @@ public class TorrentFinder extends Worker {
         query = URLEncoder.encode(query, Constant.UTF8);
       }
 
-      sourceCode = Connection.getSourceCode(url = Str.get(724) + query + Str.get(492) + currPageNum + Regex.match(nextPageLink, 493),
+      sourceCode = Connection.getSourceCode(url = String.format(Str.get(787), query, currPageNum, Regex.match(nextPageLink, 493)),
               DomainType.DOWNLOAD_LINK_INFO, Constant.MS_1HR);
       if (!isSourceCodeValid(sourceCode) || isCancelled()) {
         return null;
