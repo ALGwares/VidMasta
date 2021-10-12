@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2021.10.11   | VidMasta 27.5
+
+CHANGE: CORE | Added support for Java 17 and higher
+
+
+
+
 2021.10.09   | VidMasta 27.4
 
 CHANGE: CORE | Fixed intermittent download resume progress calculation bug introduced in version 27.2
