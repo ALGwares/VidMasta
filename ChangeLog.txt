@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2021.10.13   | VidMasta 27.6
+
+CHANGE: CORE | Fixed startup issue with Java 17 and higher support on Linux and Mac introduced in version 27.5
+
+
+
+
 2021.10.11   | VidMasta 27.5
 
 CHANGE: CORE | Added support for Java 17 and higher

@@ -12,7 +12,7 @@ public class VidMasta {
 
   public static void main(String[] args) {
     try {
-      if ("true".equals(System.getProperty("startFlag")) || ((Supplier<Integer>) () -> {
+      if (System.getProperty("startFlag", "").contains("true") || ((Supplier<Integer>) () -> {
         try {
           Class<?> versionClass = Class.forName("java.lang.Runtime$Version");
           return (Integer) versionClass.getMethod("feature").invoke(versionClass.getMethod("parse", String.class).invoke(null, System.getProperty(
