@@ -1,4 +1,4 @@
-344
+348
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -50,7 +50,7 @@ http://kat.unbanthe.net
 \{
 EMPTY
 \}
-"name"\s*+:\s*+"
+"name"\s*+:\s*+"(?!No results returned")
 "
 "category"\s*+:\s*+"?+
 "|,|\z
@@ -124,7 +124,7 @@ movies
 \{
 EMPTY
 \}
-"name"\s*+:\s*+"
+"name"\s*+:\s*+"(?!No results returned")
 "
 (?i)(\=\s*+"ratingValue"\s*+>(\s*+\<\s*+strong[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)?+)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-((title\-block)|(rating\-bar))__aggregate\-rating__score"[^\>]*+\>\s*+\<\s*+span[^\>]*+\>)
 \<\s*+/span\s*+\>
@@ -353,7 +353,7 @@ http://www.opensubtitles.org/en/search2/sublanguageid-all/movieyearsign-5/moviey
 250
 <\s*+div\s++class\s*+=\s*+"((infobar)|(subtext))"\s*+>
 (?<=((<\s{0,100}+\p{Alnum}{1,10}+)|&))
-(?i)(TV\s((Series)|(Movie)|(Mini\-Series)|(Special)))
+(?i)(TV\s((Series)|(Movie)|(Mini[\-\s]*+Series)|(Special)))
 (<\s{0,100}+\p{Alnum}{1,10}+)|((?i)((TV\sMovie)|(Video(?!(\sGame)))|(Feature)|(Documentary)|(Short)))
 https://sites.google.com/site/algwares/bittorrentclient?torrent=
 3
@@ -388,7 +388,7 @@ loadlate\s*+\=\s*+"(?=(?i)https?+://[^"]+?/images/)
 .*?/nopicture/.*?
 ~~~
 magnet:?xt=urn:btih:
-"info_hash"\s*+:\s*+"
+"info_hash"\s*+:\s*+"(?!0*+")
 "
 90000
 false
@@ -460,7 +460,7 @@ http://www.opensubtitles.org
 10
 &genre=&director=&actor_name=&tag=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1&key=
 (?s).+
-"info_hash"\s*+:\s*+"
+"info_hash"\s*+:\s*+"(?!0*+")
 "
 /((bittorrentclient)|(download))\?torrent=file%3A%2F%2F%2F
 EMPTY
@@ -585,12 +585,12 @@ https://docs.google.com
 http://www.opensubtitles.org
 (?i)(<\s*+div\s++class\s*+=\s*+"infobar"[^>]*+>)|(\stitle\s*+=\s*+"See more release dates"[^>]*+>)|(\sdata\-testid\s*+\=\s*+"hero\-title\-block__metadata"\>\s*+\<\s*+li[^\>]*+\>)
 \<|&|\(|\d|((?i)((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)))
-(?i)(TV\s((Series)|(Movie)|(Mini\-Series)|(Special)))
+(?i)(TV\s((Series)|(Movie)|(Mini[\-\s]*+Series)|(Special)))
 (\A\z)|((?i)((TV\sMovie)|(Video(?!(\sGame)))|(Feature)|(Documentary)|(Short)))
 20[12758]
-(?i)(TV\s((Movie)|(Mini\-Series)))
+(?i)(TV\s((Movie)|(Mini[\-\s]*+Series)))
 (?i)(TV\sMovie)
-(?i)((TV\sMovie)|(Mini\-Series))
+(?i)((TV\sMovie)|(Mini[\-\s]*+Series))
 (?i)(TV\sMovie)
 Sun/Java/Deployment/security/trusted.certs
 Oracle/Java/Deployment/security/trusted.certs
@@ -696,7 +696,7 @@ http://mirror.nexcess.net/videolan/vlc/2.2.1/win32/vlc-2.2.1-win32.zip
 vlc-2.2.1
 vlc-2.2.1/vlc.exe
 /
-vlc-3.0.16.0.2
+vlc-3.0.16.0.4
 .*\.((?i)(3g2)|(3ga)|(3gp)|(3gp2)|(3gpp)|(669)|(a52)|(aac)|(ac3)|(adt)|(adts)|(aif)|(aifc)|(aiff)|(amr)|(amv)|(aob)|(ape)|(asf)|(asx)|(au)|(avi)|(b4s)|(bik)|(bin)|(caf)|(cda)|(cue)|(divx)|(drc)|(dts)|(dv)|(f4v)|(flac)|(flv)|(gvi)|(gxf)|(ifo)|(it)|(m1v)|(m2t)|(m2ts)|(m2v)|(m3u)|(m3u8)|(m4a)|(m4p)|(m4v)|(mid)|(mka)|(mkv)|(mlp)|(mod)|(mov)|(mp1)|(mp2)|(mp2v)|(mp3)|(mp4)|(mp4v)|(mpa)|(mpc)|(mpe)|(mpeg)|(mpeg1)|(mpeg2)|(mpeg4)|(mpg)|(mpga)|(mpv2)|(mts)|(mtv)|(mxf)|(nsv)|(nuv)|(oga)|(ogg)|(ogm)|(ogv)|(ogx)|(oma)|(opus)|(pls)|(qcp)|(ra)|(ram)|(rec)|(rm)|(rmbv)|(rmi)|(rpl)|(s3m)|(sdp)|(snd)|(spx)|(swf)|(thp)|(tod)|(ts)|(tta)|(tts)|(vlc)|(vlt)|(vob)|(voc)|(vqf)|(vro)|(w64)|(wav)|(webm)|(wma)|(wmv)|(wsz)|(wv)|(wvx)|(xa)|(xesc)|(xm)|(xspf))
 https://sites.google.com/site/algwares/vidmasta
 http://tpbcrawler.appspot.com/fetch?v=2&id=
@@ -722,7 +722,7 @@ https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9
 https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9.8.1/UMS-9.8.1-x86.tgz
 https://postman-echo.com/get?
 https://openpirate.org/api?url=/q.php?q=
-https://openpirate.org/api?url=
+https://openpirate.org
 https://openpirate.org/api?url=/q.php?q=
 https://openpirate.org/api?url=
 https://openpirate.org:::https://pirateproxy.ink:::https://tpb.red
@@ -760,7 +760,7 @@ https://www.imdb.com/video/screenplay/%s/imdb/single
 (?i)"videoUrl"\s*+:\s*+"
 "
 (?i)"videoMimeType"\s*+:\s*+"video
-https://github.com/ALGwares/VidMasta/releases/download/none/vlc-3.0.16.0.2-win32.zip
+https://github.com/ALGwares/VidMasta/releases/download/none/vlc-3.0.16.0.4-win32.zip
 vlc-2.2.1
 .*?(?i)vlc\.exe
 3

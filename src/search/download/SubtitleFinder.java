@@ -43,8 +43,8 @@ public class SubtitleFinder extends Worker {
     this.format = format;
     this.languageID = languageID;
     this.video = video;
-    isTVShow = video.IS_TV_SHOW;
-    isTVShowAndMovie = video.IS_TV_SHOW_AND_MOVIE;
+    isTVShow = video.isTVShow;
+    isTVShowAndMovie = video.isTVShowAndMovie;
     this.firstMatch = firstMatch;
     this.strExportListener = strExportListener;
   }
@@ -126,14 +126,14 @@ public class SubtitleFinder extends Worker {
       source = Connection.getSourceCode(prevUrl = url, DomainType.SUBTITLE, Constant.MS_1HR);
     } catch (ConnectionException e) {
       // Handle server's unencoded redirect URL bug
-      if (e.URL == null || e.URL.equals(prevUrl)) {
+      if (e.url == null || e.url.equals(prevUrl)) {
         throw e;
       }
-      String titleName = Regex.match(e.URL, 510);
+      String titleName = Regex.match(e.url, 510);
       if (!titleName.equals(URLDecoder.decode(titleName, Constant.UTF8))) {
         throw e;
       }
-      source = Connection.getSourceCode(prevUrl = e.URL.replace(Str.get(512) + titleName, Str.get(512) + URLEncoder.encode(titleName, Constant.UTF8)),
+      source = Connection.getSourceCode(prevUrl = e.url.replace(Str.get(512) + titleName, Str.get(512) + URLEncoder.encode(titleName, Constant.UTF8)),
               DomainType.SUBTITLE, Constant.MS_1HR);
     }
 
@@ -152,9 +152,9 @@ public class SubtitleFinder extends Worker {
     String titleLink = Regex.firstMatch(result, 427);
     String resultID = VideoSearch.normalize(Regex.replaceAll(Regex.replaceFirst(titleLink, 428), 423));
     if (Debug.DEBUG) {
-      Debug.println("subtitle search result: resultID='" + resultID + "' titleID='" + video.ID + "'");
+      Debug.println("subtitle search result: resultID='" + resultID + "' titleID='" + video.id + "'");
     }
-    return video.ID.equals(resultID);
+    return video.id.equals(resultID);
   }
 
   private void notFound() throws Exception {
@@ -230,7 +230,7 @@ public class SubtitleFinder extends Worker {
 
     Collections.sort(subtitles);
 
-    long subtitleName = Str.hashCode(video.ID);
+    long subtitleName = Str.hashCode(video.id);
     String subtitleDir = Constant.APP_DIR + subtitleName + Constant.FILE_SEPARATOR;
     String subtitleZip = subtitleDir + subtitleName + Constant.ZIP;
     int numSubtitles = subtitles.size(), maxNumSubtitles = Integer.parseInt(Str.get(458));

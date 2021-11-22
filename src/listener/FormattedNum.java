@@ -2,7 +2,7 @@ package listener;
 
 public interface FormattedNum {
 
-    Number val();
+  Number val();
 
-    FormattedNum copy(Number newVal);
+  FormattedNum copy(Number newVal);
 }

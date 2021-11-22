@@ -60,8 +60,8 @@ public class Magnet extends Thread {
   private static final String VUZE_DIR = Constant.APP_DIR + VUZE_VERSION + Constant.FILE_SEPARATOR + "biglybt" + Constant.FILE_SEPARATOR, IP_FILTER_TOGGLE
           = "Ip Filter Enabled";
   private static volatile Core core;
-  public final String MAGNET_LINK;
-  public final File TORRENT;
+  public final String magnetLink;
+  public final File torrent;
   private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
   private static final ConcurrentMap<String, Thread> downloaders = new ConcurrentHashMap<String, Thread>(16);
   private static volatile String ipBlockMsg = "";
@@ -69,9 +69,9 @@ public class Magnet extends Thread {
   private static Thread ipFilterInitializer;
 
   public Magnet(String magnetLink) {
-    MAGNET_LINK = magnetLink;
+    this.magnetLink = magnetLink;
     IO.fileOp(Constant.TORRENTS_DIR, IO.MK_DIR);
-    TORRENT = new File(Constant.TORRENTS_DIR + Str.hashCode(magnetLink) + Constant.TORRENT);
+    torrent = new File(Constant.TORRENTS_DIR + Str.hashCode(magnetLink) + Constant.TORRENT);
   }
 
   public boolean download(GuiListener guiListener, Future<?> parent, boolean runInBackground) throws Exception {
@@ -118,13 +118,13 @@ public class Magnet extends Thread {
   }
 
   private void download() throws Exception {
-    Thread downloader = downloaders.putIfAbsent(MAGNET_LINK, this);
+    Thread downloader = downloaders.putIfAbsent(magnetLink, this);
     if (downloader != null) {
       downloader.join();
       return;
     }
     try {
-      byte[] torrentBytes = FileUtil.readInputStreamAsByteArray(ResourceDownloaderFactoryImpl.getSingleton().create(new URL(MAGNET_LINK)).download(),
+      byte[] torrentBytes = FileUtil.readInputStreamAsByteArray(ResourceDownloaderFactoryImpl.getSingleton().create(new URL(magnetLink)).download(),
               BDecoder.MAX_BYTE_ARRAY_SIZE);
       isDoneDownloading.set(true);
 
@@ -132,10 +132,10 @@ public class Magnet extends Thread {
         return;
       }
       synchronized (saveTorrentLock) {
-        if (TORRENT.exists()) {
+        if (torrent.exists()) {
           return;
         }
-        IO.write(TORRENT, torrentBytes);
+        IO.write(torrent, torrentBytes);
 
         if (!COConfigurationManager.getBooleanParameter(IP_FILTER_TOGGLE)) {
           COConfigurationManager.setParameter(IP_FILTER_TOGGLE, true);
@@ -143,17 +143,17 @@ public class Magnet extends Thread {
       }
 
       if (Debug.DEBUG) {
-        Debug.println(TORRENT.getName() + " converted");
+        Debug.println(torrent.getName() + " converted");
       }
       isDoneSaving.set(true);
     } finally {
-      downloaders.remove(MAGNET_LINK);
+      downloaders.remove(magnetLink);
     }
   }
 
   private boolean torrentExists() {
     synchronized (saveTorrentLock) {
-      return TORRENT.exists();
+      return torrent.exists();
     }
   }
 

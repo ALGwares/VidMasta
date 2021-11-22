@@ -144,7 +144,7 @@ public abstract class AbstractSearcher extends Worker {
   private void restore() {
     currSourceCode = prevSourceCode;
     for (Video video : videoBuffer) {
-      allBufferVideos.remove(video.ID);
+      allBufferVideos.remove(video.id);
     }
     videoBuffer.clear();
     guiListener.moreResults(hasNextSearchPage());
@@ -296,7 +296,7 @@ public abstract class AbstractSearcher extends Worker {
         Iterator<Video> videoBufferIt = videoBuffer.listIterator();
         while (videoBufferIt.hasNext()) {
           Video video = videoBufferIt.next();
-          if (video.IS_TV_SHOW == tvShow) {
+          if (video.isTVShow == tvShow) {
             videoBufferIt.remove();
             newVideoBuffer.add(video);
             break;
@@ -376,7 +376,7 @@ public abstract class AbstractSearcher extends Worker {
 
         String sourceCode = video.summary;
         video.oldTitle = VideoSearch.getOldTitle(sourceCode);
-        video.summary = VideoSearch.getSummary(sourceCode, video.IS_TV_SHOW);
+        video.summary = VideoSearch.getSummary(sourceCode, video.isTVShow);
         video.imageLink = Regex.match(sourceCode, 190);
         if (video.imageLink.isEmpty()) {
           if (noImage(video)) {
@@ -387,13 +387,13 @@ public abstract class AbstractSearcher extends Worker {
         }
       }
 
-      if (isCancelled() || !allVideos.add(video.ID)) {
+      if (isCancelled() || !allVideos.add(video.id)) {
         return;
       }
 
       Object[] row = VideoSearch.toTableRow(guiListener, video, false);
       if (isCancelled()) {
-        allVideos.remove(video.ID);
+        allVideos.remove(video.id);
         return;
       }
       guiListener.newResult(row);

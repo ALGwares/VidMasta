@@ -59,7 +59,7 @@ public class TorrentFinder extends Worker {
     this.isTitlePrefix = isTitlePrefix;
     this.searchState = searchState;
     this.boxSet = boxSet;
-    categorySearch = Str.get(video.IS_TV_SHOW ? 658 : 659);
+    categorySearch = Str.get(video.isTVShow ? 658 : 659);
     maxNumAttempts = Integer.parseInt(Str.get(176));
     counter1Max = Integer.parseInt(Str.get(168));
     counter2Max = Integer.parseInt(Str.get(boxSet == null ? 170 : 336));
@@ -230,7 +230,7 @@ public class TorrentFinder extends Worker {
   }
 
   public void getTorrents(boolean prefetch) throws Exception {
-    String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.ID, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, !prefetch, true,
+    String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.id, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, !prefetch, true,
             true, Constant.MS_1HR);
     if (!isCancelled() && !sourceCode.isEmpty() && !prefetch) {
       Collection<Torrent> newTorrents = getTorrents(700, sourceCode);
@@ -254,7 +254,7 @@ public class TorrentFinder extends Worker {
       }
 
       String videoStr = Regex.match(sourceCode.substring(titleMatcher.end()), 49), titleName = Regex.match(videoStr, 51);
-      if (titleName.isEmpty() || !Regex.isMatch(Regex.match(videoStr, 53), video.IS_TV_SHOW_AND_MOVIE ? 588 : (video.IS_TV_SHOW ? 562 : 563))) {
+      if (titleName.isEmpty() || !Regex.isMatch(Regex.match(videoStr, 53), video.isTVShowAndMovie ? 588 : (video.isTVShow ? 562 : 563))) {
         continue;
       }
 
@@ -267,7 +267,7 @@ public class TorrentFinder extends Worker {
       if ((!singleOrderByMode && (prevOrderByLeechers = orderings.get(new TorrentSearchID(torrentID, video.season, video.episode))) != null
               && orderByLeechers != prevOrderByLeechers) || VideoSearch.isUploadYearTooOld(videoStr, 1, Integer.parseInt(video.year))
               || !VideoSearch.isRightFormat(titleName, searchState.format) || (!(isBoxSet = !Regex.firstMatch(Regex.replaceAll(titleName, 220),
-              video.IS_TV_SHOW ? 207 : 208).isEmpty()) && boxSet != null)) {
+              video.isTVShow ? 207 : 208).isEmpty()) && boxSet != null)) {
         continue;
       }
 
@@ -283,7 +283,7 @@ public class TorrentFinder extends Worker {
         continue;
       }
 
-      if (video.IS_TV_SHOW) {
+      if (video.isTVShow) {
         boolean anyEpisode = video.episode.equals(Constant.ANY);
         if (video.season.equals(Constant.ANY)) {
           if (!anyEpisode && episode(titleName, 626).isEmpty()) {
@@ -299,13 +299,13 @@ public class TorrentFinder extends Worker {
               continue;
             }
           } else {
-            TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);
+            TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.isTVShow);
             if (!titleParts.season.isEmpty() && !video.season.equals(titleParts.season)) {
               continue;
             }
           }
         } else {
-          TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);
+          TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.isTVShow);
           if (!titleParts.season.isEmpty() && !titleParts.episodes.isEmpty()) {
             if (!video.season.equals(titleParts.season) || !titleParts.episodes.contains(video.episode)) {
               continue;
@@ -329,7 +329,7 @@ public class TorrentFinder extends Worker {
       if (!numSources.isEmpty()) {
         numSourcesNum = Integer.parseInt(numSources);
       }
-      if (video.IS_TV_SHOW && !video.season.equals(Constant.ANY) && video.episode.equals(Constant.ANY) && isBoxSet && !"0".equals(Regex.match(videoStr, 72))) {
+      if (video.isTVShow && !video.season.equals(Constant.ANY) && video.episode.equals(Constant.ANY) && isBoxSet && !"0".equals(Regex.match(videoStr, 72))) {
         numSourcesNum += 1000000;
       }
 
@@ -347,7 +347,7 @@ public class TorrentFinder extends Worker {
       String extensions;
       if (isTorrentDownloaded) {
         FileTypeChecker fileTypeChecker = new FileTypeChecker(searchState.whitelistedFileExts, searchState.blacklistedFileExts);
-        if (!fileTypeChecker.isValidFileType(magnet.TORRENT)) {
+        if (!fileTypeChecker.isValidFileType(magnet.torrent)) {
           continue;
         }
 
@@ -355,7 +355,7 @@ public class TorrentFinder extends Worker {
           break;
         }
 
-        torrent = magnet.TORRENT;
+        torrent = magnet.torrent;
         extensions = fileTypeChecker.getFileExts();
       } else {
         torrent = null;
@@ -363,7 +363,7 @@ public class TorrentFinder extends Worker {
       }
 
       boolean isSafe = !Regex.match(videoStr, 74).isEmpty();
-      newTorrents.add(new Torrent(torrentID, magnet.MAGNET_LINK, Regex.htmlToPlainText(titleName), torrent, extensions, Str.get(730) + Regex.match(
+      newTorrents.add(new Torrent(torrentID, magnet.magnetLink, Regex.htmlToPlainText(titleName), torrent, extensions, Str.get(730) + Regex.match(
               Regex.firstMatch(videoStr, 675), 676) + Str.get(678), isSafe, numSourcesNum, sizeInGiB));
       if (isSafe || i >= j) {
         break;
@@ -459,7 +459,7 @@ public class TorrentFinder extends Worker {
       return true;
     }
 
-    TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.IS_TV_SHOW);
+    TitleParts titleParts = VideoSearch.getTitleParts(titleName, video.isTVShow);
     if ((titleParts.year.isEmpty() || titleParts.year.equals(video.year)) && Regex.replaceAll(Regex.htmlToPlainText(titleParts.title.replace(':', ' ')),
             339).trim().equalsIgnoreCase(Regex.replaceAll(Regex.htmlToPlainText(Regex.replaceAll(video.title, 103).replace(':', ' ')), 339).trim())) {
       return true;
@@ -474,15 +474,15 @@ public class TorrentFinder extends Worker {
       return true;
     }
 
-    String source = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO, video.IS_TV_SHOW ? Constant.MS_1DAY : Constant.MS_2DAYS);
+    String source = Connection.getSourceCode(titleLink, DomainType.VIDEO_INFO, video.isTVShow ? Constant.MS_1DAY : Constant.MS_2DAYS);
     titleParts = VideoSearch.getImdbTitleParts(source);
     if (isOldTitle && (titleParts.title = Regex.match(source, 174)).isEmpty()) {
       return false;
     }
 
-    if (!VideoSearch.isImdbVideoType(source, video.IS_TV_SHOW)) {
+    if (!VideoSearch.isImdbVideoType(source, video.isTVShow)) {
       if (Debug.DEBUG) {
-        Debug.println("Wrong video type (NOT a " + (video.IS_TV_SHOW ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
+        Debug.println("Wrong video type (NOT a " + (video.isTVShow ? "TV show" : "movie") + "): '" + titleParts.title + "' '" + titleParts.year + '\'');
       }
       return false;
     }

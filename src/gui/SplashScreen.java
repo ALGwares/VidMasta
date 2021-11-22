@@ -34,436 +34,436 @@ import util.Constant;
 
 public class SplashScreen extends JFrame {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final ResourceBundle bundle;
+  private final ResourceBundle bundle;
 
-    public SplashScreen() {
-        Bundle newBundle = new Bundle(null);
-        bundle = newBundle.bundle;
+  public SplashScreen() {
+    Bundle newBundle = new Bundle(null);
+    bundle = newBundle.bundle;
 
-        initComponents();
+    initComponents();
 
-        UI.setIcon(popularPopupMenuButton, "more");
-        loadingLabel.setIcon(UI.icon("loading.gif"));
+    UI.setIcon(popularPopupMenuButton, "more");
+    loadingLabel.setIcon(UI.icon("loading.gif"));
 
-        Color bgColor = getBackground();
-        genreList.setBackground(bgColor);
-        findTextField.setBackground(bgColor);
-        findTextField.setForeground(bgColor);
+    Color bgColor = getBackground();
+    genreList.setBackground(bgColor);
+    findTextField.setBackground(bgColor);
+    findTextField.setForeground(bgColor);
 
-        setSize(new Dimension(1022, 680));
-        setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
-        UI.centerOnScreen(this);
+    setSize(new Dimension(1022, 680));
+    setIconImage(Toolkit.getDefaultToolkit().getImage(Constant.PROGRAM_DIR + "icon16x16.png"));
+    UI.centerOnScreen(this);
+  }
+
+  private void initComponents() {
+    resultsPanel = new JPanel();
+    resultsScrollPane = new JScrollPane();
+    resultsTable = new JTable();
+    readSummaryButton = new JButton();
+    watchTrailerButton = new JButton();
+    downloadLink1Button = new JButton();
+    downloadLink2Button = new JButton();
+    exitBackupModeButton = new JButton();
+    loadMoreResultsButton = new JButton();
+    findTextField = new JTextField();
+    titleTextField = new JTextField();
+    titleLabel = new JLabel();
+    releasedLabel = new JLabel();
+    genreLabel = new JLabel();
+    ratingComboBox = new JComboBox();
+    ratingLabel = new JLabel();
+    searchButton = new JButton();
+    genreScrollPane = new JScrollPane();
+    genreList = new JList();
+    typeLabel = new JLabel();
+    typeComboBox = new JComboBox();
+    releasedToLabel = new JLabel();
+    popularPopupMenuButton = new JButton();
+    loadingLabel = new JLabel();
+    statusBarTextField = new JTextField();
+    searchProgressTextField = new JTextField();
+    connectionIssueButton = new JButton();
+    startDateTextField = new JTextField();
+    endDateTextField = new JTextField();
+    splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, null);
+    menuBar = new JMenuBar();
+    fileMenu = new JMenu();
+    editMenu = new JMenu();
+    viewMenu = new JMenu();
+    searchMenu = new JMenu();
+    playlistMenu = new JMenu();
+    downloadMenu = new JMenu();
+    helpMenu = new JMenu();
+
+    resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    resultsScrollPane.setAutoscrolls(true);
+
+    resultsTable.setAutoCreateRowSorter(true);
+    resultsTable.setModel(new DefaultTableModel(new Object[][]{}, new String[]{"", "Title", "Year", "Rating"}) {
+      private static final long serialVersionUID = 1L;
+
+      Class[] types = new Class[]{Object.class, String.class, String.class, String.class};
+      boolean[] canEdit = new boolean[]{false, false, false, false};
+
+      @Override
+      public Class<?> getColumnClass(int columnIndex) {
+        return types[columnIndex];
+      }
+
+      @Override
+      public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return canEdit[columnIndex];
+      }
+    });
+    resultsTable.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+    resultsTable.setEnabled(false);
+    resultsTable.setFillsViewportHeight(true);
+    resultsTable.setMaximumSize(new Dimension(32767, 32767));
+    resultsTable.setMinimumSize(new Dimension(24, 24));
+    resultsTable.setName("Search Results");
+    resultsTable.setOpaque(false);
+    resultsTable.setPreferredSize(null);
+    resultsTable.setRowHeight(90);
+    resultsScrollPane.setViewportView(resultsTable);
+    if (resultsTable.getColumnModel().getColumnCount() > 0) {
+      resultsTable.getColumnModel().getColumn(0).setMinWidth(61);
+      resultsTable.getColumnModel().getColumn(0).setPreferredWidth(61);
+      resultsTable.getColumnModel().getColumn(0).setMaxWidth(61);
+      resultsTable.getColumnModel().getColumn(0).setHeaderValue(Constant.IMAGE_COL);
+      resultsTable.getColumnModel().getColumn(1).setPreferredWidth(798);
+      resultsTable.getColumnModel().getColumn(1).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title1"));
+      resultsTable.getColumnModel().getColumn(2).setMinWidth(65);
+      resultsTable.getColumnModel().getColumn(2).setPreferredWidth(65);
+      resultsTable.getColumnModel().getColumn(2).setMaxWidth(100);
+      resultsTable.getColumnModel().getColumn(2).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title2"));
+      resultsTable.getColumnModel().getColumn(3).setMinWidth(65);
+      resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
+      resultsTable.getColumnModel().getColumn(3).setMaxWidth(100);
+      resultsTable.getColumnModel().getColumn(3).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title3"));
     }
 
-    private void initComponents() {
-        resultsPanel = new JPanel();
-        resultsScrollPane = new JScrollPane();
-        resultsTable = new JTable();
-        readSummaryButton = new JButton();
-        watchTrailerButton = new JButton();
-        downloadLink1Button = new JButton();
-        downloadLink2Button = new JButton();
-        exitBackupModeButton = new JButton();
-        loadMoreResultsButton = new JButton();
-        findTextField = new JTextField();
-        titleTextField = new JTextField();
-        titleLabel = new JLabel();
-        releasedLabel = new JLabel();
-        genreLabel = new JLabel();
-        ratingComboBox = new JComboBox();
-        ratingLabel = new JLabel();
-        searchButton = new JButton();
-        genreScrollPane = new JScrollPane();
-        genreList = new JList();
-        typeLabel = new JLabel();
-        typeComboBox = new JComboBox();
-        releasedToLabel = new JLabel();
-        popularPopupMenuButton = new JButton();
-        loadingLabel = new JLabel();
-        statusBarTextField = new JTextField();
-        searchProgressTextField = new JTextField();
-        connectionIssueButton = new JButton();
-        startDateTextField = new JTextField();
-        endDateTextField = new JTextField();
-        splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, null);
-        menuBar = new JMenuBar();
-        fileMenu = new JMenu();
-        editMenu = new JMenu();
-        viewMenu = new JMenu();
-        searchMenu = new JMenu();
-        playlistMenu = new JMenu();
-        downloadMenu = new JMenu();
-        helpMenu = new JMenu();
+    readSummaryButton.setText(bundle.getString("GUI.readSummaryButton.text"));
+    readSummaryButton.setEnabled(false);
 
-        resultsScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        resultsScrollPane.setAutoscrolls(true);
+    watchTrailerButton.setText(bundle.getString("GUI.watchTrailerButton.text"));
+    watchTrailerButton.setEnabled(false);
 
-        resultsTable.setAutoCreateRowSorter(true);
-        resultsTable.setModel(new DefaultTableModel(new Object[][]{}, new String[]{"", "Title", "Year", "Rating"}) {
-            private static final long serialVersionUID = 1L;
+    downloadLink1Button.setText(bundle.getString("GUI.downloadLink1Button.text"));
+    downloadLink1Button.setEnabled(false);
 
-            Class[] types = new Class[]{Object.class, String.class, String.class, String.class};
-            boolean[] canEdit = new boolean[]{false, false, false, false};
+    downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text"));
+    downloadLink2Button.setEnabled(false);
+    downloadLink2Button.setMargin(new Insets(0, 2, 0, 2));
+    UI.resize(AbstractComponent.newInstance(downloadLink2Button), bundle.getString(Constant.STOP_KEY), downloadLink2Button.getText());
 
-            @Override
-            public Class<?> getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
+    exitBackupModeButton.setBorderPainted(false);
+    exitBackupModeButton.setEnabled(false);
+    exitBackupModeButton.setMinimumSize(new Dimension(0, 0));
+    exitBackupModeButton.setMaximumSize(new Dimension(0, 0));
 
-            @Override
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-        resultsTable.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-        resultsTable.setEnabled(false);
-        resultsTable.setFillsViewportHeight(true);
-        resultsTable.setMaximumSize(new Dimension(32767, 32767));
-        resultsTable.setMinimumSize(new Dimension(24, 24));
-        resultsTable.setName("Search Results");
-        resultsTable.setOpaque(false);
-        resultsTable.setPreferredSize(null);
-        resultsTable.setRowHeight(90);
-        resultsScrollPane.setViewportView(resultsTable);
-        if (resultsTable.getColumnModel().getColumnCount() > 0) {
-            resultsTable.getColumnModel().getColumn(0).setMinWidth(61);
-            resultsTable.getColumnModel().getColumn(0).setPreferredWidth(61);
-            resultsTable.getColumnModel().getColumn(0).setMaxWidth(61);
-            resultsTable.getColumnModel().getColumn(0).setHeaderValue(Constant.IMAGE_COL);
-            resultsTable.getColumnModel().getColumn(1).setPreferredWidth(798);
-            resultsTable.getColumnModel().getColumn(1).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title1"));
-            resultsTable.getColumnModel().getColumn(2).setMinWidth(65);
-            resultsTable.getColumnModel().getColumn(2).setPreferredWidth(65);
-            resultsTable.getColumnModel().getColumn(2).setMaxWidth(100);
-            resultsTable.getColumnModel().getColumn(2).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title2"));
-            resultsTable.getColumnModel().getColumn(3).setMinWidth(65);
-            resultsTable.getColumnModel().getColumn(3).setPreferredWidth(65);
-            resultsTable.getColumnModel().getColumn(3).setMaxWidth(100);
-            resultsTable.getColumnModel().getColumn(3).setHeaderValue(bundle.getString("GUI.resultsTable.columnModel.title3"));
-        }
+    loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text"));
+    loadMoreResultsButton.setEnabled(false);
 
-        readSummaryButton.setText(bundle.getString("GUI.readSummaryButton.text"));
-        readSummaryButton.setEnabled(false);
+    JScrollPane summaryScrollPane = new JScrollPane();
+    summaryScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        watchTrailerButton.setText(bundle.getString("GUI.watchTrailerButton.text"));
-        watchTrailerButton.setEnabled(false);
+    JEditorPane summaryEditorPane = new JEditorPane();
+    summaryEditorPane.setEditable(false);
+    summaryEditorPane.setContentType("text/html");
+    summaryEditorPane.setEnabled(false);
+    summaryScrollPane.setViewportView(summaryEditorPane);
 
-        downloadLink1Button.setText(bundle.getString("GUI.downloadLink1Button.text"));
-        downloadLink1Button.setEnabled(false);
+    GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
+    resultsPanel.setLayout(resultsPanelLayout);
+    resultsPanelLayout.setHorizontalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+                    .addGap(0, 0, 0)
+                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
+                            .addComponent(resultsScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 693, Short.MAX_VALUE)
+                            .addGroup(resultsPanelLayout.createSequentialGroup()
+                                    .addComponent(readSummaryButton)
+                                    .addPreferredGap(ComponentPlacement.UNRELATED)
+                                    .addComponent(watchTrailerButton)
+                                    .addPreferredGap(ComponentPlacement.UNRELATED)
+                                    .addComponent(downloadLink1Button)
+                                    .addGap(1, 1, 1)
+                                    .addComponent(downloadLink2Button)
+                                    .addPreferredGap(ComponentPlacement.UNRELATED)
+                                    .addComponent(exitBackupModeButton)
+                                    .addGap(0, 0, Short.MAX_VALUE)))
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING, false)
+                            .addComponent(summaryScrollPane, GroupLayout.PREFERRED_SIZE, 615, GroupLayout.PREFERRED_SIZE)
+                            .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
+                                    .addComponent(findTextField)
+                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                    .addComponent(loadMoreResultsButton)))
+                    .addGap(0, 0, 0))
+    );
 
-        downloadLink2Button.setText(bundle.getString("GUI.downloadLink2Button.text"));
-        downloadLink2Button.setEnabled(false);
-        downloadLink2Button.setMargin(new Insets(0, 2, 0, 2));
-        UI.resize(AbstractComponent.newInstance(downloadLink2Button), bundle.getString(Constant.STOP_KEY), downloadLink2Button.getText());
+    resultsPanelLayout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, readSummaryButton, watchTrailerButton});
 
-        exitBackupModeButton.setBorderPainted(false);
-        exitBackupModeButton.setEnabled(false);
-        exitBackupModeButton.setMinimumSize(new Dimension(0, 0));
-        exitBackupModeButton.setMaximumSize(new Dimension(0, 0));
+    resultsPanelLayout.setVerticalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+            .addGroup(resultsPanelLayout.createSequentialGroup()
+                    .addGap(0, 0, 0)
+                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                            .addComponent(summaryScrollPane)
+                            .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE))
+                    .addPreferredGap(ComponentPlacement.UNRELATED)
+                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
+                            .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
+                                    .addComponent(exitBackupModeButton, Alignment.TRAILING)
+                                    .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                                            .addComponent(readSummaryButton)
+                                            .addComponent(watchTrailerButton)
+                                            .addComponent(downloadLink1Button)
+                                            .addComponent(downloadLink2Button)))
+                            .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
+                                    .addComponent(loadMoreResultsButton)
+                                    .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))))
+    );
 
-        loadMoreResultsButton.setText(bundle.getString("GUI.loadMoreResultsButton.text"));
-        loadMoreResultsButton.setEnabled(false);
+    resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
 
-        JScrollPane summaryScrollPane = new JScrollPane();
-        summaryScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    setTitle(Constant.APP_TITLE);
+    setMinimumSize(null);
 
-        JEditorPane summaryEditorPane = new JEditorPane();
-        summaryEditorPane.setEditable(false);
-        summaryEditorPane.setContentType("text/html");
-        summaryEditorPane.setEnabled(false);
-        summaryScrollPane.setViewportView(summaryEditorPane);
+    titleTextField.setEnabled(false);
 
-        GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
-        resultsPanel.setLayout(resultsPanelLayout);
-        resultsPanelLayout.setHorizontalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
-                .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
-                        .addGap(0, 0, 0)
-                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(resultsScrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 693, Short.MAX_VALUE)
-                                .addGroup(resultsPanelLayout.createSequentialGroup()
-                                        .addComponent(readSummaryButton)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(watchTrailerButton)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(downloadLink1Button)
-                                        .addGap(1, 1, 1)
-                                        .addComponent(downloadLink2Button)
-                                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                                        .addComponent(exitBackupModeButton)
-                                        .addGap(0, 0, Short.MAX_VALUE)))
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING, false)
-                                .addComponent(summaryScrollPane, GroupLayout.PREFERRED_SIZE, 615, GroupLayout.PREFERRED_SIZE)
-                                .addGroup(Alignment.TRAILING, resultsPanelLayout.createSequentialGroup()
-                                        .addComponent(findTextField)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(loadMoreResultsButton)))
-                        .addGap(0, 0, 0))
-        );
+    titleLabel.setLabelFor(titleTextField);
+    titleLabel.setText(bundle.getString("GUI.titleLabel.text"));
+    titleLabel.setEnabled(false);
 
-        resultsPanelLayout.linkSize(SwingConstants.HORIZONTAL, new Component[]{downloadLink1Button, readSummaryButton, watchTrailerButton});
+    releasedLabel.setText(bundle.getString("GUI.releasedLabel.text"));
+    releasedLabel.setEnabled(false);
 
-        resultsPanelLayout.setVerticalGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
-                .addGroup(resultsPanelLayout.createSequentialGroup()
-                        .addGap(0, 0, 0)
-                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
-                                .addComponent(summaryScrollPane)
-                                .addComponent(resultsScrollPane, GroupLayout.DEFAULT_SIZE, 552, Short.MAX_VALUE))
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.TRAILING)
-                                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.LEADING)
-                                        .addComponent(exitBackupModeButton, Alignment.TRAILING)
-                                        .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
-                                                .addComponent(readSummaryButton)
-                                                .addComponent(watchTrailerButton)
-                                                .addComponent(downloadLink1Button)
-                                                .addComponent(downloadLink2Button)))
-                                .addGroup(resultsPanelLayout.createParallelGroup(Alignment.BASELINE)
-                                        .addComponent(loadMoreResultsButton)
-                                        .addComponent(findTextField, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))))
-        );
+    genreLabel.setLabelFor(genreList);
+    genreLabel.setText(bundle.getString("GUI.genreLabel.text"));
+    genreLabel.setEnabled(false);
 
-        resultsPanelLayout.linkSize(SwingConstants.VERTICAL, new Component[]{downloadLink1Button, downloadLink2Button, exitBackupModeButton, loadMoreResultsButton, readSummaryButton, watchTrailerButton});
+    ratingComboBox.setMaximumRowCount(11);
+    ratingComboBox.setEnabled(false);
+    ratingComboBox.addItem(bundle.getString("any"));
 
-        setTitle(Constant.APP_TITLE);
-        setMinimumSize(null);
+    ratingLabel.setLabelFor(ratingComboBox);
+    ratingLabel.setText(bundle.getString("GUI.ratingLabel.text"));
+    ratingLabel.setEnabled(false);
 
-        titleTextField.setEnabled(false);
+    searchButton.setText(bundle.getString("GUI.searchButton.text"));
+    searchButton.setEnabled(false);
 
-        titleLabel.setLabelFor(titleTextField);
-        titleLabel.setText(bundle.getString("GUI.titleLabel.text"));
-        titleLabel.setEnabled(false);
+    genreScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    genreList.setEnabled(false);
+    genreList.setListData(new String[]{bundle.getString("any")});
+    genreScrollPane.setViewportView(genreList);
 
-        releasedLabel.setText(bundle.getString("GUI.releasedLabel.text"));
-        releasedLabel.setEnabled(false);
+    typeLabel.setLabelFor(typeComboBox);
+    typeLabel.setText(bundle.getString("GUI.typeLabel.text"));
+    typeLabel.setEnabled(false);
 
-        genreLabel.setLabelFor(genreList);
-        genreLabel.setText(bundle.getString("GUI.genreLabel.text"));
-        genreLabel.setEnabled(false);
+    typeComboBox.setEnabled(false);
+    typeComboBox.addItem(bundle.getString("GUI.typeComboBox.model").split(",")[0]);
 
-        ratingComboBox.setMaximumRowCount(11);
-        ratingComboBox.setEnabled(false);
-        ratingComboBox.addItem(bundle.getString("any"));
+    releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text"));
+    releasedToLabel.setEnabled(false);
 
-        ratingLabel.setLabelFor(ratingComboBox);
-        ratingLabel.setText(bundle.getString("GUI.ratingLabel.text"));
-        ratingLabel.setEnabled(false);
+    popularPopupMenuButton.setText(null);
+    popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
+    popularPopupMenuButton.setEnabled(false);
 
-        searchButton.setText(bundle.getString("GUI.searchButton.text"));
-        searchButton.setEnabled(false);
+    loadingLabel.setText(null);
 
-        genreScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        genreList.setEnabled(false);
-        genreList.setListData(new String[]{bundle.getString("any")});
-        genreScrollPane.setViewportView(genreList);
+    statusBarTextField.setEditable(false);
+    statusBarTextField.setFont(new Font("Verdana", 0, 10));
+    statusBarTextField.setBorder(BorderFactory.createEtchedBorder());
 
-        typeLabel.setLabelFor(typeComboBox);
-        typeLabel.setText(bundle.getString("GUI.typeLabel.text"));
-        typeLabel.setEnabled(false);
+    searchProgressTextField.setEditable(false);
+    searchProgressTextField.setFont(new Font("Verdana", 0, 10));
+    searchProgressTextField.setHorizontalAlignment(JTextField.RIGHT);
+    searchProgressTextField.setText(' ' + I18nStr.replace(bundle.getString("results"), 0, I18nStr.percent(0, 0)) + ' ');
+    UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + I18nStr.replace(bundle.getString("results"), 11111, I18nStr.percent(1, 0)) + ' ',
+            searchProgressTextField.getText());
+    searchProgressTextField.setBorder(BorderFactory.createEtchedBorder());
 
-        typeComboBox.setEnabled(false);
-        typeComboBox.addItem(bundle.getString("GUI.typeComboBox.model").split(",")[0]);
+    connectionIssueButton.setText(null);
+    connectionIssueButton.setBorder(BorderFactory.createEtchedBorder());
+    connectionIssueButton.setEnabled(false);
+    connectionIssueButton.setMargin(new Insets(0, 0, 0, 0));
+    connectionIssueButton.setMaximumSize(new Dimension(18, 18));
+    connectionIssueButton.setPreferredSize(new Dimension(0, 0));
 
-        releasedToLabel.setText(bundle.getString("GUI.releasedToLabel.text"));
-        releasedToLabel.setEnabled(false);
+    startDateTextField.setEnabled(false);
 
-        popularPopupMenuButton.setText(null);
-        popularPopupMenuButton.setMargin(new Insets(0, 0, 0, 0));
-        popularPopupMenuButton.setEnabled(false);
+    endDateTextField.setEnabled(false);
 
-        loadingLabel.setText(null);
+    findTextField.setBorder(null);
+    findTextField.setEnabled(false);
 
-        statusBarTextField.setEditable(false);
-        statusBarTextField.setFont(new Font("Verdana", 0, 10));
-        statusBarTextField.setBorder(BorderFactory.createEtchedBorder());
+    splitPane.setDividerLocation(Integer.MAX_VALUE);
+    splitPane.setDividerSize(10);
+    splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+    splitPane.setOneTouchExpandable(false);
 
-        searchProgressTextField.setEditable(false);
-        searchProgressTextField.setFont(new Font("Verdana", 0, 10));
-        searchProgressTextField.setHorizontalAlignment(JTextField.RIGHT);
-        searchProgressTextField.setText(' ' + I18nStr.replace(bundle.getString("results"), 0, I18nStr.percent(0, 0)) + ' ');
-        UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + I18nStr.replace(bundle.getString("results"), 11111, I18nStr.percent(1, 0)) + ' ',
-                searchProgressTextField.getText());
-        searchProgressTextField.setBorder(BorderFactory.createEtchedBorder());
+    fileMenu.setText(bundle.getString("GUI.fileMenu.text"));
+    fileMenu.setEnabled(false);
+    menuBar.add(fileMenu);
 
-        connectionIssueButton.setText(null);
-        connectionIssueButton.setBorder(BorderFactory.createEtchedBorder());
-        connectionIssueButton.setEnabled(false);
-        connectionIssueButton.setMargin(new Insets(0, 0, 0, 0));
-        connectionIssueButton.setMaximumSize(new Dimension(18, 18));
-        connectionIssueButton.setPreferredSize(new Dimension(0, 0));
+    editMenu.setText(bundle.getString("GUI.editMenu.text"));
+    editMenu.setEnabled(false);
+    menuBar.add(editMenu);
 
-        startDateTextField.setEnabled(false);
+    viewMenu.setText(bundle.getString("GUI.viewMenu.text"));
+    viewMenu.setEnabled(false);
+    menuBar.add(viewMenu);
 
-        endDateTextField.setEnabled(false);
+    searchMenu.setText(bundle.getString("GUI.searchMenu.text"));
+    searchMenu.setEnabled(false);
+    menuBar.add(searchMenu);
 
-        findTextField.setBorder(null);
-        findTextField.setEnabled(false);
+    playlistMenu.setText(bundle.getString("GUI.playlistMenu.text"));
+    playlistMenu.setEnabled(false);
+    menuBar.add(playlistMenu);
 
-        splitPane.setDividerLocation(Integer.MAX_VALUE);
-        splitPane.setDividerSize(10);
-        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        splitPane.setOneTouchExpandable(false);
+    downloadMenu.setText(bundle.getString("GUI.downloadMenu.text"));
+    downloadMenu.setEnabled(false);
+    menuBar.add(downloadMenu);
 
-        fileMenu.setText(bundle.getString("GUI.fileMenu.text"));
-        fileMenu.setEnabled(false);
-        menuBar.add(fileMenu);
+    helpMenu.setText(bundle.getString("GUI.helpMenu.text"));
+    helpMenu.setEnabled(false);
+    menuBar.add(helpMenu);
 
-        editMenu.setText(bundle.getString("GUI.editMenu.text"));
-        editMenu.setEnabled(false);
-        menuBar.add(editMenu);
+    setJMenuBar(menuBar);
 
-        viewMenu.setText(bundle.getString("GUI.viewMenu.text"));
-        viewMenu.setEnabled(false);
-        menuBar.add(viewMenu);
+    GroupLayout layout = new GroupLayout(getContentPane());
+    getContentPane().setLayout(layout);
+    layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING)
+            .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(layout.createParallelGroup(Alignment.TRAILING)
+                            .addComponent(splitPane, Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                    .addComponent(titleLabel)
+                                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                                    .addComponent(titleTextField))
+                                            .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                                                    .addComponent(typeLabel)
+                                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                                    .addComponent(typeComboBox, 0, 74, Short.MAX_VALUE)
+                                                    .addGap(18, 18, 18)
+                                                    .addComponent(ratingLabel)
+                                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                                    .addComponent(ratingComboBox, 0, 75, Short.MAX_VALUE)
+                                                    .addGap(18, 18, 18)
+                                                    .addComponent(releasedLabel)
+                                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                                    .addComponent(startDateTextField, GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                                                    .addGap(7, 7, 7)
+                                                    .addComponent(releasedToLabel)
+                                                    .addGap(6, 6, 6)
+                                                    .addComponent(endDateTextField, GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)))
+                                    .addGap(18, 18, 18)
+                                    .addComponent(genreLabel)
+                                    .addPreferredGap(ComponentPlacement.RELATED)
+                                    .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
+                                    .addGap(18, 18, 18)
+                                    .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                            .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
+                                                    .addComponent(searchButton)
+                                                    .addGap(1, 1, 1)
+                                                    .addComponent(popularPopupMenuButton))
+                                            .addComponent(loadingLabel, Alignment.TRAILING))))
+                    .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                    .addComponent(statusBarTextField)
+                    .addGap(0, 0, 0)
+                    .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, 0)
+                    .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+    );
+    layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(layout.createParallelGroup(Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                                            .addComponent(titleLabel)
+                                            .addComponent(titleTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(genreLabel))
+                                    .addGap(18, 18, 18)
+                                    .addGroup(layout.createParallelGroup(Alignment.TRAILING)
+                                            .addGroup(layout.createParallelGroup(Alignment.LEADING)
+                                                    .addComponent(typeComboBox)
+                                                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                                                            .addComponent(typeLabel)
+                                                            .addComponent(ratingLabel)
+                                                            .addComponent(ratingComboBox)
+                                                            .addComponent(releasedLabel))
+                                                    .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                            GroupLayout.PREFERRED_SIZE)
+                                                    .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                            GroupLayout.PREFERRED_SIZE))
+                                            .addComponent(releasedToLabel)))
+                            .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                                            .addComponent(searchButton)
+                                            .addComponent(popularPopupMenuButton))
+                                    .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(loadingLabel))
+                            .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(ComponentPlacement.UNRELATED)
+                    .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
+                    .addPreferredGap(ComponentPlacement.RELATED)
+                    .addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                            .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+    );
+    layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
+    layout.linkSize(SwingConstants.VERTICAL, new Component[]{genreLabel, ratingLabel, releasedLabel});
+    layout.linkSize(SwingConstants.VERTICAL, new Component[]{connectionIssueButton, searchProgressTextField, statusBarTextField});
+    layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularPopupMenuButton, searchButton});
+  }
 
-        searchMenu.setText(bundle.getString("GUI.searchMenu.text"));
-        searchMenu.setEnabled(false);
-        menuBar.add(searchMenu);
-
-        playlistMenu.setText(bundle.getString("GUI.playlistMenu.text"));
-        playlistMenu.setEnabled(false);
-        menuBar.add(playlistMenu);
-
-        downloadMenu.setText(bundle.getString("GUI.downloadMenu.text"));
-        downloadMenu.setEnabled(false);
-        menuBar.add(downloadMenu);
-
-        helpMenu.setText(bundle.getString("GUI.helpMenu.text"));
-        helpMenu.setEnabled(false);
-        menuBar.add(helpMenu);
-
-        setJMenuBar(menuBar);
-
-        GroupLayout layout = new GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING)
-                .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(Alignment.TRAILING)
-                                .addComponent(splitPane, Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addGroup(layout.createSequentialGroup()
-                                                        .addComponent(titleLabel)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(titleTextField))
-                                                .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
-                                                        .addComponent(typeLabel)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(typeComboBox, 0, 74, Short.MAX_VALUE)
-                                                        .addGap(18, 18, 18)
-                                                        .addComponent(ratingLabel)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(ratingComboBox, 0, 75, Short.MAX_VALUE)
-                                                        .addGap(18, 18, 18)
-                                                        .addComponent(releasedLabel)
-                                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                                        .addComponent(startDateTextField, GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
-                                                        .addGap(7, 7, 7)
-                                                        .addComponent(releasedToLabel)
-                                                        .addGap(6, 6, 6)
-                                                        .addComponent(endDateTextField, GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)))
-                                        .addGap(18, 18, 18)
-                                        .addComponent(genreLabel)
-                                        .addPreferredGap(ComponentPlacement.RELATED)
-                                        .addComponent(genreScrollPane, GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
-                                        .addGap(18, 18, 18)
-                                        .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
-                                                        .addComponent(searchButton)
-                                                        .addGap(1, 1, 1)
-                                                        .addComponent(popularPopupMenuButton))
-                                                .addComponent(loadingLabel, Alignment.TRAILING))))
-                        .addContainerGap())
-                .addGroup(layout.createSequentialGroup()
-                        .addComponent(statusBarTextField)
-                        .addGap(0, 0, 0)
-                        .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)
-                        .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        );
-        layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(Alignment.LEADING, false)
-                                .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                                .addComponent(titleLabel)
-                                                .addComponent(titleTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(genreLabel))
-                                        .addGap(18, 18, 18)
-                                        .addGroup(layout.createParallelGroup(Alignment.TRAILING)
-                                                .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                                                        .addComponent(typeComboBox)
-                                                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                                                .addComponent(typeLabel)
-                                                                .addComponent(ratingLabel)
-                                                                .addComponent(ratingComboBox)
-                                                                .addComponent(releasedLabel))
-                                                        .addComponent(startDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                                                                GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(endDateTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                                                                GroupLayout.PREFERRED_SIZE))
-                                                .addComponent(releasedToLabel)))
-                                .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                                .addComponent(searchButton)
-                                                .addComponent(popularPopupMenuButton))
-                                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(loadingLabel))
-                                .addComponent(genreScrollPane, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(ComponentPlacement.UNRELATED)
-                        .addComponent(splitPane, GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                                .addComponent(statusBarTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(searchProgressTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addComponent(connectionIssueButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-        );
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{endDateTextField, ratingComboBox, startDateTextField, titleTextField, typeComboBox});
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{genreLabel, ratingLabel, releasedLabel});
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{connectionIssueButton, searchProgressTextField, statusBarTextField});
-        layout.linkSize(SwingConstants.VERTICAL, new Component[]{popularPopupMenuButton, searchButton});
-    }
-
-    JButton connectionIssueButton;
-    JButton downloadLink1Button;
-    JButton downloadLink2Button;
-    JMenu downloadMenu;
-    JMenu editMenu;
-    JTextField endDateTextField;
-    JButton exitBackupModeButton;
-    JMenu fileMenu;
-    JTextField findTextField;
-    JLabel genreLabel;
-    JList genreList;
-    JScrollPane genreScrollPane;
-    JMenu helpMenu;
-    JButton loadMoreResultsButton;
-    JLabel loadingLabel;
-    JMenuBar menuBar;
-    JMenu playlistMenu;
-    JButton popularPopupMenuButton;
-    JComboBox ratingComboBox;
-    JLabel ratingLabel;
-    JButton readSummaryButton;
-    JLabel releasedLabel;
-    JLabel releasedToLabel;
-    JPanel resultsPanel;
-    JScrollPane resultsScrollPane;
-    JTable resultsTable;
-    JButton searchButton;
-    JMenu searchMenu;
-    JTextField searchProgressTextField;
-    JSplitPane splitPane;
-    JTextField startDateTextField;
-    JTextField statusBarTextField;
-    JLabel titleLabel;
-    JTextField titleTextField;
-    JComboBox typeComboBox;
-    JLabel typeLabel;
-    JMenu viewMenu;
-    JButton watchTrailerButton;
+  JButton connectionIssueButton;
+  JButton downloadLink1Button;
+  JButton downloadLink2Button;
+  JMenu downloadMenu;
+  JMenu editMenu;
+  JTextField endDateTextField;
+  JButton exitBackupModeButton;
+  JMenu fileMenu;
+  JTextField findTextField;
+  JLabel genreLabel;
+  JList genreList;
+  JScrollPane genreScrollPane;
+  JMenu helpMenu;
+  JButton loadMoreResultsButton;
+  JLabel loadingLabel;
+  JMenuBar menuBar;
+  JMenu playlistMenu;
+  JButton popularPopupMenuButton;
+  JComboBox ratingComboBox;
+  JLabel ratingLabel;
+  JButton readSummaryButton;
+  JLabel releasedLabel;
+  JLabel releasedToLabel;
+  JPanel resultsPanel;
+  JScrollPane resultsScrollPane;
+  JTable resultsTable;
+  JButton searchButton;
+  JMenu searchMenu;
+  JTextField searchProgressTextField;
+  JSplitPane splitPane;
+  JTextField startDateTextField;
+  JTextField statusBarTextField;
+  JLabel titleLabel;
+  JTextField titleTextField;
+  JComboBox typeComboBox;
+  JLabel typeLabel;
+  JMenu viewMenu;
+  JButton watchTrailerButton;
 }

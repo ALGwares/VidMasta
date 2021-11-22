@@ -25,7 +25,7 @@ public class PopularSearcher extends AbstractSearcher {
   private String[] languages, countries;
   private boolean isFeed, startAsap;
   private final List<String[]> titleNames;
-  private final int SLEEP = Integer.parseInt(Str.get(571));
+  private final int sleep = Integer.parseInt(Str.get(571));
 
   public PopularSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed,
           boolean startAsap) {
@@ -72,8 +72,8 @@ public class PopularSearcher extends AbstractSearcher {
 
   @Override
   protected void initialSearch() throws Exception {
-    if (SLEEP > 0 && isFeed && !startAsap) {
-      Thread.sleep(SLEEP);
+    if (sleep > 0 && isFeed && !startAsap) {
+      Thread.sleep(sleep);
     }
 
     try {
@@ -188,7 +188,7 @@ public class PopularSearcher extends AbstractSearcher {
 
     TitleParts titleParts = VideoSearch.getTitleParts(titleName, isTVShow);
     Video video = new Video(titleParts.title.toLowerCase(Locale.ENGLISH) + titleParts.year, titleParts.title, titleParts.year, isTVShow, false);
-    if (allBufferVideos.add(video.ID)) {
+    if (allBufferVideos.add(video.id)) {
       video.season = titleParts.season;
       video.episode = (titleParts.episodes.isEmpty() ? "" : titleParts.episodes.get(titleParts.episodes.size() - 1));
       videoBuffer.add(video);
@@ -255,7 +255,7 @@ public class PopularSearcher extends AbstractSearcher {
       return null;
     }
 
-    Video vid = new Video(titleID, titleParts.title, titleParts.year, video.IS_TV_SHOW, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
+    Video vid = new Video(titleID, titleParts.title, titleParts.year, video.isTVShow, VideoSearch.isImdbVideoType(sourceCode, isTVShow ? 589 : 590));
     vid.rating = VideoSearch.rating(Regex.match(sourceCode, 127));
     vid.season = video.season;
     vid.episode = video.episode;

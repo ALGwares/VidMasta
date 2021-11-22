@@ -3748,9 +3748,6 @@
                   <ResourceString bundle="i18n/Bundle.properties" key="GUI.searchBanTitleEnableCheckBoxMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
                 </Property>
               </Properties>
-              <Events>
-                <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="searchBanTitleEnableCheckBoxMenuItemItemStateChanged"/>
-              </Events>
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="UI.newJCheckBoxMenuItem();"/>
               </AuxValues>

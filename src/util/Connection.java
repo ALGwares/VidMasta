@@ -23,11 +23,15 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.StrUpdateListener.UpdateListener;
@@ -39,6 +43,7 @@ public class Connection {
   private static final StatusBar statusBar = new StatusBar();
   private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
   private static final AtomicBoolean downloadLinkInfoFail = new AtomicBoolean();
+  private static final Set<String> shortTimeoutUrls = new CopyOnWriteArraySet<>();
   private static int numDownloadLinkInfoDeproxiers;
   private static UpdateListener deproxyDownloadLinkInfo;
   private static boolean reproxyDownloadLinkInfoUrlSet;
@@ -209,6 +214,7 @@ public class Connection {
           }
         } catch (IOException e) {
           String errorMsg = IO.consumeErrorStream(connection);
+          shortTimeoutUrls.add((new URL(url)).getHost());
           for (Class<?> throwable : throwables) {
             if (throwable.isInstance(e)) {
               throw new IOException2(e, errorMsg);
@@ -220,13 +226,16 @@ public class Connection {
           if (domainType == DomainType.DOWNLOAD_LINK_INFO && showStatus) {
             String proxy, proxies; // Store because variables are concurrently set
             if (url.startsWith(Str.get(731))) {
+              addShortTimeoutUrls();
               downloadLinkInfoFail.set(true);
             } else if (url.startsWith(proxy = Str.get(723))) {
+              addShortTimeoutUrls();
               selectNextDownloadLinkInfoProxy();
               return getSourceCode(Str.get(731) + url.substring(proxy.length()), domainType, showStatus, emptyOK, compress, cacheExpirationMs, throwables);
             } else if (!(proxies = Str.get(726)).isEmpty()) {
               for (String currProxy : Regex.split(proxies, Constant.SEPARATOR1)) {
                 if (url.startsWith(currProxy)) {
+                  addShortTimeoutUrls();
                   return getSourceCode(Str.get(731) + url.substring(currProxy.length()), domainType, showStatus, emptyOK, compress, cacheExpirationMs,
                           throwables);
                 }
@@ -247,7 +256,7 @@ public class Connection {
   }
 
   public static String error(String url) {
-    return Str.str("connectionProblem", getShortUrl(url, false)) + ' ' + Str.str("connectionSolution");
+    return Str.str("connectionProblem", getShortUrl(url, false)) + ' ' + Str.str("pleaseRetry");
   }
 
   public static String serverError(String url) {
@@ -370,6 +379,18 @@ public class Connection {
     downloadLinkInfoFail.set(false);
   }
 
+  private static void addShortTimeoutUrls() throws Exception {
+    for (String url : Stream.concat(Arrays.asList(Str.get(731), Str.get(723)).stream(), Arrays.stream(Str.get(726).isEmpty() ? Constant.EMPTY_STRS
+            : Regex.split(Str.get(726), Constant.SEPARATOR1)
+    )).collect(Collectors.toList())) {
+      shortTimeoutUrls.add((new URL(url)).getHost());
+    }
+  }
+
+  public static void clearShortTimeoutUrls() {
+    shortTimeoutUrls.clear();
+  }
+
   public static void setConnectionProperties(HttpURLConnection connection, boolean compress, String referer) {
     connection.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1;q=0.9, us-ascii;q=0.8, *;q=0.7");
     connection.setRequestProperty("Accept-Language", "en-US, en-GB;q=0.9, en;q=0.8, *;q=0.7");
@@ -380,7 +401,7 @@ public class Connection {
     if (referer != null) {
       connection.setRequestProperty("Referer", referer);
     }
-    int timeout = guiListener.getTimeout() * 1000;
+    int timeout = (shortTimeoutUrls.contains(connection.getURL().getHost()) ? 1 : guiListener.getTimeout()) * 1000;
     connection.setConnectTimeout(timeout);
     connection.setReadTimeout(timeout);
   }

@@ -65,13 +65,13 @@ public class EpisodeFinder extends Worker {
         String summary = showEpisode(prevEpisodeElement, prevEpisodeText, Constant.TV_PREV_EPISODE_HTML_ID, showEpisode(nextEpisodeElement,
                 nextEpisodeText, Constant.TV_NEXT_EPISODE_HTML_ID, updateSummary ? video.summary : null));
         if (summary != null) {
-          guiListener.setSummary(summary, row, video.ID);
+          guiListener.setSummary(summary, row, video.id);
           video.summary = summary;
         }
-        String season = guiListener.getSeason(row, video.ID);
+        String season = guiListener.getSeason(row, video.id);
         if (season != null && season.isEmpty() && prevSeasonNum != null && prevEpisodeNum != null) {
-          guiListener.setSeason(prevSeasonNum, row, video.ID);
-          guiListener.setEpisode(prevEpisodeNum, row, video.ID);
+          guiListener.setSeason(prevSeasonNum, row, video.id);
+          guiListener.setEpisode(prevEpisodeNum, row, video.id);
         }
       }
     }

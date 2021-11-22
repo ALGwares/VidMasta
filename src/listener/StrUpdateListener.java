@@ -2,22 +2,22 @@ package listener;
 
 public interface StrUpdateListener {
 
-    String get(int index);
+  String get(int index);
 
-    void update(boolean showConfirmation, GuiListener guiListener);
+  void update(boolean showConfirmation, GuiListener guiListener);
 
-    void update();
+  void update();
 
-    void addListener(UpdateListener listener);
+  void addListener(UpdateListener listener);
 
-    void removeListener(UpdateListener listener);
+  void removeListener(UpdateListener listener);
 
-    boolean containsListener(UpdateListener listener);
+  boolean containsListener(UpdateListener listener);
 
-    void waitForUpdate();
+  void waitForUpdate();
 
-    interface UpdateListener {
+  interface UpdateListener {
 
-        void update(String[] strs);
-    }
+    void update(String[] strs);
+  }
 }

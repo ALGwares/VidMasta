@@ -6,184 +6,184 @@ import javax.swing.text.Element;
 
 public interface GuiListener {
 
-    void loading(boolean isLoading);
+  void loading(boolean isLoading);
 
-    void error(Exception e);
+  void error(Exception e);
 
-    void enable(Boolean enablePrimary, Boolean enableSecondary, Boolean startPrimary, ContentType contentType);
+  void enable(Boolean enablePrimary, Boolean enableSecondary, Boolean startPrimary, ContentType contentType);
 
-    void enable(ContentType contentType);
+  void enable(ContentType contentType);
 
-    void altVideoDownloadStarted();
+  void altVideoDownloadStarted();
 
-    void msg(String msg, int msgType);
+  void msg(String msg, int msgType);
 
-    void timedMsg(String msg);
+  void timedMsg(String msg);
 
-    boolean canProceedWithUnsafeDownload(String name, int numFakeComments, int numComments, String link, String comments);
+  boolean canProceedWithUnsafeDownload(String name, int numFakeComments, int numComments, String link, String comments);
 
-    void summary(String summary, String imagePath);
+  void summary(String summary, String imagePath);
 
-    Element getSummaryElement(String id);
+  Element getSummaryElement(String id);
 
-    void insertAfterSummaryElement(Element element, String text);
+  void insertAfterSummaryElement(Element element, String text);
 
-    void browserNotification(DomainType domainType);
+  void browserNotification(DomainType domainType);
 
-    void startPeerBlock();
+  void startPeerBlock();
 
-    void saveTorrent(File torrentFile) throws Exception;
+  void saveTorrent(File torrentFile) throws Exception;
 
-    void saveSubtitle(String saveFileName, File subtitleFile) throws Exception;
+  void saveSubtitle(String saveFileName, File subtitleFile) throws Exception;
 
-    boolean tvChoices(String season, String episode, boolean enableEpisode);
+  boolean tvChoices(String season, String episode, boolean enableEpisode);
 
-    String getTitle(int row, String titleID);
+  String getTitle(int row, String titleID);
 
-    void setTitle(String title, int row, String titleID);
+  void setTitle(String title, int row, String titleID);
 
-    void setSummary(String summary, int row, String titleID);
+  void setSummary(String summary, int row, String titleID);
 
-    String getSeason(int row, String titleID);
+  String getSeason(int row, String titleID);
 
-    void setSeason(String season, int row, String titleID);
+  void setSeason(String season, int row, String titleID);
 
-    void setEpisode(String episode, int row, String titleID);
+  void setEpisode(String episode, int row, String titleID);
 
-    void setImageLink(String imageLink, int row, String titleID);
+  void setImageLink(String imageLink, int row, String titleID);
 
-    void setImagePath(String imagePath, int row, String titleID);
+  void setImagePath(String imagePath, int row, String titleID);
 
-    String getSeason();
+  String getSeason();
 
-    String getEpisode();
+  String getEpisode();
 
-    void searchStarted();
+  void searchStarted();
 
-    void newSearch(boolean isTVShow);
+  void newSearch(boolean isTVShow);
 
-    void searchStopped();
+  void searchStopped();
 
-    void moreResults(boolean areMoreResults);
+  void moreResults(boolean areMoreResults);
 
-    void newResult(Object[] result);
+  void newResult(Object[] result);
 
-    void searchProgressUpdate(int numResults, double progress);
+  void searchProgressUpdate(int numResults, double progress);
 
-    boolean isBanned(String id, String title, String year);
+  boolean isBanned(String id, String title, String year);
 
-    boolean unbanDownload(Long downloadID, String downloadName);
+  boolean unbanDownload(Long downloadID, String downloadName);
 
-    boolean newPlaylistItems(List<Object[]> items, int insertRow, int primaryItemIndex);
+  boolean newPlaylistItems(List<Object[]> items, int insertRow, int primaryItemIndex);
 
-    int newPlaylistItem(Object[] item, int insertRow);
+  int newPlaylistItem(Object[] item, int insertRow);
 
-    void removePlaylistItem(PlaylistItem playlistItem);
+  void removePlaylistItem(PlaylistItem playlistItem);
 
-    void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem, boolean updateValOnly);
+  void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem, boolean updateValOnly);
 
-    void showPlaylist();
+  void showPlaylist();
 
-    boolean selectPlaylistItem(PlaylistItem playlistItem);
+  boolean selectPlaylistItem(PlaylistItem playlistItem);
 
-    String getPlaylistSaveDir();
+  String getPlaylistSaveDir();
 
-    void playlistError(String msg);
+  void playlistError(String msg);
 
-    void refreshPlaylistControls();
+  void refreshPlaylistControls();
 
-    void setPlaylistPlayHint(String msg);
+  void setPlaylistPlayHint(String msg);
 
-    boolean isConfirmed(String msg);
+  boolean isConfirmed(String msg);
 
-    boolean isAuthorizationConfirmed(String msg);
+  boolean isAuthorizationConfirmed(String msg);
 
-    String getAuthorizationUsername();
+  String getAuthorizationUsername();
 
-    char[] getAuthorizationPassword();
+  char[] getAuthorizationPassword();
 
-    void proxyListDownloadStarted();
+  void proxyListDownloadStarted();
 
-    void proxyListDownloadStopped();
+  void proxyListDownloadStopped();
 
-    void newProxies(Iterable<String> proxies);
+  void newProxies(Iterable<String> proxies);
 
-    int getTimeout();
+  int getTimeout();
 
-    int getDownloadLinkTimeout();
+  int getDownloadLinkTimeout();
 
-    void setStatusBar(String msg);
+  void setStatusBar(String msg);
 
-    void clearStatusBar();
+  void clearStatusBar();
 
-    String getSelectedProxy();
+  String getSelectedProxy();
 
-    boolean canProxyDownloadLinkInfo();
+  boolean canProxyDownloadLinkInfo();
 
-    boolean canProxyVideoInfo();
+  boolean canProxyVideoInfo();
 
-    boolean canProxySearchEngines();
+  boolean canProxySearchEngines();
 
-    boolean canProxyTrailers();
+  boolean canProxyTrailers();
 
-    boolean canProxyUpdates();
+  boolean canProxyUpdates();
 
-    boolean canProxySubtitles();
+  boolean canProxySubtitles();
 
-    boolean canAutoOpenPlaylistItem();
+  boolean canAutoOpenPlaylistItem();
 
-    int getTrailerPlayer();
+  int getTrailerPlayer();
 
-    String getFormat();
+  String getFormat();
 
-    String getMinDownloadSize();
+  String getMinDownloadSize();
 
-    String getMaxDownloadSize();
+  String getMaxDownloadSize();
 
-    boolean canDownloadWithPlaylist();
+  boolean canDownloadWithPlaylist();
 
-    String[] getWhitelistedFileExts();
+  String[] getWhitelistedFileExts();
 
-    String[] getBlacklistedFileExts();
+  String[] getBlacklistedFileExts();
 
-    boolean canShowSafetyWarning();
+  boolean canShowSafetyWarning();
 
-    boolean canDownloadWithDefaultApp();
+  boolean canDownloadWithDefaultApp();
 
-    boolean canEmailWithDefaultApp();
+  boolean canEmailWithDefaultApp();
 
-    boolean canPlayWithDefaultApp();
+  boolean canPlayWithDefaultApp();
 
-    boolean canIgnoreDownloadSize();
+  boolean canIgnoreDownloadSize();
 
-    Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
-            String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode);
+  Object[] makeRow(String titleID, String imagePath, String title, String currTitle, String oldTitle, String year, String rating, String summary,
+          String imageLink, boolean isTVShow, boolean isTVShowAndMovie, String season, String episode);
 
-    Object[] makePlaylistRow(String name, FormattedNum size, FormattedNum progress, PlaylistItem playlistItem);
+  Object[] makePlaylistRow(String name, FormattedNum size, FormattedNum progress, PlaylistItem playlistItem);
 
-    void updateStarted();
+  void updateStarted();
 
-    void updateStopped();
+  void updateStopped();
 
-    void updateMsg(String msg);
+  void updateMsg(String msg);
 
-    boolean canUpdate();
+  boolean canUpdate();
 
-    void subtitleSearchStarted();
+  void subtitleSearchStarted();
 
-    void subtitleSearchStopped();
+  void subtitleSearchStopped();
 
-    void summarySearchStarted(Video video);
+  void summarySearchStarted(Video video);
 
-    boolean canRandomizePort();
+  boolean canRandomizePort();
 
-    int setRandomPort();
+  int setRandomPort();
 
-    void setPort(int port);
+  void setPort(int port);
 
-    int getPort();
+  int getPort();
 
-    String wideSpace();
+  String wideSpace();
 
-    String invisibleSeparator();
+  String invisibleSeparator();
 }

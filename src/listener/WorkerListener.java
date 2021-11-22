@@ -7,62 +7,62 @@ import java.util.concurrent.Future;
 
 public interface WorkerListener {
 
-    void regularSearchStarted(int numResultsPerSearch, Boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres, String[] languages,
-            String[] countries, String minRating);
+  void regularSearchStarted(int numResultsPerSearch, Boolean isTVShow, Calendar startDate, Calendar endDate, String title, String[] genres, String[] languages,
+          String[] countries, String minRating);
 
-    void searchStopped(boolean isRegularSearcher);
+  void searchStopped(boolean isRegularSearcher);
 
-    void summarySearchStopped();
+  void summarySearchStopped();
 
-    void trailerSearchStopped();
+  void trailerSearchStopped();
 
-    void torrentSearchStopped();
+  void torrentSearchStopped();
 
-    void loadMoreSearchResults(boolean isRegularSearcher);
+  void loadMoreSearchResults(boolean isRegularSearcher);
 
-    void popularSearchStarted(int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed, boolean startAsap);
+  void popularSearchStarted(int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed, boolean startAsap);
 
-    boolean isSummarySearchDone();
+  boolean isSummarySearchDone();
 
-    boolean isTrailerSearchDone();
+  boolean isTrailerSearchDone();
 
-    boolean isTorrentSearchDone();
+  boolean isTorrentSearchDone();
 
-    boolean areWorkersDone();
+  boolean areWorkersDone();
 
-    void summarySearchStarted(int row, Video video, boolean read, VideoStrExportListener strExportListener);
+  void summarySearchStarted(int row, Video video, boolean read, VideoStrExportListener strExportListener);
 
-    void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
+  void trailerSearchStarted(int row, Video video, VideoStrExportListener strExportListener);
 
-    void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
+  void torrentSearchStarted(ContentType contentType, int row, Video video, VideoStrExportListener strExportListener);
 
-    Future<?> torrentSearchStarted(Video video);
+  Future<?> torrentSearchStarted(Video video);
 
-    void proxyListDownloadStarted();
+  void proxyListDownloadStarted();
 
-    void subtitleSearchStarted(String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener);
+  void subtitleSearchStarted(String format, String languageID, Video video, boolean firstMatch, VideoStrExportListener strExportListener);
 
-    Future<?> subtitleSearchStarted(String format, String languageID, Video video);
+  Future<?> subtitleSearchStarted(String format, String languageID, Video video);
 
-    void subtitleSearchStopped();
+  void subtitleSearchStopped();
 
-    void updateStarted(boolean isStartUp);
+  void updateStarted(boolean isStartUp);
 
-    void portChanged(int port);
+  void portChanged(int port);
 
-    boolean canFilterIpsWithoutBlocking();
+  boolean canFilterIpsWithoutBlocking();
 
-    void initPlaylist() throws Exception;
+  void initPlaylist() throws Exception;
 
-    void stream(String magnetLink, String name);
+  void stream(String magnetLink, String name);
 
-    void reloadGroup(PlaylistItem playlistItem);
+  void reloadGroup(PlaylistItem playlistItem);
 
-    FormattedNum playlistItemSize(long size);
+  FormattedNum playlistItemSize(long size);
 
-    FormattedNum playlistItemProgress(double progress);
+  FormattedNum playlistItemProgress(double progress);
 
-    PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion);
+  PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion);
 
-    void changeLocale(Locale locale);
+  void changeLocale(Locale locale);
 }

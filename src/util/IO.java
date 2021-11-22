@@ -46,437 +46,437 @@ import org.apache.commons.codec.binary.Base64;
 
 public class IO {
 
-    public static final int MK_DIR = 0, RM_FILE = 1, MK_FILE = 2, RM_FILE_NOW_AND_ON_EXIT = 3, RM_DIR = 4;
+  public static final int MK_DIR = 0, RM_FILE = 1, MK_FILE = 2, RM_FILE_NOW_AND_ON_EXIT = 3, RM_DIR = 4;
 
-    public static String read(String fileName) throws Exception {
-        return read(new File(fileName));
+  public static String read(String fileName) throws Exception {
+    return read(new File(fileName));
+  }
+
+  public static String read(File file) throws Exception {
+    BufferedReader br = null;
+    try {
+      br = new BufferedReader(new InputStreamReader(new FileInputStream(file), IOConstant.UTF8));
+      StringBuilder result = new StringBuilder(4096);
+      String line;
+      while ((line = br.readLine()) != null) {
+        result.append(line).append(IOConstant.NEWLINE);
+      }
+      return result.toString().trim();
+    } finally {
+      close(br);
+    }
+  }
+
+  public static List<?> readListFromBase64(String list) {
+    ObjectInputStream ois = null;
+    try {
+      return (List<?>) (ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(list)))).readObject();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      close(ois);
+    }
+  }
+
+  public static long checksum(File file) throws Exception {
+    CRC32 checksum = new CRC32();
+    InputStream is = null;
+    try {
+      is = new BufferedInputStream(new FileInputStream(file));
+      byte[] bytes = new byte[2048];
+      while (is.read(bytes) != -1) {
+        checksum.update(bytes);
+      }
+    } finally {
+      close(is);
+    }
+    return checksum.getValue();
+  }
+
+  public static void write(String fileName, String contents) throws Exception {
+    write(fileName, contents, false);
+  }
+
+  public static void write(File file, String contents) throws Exception {
+    write(file, contents, false);
+  }
+
+  public static void write(String fileName, String contents, boolean append) throws Exception {
+    write(new File(fileName), contents, append);
+  }
+
+  public static void write(File file, String contents, boolean append) throws Exception {
+    Writer writer = null;
+    try {
+      writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, append), IOConstant.UTF8));
+      writer.write(contents);
+      writer.flush();
+    } finally {
+      close(writer);
+    }
+  }
+
+  public static void write(File file, byte[] contents) throws Exception {
+    OutputStream os = null;
+    try {
+      os = new BufferedOutputStream(new FileOutputStream(file));
+      os.write(contents);
+      os.flush();
+    } finally {
+      close(os);
+    }
+  }
+
+  public static void write(File fileIn, File fileOut) throws Exception {
+    InputStream is = null;
+    OutputStream os = null;
+    try {
+      write(is = new BufferedInputStream(new FileInputStream(fileIn)), os = new BufferedOutputStream(new FileOutputStream(fileOut)));
+    } finally {
+      close(is, os);
+    }
+  }
+
+  public static void write(InputStream is, OutputStream os) throws Exception {
+    int numBytesRead;
+    byte[] bytes = new byte[2048];
+    while ((numBytesRead = is.read(bytes)) != -1) {
+      os.write(bytes, 0, numBytesRead);
+    }
+    os.flush();
+  }
+
+  public static String writeListToBase64(List<?> list) {
+    ObjectOutputStream oos = null;
+    try {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      (oos = new ObjectOutputStream(baos)).writeObject(list);
+      return Base64.encodeBase64String(baos.toByteArray());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      close(oos);
+    }
+  }
+
+  public static String consumeErrorStream(HttpURLConnection connection) {
+    if (connection == null) {
+      return "";
     }
 
-    public static String read(File file) throws Exception {
-        BufferedReader br = null;
+    InputStream is = null;
+    try {
+      if ((is = connection.getErrorStream()) != null) {
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(file), IOConstant.UTF8));
-            StringBuilder result = new StringBuilder(4096);
+          BufferedReader br = null;
+          StringBuilder source = new StringBuilder(1024);
+          try {
+            br = bufferedReader(connection.getContentEncoding(), is);
             String line;
             while ((line = br.readLine()) != null) {
-                result.append(line).append(IOConstant.NEWLINE);
+              source.append(line).append(IOConstant.NEWLINE);
             }
-            return result.toString().trim();
-        } finally {
+          } finally {
             close(br);
-        }
-    }
-
-    public static List<?> readListFromBase64(String list) {
-        ObjectInputStream ois = null;
-        try {
-            return (List<?>) (ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(list)))).readObject();
+          }
+          return source.toString();
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            close(ois);
-        }
-    }
+          if (Debug.DEBUG) {
+            Debug.print(e);
+          }
 
-    public static long checksum(File file) throws Exception {
-        CRC32 checksum = new CRC32();
+          byte[] bytes = new byte[2048];
+          while (is.read(bytes) != -1) {
+          }
+        }
+      }
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    } finally {
+      close(is);
+    }
+    return "";
+  }
+
+  public static BufferedReader bufferedReader(String contentEncoding, InputStream inputStream) throws Exception {
+    InputStream is = inputStream;
+    if (contentEncoding != null) {
+      String encoding = contentEncoding.toLowerCase(Locale.ENGLISH);
+      if (encoding.equals("gzip")) {
+        is = new GZIPInputStream(is, 512);
+      } else if (encoding.equals("deflate")) {
+        is = new InflaterInputStream(is, new Inflater(), 512);
+      }
+    }
+    return new BufferedReader(new InputStreamReader(is, IOConstant.UTF8));
+  }
+
+  public static void write(String fileName, Throwable t) {
+    try {
+      Writer writer = new StringWriter();
+      t.printStackTrace(new PrintWriter(writer));
+      write(fileName, "Program: " + IOConstant.APP_TITLE + " " + IOConstant.APP_VERSION + IOConstant.NEWLINE + "Time: " + Calendar.getInstance().getTime()
+              + IOConstant.NEWLINE + "System Environment: " + System.getenv() + IOConstant.NEWLINE + "System Properties: " + System.getProperties()
+              + IOConstant.NEWLINE + writer + IOConstant.NEWLINE, true);
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    }
+  }
+
+  public static void unzip(String zipFile, String outputDir) throws Exception {
+    ZipFile zf = null;
+    try {
+      zf = new ZipFile(zipFile);
+      Enumeration<? extends ZipEntry> zipEntries = zf.entries();
+      Pattern fileSeparator = Pattern.compile("/");
+      while (zipEntries.hasMoreElements()) {
+        ZipEntry ze = zipEntries.nextElement();
+        if (ze.getSize() <= 0) {
+          continue;
+        }
+
+        String fileName = ze.getName();
+        String[] fileNameParts = fileSeparator.split(fileName);
+        mkFile(fileNameParts, 0, fileNameParts.length - 1, outputDir.substring(0, outputDir.length() - 1));
+
         InputStream is = null;
-        try {
-            is = new BufferedInputStream(new FileInputStream(file));
-            byte[] bytes = new byte[2048];
-            while (is.read(bytes) != -1) {
-                checksum.update(bytes);
-            }
-        } finally {
-            close(is);
-        }
-        return checksum.getValue();
-    }
-
-    public static void write(String fileName, String contents) throws Exception {
-        write(fileName, contents, false);
-    }
-
-    public static void write(File file, String contents) throws Exception {
-        write(file, contents, false);
-    }
-
-    public static void write(String fileName, String contents, boolean append) throws Exception {
-        write(new File(fileName), contents, append);
-    }
-
-    public static void write(File file, String contents, boolean append) throws Exception {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, append), IOConstant.UTF8));
-            writer.write(contents);
-            writer.flush();
-        } finally {
-            close(writer);
-        }
-    }
-
-    public static void write(File file, byte[] contents) throws Exception {
         OutputStream os = null;
         try {
-            os = new BufferedOutputStream(new FileOutputStream(file));
-            os.write(contents);
-            os.flush();
+          write(is = new BufferedInputStream(zf.getInputStream(ze)), os = new BufferedOutputStream(new FileOutputStream(outputDir + fileName)));
         } finally {
-            close(os);
+          close(is, os);
         }
+      }
+    } finally {
+      close(zf);
     }
+  }
 
-    public static void write(File fileIn, File fileOut) throws Exception {
-        InputStream is = null;
-        OutputStream os = null;
-        try {
-            write(is = new BufferedInputStream(new FileInputStream(fileIn)), os = new BufferedOutputStream(new FileOutputStream(fileOut)));
-        } finally {
-            close(is, os);
-        }
+  private static void mkFile(String[] fileNameParts, int currIndex, int lastIndex, String currPath) {
+    String path = currPath + IOConstant.FILE_SEPARATOR + fileNameParts[currIndex];
+    File file = new File(path);
+    if (currIndex < lastIndex) {
+      fileOp(file, MK_DIR);
+      mkFile(fileNameParts, currIndex + 1, lastIndex, path);
+    } else {
+      fileOp(file, MK_FILE);
     }
+  }
 
-    public static void write(InputStream is, OutputStream os) throws Exception {
-        int numBytesRead;
-        byte[] bytes = new byte[2048];
-        while ((numBytesRead = is.read(bytes)) != -1) {
-            os.write(bytes, 0, numBytesRead);
-        }
-        os.flush();
+  private static boolean rmDir(File dir) {
+    rmDirHelper(dir);
+    return !dir.exists();
+  }
+
+  private static void rmDirHelper(File dir) {
+    for (File file : listFiles(dir)) {
+      if (file.isDirectory()) {
+        rmDirHelper(file);
+      } else {
+        fileOp(file, RM_FILE);
+      }
     }
+    fileOp(dir, RM_FILE);
+  }
 
-    public static String writeListToBase64(List<?> list) {
-        ObjectOutputStream oos = null;
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            (oos = new ObjectOutputStream(baos)).writeObject(list);
-            return Base64.encodeBase64String(baos.toByteArray());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            close(oos);
-        }
-    }
-
-    public static String consumeErrorStream(HttpURLConnection connection) {
-        if (connection == null) {
-            return "";
-        }
-
-        InputStream is = null;
-        try {
-            if ((is = connection.getErrorStream()) != null) {
-                try {
-                    BufferedReader br = null;
-                    StringBuilder source = new StringBuilder(1024);
-                    try {
-                        br = bufferedReader(connection.getContentEncoding(), is);
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            source.append(line).append(IOConstant.NEWLINE);
-                        }
-                    } finally {
-                        close(br);
-                    }
-                    return source.toString();
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-
-                    byte[] bytes = new byte[2048];
-                    while (is.read(bytes) != -1) {
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        } finally {
-            close(is);
-        }
-        return "";
-    }
-
-    public static BufferedReader bufferedReader(String contentEncoding, InputStream inputStream) throws Exception {
-        InputStream is = inputStream;
-        if (contentEncoding != null) {
-            String encoding = contentEncoding.toLowerCase(Locale.ENGLISH);
-            if (encoding.equals("gzip")) {
-                is = new GZIPInputStream(is, 512);
-            } else if (encoding.equals("deflate")) {
-                is = new InflaterInputStream(is, new Inflater(), 512);
-            }
-        }
-        return new BufferedReader(new InputStreamReader(is, IOConstant.UTF8));
-    }
-
-    public static void write(String fileName, Throwable t) {
-        try {
-            Writer writer = new StringWriter();
-            t.printStackTrace(new PrintWriter(writer));
-            write(fileName, "Program: " + IOConstant.APP_TITLE + " " + IOConstant.APP_VERSION + IOConstant.NEWLINE + "Time: " + Calendar.getInstance().getTime()
-                    + IOConstant.NEWLINE + "System Environment: " + System.getenv() + IOConstant.NEWLINE + "System Properties: " + System.getProperties()
-                    + IOConstant.NEWLINE + writer + IOConstant.NEWLINE, true);
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-        }
-    }
-
-    public static void unzip(String zipFile, String outputDir) throws Exception {
-        ZipFile zf = null;
-        try {
-            zf = new ZipFile(zipFile);
-            Enumeration<? extends ZipEntry> zipEntries = zf.entries();
-            Pattern fileSeparator = Pattern.compile("/");
-            while (zipEntries.hasMoreElements()) {
-                ZipEntry ze = zipEntries.nextElement();
-                if (ze.getSize() <= 0) {
-                    continue;
-                }
-
-                String fileName = ze.getName();
-                String[] fileNameParts = fileSeparator.split(fileName);
-                mkFile(fileNameParts, 0, fileNameParts.length - 1, outputDir.substring(0, outputDir.length() - 1));
-
-                InputStream is = null;
-                OutputStream os = null;
-                try {
-                    write(is = new BufferedInputStream(zf.getInputStream(ze)), os = new BufferedOutputStream(new FileOutputStream(outputDir + fileName)));
-                } finally {
-                    close(is, os);
-                }
-            }
-        } finally {
-            close(zf);
-        }
-    }
-
-    private static void mkFile(String[] fileNameParts, int currIndex, int lastIndex, String currPath) {
-        String path = currPath + IOConstant.FILE_SEPARATOR + fileNameParts[currIndex];
-        File file = new File(path);
-        if (currIndex < lastIndex) {
-            fileOp(file, MK_DIR);
-            mkFile(fileNameParts, currIndex + 1, lastIndex, path);
+  public static boolean fileOp(File file, int operation) {
+    try {
+      if (operation == RM_FILE) {
+        return file.delete();
+      } else if (operation == MK_DIR) {
+        return file.mkdirs();
+      } else if (operation == MK_FILE) {
+        return file.createNewFile();
+      } else if (operation == RM_FILE_NOW_AND_ON_EXIT) {
+        if (file.delete()) {
+          return true;
         } else {
-            fileOp(file, MK_FILE);
+          file.deleteOnExit();
         }
+      } else if (operation == RM_DIR) {
+        return rmDir(file);
+      }
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
     }
+    return false;
+  }
 
-    private static boolean rmDir(File dir) {
-        rmDirHelper(dir);
-        return !dir.exists();
-    }
+  public static boolean fileOp(String path, int operation) {
+    return fileOp(new File(path), operation);
+  }
 
-    private static void rmDirHelper(File dir) {
-        for (File file : listFiles(dir)) {
-            if (file.isDirectory()) {
-                rmDirHelper(file);
-            } else {
-                fileOp(file, RM_FILE);
-            }
+  public static void close(ZipFile zipFile) {
+    if (zipFile != null) {
+      try {
+        zipFile.close();
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
         }
+      }
+    }
+  }
+
+  public static void close(Closeable... closeables) {
+    for (Closeable closeable : closeables) {
+      if (closeable != null) {
+        try {
+          closeable.close();
+        } catch (Exception e) {
+          if (Debug.DEBUG) {
+            Debug.print(e);
+          }
+        }
+      }
+    }
+  }
+
+  public static void release(FileLock fileLock) {
+    if (fileLock != null) {
+      try {
+        fileLock.release();
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+      }
+    }
+  }
+
+  public static void rmEmptyDirs(File dir, Collection<File> excludedDirs) {
+    File[] files = listFiles(dir);
+    if (files.length == 0) {
+      if (!excludedDirs.contains(dir)) {
         fileOp(dir, RM_FILE);
-    }
-
-    public static boolean fileOp(File file, int operation) {
-        try {
-            if (operation == RM_FILE) {
-                return file.delete();
-            } else if (operation == MK_DIR) {
-                return file.mkdirs();
-            } else if (operation == MK_FILE) {
-                return file.createNewFile();
-            } else if (operation == RM_FILE_NOW_AND_ON_EXIT) {
-                if (file.delete()) {
-                    return true;
-                } else {
-                    file.deleteOnExit();
-                }
-            } else if (operation == RM_DIR) {
-                return rmDir(file);
-            }
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
+      }
+    } else {
+      for (File file : files) {
+        if (file.isDirectory()) {
+          rmEmptyDirs(file, excludedDirs);
         }
-        return false;
+      }
+      if (listFiles(dir).length == 0 && !excludedDirs.contains(dir)) {
+        fileOp(dir, RM_FILE);
+      }
     }
+  }
 
-    public static boolean fileOp(String path, int operation) {
-        return fileOp(new File(path), operation);
+  public static File[] listFiles(String filePath) {
+    return listFiles(new File(filePath));
+  }
+
+  public static File[] listFiles(File file) {
+    File[] files = file.listFiles();
+    return files == null ? new File[0] : files;
+  }
+
+  public static Set<File> listAllFiles(File file) {
+    Set<File> files = new HashSet<File>(8);
+    listAllFiles(file, files);
+    return files;
+  }
+
+  private static void listAllFiles(File file, Collection<File> allFiles) {
+    for (File currFile : listFiles(file)) {
+      allFiles.add(currFile);
+      if (currFile.isDirectory()) {
+        listAllFiles(currFile, allFiles);
+      }
     }
+  }
 
-    public static void close(ZipFile zipFile) {
-        if (zipFile != null) {
-            try {
-                zipFile.close();
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
-                }
-            }
+  public static File findFile(File dir, Pattern filePath) {
+    File[] files = listFiles(dir);
+    Arrays.sort(files, new Comparator<File>() {
+      @Override
+      public int compare(File file1, File file2) {
+        return file1.isFile() ? -1 : (file2.isFile() ? 1 : 0);
+      }
+    });
+    for (File file : files) {
+      if (file.isDirectory()) {
+        File foundFile = findFile(file, filePath);
+        if (foundFile != null) {
+          return foundFile;
         }
+      } else if (filePath.matcher(file.getPath()).matches()) {
+        return file;
+      }
     }
+    return null;
+  }
 
-    public static void close(Closeable... closeables) {
-        for (Closeable closeable : closeables) {
-            if (closeable != null) {
-                try {
-                    closeable.close();
-                } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                        Debug.print(e);
-                    }
-                }
-            }
-        }
+  public static String parentDir(String path) {
+    return parentDir(new File(path));
+  }
+
+  public static String parentDir(File file) {
+    return dir(file.getParent());
+  }
+
+  public static String dir(String dir) {
+    if (dir == null || dir.isEmpty()) {
+      return "";
     }
+    return dir.endsWith(IOConstant.FILE_SEPARATOR) ? dir : dir + IOConstant.FILE_SEPARATOR;
+  }
 
-    public static void release(FileLock fileLock) {
-        if (fileLock != null) {
-            try {
-                fileLock.release();
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.print(e);
-                }
-            }
-        }
-    }
+  public static boolean isFileTooOld(File file, long maxAge) {
+    long lastModified = file.lastModified();
+    return lastModified != 0L && (System.currentTimeMillis() - lastModified) > maxAge;
+  }
 
-    public static void rmEmptyDirs(File dir, Collection<File> excludedDirs) {
-        File[] files = listFiles(dir);
-        if (files.length == 0) {
-            if (!excludedDirs.contains(dir)) {
-                fileOp(dir, RM_FILE);
-            }
+  public static void browse(File file) throws IOException {
+    browseOrOpen(file, Action.BROWSE);
+  }
+
+  public static void open(File file) throws IOException {
+    browseOrOpen(file, Action.OPEN);
+  }
+
+  private static void browseOrOpen(File file, Action action) throws IOException {
+    Desktop desktop;
+    if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(action)) {
+      try {
+        if (action == Action.OPEN) {
+          desktop.open(file);
         } else {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    rmEmptyDirs(file, excludedDirs);
-                }
-            }
-            if (listFiles(dir).length == 0 && !excludedDirs.contains(dir)) {
-                fileOp(dir, RM_FILE);
-            }
+          desktop.browse(file.toURI());
         }
-    }
-
-    public static File[] listFiles(String filePath) {
-        return listFiles(new File(filePath));
-    }
-
-    public static File[] listFiles(File file) {
-        File[] files = file.listFiles();
-        return files == null ? new File[0] : files;
-    }
-
-    public static Set<File> listAllFiles(File file) {
-        Set<File> files = new HashSet<File>(8);
-        listAllFiles(file, files);
-        return files;
-    }
-
-    private static void listAllFiles(File file, Collection<File> allFiles) {
-        for (File currFile : listFiles(file)) {
-            allFiles.add(currFile);
-            if (currFile.isDirectory()) {
-                listAllFiles(currFile, allFiles);
-            }
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.println(e.toString());
         }
+        openHelper(file);
+      }
+    } else {
+      if (Debug.DEBUG) {
+        Debug.println("Desktop " + action + " action not supported");
+      }
+      openHelper(file);
     }
+  }
 
-    public static File findFile(File dir, Pattern filePath) {
-        File[] files = listFiles(dir);
-        Arrays.sort(files, new Comparator<File>() {
-            @Override
-            public int compare(File file1, File file2) {
-                return file1.isFile() ? -1 : (file2.isFile() ? 1 : 0);
-            }
-        });
-        for (File file : files) {
-            if (file.isDirectory()) {
-                File foundFile = findFile(file, filePath);
-                if (foundFile != null) {
-                    return foundFile;
-                }
-            } else if (filePath.matcher(file.getPath()).matches()) {
-                return file;
-            }
-        }
-        return null;
+  private static void openHelper(File file) throws IOException {
+    String filePath = file.getCanonicalPath();
+    try {
+      (new ProcessBuilder(IOConstant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", filePath} : (IOConstant.MAC ? new String[]{"open",
+        filePath} : new String[]{"xdg-open", filePath}))).start();
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+      throw new IOException(I18nStr.str("manuallyOpen") + IOConstant.NEWLINE2 + "file://" + filePath + IOConstant.NEWLINE);
     }
+  }
 
-    public static String parentDir(String path) {
-        return parentDir(new File(path));
-    }
-
-    public static String parentDir(File file) {
-        return dir(file.getParent());
-    }
-
-    public static String dir(String dir) {
-        if (dir == null || dir.isEmpty()) {
-            return "";
-        }
-        return dir.endsWith(IOConstant.FILE_SEPARATOR) ? dir : dir + IOConstant.FILE_SEPARATOR;
-    }
-
-    public static boolean isFileTooOld(File file, long maxAge) {
-        long lastModified = file.lastModified();
-        return lastModified != 0L && (System.currentTimeMillis() - lastModified) > maxAge;
-    }
-
-    public static void browse(File file) throws IOException {
-        browseOrOpen(file, Action.BROWSE);
-    }
-
-    public static void open(File file) throws IOException {
-        browseOrOpen(file, Action.OPEN);
-    }
-
-    private static void browseOrOpen(File file, Action action) throws IOException {
-        Desktop desktop;
-        if (Desktop.isDesktopSupported() && (desktop = Desktop.getDesktop()).isSupported(action)) {
-            try {
-                if (action == Action.OPEN) {
-                    desktop.open(file);
-                } else {
-                    desktop.browse(file.toURI());
-                }
-            } catch (Exception e) {
-                if (Debug.DEBUG) {
-                    Debug.println(e.toString());
-                }
-                openHelper(file);
-            }
-        } else {
-            if (Debug.DEBUG) {
-                Debug.println("Desktop " + action + " action not supported");
-            }
-            openHelper(file);
-        }
-    }
-
-    private static void openHelper(File file) throws IOException {
-        String filePath = file.getCanonicalPath();
-        try {
-            (new ProcessBuilder(IOConstant.WINDOWS ? new String[]{"rundll32", "url.dll", "FileProtocolHandler", filePath} : (IOConstant.MAC ? new String[]{"open",
-                filePath} : new String[]{"xdg-open", filePath}))).start();
-        } catch (Exception e) {
-            if (Debug.DEBUG) {
-                Debug.print(e);
-            }
-            throw new IOException(I18nStr.str("manuallyOpen") + IOConstant.NEWLINE2 + "file://" + filePath + IOConstant.NEWLINE);
-        }
-    }
-
-    private IO() {
-    }
+  private IO() {
+  }
 }

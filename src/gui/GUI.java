@@ -27,8 +27,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -3611,11 +3609,6 @@ public class GUI extends JFrame implements GuiListener {
 
     searchBanTitleEnableCheckBoxMenuItem.setSelected(true);
     searchBanTitleEnableCheckBoxMenuItem.setText(bundle.getString("GUI.searchBanTitleEnableCheckBoxMenuItem.text")); // NOI18N
-    searchBanTitleEnableCheckBoxMenuItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent evt) {
-        searchBanTitleEnableCheckBoxMenuItemItemStateChanged(evt);
-      }
-    });
     searchMenu.add(searchBanTitleEnableCheckBoxMenuItem);
     searchMenu.add(searchMenuSeparator1);
 
@@ -4425,7 +4418,7 @@ public class GUI extends JFrame implements GuiListener {
     findControl.hide(false);
     SelectedTableRow row = new SelectedTableRow();
     JViewport viewport = (JViewport) resultsSyncTable.table.getParent();
-    viewport.scrollRectToVisible(rectangle(viewport, resultsSyncTable.getCellRect(row.VIEW_VAL, 0, true)));
+    viewport.scrollRectToVisible(rectangle(viewport, resultsSyncTable.getCellRect(row.viewVal, 0, true)));
     return row;
   }
 
@@ -4447,7 +4440,7 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_readSummaryButtonActionPerformed
 
   void readSummaryActionPerformed(SelectedTableRow row, boolean read, VideoStrExportListener strExportListener) {
-    workerListener.summarySearchStarted(row.VAL, row.video, read, strExportListener);
+    workerListener.summarySearchStarted(row.val, row.video, read, strExportListener);
   }
 
     void watchTrailerButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_watchTrailerButtonActionPerformed
@@ -4462,23 +4455,23 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_watchTrailerButtonActionPerformed
 
   private void watchTrailerActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
-    if (row.video.IS_TV_SHOW) {
-      downloadLinkEpisodes.add(row.VAL);
-      subtitleEpisodes.add(row.VAL);
-      if (!trailerEpisodes.add(row.VAL)) {
+    if (row.video.isTVShow) {
+      downloadLinkEpisodes.add(row.val);
+      subtitleEpisodes.add(row.val);
+      if (!trailerEpisodes.add(row.val)) {
         row.video.season = "";
         row.video.episode = "";
       }
     }
-    workerListener.trailerSearchStarted(row.VAL, row.video, strExportListener);
+    workerListener.trailerSearchStarted(row.val, row.video, strExportListener);
   }
 
   private void downloadLinkActionPerformed(ContentType downloadContentType, SelectedTableRow row, VideoStrExportListener strExportListener) {
-    if (row.video.IS_TV_SHOW && !downloadLinkEpisodes.add(row.VAL)) {
+    if (row.video.isTVShow && !downloadLinkEpisodes.add(row.val)) {
       row.video.season = "";
       row.video.episode = "";
     }
-    workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? ContentType.DOWNLOAD3 : downloadContentType, row.VAL, row.video,
+    workerListener.torrentSearchStarted(Connection.downloadLinkInfoFail() ? ContentType.DOWNLOAD3 : downloadContentType, row.val, row.video,
             strExportListener);
   }
 
@@ -4993,9 +4986,12 @@ public class GUI extends JFrame implements GuiListener {
   private void loadProfile() {
     if (profileUseButton.isEnabled()) {
       int profile = profileComboBox.getSelectedIndex();
+      int[] rows1 = resultsSyncTable.getSelectedRows(), rows2 = playlistSyncTable.getSelectedRows();
       settings.loadSettings(profile == 0 ? Constant.PROGRAM_DIR + Constant.DEFAULT_SETTINGS : Constant.APP_DIR + Constant.PROFILE + profile + Constant.TXT);
       playlistShowNonVideoItemsCheckBoxMenuItemActionPerformed(null);
       timedMsg(Str.str("settingsRestored", profileComboBox.getItemAt(profile)));
+      Arrays.stream(rows1).forEach(row -> resultsSyncTable.addRowSelectionInterval(row, row));
+      Arrays.stream(rows2).forEach(row -> playlistSyncTable.addRowSelectionInterval(row, row));
     } else {
       showMsg(Str.str("setProfileBeforeUse"), Constant.ERROR_MSG);
     }
@@ -5185,9 +5181,9 @@ public class GUI extends JFrame implements GuiListener {
     }//GEN-LAST:event_findSubtitleMenuItemActionPerformed
 
   void findSubtitleActionPerformed(SelectedTableRow row, VideoStrExportListener strExportListener) {
-    subtitleVideo = new Video(row.video.ID, Regex.clean(row.video.title), row.video.year, row.video.IS_TV_SHOW, row.video.IS_TV_SHOW_AND_MOVIE);
+    subtitleVideo = new Video(row.video.id, Regex.clean(row.video.title), row.video.year, row.video.isTVShow, row.video.isTVShowAndMovie);
     subtitleStrExportListener = strExportListener;
-    isTVShowSubtitle = row.video.IS_TV_SHOW;
+    isTVShowSubtitle = row.video.isTVShow;
 
     if (subtitleFormat != null) {
       movieSubtitleFormatComboBox.setSelectedItem(subtitleFormat);
@@ -5196,7 +5192,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     if (isTVShowSubtitle) {
-      if (subtitleEpisodes.add(row.VAL)) {
+      if (subtitleEpisodes.add(row.val)) {
         if (!row.video.season.isEmpty()) {
           tvSubtitleSeasonComboBox.setSelectedItem(row.video.season);
           tvSubtitleEpisodeComboBox.setSelectedItem(row.video.episode);
@@ -5919,9 +5915,11 @@ public class GUI extends JFrame implements GuiListener {
         menuItem.setEnabled(false);
         menu.add(menuItem);
       } else {
+        boolean enableBan = searchBanTitleEnableCheckBoxMenuItem.isSelected();
         if (unbannedTitle) {
           final String title = titles.get(0);
           final AbstractButton banTitleButton = UI.newJCheckBoxMenuItem(title);
+          banTitleButton.setEnabled(enableBan);
           banTitleButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent evt) {
@@ -5940,6 +5938,7 @@ public class GUI extends JFrame implements GuiListener {
         }
         if (!titles.isEmpty()) {
           JList list = new JList(titles.toArray(Constant.EMPTY_STRS));
+          list.setEnabled(enableBan);
           list.setCellRenderer(new ListCellRenderer() {
             private static final long serialVersionUID = 1L;
             private final AbstractButton button = new JCheckBoxMenuItem(null, true);
@@ -5997,14 +5996,8 @@ public class GUI extends JFrame implements GuiListener {
       doPopularVideosSearch(false, false, false, popularMoviesMenuItem);
     }//GEN-LAST:event_popularMoviesMenuItemActionPerformed
 
-  private void searchBanTitleEnableCheckBoxMenuItemItemStateChanged(ItemEvent evt) {//GEN-FIRST:event_searchBanTitleEnableCheckBoxMenuItemItemStateChanged
-    boolean enableBan = searchBanTitleEnableCheckBoxMenuItem.isSelected();
-    searchBanTitleMenu.setEnabled(enableBan);
-    banTitleMenu.setEnabled(enableBan);
-  }//GEN-LAST:event_searchBanTitleEnableCheckBoxMenuItemItemStateChanged
-
   private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
-    strExportListener.export(ContentType.TITLE, String.format(Str.get(781), row.video.ID), false, this);
+    strExportListener.export(ContentType.TITLE, String.format(Str.get(781), row.video.id), false, this);
   }
 
   private void exportPosterImage(SelectedTableRow row, VideoStrExportListener strExportListener) {
@@ -6538,21 +6531,21 @@ public class GUI extends JFrame implements GuiListener {
 
   private class SelectedTableRow {
 
-    final int VIEW_VAL, VAL;
+    final int viewVal, val;
     final Video video;
 
     SelectedTableRow() {
-      VIEW_VAL = resultsSyncTable.getSelectedRow();
-      VAL = resultsSyncTable.convertRowIndexToModel(VIEW_VAL);
-      video = new Video((String) resultsSyncTable.getModelValueAt(VAL, idCol), (String) resultsSyncTable.getModelValueAt(VAL, currTitleCol),
-              UI.innerHTML((String) resultsSyncTable.getModelValueAt(VAL, yearCol)), resultsSyncTable.getModelValueAt(VAL, isTVShowCol).equals("1"),
-              resultsSyncTable.getModelValueAt(VAL, isTVShowAndMovieCol).equals("1"));
-      video.oldTitle = (String) resultsSyncTable.getModelValueAt(VAL, oldTitleCol);
-      video.imagePath = (String) resultsSyncTable.getModelValueAt(VAL, imageCol);
-      video.summary = (String) resultsSyncTable.getModelValueAt(VAL, summaryCol);
-      video.imageLink = (String) resultsSyncTable.getModelValueAt(VAL, imageLinkCol);
-      video.season = (String) resultsSyncTable.getModelValueAt(VAL, seasonCol);
-      video.episode = (String) resultsSyncTable.getModelValueAt(VAL, episodeCol);
+      viewVal = resultsSyncTable.getSelectedRow();
+      val = resultsSyncTable.convertRowIndexToModel(viewVal);
+      video = new Video((String) resultsSyncTable.getModelValueAt(val, idCol), (String) resultsSyncTable.getModelValueAt(val, currTitleCol),
+              UI.innerHTML((String) resultsSyncTable.getModelValueAt(val, yearCol)), resultsSyncTable.getModelValueAt(val, isTVShowCol).equals("1"),
+              resultsSyncTable.getModelValueAt(val, isTVShowAndMovieCol).equals("1"));
+      video.oldTitle = (String) resultsSyncTable.getModelValueAt(val, oldTitleCol);
+      video.imagePath = (String) resultsSyncTable.getModelValueAt(val, imageCol);
+      video.summary = (String) resultsSyncTable.getModelValueAt(val, summaryCol);
+      video.imageLink = (String) resultsSyncTable.getModelValueAt(val, imageLinkCol);
+      video.season = (String) resultsSyncTable.getModelValueAt(val, seasonCol);
+      video.episode = (String) resultsSyncTable.getModelValueAt(val, episodeCol);
     }
 
     VideoStrExportListener strExportListener(boolean exportToEmail) {
@@ -6565,7 +6558,7 @@ public class GUI extends JFrame implements GuiListener {
     }
 
     VideoStrExportListener strExportListener(boolean exportToEmail, boolean exportSecondaryContent, int numStrsToExport) {
-      return new VideoStrExporter(video.title, video.year, video.IS_TV_SHOW, exportToEmail, exportSecondaryContent, numStrsToExport);
+      return new VideoStrExporter(video.title, video.year, video.isTVShow, exportToEmail, exportSecondaryContent, numStrsToExport);
     }
   }
 
@@ -7040,6 +7033,7 @@ public class GUI extends JFrame implements GuiListener {
     isAltSearch = false;
     searchProgressUpdate(0, 0);
 
+    Connection.clearShortTimeoutUrls();
     Connection.unfailDownloadLinkInfo();
     posters.clear();
     if (isTVShow) {

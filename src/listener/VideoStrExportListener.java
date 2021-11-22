@@ -2,11 +2,11 @@ package listener;
 
 public interface VideoStrExportListener {
 
-    void export(ContentType contentType, String str, boolean cancel, GuiListener guiListener);
+  void export(ContentType contentType, String str, boolean cancel, GuiListener guiListener);
 
-    boolean exportSecondaryContent();
+  boolean exportSecondaryContent();
 
-    boolean showTVChoices();
+  boolean showTVChoices();
 
-    void setEpisode(String season, String episode);
+  void setEpisode(String season, String episode);
 }

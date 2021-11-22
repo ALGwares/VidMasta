@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2021.11.22   | VidMasta 27.7
+
+CHANGE: CORE | Improved connection error recovery speed
+
+
+
+
 2021.10.13   | VidMasta 27.6
 
 CHANGE: CORE | Fixed startup issue with Java 17 and higher support on Linux and Mac introduced in version 27.5

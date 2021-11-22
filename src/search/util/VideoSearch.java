@@ -70,7 +70,7 @@ public class VideoSearch {
           throw e;
         }
         if (Debug.DEBUG) {
-          Debug.println("Retrying search query (" + encodedQuery + "): " + e.URL);
+          Debug.println("Retrying search query (" + encodedQuery + "): " + e.url);
         }
       }
       engines.remove(searchEngine);
@@ -387,7 +387,7 @@ public class VideoSearch {
     if (!video.oldTitle.isEmpty()) {
       title += aka(video.oldTitle);
     }
-    if (video.IS_TV_SHOW && !video.season.isEmpty() && !video.episode.isEmpty()) {
+    if (video.isTVShow && !video.season.isEmpty() && !video.episode.isEmpty()) {
       title += popularEpisode(video.season, video.episode);
     }
 
@@ -406,12 +406,12 @@ public class VideoSearch {
     String imagePath = Constant.CACHE_DIR + image;
     image = ((new File(imagePath)).exists() ? imagePath : Constant.NO_IMAGE + image);
 
-    return guiListener.makeRow(video.ID, image, startHtml + Constant.TITLE_INDENT + title + endHtml, video.title, video.oldTitle, year, rating, video.summary,
-            video.imageLink, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE, video.season, video.episode);
+    return guiListener.makeRow(video.id, image, startHtml + Constant.TITLE_INDENT + title + endHtml, video.title, video.oldTitle, year, rating, video.summary,
+            video.imageLink, video.isTVShow, video.isTVShowAndMovie, video.season, video.episode);
   }
 
   public static String url(Video video) {
-    return String.format(Str.get(781), video.ID);
+    return String.format(Str.get(781), video.id);
   }
 
   public static String tooOldOrNonexistentImagePath(Video video) {
@@ -421,7 +421,7 @@ public class VideoSearch {
   }
 
   public static String imagePath(Video video) {
-    long imageName = Str.hashCode(video.ID);
+    long imageName = Str.hashCode(video.id);
     return (imageName % Constant.MAX_SUBDIRECTORIES) + Constant.FILE_SEPARATOR + imageName;
   }
 

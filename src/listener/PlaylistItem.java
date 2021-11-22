@@ -4,33 +4,33 @@ import java.io.File;
 
 public interface PlaylistItem {
 
-    boolean canPlay();
+  boolean canPlay();
 
-    boolean isActive();
+  boolean isActive();
 
-    boolean isStoppable();
+  boolean isStoppable();
 
-    void play(boolean force);
+  void play(boolean force);
 
-    void stop();
+  void stop();
 
-    boolean canOpen();
+  boolean canOpen();
 
-    void open();
+  void open();
 
-    String groupID();
+  String groupID();
 
-    String uri();
+  String uri();
 
-    String link();
+  String link();
 
-    File groupFile();
+  File groupFile();
 
-    int groupIndex();
+  int groupIndex();
 
-    Long groupDownloadID();
+  Long groupDownloadID();
 
-    String name();
+  String name();
 
-    boolean canBan();
+  boolean canBan();
 }

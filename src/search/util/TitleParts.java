@@ -5,6 +5,6 @@ import java.util.List;
 
 public class TitleParts {
 
-    public String title = "", year = "", season = "";
-    public final List<String> episodes = new ArrayList<String>(2);
+  public String title = "", year = "", season = "";
+  public final List<String> episodes = new ArrayList<String>(2);
 }

@@ -498,7 +498,7 @@ public class Main implements WorkerListener {
   private void startPrefetcher(VideoFinder videoFinder) {
     if (prefetcher == null) {
       (prefetcher = new Prefetcher(videoFinder)).execute();
-    } else if (!prefetcher.isForRow(videoFinder.ROW) || (!prefetcher.isForContentType(videoFinder.CONTENT_TYPE) && prefetcher.getState() != StateValue.DONE)) {
+    } else if (!prefetcher.isForRow(videoFinder.row) || (!prefetcher.isForContentType(videoFinder.contentType) && prefetcher.getState() != StateValue.DONE)) {
       prefetcher.cancel(true);
       (prefetcher = new Prefetcher(videoFinder)).execute();
     }

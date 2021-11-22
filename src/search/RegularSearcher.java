@@ -141,8 +141,8 @@ public class RegularSearcher extends AbstractSearcher {
       VideoSearch.saveImage(video);
     }
 
-    allBufferVideos.add(video.ID);
-    allVideos.add(video.ID);
+    allBufferVideos.add(video.id);
+    allVideos.add(video.id);
     guiListener.newResult(VideoSearch.toTableRow(guiListener, video, true));
     incrementProgress();
     isInitialSearchSuccessful = true;
@@ -210,15 +210,15 @@ public class RegularSearcher extends AbstractSearcher {
     boolean tvShow = isTVShow(titleMatch);
     Video video = new Video(VideoSearch.normalize(Regex.firstMatch(Regex.match(titleMatch, 23), 628)), Regex.match(titleMatch, 25), Regex.firstMatch(
             yearAndType, 29), tvShow, !Regex.firstMatch(yearAndType, tvShow ? 591 : 592).isEmpty());
-    if (video.ID.isEmpty() || video.title.isEmpty() || video.year.isEmpty() || (title.isEmpty() && guiListener.isBanned(video.ID, video.title, video.year))) {
+    if (video.id.isEmpty() || video.title.isEmpty() || video.year.isEmpty() || (title.isEmpty() && guiListener.isBanned(video.id, video.title, video.year))) {
       return;
     }
     video.rating = VideoSearch.rating(Regex.firstMatch(Regex.match(titleMatch, 30), 32));
     String imageLink = Regex.match(titleMatch, 384);
     if (Regex.isMatch(imageLink, 386)) {
-      noImageTitles.add(video.ID);
+      noImageTitles.add(video.id);
     }
-    if (isValid(video, titleMatch) && allBufferVideos.add(video.ID)) {
+    if (isValid(video, titleMatch) && allBufferVideos.add(video.id)) {
       videoBuffer.add(video);
     }
   }
@@ -279,7 +279,7 @@ public class RegularSearcher extends AbstractSearcher {
 
   @Override
   protected boolean findImage(Video video) {
-    return VideoSearch.tooOldOrNonexistentImagePath(video) != null && !noImageTitles.contains(video.ID);
+    return VideoSearch.tooOldOrNonexistentImagePath(video) != null && !noImageTitles.contains(video.id);
   }
 
   @Override
@@ -290,7 +290,7 @@ public class RegularSearcher extends AbstractSearcher {
 
   @Override
   protected boolean noImage(Video video) {
-    noImageTitles.add(video.ID);
+    noImageTitles.add(video.id);
     return false;
   }
 }

@@ -39,12 +39,12 @@ import util.Worker;
 public class VideoFinder extends Worker {
 
   final GuiListener guiListener;
-  public final ContentType CONTENT_TYPE;
+  public final ContentType contentType;
   private ContentType currContentType;
-  public final int ROW;
+  public final int row;
   private final VideoStrExportListener strExportListener;
   final Video video;
-  public final boolean PREFETCH;
+  public final boolean prefetch;
   private boolean isDownload1, play, startPeerblock = true, foreground;
   private String export;
   private static volatile Worker episodeFinder;
@@ -59,17 +59,17 @@ public class VideoFinder extends Worker {
   }
 
   public VideoFinder(ContentType contentType, VideoFinder finder) {
-    this(finder.guiListener, contentType, finder.ROW, finder.video, null, true, null);
+    this(finder.guiListener, contentType, finder.row, finder.video, null, true, null);
   }
 
   public VideoFinder(GuiListener guiListener, ContentType contentType, int row, Video video, VideoStrExportListener strExportListener, boolean prefetch,
           Runnable rerunner) {
     this.guiListener = guiListener;
-    CONTENT_TYPE = contentType;
-    ROW = row;
+    this.contentType = contentType;
+    this.row = row;
     this.video = video;
     this.strExportListener = strExportListener;
-    PREFETCH = prefetch;
+    this.prefetch = prefetch;
     this.rerunner = rerunner;
     foreground = (row != -1);
     if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD2 || contentType == ContentType.DOWNLOAD3) {
@@ -83,7 +83,7 @@ public class VideoFinder extends Worker {
     if (foreground) {
       guiListener.loading(true);
     }
-    search(CONTENT_TYPE);
+    search(contentType);
 
     boolean isCancelled = false;
     ContentType export2ContentType = null;
@@ -92,7 +92,7 @@ public class VideoFinder extends Worker {
     if (strExportListener != null) {
       isCancelled = isCancelled();
       if (strExportListener.exportSecondaryContent()) {
-        if (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3) {
+        if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD3) {
           export = null;
           export2ContentType = ContentType.DOWNLOAD2;
           if (!Connection.downloadLinkInfoFail()) {
@@ -109,7 +109,7 @@ public class VideoFinder extends Worker {
     }
 
     if (strExportListener != null) {
-      strExportListener.export(CONTENT_TYPE, export1, isCancelled, guiListener);
+      strExportListener.export(contentType, export1, isCancelled, guiListener);
       if (export2ContentType != null) {
         strExportListener.export(export2ContentType, export, isCancelled(), guiListener);
       }
@@ -127,14 +127,14 @@ public class VideoFinder extends Worker {
   }
 
   public void prefetch() throws Exception {
-    if (CONTENT_TYPE == ContentType.SUMMARY) {
-    } else if (CONTENT_TYPE == ContentType.TRAILER) {
+    if (contentType == ContentType.SUMMARY) {
+    } else if (contentType == ContentType.TRAILER) {
       findTrailer();
     } else {
       searchState = new TorrentSearchState(guiListener);
-      isDownload1 = (CONTENT_TYPE == ContentType.DOWNLOAD1 || CONTENT_TYPE == ContentType.DOWNLOAD3);
+      isDownload1 = (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD3);
 
-      if (video.IS_TV_SHOW) {
+      if (video.isTVShow) {
         if (video.season.isEmpty() || video.episode.isEmpty()) {
           return;
         }
@@ -195,7 +195,7 @@ public class VideoFinder extends Worker {
       try {
         if (currContentType == ContentType.DOWNLOAD3) {
           findAltDownloadLink();
-        } else if (video.IS_TV_SHOW) {
+        } else if (video.isTVShow) {
           if (!findTVDownloadLink(true)) {
             if (foreground) {
               guiListener.enable(currContentType);
@@ -214,7 +214,7 @@ public class VideoFinder extends Worker {
         }
 
         if (currContentType != ContentType.DOWNLOAD3) {
-          if (video.IS_TV_SHOW && torrents.isEmpty() && !video.episode.isEmpty() && !Constant.ANY.equals(video.episode)
+          if (video.isTVShow && torrents.isEmpty() && !video.episode.isEmpty() && !Constant.ANY.equals(video.episode)
                   && String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season) && !Connection.downloadLinkInfoFail()) { // Assumes TV show with
             // season 1 just released and download listed with 'episode #' in name; worst case is false positive of newer season with desired episode
             torrentFinders.clear();
@@ -298,7 +298,7 @@ public class VideoFinder extends Worker {
       } else {
         try {
           Connection.saveData(video.imageLink, imagePath, DomainType.VIDEO_INFO);
-          guiListener.setImagePath(video.imagePath = imagePath, ROW, video.ID);
+          guiListener.setImagePath(video.imagePath = imagePath, row, video.id);
           if (isCancelled()) {
             return;
           }
@@ -313,8 +313,8 @@ public class VideoFinder extends Worker {
     }
 
     guiListener.summary(video.summary, imagePath);
-    if (video.IS_TV_SHOW && video.summary.contains("</b>" + Constant.TV_EPISODE_PLACEHOLDER)) {
-      (episodeFinder = new EpisodeFinder(guiListener, ROW, video)).execute();
+    if (video.isTVShow && video.summary.contains("</b>" + Constant.TV_EPISODE_PLACEHOLDER)) {
+      (episodeFinder = new EpisodeFinder(guiListener, row, video)).execute();
     }
 
     if (rerunner != null) {
@@ -324,7 +324,7 @@ public class VideoFinder extends Worker {
 
   private void readSummary() throws Exception {
     IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
-    File speech = new File(Constant.TEMP_DIR + Regex.toFileName(video.title + '-' + video.year) + "-" + (video.ID.hashCode() & 0xfffffff) + Str.get(768));
+    File speech = new File(Constant.TEMP_DIR + Regex.toFileName(video.title + '-' + video.year) + "-" + (video.id.hashCode() & 0xfffffff) + Str.get(768));
     if (speech.exists()) {
       read(speech);
       return;
@@ -366,7 +366,7 @@ public class VideoFinder extends Worker {
   }
 
   private static void browseMagnetLink(Torrent torrent) throws IOException {
-    Connection.browse(torrent.MAGNET_LINK, "bitTorrentClient");
+    Connection.browse(torrent.magnetLink, "bitTorrentClient");
   }
 
   private void torrentDownloadError(Torrent torrent) {
@@ -388,21 +388,21 @@ public class VideoFinder extends Worker {
         Debug.println("Selected torrent: " + torrent);
       }
       boolean orderByLeechers = (currContentType == ContentType.DOWNLOAD1);
-      TorrentFinder.saveOrdering(torrent.ID, video.season, video.episode, orderByLeechers);
+      TorrentFinder.saveOrdering(torrent.id, video.season, video.episode, orderByLeechers);
       if (String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season)) {
-        TorrentFinder.saveOrdering(torrent.ID, Constant.ANY, video.episode, orderByLeechers);
+        TorrentFinder.saveOrdering(torrent.id, Constant.ANY, video.episode, orderByLeechers);
       }
 
-      if (!guiListener.unbanDownload(Str.hashCode(torrent.MAGNET_LINK), torrent.name())) {
+      if (!guiListener.unbanDownload(Str.hashCode(torrent.magnetLink), torrent.name())) {
         addVideoToPlaylist();
-      } else if (torrent.IS_SAFE || !guiListener.canShowSafetyWarning()) {
+      } else if (torrent.isSafe || !guiListener.canShowSafetyWarning()) {
         saveTorrentHelper(torrent);
       } else {
         int numFakeComments = 0, numComments = 0;
         String comments = null;
         try {
-          if (torrent.COMMENTS_LINK != null && !torrent.COMMENTS_LINK.isEmpty() && !torrent.COMMENTS_LINK.equals(Str.get(730) + Str.get(678))) {
-            Collection<String> commentsArr = Regex.matches(Connection.getSourceCode(torrent.COMMENTS_LINK, DomainType.DOWNLOAD_LINK_INFO, true, true, true,
+          if (torrent.commentsLink != null && !torrent.commentsLink.isEmpty() && !torrent.commentsLink.equals(Str.get(730) + Str.get(678))) {
+            Collection<String> commentsArr = Regex.matches(Connection.getSourceCode(torrent.commentsLink, DomainType.DOWNLOAD_LINK_INFO, true, true, true,
                     Constant.MS_1HR), 151);
             if ((numComments = commentsArr.size()) != 0) {
               StringBuilder commentsBuf = new StringBuilder(4096);
@@ -423,7 +423,7 @@ public class VideoFinder extends Worker {
         if (isCancelled()) {
           return;
         }
-        if (guiListener.canProceedWithUnsafeDownload(torrent.name(), numFakeComments, numComments, torrent.COMMENTS_LINK, comments)) {
+        if (guiListener.canProceedWithUnsafeDownload(torrent.name(), numFakeComments, numComments, torrent.commentsLink, comments)) {
           saveTorrentHelper(torrent);
         } else {
           addVideoToPlaylist();
@@ -434,23 +434,23 @@ public class VideoFinder extends Worker {
 
   private void saveTorrentHelper(Torrent torrent) throws Exception {
     if (strExportListener != null) {
-      export = torrent.MAGNET_LINK;
+      export = torrent.magnetLink;
       return;
     }
 
-    if (!video.IS_TV_SHOW && !VideoSearch.isRightFormat(torrent.NAME, Constant.HQ)) {
+    if (!video.isTVShow && !VideoSearch.isRightFormat(torrent.name, Constant.HQ)) {
       addVideoToPlaylist();
     }
 
     if (play) {
-      if ((torrent.FILE == null || !torrent.FILE.exists()) && searchState.blacklistedFileExts.length != 0) {
+      if ((torrent.file == null || !torrent.file.exists()) && searchState.blacklistedFileExts.length != 0) {
         torrentDownloadError(torrent);
       }
       startPeerBlock();
-      StreamingTorrentUtil.stream(torrent.MAGNET_LINK, VideoSearch.getTitleParts(torrent.NAME, video.IS_TV_SHOW).title + guiListener.invisibleSeparator()
-              + Constant.FILE_SEPARATOR + torrent.NAME, true);
+      StreamingTorrentUtil.stream(torrent.magnetLink, VideoSearch.getTitleParts(torrent.name, video.isTVShow).title + guiListener.invisibleSeparator()
+              + Constant.FILE_SEPARATOR + torrent.name, true);
 
-      if (video.IS_TV_SHOW && !video.season.equals(Constant.ANY) && !video.episode.equals(Constant.ANY)) {
+      if (video.isTVShow && !video.season.equals(Constant.ANY) && !video.episode.equals(Constant.ANY)) {
         (new Worker() {
           @Override
           public void doWork() {
@@ -461,7 +461,7 @@ public class VideoFinder extends Worker {
               if (nextEpisode.isEmpty()) {
                 return;
               }
-              Video nextVideo = new Video(video.ID, video.title, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+              Video nextVideo = new Video(video.id, video.title, video.year, video.isTVShow, video.isTVShowAndMovie);
               int index = nextEpisode.indexOf('E');
               nextVideo.season = nextEpisode.substring(1, index);
               nextVideo.episode = nextEpisode.substring(index + 1);
@@ -484,7 +484,7 @@ public class VideoFinder extends Worker {
       return;
     }
 
-    if (torrent.FILE == null || !torrent.FILE.exists()) {
+    if (torrent.file == null || !torrent.file.exists()) {
       if (guiListener.canDownloadWithDefaultApp()) {
         if (searchState.blacklistedFileExts.length != 0) {
           torrentDownloadError(torrent);
@@ -506,10 +506,10 @@ public class VideoFinder extends Worker {
       return;
     }
 
-    String torrentFilePath = IO.parentDir(torrent.FILE) + torrent.fileName();
+    String torrentFilePath = IO.parentDir(torrent.file) + torrent.fileName();
     File torrentFile = new File(torrentFilePath);
     if (!torrentFile.exists()) {
-      IO.write(torrent.FILE, torrentFile);
+      IO.write(torrent.file, torrentFile);
     }
 
     if (guiListener.canDownloadWithDefaultApp()) {
@@ -555,13 +555,13 @@ public class VideoFinder extends Worker {
   }
 
   private void findTrailer() throws Exception {
-    if (!PREFETCH && video.IS_TV_SHOW && rerunner != null && tvChoices(false)) {
+    if (!prefetch && video.isTVShow && rerunner != null && tvChoices(false)) {
       return;
     }
 
     Integer season = null;
-    if (video.IS_TV_SHOW) {
-      if (!PREFETCH) {
+    if (video.isTVShow) {
+      if (!prefetch) {
         video.season = guiListener.getSeason();
         video.episode = guiListener.getEpisode();
       } else if (video.season.isEmpty()) {
@@ -575,11 +575,11 @@ public class VideoFinder extends Worker {
     String[] link1 = null;
     try {
       link1 = getTrailerLink1(season, true);
-      if (PREFETCH || isCancelled()) {
+      if (prefetch || isCancelled()) {
         return;
       }
     } catch (Exception e) {
-      if (PREFETCH || isCancelled()) {
+      if (prefetch || isCancelled()) {
         throw e;
       }
       error(e);
@@ -646,10 +646,10 @@ public class VideoFinder extends Worker {
   }
 
   private String[] getTrailerLink1(Integer season, boolean canRetry) throws Exception {
-    String urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (season == null ? "" : " \"season " + season + "\"") + (video.IS_TV_SHOW ? "" : ' '
+    String urlFormOptions = URLEncoder.encode(Regex.clean(video.title) + (season == null ? "" : " \"season " + season + "\"") + (video.isTVShow ? "" : ' '
             + video.year) + Str.get(87), Constant.UTF8), url = Str.get(86) + urlFormOptions;
-    String source = Connection.getSourceCode(url, DomainType.TRAILER, !PREFETCH, Constant.MS_1HR);
-    if (PREFETCH || isCancelled()) {
+    String source = Connection.getSourceCode(url, DomainType.TRAILER, !prefetch, Constant.MS_1HR);
+    if (prefetch || isCancelled()) {
       return null;
     }
 
@@ -668,22 +668,22 @@ public class VideoFinder extends Worker {
   }
 
   private String[] getTrailerLink2(Integer season) throws Exception {
-    long cacheExpirationMs = video.IS_TV_SHOW ? Constant.MS_1DAY : Constant.MS_2DAYS;
-    String sourceCode = Connection.getSourceCode(season == null ? String.format(Str.get(748), video.ID) : String.format(Str.get(749), video.ID, season),
-            DomainType.VIDEO_INFO, !PREFETCH, cacheExpirationMs);
+    long cacheExpirationMs = video.isTVShow ? Constant.MS_1DAY : Constant.MS_2DAYS;
+    String sourceCode = Connection.getSourceCode(season == null ? String.format(Str.get(748), video.id) : String.format(Str.get(749), video.id, season),
+            DomainType.VIDEO_INFO, !prefetch, cacheExpirationMs);
     if (isCancelled()) {
       return null;
     }
 
     for (String videoId : Regex.matches(sourceCode, 750)) {
-      sourceCode = Connection.getSourceCode(String.format(Str.get(752), videoId), DomainType.VIDEO_INFO, !PREFETCH, cacheExpirationMs);
+      sourceCode = Connection.getSourceCode(String.format(Str.get(752), videoId), DomainType.VIDEO_INFO, !prefetch, cacheExpirationMs);
       if (isCancelled()) {
         return null;
       }
 
       List<String> videoInfos = Regex.matches(sourceCode, 753);
       if (videoInfos.isEmpty()) {
-        sourceCode = Connection.getSourceCode(String.format(Str.get(755), videoId), DomainType.VIDEO_INFO, !PREFETCH, cacheExpirationMs);
+        sourceCode = Connection.getSourceCode(String.format(Str.get(755), videoId), DomainType.VIDEO_INFO, !prefetch, cacheExpirationMs);
         if (isCancelled()) {
           return null;
         }
@@ -723,7 +723,7 @@ public class VideoFinder extends Worker {
 
     guiListener.altVideoDownloadStarted();
 
-    if (video.IS_TV_SHOW) {
+    if (video.isTVShow) {
       if (video.season.isEmpty()) {
         video.season = Constant.ANY;
       }
@@ -738,7 +738,7 @@ public class VideoFinder extends Worker {
 
     String sourceCode;
     try {
-      sourceCode = Connection.getSourceCode(Str.get(video.IS_TV_SHOW ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO, Constant.MS_1HR);
+      sourceCode = Connection.getSourceCode(Str.get(video.isTVShow ? 483 : 484), DomainType.DOWNLOAD_LINK_INFO, Constant.MS_1HR);
     } catch (Exception e) {
       error(e);
       return;
@@ -765,14 +765,14 @@ public class VideoFinder extends Worker {
         File torrent;
         String extensions;
         if (isTorrentDownloaded) {
-          torrent = magnet.TORRENT;
-          extensions = FileTypeChecker.getFileExts(magnet.TORRENT, searchState.whitelistedFileExts);
+          torrent = magnet.torrent;
+          extensions = FileTypeChecker.getFileExts(magnet.torrent, searchState.whitelistedFileExts);
         } else {
           torrent = null;
           extensions = "";
         }
 
-        torrents.add(new Torrent("", magnet.MAGNET_LINK, results[i + 2].trim(), torrent, extensions, null, Integer.parseInt(results[i + 3].trim()) == 1, 0,
+        torrents.add(new Torrent("", magnet.magnetLink, results[i + 2].trim(), torrent, extensions, null, Integer.parseInt(results[i + 3].trim()) == 1, 0,
                 0));
       } catch (Exception e) {
         error(e);
@@ -785,7 +785,7 @@ public class VideoFinder extends Worker {
     torrentFinders.clear();
     Magnet.waitForAzureusToStart();
     addFinder(video.title, "", false, false, false, null, true, singleOrderByMode);
-    if (PREFETCH) {
+    if (prefetch) {
       for (TorrentFinder finder : torrentFinders) {
         finder.getTorrents(true);
       }
@@ -857,7 +857,7 @@ public class VideoFinder extends Worker {
   }
 
   private void findMovieDownloadLink() throws Exception {
-    if (!PREFETCH) {
+    if (!prefetch) {
       Magnet.waitForAzureusToStart();
       if (isCancelled()) {
         return;
@@ -944,7 +944,7 @@ public class VideoFinder extends Worker {
           boolean altSearch, boolean singleOrderByMode) {
     String newTitle = Regex.cleanAbbreviations(title);
     for (String currTitle : newTitle.equals(title) ? new String[]{title} : new String[]{title, newTitle}) {
-      Video vid = new Video(video.ID, currTitle, video.year, video.IS_TV_SHOW, video.IS_TV_SHOW_AND_MOVIE);
+      Video vid = new Video(video.id, currTitle, video.year, video.isTVShow, video.isTVShowAndMovie);
       vid.season = video.season;
       vid.episode = video.episode;
       torrentFinders.add(new TorrentFinder(guiListener, torrentFinders, torrents, vid, seasonAndEpisode, isDownload1, magnetLinkOnly(), ignoreYear,
@@ -956,7 +956,7 @@ public class VideoFinder extends Worker {
     Connection.runDownloadLinkInfoDeproxier(new Task() {
       @Override
       public void run() throws Exception {
-        if (PREFETCH) {
+        if (prefetch) {
           for (TorrentFinder finder : torrentFinders) {
             finder.getTorrents(true, true);
           }
@@ -1007,11 +1007,11 @@ public class VideoFinder extends Worker {
         return;
       }
 
-      String sourceCode = Connection.getSourceCode(VideoSearch.url(video), DomainType.VIDEO_INFO, !PREFETCH, video.IS_TV_SHOW ? Constant.MS_1DAY
+      String sourceCode = Connection.getSourceCode(VideoSearch.url(video), DomainType.VIDEO_INFO, !prefetch, video.isTVShow ? Constant.MS_1DAY
               : Constant.MS_2DAYS);
       video.oldTitle = VideoSearch.getOldTitle(sourceCode);
       if (!video.oldTitle.isEmpty()) {
-        String displayTitle = guiListener.getTitle(ROW, video.ID);
+        String displayTitle = guiListener.getTitle(row, video.id);
         if (displayTitle != null) {
           int beginIndex = 6, endOffSet = 7;
           String startHtml = "<html>", endHtml = "</html>";
@@ -1026,15 +1026,15 @@ public class VideoFinder extends Worker {
           String extraTitleInfo = Regex.firstMatch(displayTitle, popularEpisode);
           displayTitle = Regex.replaceFirst(displayTitle, popularEpisode, "") + VideoSearch.aka(video.oldTitle) + (extraTitleInfo.isEmpty() ? "" : ' '
                   + extraTitleInfo);
-          guiListener.setTitle(startHtml + displayTitle + endHtml, ROW, video.ID);
+          guiListener.setTitle(startHtml + displayTitle + endHtml, row, video.id);
         }
       }
 
       String imageLink = Regex.match(sourceCode, 188);
-      guiListener.setImageLink(imageLink, ROW, video.ID);
+      guiListener.setImageLink(imageLink, row, video.id);
       video.imageLink = imageLink;
-      String summary = VideoSearch.getSummary(sourceCode, video.IS_TV_SHOW);
-      guiListener.setSummary(summary, ROW, video.ID);
+      String summary = VideoSearch.getSummary(sourceCode, video.isTVShow);
+      guiListener.setSummary(summary, row, video.id);
       video.summary = summary;
     }
   }
