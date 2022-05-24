@@ -182,7 +182,7 @@ public class PopularSearcher extends AbstractSearcher {
   }
 
   private void addCurrVideo(String titleName) {
-    if (isFeed && Regex.firstMatch(Regex.replaceAll(titleName, 77), 569).isEmpty()) {
+    if (isFeed && !isTVShow && Regex.firstMatch(Regex.replaceAll(titleName, 77), 569).isEmpty()) {
       return; // Wrong format
     }
 

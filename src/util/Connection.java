@@ -1,5 +1,7 @@
 package util;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import debug.Debug;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
@@ -23,14 +25,12 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import listener.DomainType;
 import listener.GuiListener;
@@ -43,7 +43,7 @@ public class Connection {
   private static final StatusBar statusBar = new StatusBar();
   private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
   private static final AtomicBoolean downloadLinkInfoFail = new AtomicBoolean();
-  private static final Set<String> shortTimeoutUrls = new CopyOnWriteArraySet<>();
+  private static final Cache<String, Boolean> shortTimeoutUrls = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
   private static int numDownloadLinkInfoDeproxiers;
   private static UpdateListener deproxyDownloadLinkInfo;
   private static boolean reproxyDownloadLinkInfoUrlSet;
@@ -189,7 +189,7 @@ public class Connection {
             return "";
           }
 
-          setConnectionProperties(connection, compress, null);
+          setConnectionProperties(connection, compress, null, 1);
           connection.connect();
           br = IO.bufferedReader(connection.getContentEncoding(), connection.getInputStream());
           if (isCancelled()) {
@@ -214,7 +214,7 @@ public class Connection {
           }
         } catch (IOException e) {
           String errorMsg = IO.consumeErrorStream(connection);
-          shortTimeoutUrls.add((new URL(url)).getHost());
+          addShortTimeoutUrls(url);
           for (Class<?> throwable : throwables) {
             if (throwable.isInstance(e)) {
               throw new IOException2(e, errorMsg);
@@ -380,18 +380,18 @@ public class Connection {
   }
 
   private static void addShortTimeoutUrls() throws Exception {
-    for (String url : Stream.concat(Arrays.asList(Str.get(731), Str.get(723)).stream(), Arrays.stream(Str.get(726).isEmpty() ? Constant.EMPTY_STRS
+    addShortTimeoutUrls(Stream.concat(Arrays.asList(Str.get(731), Str.get(723)).stream(), Arrays.stream(Str.get(726).isEmpty() ? Constant.EMPTY_STRS
             : Regex.split(Str.get(726), Constant.SEPARATOR1)
-    )).collect(Collectors.toList())) {
-      shortTimeoutUrls.add((new URL(url)).getHost());
+    )).toArray(String[]::new));
+  }
+
+  private static void addShortTimeoutUrls(String... urls) throws Exception {
+    for (String url : urls) {
+      shortTimeoutUrls.put((new URL(url)).getHost(), true);
     }
   }
 
-  public static void clearShortTimeoutUrls() {
-    shortTimeoutUrls.clear();
-  }
-
-  public static void setConnectionProperties(HttpURLConnection connection, boolean compress, String referer) {
+  public static void setConnectionProperties(HttpURLConnection connection, boolean compress, String referer, int shortTimeoutSecs) {
     connection.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1;q=0.9, us-ascii;q=0.8, *;q=0.7");
     connection.setRequestProperty("Accept-Language", "en-US, en-GB;q=0.9, en;q=0.8, *;q=0.7");
     if (compress) {
@@ -401,7 +401,7 @@ public class Connection {
     if (referer != null) {
       connection.setRequestProperty("Referer", referer);
     }
-    int timeout = (shortTimeoutUrls.contains(connection.getURL().getHost()) ? 1 : guiListener.getTimeout()) * 1000;
+    int timeout = (shortTimeoutUrls.getIfPresent(connection.getURL().getHost()) == null ? guiListener.getTimeout() : shortTimeoutSecs) * 1000;
     connection.setConnectTimeout(timeout);
     connection.setReadTimeout(timeout);
   }
@@ -478,7 +478,7 @@ public class Connection {
             return;
           }
 
-          setConnectionProperties(connection, false, referer);
+          setConnectionProperties(connection, false, referer, 5);
           is = connection.getInputStream();
           if (isCancelled()) {
             return;
@@ -574,7 +574,7 @@ public class Connection {
           return "";
         }
 
-        setConnectionProperties(connection, false, null);
+        setConnectionProperties(connection, false, null, 5);
         is = connection.getInputStream();
         if (callingWorker.isCancelled()) {
           return "";

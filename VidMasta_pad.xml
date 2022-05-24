@@ -33,15 +33,15 @@
     <Contact_Info>
       <Contact_First_Name>Anthony</Contact_First_Name>
       <Contact_Last_Name>Gray</Contact_Last_Name>
-      <Contact_Email>algwares@gmx.com</Contact_Email>
+      <Contact_Email>algwares.vidmasta@gmail.com</Contact_Email>
       <Author_First_Name>Anthony</Author_First_Name>
       <Author_Last_Name>Gray</Author_Last_Name>
-      <Author_Email>algwares@gmx.com</Author_Email>
+      <Author_Email>algwares.vidmasta@gmail.com</Author_Email>
     </Contact_Info>
     <Support_Info>
-      <Sales_Email>algwares@gmx.com</Sales_Email>
-      <Support_Email>algwares@gmx.com</Support_Email>
-      <General_Email>algwares@gmx.com</General_Email>
+      <Sales_Email>algwares.vidmasta@gmail.com</Sales_Email>
+      <Support_Email>algwares.vidmasta@gmail.com</Support_Email>
+      <General_Email>algwares.vidmasta@gmail.com</General_Email>
       <Sales_Phone></Sales_Phone>
       <Support_Phone></Support_Phone>
       <General_Phone></General_Phone>
@@ -61,7 +61,7 @@
     <NewsFeed_Type>RSS 0.90</NewsFeed_Type>
     <NewsFeed_Language>English</NewsFeed_Language>
     <NewsFeed_Purpose>News</NewsFeed_Purpose>
-    <NewsFeed_Author_Email>algwares@gmx.com</NewsFeed_Author_Email>
+    <NewsFeed_Author_Email>algwares.vidmasta@gmail.com</NewsFeed_Author_Email>
     <NewsFeed_Author_First_Name>Anthony</NewsFeed_Author_First_Name>
     <NewsFeed_Author_Last_Name>Gray</NewsFeed_Author_Last_Name>
     <NewsFeed_Feed_URL></NewsFeed_Feed_URL>
@@ -76,7 +76,7 @@
     <Site_VERSION>1.0</Site_VERSION>
     <Site_URL>http://Submit-Everywhere.com/extensions/Site.htm</Site_URL>
     <Site_DESCRIPTION>This PAD extension allows you to add your site info into your PAD file. This info can be used by site submission software or by web directories themselves.</Site_DESCRIPTION>
-    <Site_Contact_Email>algwares@gmx.com</Site_Contact_Email>
+    <Site_Contact_Email>algwares.vidmasta@gmail.com</Site_Contact_Email>
     <Site_Contact_First_Name>Anthony</Site_Contact_First_Name>
     <Site_Contact_Last_Name>Gray</Site_Contact_Last_Name>
     <Site_Site_Title>VidMasta</Site_Site_Title>

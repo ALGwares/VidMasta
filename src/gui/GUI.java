@@ -354,6 +354,44 @@ public class GUI extends JFrame implements GuiListener {
       }
     });
 
+    colModel.getColumn(ratingCol).setCellRenderer(new DefaultTableCellRenderer() {
+      private static final long serialVersionUID = 1L;
+      private final HashMap<Long, Entry<Long, String>> numRatingsCache = new HashMap<>(100);
+
+      @Override
+      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        JComponent component = (JComponent) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        if (row != -1) {
+          String numRatings;
+          File sourceCode;
+          Long sourceCodeId;
+          if (Constant.NO_RATING.equals(value)) {
+            numRatings = Str.str("total", 0);
+          } else if ((sourceCode = new File(Constant.CACHE_DIR + (sourceCodeId = Str.hashCode(String.format(Str.get(781), table.getModel().getValueAt(
+                  table.convertRowIndexToModel(row), idCol)))) + Constant.HTML)).exists()) {
+            String tempNumRatings = "";
+            try {
+              Entry<Long, String> numRatingsCacheVal = numRatingsCache.get(sourceCodeId);
+              if (numRatingsCacheVal == null || sourceCode.lastModified() != numRatingsCacheVal.getKey()) {
+                numRatingsCache.put(sourceCodeId, numRatingsCacheVal = new SimpleImmutableEntry<>(sourceCode.lastModified(), Regex.match(Regex.firstMatch(
+                        IO.read(sourceCode), 791), 792)));
+              }
+              tempNumRatings = numRatingsCacheVal.getValue();
+            } catch (Exception e) {
+              if (Debug.DEBUG) {
+                Debug.print(e);
+              }
+            }
+            numRatings = (tempNumRatings.isEmpty() ? Str.str("total2") : Str.str("total", tempNumRatings));
+          } else {
+            numRatings = Str.str("total3");
+          }
+          component.setToolTipText(numRatings);
+        }
+        return component;
+      }
+    });
+
     playlistColModel.getColumn(playlistProgressCol).setCellRenderer(new DefaultTableCellRenderer() {
       private static final long serialVersionUID = 1L;
       JProgressBar progressBar;
@@ -7033,7 +7071,6 @@ public class GUI extends JFrame implements GuiListener {
     isAltSearch = false;
     searchProgressUpdate(0, 0);
 
-    Connection.clearShortTimeoutUrls();
     Connection.unfailDownloadLinkInfo();
     posters.clear();
     if (isTVShow) {

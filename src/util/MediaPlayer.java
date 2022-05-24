@@ -12,28 +12,40 @@ import str.Str;
 
 public class MediaPlayer {
 
-  private static final File MEDIA_PLAYER_DIR = new File(Constant.APP_DIR, "mediaPlayer");
+  private static final File MEDIA_PLAYER_DIR = new File(Constant.APP_DIR, "mediaPlayer"), MEDIA_PLAYER_INDICATOR = new File(Constant.APP_DIR, Str.get(697));
 
   public static void install() {
     Str.waitForUpdate();
-    if ((!Boolean.parseBoolean(Str.get(692)) && !Boolean.parseBoolean(Str.get(704))) || !Constant.WINDOWS_XP_AND_HIGHER || (new File(Constant.APP_DIR
-            + Str.get(697))).exists()) {
+    if ((!Boolean.parseBoolean(Str.get(692)) && !Boolean.parseBoolean(Str.get(704))) || !Constant.WINDOWS_XP_AND_HIGHER) {
       return;
     }
 
-    String zipFile = Constant.APP_DIR + Str.get(697) + Constant.ZIP;
-    try {
-      Connection.saveData(Str.get(761), zipFile, DomainType.UPDATE, false);
+    if (!MEDIA_PLAYER_INDICATOR.exists()) {
+      String zipFile = MEDIA_PLAYER_INDICATOR.getPath() + Constant.ZIP;
       try {
-        IO.fileOp(MEDIA_PLAYER_DIR, IO.RM_DIR);
-        IO.unzip(zipFile, IO.dir(MEDIA_PLAYER_DIR.getPath()));
-        IO.fileOp(Constant.APP_DIR + Str.get(697), IO.MK_FILE);
-      } finally {
-        IO.fileOp(zipFile, IO.RM_FILE);
+        Connection.saveData(Str.get(761), zipFile, DomainType.UPDATE, false);
+        try {
+          IO.fileOp(MEDIA_PLAYER_DIR, IO.RM_DIR);
+          IO.unzip(zipFile, IO.dir(MEDIA_PLAYER_DIR.getPath()));
+          IO.fileOp(MEDIA_PLAYER_INDICATOR, IO.MK_FILE);
+        } finally {
+          IO.fileOp(zipFile, IO.RM_FILE);
+        }
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
       }
-    } catch (Exception e) {
-      if (Debug.DEBUG) {
-        Debug.print(e);
+    }
+
+    if (MEDIA_PLAYER_INDICATOR.exists()) {
+      try {
+        Connection.saveData(Str.get(788), (new File(IO.findFile(MEDIA_PLAYER_DIR, Regex.pattern(789)).getParentFile(), Str.get(790))).getPath(),
+                DomainType.UPDATE, false);
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
       }
     }
   }
@@ -49,7 +61,7 @@ public class MediaPlayer {
   }
 
   private static boolean canOpen(int canOpenIndex) {
-    return Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && (new File(Constant.APP_DIR + Str.get(697))).exists();
+    return Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && MEDIA_PLAYER_INDICATOR.exists();
   }
 
   private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, final Runnable errorAction) {
@@ -57,7 +69,6 @@ public class MediaPlayer {
       List<String> args = new ArrayList<String>(16);
       File oldMediaPlayerDir;
       String language = Str.locale().getISO3Language();
-      // When VLC stops playing YouTube update https://github.com/videolan/vlc/blob/master/share/lua/playlist/youtube.lua in vlc-win32.zip
       Collections.addAll(args, IO.findFile(MEDIA_PLAYER_DIR.exists() ? MEDIA_PLAYER_DIR : ((oldMediaPlayerDir = new File(Constant.APP_DIR, Str.get(
               762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance",
               "--audio-language=" + language, "--sub-language=" + language, "--avi-index=2", "--no-qt-updates-notif");

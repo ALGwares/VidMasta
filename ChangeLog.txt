@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2022.05.24   | VidMasta 27.8
+
+CHANGE: UI   | Showed number of ratings for a title via a tooltip when hovering over the rating score
+CHANGE: CORE | Improved connection error handling
+CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows
+
+
+
+
 2021.11.22   | VidMasta 27.7
 
 CHANGE: CORE | Improved connection error recovery speed
