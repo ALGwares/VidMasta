@@ -9,8 +9,11 @@
 *~
 
 cnet_*.jpg
+nb-configuration.xml
+nbactions.xml
 **/manifest.mf
 **/build.xml
 **/nbproject
 **/dist
 **/build
+**/target

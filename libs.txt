@@ -1,2 +1,0 @@
-biglybt-2.7.0.2.jar (2.8.0.0, 2.9.0.0, and 3.0.0.0 has a multi-file torrent download resume progress calculation bug)
-libs.jar is synthetica-2.30.0.jar
