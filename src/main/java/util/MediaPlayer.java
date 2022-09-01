@@ -40,8 +40,13 @@ public class MediaPlayer {
 
     if (MEDIA_PLAYER_INDICATOR.exists()) {
       try {
-        Connection.saveData(Str.get(788), (new File(IO.findFile(MEDIA_PLAYER_DIR, Regex.pattern(789)).getParentFile(), Str.get(790))).getPath(),
-                DomainType.UPDATE, false);
+        File script = new File(IO.findFile(MEDIA_PLAYER_DIR, Regex.pattern(789)).getParentFile(), Str.get(790)), tempScript = new File(Constant.APP_DIR,
+                script.getName());
+        if (!script.exists() || tempScript.exists() || IO.isFileTooOld(script, Constant.MS_1HR)) {
+          Connection.saveData(Str.get(788), tempScript.getPath(), DomainType.UPDATE, false);
+          IO.write(tempScript, script);
+          IO.fileOp(tempScript, IO.RM_FILE);
+        }
       } catch (Exception e) {
         if (Debug.DEBUG) {
           Debug.print(e);
@@ -71,7 +76,7 @@ public class MediaPlayer {
       String language = Str.locale().getISO3Language();
       Collections.addAll(args, IO.findFile(MEDIA_PLAYER_DIR.exists() ? MEDIA_PLAYER_DIR : ((oldMediaPlayerDir = new File(Constant.APP_DIR, Str.get(
               762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance",
-              "--audio-language=" + language, "--sub-language=" + language, "--avi-index=2", "--no-qt-updates-notif");
+              "--audio-language=" + language, "--sub-language=" + language, "--avi-index=2", "--no-qt-updates-notif", "--verbose=1");
       if (playAndExit) {
         args.add("--play-and-exit");
       }

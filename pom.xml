@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>algwares</groupId>
   <artifactId>vidmasta</artifactId>
-  <version>27.9</version>
+  <version>28.0</version>
   <packaging>jar</packaging>
     
   <properties>
@@ -43,8 +43,7 @@
     <dependency>
       <groupId>com.biglybt</groupId>
       <artifactId>biglybt</artifactId>
-      <!-- 2.8.0.0, 2.9.0.0, and 3.0.0.0 (the latest version checked) has a multi-file torrent download resume progress calculation bug -->
-      <version>2.7.0.2</version>
+      <version>3.1.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.swinglabs.swingx</groupId>

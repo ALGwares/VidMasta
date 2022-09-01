@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2022.09.01   | VidMasta 28.0
+
+CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows
+CHANGE: CORE | Improved download performance
+
+
+
+
 2022.07.04   | VidMasta 27.9
 
 CHANGE: UI   | Fixed missing storyline in title summary due to unexpected change by storyline provider

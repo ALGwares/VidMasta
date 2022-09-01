@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -7365,9 +7366,17 @@ public class GUI extends JFrame implements GuiListener {
   }
 
   @Override
-  public void setPlaylistPlayHint(String msg) {
-    playlistPlayButton.setToolTipText(playlistPlayButton.getToolTipText() + msg);
-    playlistPlayMenuItem.setToolTipText(playlistPlayMenuItem.getToolTipText() + msg);
+  public void setPlaylistPlayHint(Long numBlockedIps) {
+    String numBlockedIpsMsg = (numBlockedIps != null && numBlockedIps > 0 ? ' ' + Str.str("ipFiltering", Str.getNumFormat("#,###").format(numBlockedIps)) : "");
+    playlistPlayButton.setToolTipText(Str.str("GUI.playlistPlayButton.toolTipText") + numBlockedIpsMsg);
+    playlistPlayButton.putClientProperty("numBlockedIps", numBlockedIps);
+    playlistPlayButton.putClientProperty("numBlockedIpsMsg", numBlockedIpsMsg);
+    playlistPlayMenuItem.setToolTipText(Str.str("GUI.playlistPlayMenuItem.toolTipText") + numBlockedIpsMsg);
+  }
+
+  @Override
+  public String getNumBlockedIpsMsg() {
+    return Objects.toString(playlistPlayButton.getClientProperty("numBlockedIpsMsg"), "");
   }
 
   private int showConfirm(final String msg, final JMenuItem menuItem) {
@@ -7893,8 +7902,7 @@ public class GUI extends JFrame implements GuiListener {
     playlistMoveUpMenuItem.setText(Str.str("GUI.playlistMoveUpMenuItem.text"));
     playlistOpenButton.setToolTipText(Str.str("GUI.playlistOpenButton.toolTipText"));
     playlistOpenMenuItem.setText(Str.str("GUI.playlistOpenMenuItem.text"));
-    playlistPlayButton.setToolTipText(Str.str("GUI.playlistPlayButton.toolTipText"));
-    playlistPlayMenuItem.setToolTipText(Str.str("GUI.playlistPlayMenuItem.toolTipText"));
+    setPlaylistPlayHint((Long) playlistPlayButton.getClientProperty("numBlockedIps"));
     playlistPlayWithDefaultAppCheckBoxMenuItem.setText(Str.str("GUI.playlistPlayWithDefaultAppCheckBoxMenuItem.text"));
     playlistReloadGroupButton.setToolTipText(Str.str("GUI.playlistReloadGroupButton.toolTipText"));
     playlistReloadGroupMenuItem.setText(Str.str("GUI.playlistReloadGroupMenuItem.text"));

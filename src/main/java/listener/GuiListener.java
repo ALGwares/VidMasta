@@ -92,7 +92,9 @@ public interface GuiListener {
 
   void refreshPlaylistControls();
 
-  void setPlaylistPlayHint(String msg);
+  void setPlaylistPlayHint(Long numBlockedIps);
+
+  String getNumBlockedIpsMsg();
 
   boolean isConfirmed(String msg);
 

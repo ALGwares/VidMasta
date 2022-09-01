@@ -65,7 +65,6 @@ public class Magnet extends Thread {
   public final File torrent;
   private final AtomicBoolean isDoneDownloading = new AtomicBoolean(), isDoneSaving = new AtomicBoolean();
   private static final ConcurrentMap<String, Thread> downloaders = new ConcurrentHashMap<String, Thread>(16);
-  private static volatile String ipBlockMsg = "";
   private static volatile Worker azureusStarter;
   private static Thread ipFilterInitializer;
 
@@ -89,9 +88,9 @@ public class Magnet extends Thread {
     for (int i = guiListener.getDownloadLinkTimeout(); i > 0; i--) {
       try {
         if (isDHTConnecting()) {
-          Connection.setStatusBar(Str.str("connecting2") + Str.str("connecting3") + ipBlockMsg);
+          Connection.setStatusBar(Str.str("connecting2") + Str.str("connecting3") + guiListener.getNumBlockedIpsMsg());
         } else {
-          Connection.setStatusBar(Str.str("transferring2") + Str.str("connecting3") + ipBlockMsg);
+          Connection.setStatusBar(Str.str("transferring2") + Str.str("connecting3") + guiListener.getNumBlockedIpsMsg());
         }
         join(1000);
         if ((!isDoneDownloading.get() && torrentExists()) || isDoneSaving.get() || !isAlive() || parent.isCancelled()) {
@@ -277,10 +276,17 @@ public class Magnet extends Thread {
       try {
         ipFilterInitializerStartSignal.await();
         ipFilterInitializer.join();
-        setIpBlockMsg(IpFilterImpl.getInstance());
-        guiListener.setPlaylistPlayHint(ipBlockMsg);
+        Field rangeManagerField = IpFilterImpl.class.getDeclaredField("range_manager_v4");
+        rangeManagerField.setAccessible(true);
+        Object rangeManager = rangeManagerField.get(IpFilterImpl.getInstance());
+        Method checkRebuildMethod = IPAddressRangeManagerV4.class.getDeclaredMethod("checkRebuild");
+        checkRebuildMethod.setAccessible(true);
+        checkRebuildMethod.invoke(rangeManager);
+        Field totalSpanField = IPAddressRangeManagerV4.class.getDeclaredField("total_span");
+        totalSpanField.setAccessible(true);
+        guiListener.setPlaylistPlayHint((Long) totalSpanField.get(rangeManager));
         if (Debug.DEBUG) {
-          Debug.println(ipBlockMsg.trim());
+          Debug.println(guiListener.getNumBlockedIpsMsg().trim());
         }
       } catch (Exception e) {
         if (Debug.DEBUG) {
@@ -288,7 +294,7 @@ public class Magnet extends Thread {
         }
       }
 
-      Connection.setStatusBar(Str.str("connecting4") + ipBlockMsg);
+      Connection.setStatusBar(Str.str("connecting4") + guiListener.getNumBlockedIpsMsg());
 
       if (Debug.DEBUG) {
         ClientInstance instance = core.getInstanceManager().getMyInstance();
@@ -437,28 +443,6 @@ public class Magnet extends Thread {
     }
 
     return false;
-  }
-
-  private static void setIpBlockMsg(IpFilter ipFilter) {
-    long numBlockedIps = 0;
-    if (ipFilter != null) {
-      try {
-        Field rangeManagerField = IpFilterImpl.class.getDeclaredField("range_manager_v4");
-        rangeManagerField.setAccessible(true);
-        Object rangeManager = rangeManagerField.get(ipFilter);
-        Method checkRebuildMethod = IPAddressRangeManagerV4.class.getDeclaredMethod("checkRebuild");
-        checkRebuildMethod.setAccessible(true);
-        checkRebuildMethod.invoke(rangeManager);
-        Field totalSpanField = IPAddressRangeManagerV4.class.getDeclaredField("total_span");
-        totalSpanField.setAccessible(true);
-        numBlockedIps = (long) totalSpanField.get(rangeManager);
-      } catch (Exception e) {
-        if (Debug.DEBUG) {
-          Debug.print(e);
-        }
-      }
-    }
-    ipBlockMsg = (numBlockedIps > 0 ? ' ' + Str.str("ipFiltering", Str.getNumFormat("#,###").format(numBlockedIps)) : "");
   }
 
   private static class IpFilterInitializer extends Thread {
