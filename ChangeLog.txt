@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2022.09.03   | VidMasta 28.1
+
+CHANGE: CORE | Improved performance of download initialization step
+CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows
+
+
+
+
 2022.09.01   | VidMasta 28.0
 
 CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows

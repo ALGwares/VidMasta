@@ -1,5 +1,7 @@
 package util;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import debug.Debug;
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,12 +9,14 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import listener.DomainType;
 import str.Str;
 
 public class MediaPlayer {
 
   private static final File MEDIA_PLAYER_DIR = new File(Constant.APP_DIR, "mediaPlayer"), MEDIA_PLAYER_INDICATOR = new File(Constant.APP_DIR, Str.get(697));
+  private static final Cache<String, Boolean> failedHosts = CacheBuilder.newBuilder().expireAfterWrite(Constant.MS_1HR, TimeUnit.MILLISECONDS).build();
 
   public static void install() {
     Str.waitForUpdate();
@@ -71,6 +75,11 @@ public class MediaPlayer {
 
   private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, final Runnable errorAction) {
     try {
+      if (errorAction != null && Boolean.TRUE.equals(failedHosts.getIfPresent(Connection.getShortUrl(location, false)))) {
+        errorAction.run();
+        return true;
+      }
+
       List<String> args = new ArrayList<String>(16);
       File oldMediaPlayerDir;
       String language = Str.locale().getISO3Language();
@@ -110,6 +119,7 @@ public class MediaPlayer {
                 if (!Regex.firstMatch(line, Str.get(739)).isEmpty()) {
                   mediaPlayer.destroy();
                   errorAction.run();
+                  failedHosts.get(Connection.getShortUrl(location, false), () -> true);
                   return;
                 }
               }

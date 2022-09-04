@@ -1,4 +1,4 @@
-368
+370
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -607,7 +607,7 @@ EMPTY
 EMPTY
 EMPTY
 EMPTY
-315569520000
+2592000000
 (\.(?! ))|(\<\s*+/?+((?i)strong)[^\>]*\>)
 SPACE
 false
@@ -738,7 +738,7 @@ https://piratez.xyz
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C343F
 200
 true
-(?i)((Couldn't ((extract)|(process)) youtube video URL)|(open of \p{Graph}++ failed)|(access stream error)|(lua stream warning: error running script))
+(?i)((Couldn't ((extract)|(process)) youtube video URL)|(open of \p{Graph}++ failed)|(access stream error)|(lua stream warning: ((error running script)|(Couldn't parse)))|(lua stream error:))
 (?<=\>)[^\<]*+(?=\<)
 ((?<=\<)\s*+(?i)script[\s\>])|(\<\s*+/\s*+(?i)script\s*+(?=\>))|(\<%)|(%\>)
 !--
@@ -800,4 +800,7 @@ https://github.com/ALGwares/VidMasta/releases/download/none/ipfilter.p2p.zip
 https://www.imdb.com/title/tt%s/plotsummary
 (?is)\sid\s*+\=\s*+\"summary\-.*?\sid\s*+\=\s*+\"summary\-[^\>]++\>
 \</li\>
+(\A(?i)magnet:\?xt\=urn:btih:)|(&.*\z)
+EMPTY
+https://itorrents.org/torrent/%S.torrent
 eof

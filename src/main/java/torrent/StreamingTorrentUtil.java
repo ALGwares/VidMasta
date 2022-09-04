@@ -389,7 +389,7 @@ public class StreamingTorrentUtil {
       if (Debug.DEBUG) {
         Debug.println(playlistItem.name + " is not in the list of " + fileInfos.length + " files for " + downloadManager.getTorrentFileName());
       }
-      return;
+      throw new Exception("internal download error");
     }
 
     playlistItem.item = fileInfos[playlistItem.groupIndex];

@@ -200,7 +200,7 @@ public class IO {
     return "";
   }
 
-  public static BufferedReader bufferedReader(String contentEncoding, InputStream inputStream) throws Exception {
+  public static InputStream inputStream(String contentEncoding, InputStream inputStream) throws Exception {
     InputStream is = inputStream;
     if (contentEncoding != null) {
       String encoding = contentEncoding.toLowerCase(Locale.ENGLISH);
@@ -210,7 +210,11 @@ public class IO {
         is = new InflaterInputStream(is, new Inflater(), 512);
       }
     }
-    return new BufferedReader(new InputStreamReader(is, IOConstant.UTF8));
+    return is;
+  }
+
+  public static BufferedReader bufferedReader(String contentEncoding, InputStream inputStream) throws Exception {
+    return new BufferedReader(new InputStreamReader(inputStream(contentEncoding, inputStream), IOConstant.UTF8));
   }
 
   public static void write(String fileName, Throwable t) {

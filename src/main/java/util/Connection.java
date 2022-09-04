@@ -499,7 +499,8 @@ public class Connection {
           }
 
           setConnectionProperties(connection, false, referer, 5);
-          is = connection.getInputStream();
+          connection.connect();
+          is = IO.inputStream(connection.getContentEncoding(), connection.getInputStream());
           if (isCancelled()) {
             return;
           }
