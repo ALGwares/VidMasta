@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2022.09.04   | VidMasta 28.2
+
+CHANGE: CORE | Improved performance of download initialization step
+
+
+
+
 2022.09.03   | VidMasta 28.1
 
 CHANGE: CORE | Improved performance of download initialization step

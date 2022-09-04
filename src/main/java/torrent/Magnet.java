@@ -17,7 +17,6 @@ import com.biglybt.core.util.SystemProperties;
 import com.biglybt.pif.PluginInterface;
 import com.biglybt.pif.PluginManagerDefaults;
 import com.biglybt.pif.PluginState;
-import com.biglybt.pif.utils.resourcedownloader.ResourceDownloader;
 import com.biglybt.pifimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import com.biglybt.plugin.dht.DHTPlugin;
 import debug.Debug;
@@ -127,50 +126,19 @@ public class Magnet extends Thread {
       return;
     }
     try {
-      ResourceDownloader resourceDownloader = ResourceDownloaderFactoryImpl.getSingleton().create(new URL(magnetLink));
-      AbstractWorker<byte[]> magnetLinkDownloader = new AbstractWorker<byte[]>() {
-        protected byte[] doInBackground() throws Exception {
-          try {
-            return FileUtil.readInputStreamAsByteArray(resourceDownloader.download(), BDecoder.MAX_BYTE_ARRAY_SIZE);
-          } catch (Exception e) {
-            if (Debug.DEBUG) {
-              Debug.print(e);
-            }
-            try {
-              resourceDownloader.cancel();
-            } catch (Exception e2) {
-              if (Debug.DEBUG) {
-                Debug.print(e2);
-              }
-            }
-            throw e;
-          }
+      byte[] torrentBytes;
+      try {
+        IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
+        String magnetLinkHash = Regex.replaceAllRepeatedly(magnetLink, 801), tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
+        Connection.saveData(String.format(Locale.ENGLISH, Str.get(803), magnetLinkHash), tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
+        torrentBytes = Files.readAllBytes(Paths.get(tempTorrent));
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
         }
-      };
-      magnetLinkDownloader.execute();
-      byte[] torrentBytes = (new AbstractWorker<byte[]>() {
-        protected byte[] doInBackground() throws Exception {
-          try {
-            IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
-            String magnetLinkHash = Regex.replaceAllRepeatedly(magnetLink, 801), tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
-            Connection.saveData(String.format(Locale.ENGLISH, Str.get(803), magnetLinkHash), tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
-            byte[] bytes = Files.readAllBytes(Paths.get(tempTorrent));
-            try {
-              resourceDownloader.cancel();
-            } catch (Exception e) {
-              if (Debug.DEBUG) {
-                Debug.print(e);
-              }
-            }
-            return bytes;
-          } catch (Exception e) {
-            if (Debug.DEBUG) {
-              Debug.print(e);
-            }
-            return magnetLinkDownloader.get();
-          }
-        }
-      }).executeAndGet();
+        torrentBytes = FileUtil.readInputStreamAsByteArray(ResourceDownloaderFactoryImpl.getSingleton().create(new URL(magnetLink)).download(),
+                BDecoder.MAX_BYTE_ARRAY_SIZE);
+      }
       isDoneDownloading.set(true);
 
       if (torrentExists()) {
