@@ -606,7 +606,7 @@ public class GUI extends JFrame implements GuiListener {
       playlistPlayWithDefaultAppCheckBoxMenuItem.setSelected(true);
       trailerPlayerButtonGroup2 = new ButtonGroup();
       UI.select(trailerPlayerButtonGroup, 6);
-      for (JComponent component : new JComponent[]{peerBlockNotificationCheckBoxMenuItem, playlistPlayWithDefaultAppCheckBoxMenuItem, searchMenuSeparator7,
+      for (JComponent component : new JComponent[]{peerBlockNotificationCheckBoxMenuItem, playlistPlayWithDefaultAppCheckBoxMenuItem, searchMenuSeparator8,
         trailerPlayerMenu}) {
         component.setEnabled(false);
         component.setVisible(false);
@@ -3718,31 +3718,66 @@ public class GUI extends JFrame implements GuiListener {
 
     trailerMediaPlayerRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK));
     trailerMediaPlayerRadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayerRadioButtonMenuItem.text")); // NOI18N
+    trailerMediaPlayerRadioButtonMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        trailerPlayerRadioButtonMenuItemActionPerformed(evt);
+      }
+    });
     trailerPlayerMenu.add(trailerMediaPlayerRadioButtonMenuItem);
 
     trailerMediaPlayer1080RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK));
     trailerMediaPlayer1080RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer1080RadioButtonMenuItem.text")); // NOI18N
+    trailerMediaPlayer1080RadioButtonMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        trailerPlayerRadioButtonMenuItemActionPerformed(evt);
+      }
+    });
     trailerPlayerMenu.add(trailerMediaPlayer1080RadioButtonMenuItem);
 
     trailerMediaPlayer720RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK));
     trailerMediaPlayer720RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer720RadioButtonMenuItem.text")); // NOI18N
+    trailerMediaPlayer720RadioButtonMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        trailerPlayerRadioButtonMenuItemActionPerformed(evt);
+      }
+    });
     trailerPlayerMenu.add(trailerMediaPlayer720RadioButtonMenuItem);
 
     trailerMediaPlayer480RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_DOWN_MASK));
     trailerMediaPlayer480RadioButtonMenuItem.setSelected(true);
     trailerMediaPlayer480RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer480RadioButtonMenuItem.text")); // NOI18N
+    trailerMediaPlayer480RadioButtonMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        trailerPlayerRadioButtonMenuItemActionPerformed(evt);
+      }
+    });
     trailerPlayerMenu.add(trailerMediaPlayer480RadioButtonMenuItem);
 
     trailerMediaPlayer360RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_J, InputEvent.CTRL_DOWN_MASK));
     trailerMediaPlayer360RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer360RadioButtonMenuItem.text")); // NOI18N
+    trailerMediaPlayer360RadioButtonMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        trailerPlayerRadioButtonMenuItemActionPerformed(evt);
+      }
+    });
     trailerPlayerMenu.add(trailerMediaPlayer360RadioButtonMenuItem);
 
     trailerMediaPlayer240RadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, InputEvent.CTRL_DOWN_MASK));
     trailerMediaPlayer240RadioButtonMenuItem.setText(bundle.getString("GUI.trailerMediaPlayer240RadioButtonMenuItem.text")); // NOI18N
+    trailerMediaPlayer240RadioButtonMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        trailerPlayerRadioButtonMenuItemActionPerformed(evt);
+      }
+    });
     trailerPlayerMenu.add(trailerMediaPlayer240RadioButtonMenuItem);
 
     trailerWebBrowserPlayerRadioButtonMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_DOWN_MASK));
     trailerWebBrowserPlayerRadioButtonMenuItem.setText(bundle.getString("GUI.trailerWebBrowserPlayerRadioButtonMenuItem.text")); // NOI18N
+    trailerWebBrowserPlayerRadioButtonMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        trailerPlayerRadioButtonMenuItemActionPerformed(evt);
+      }
+    });
     trailerPlayerMenu.add(trailerWebBrowserPlayerRadioButtonMenuItem);
 
     searchMenu.add(trailerPlayerMenu);
@@ -5873,6 +5908,9 @@ public class GUI extends JFrame implements GuiListener {
 
     private void downloadQualityButtonMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_downloadQualityButtonMenuItemActionPerformed
       subtitleFormat = getFormat();
+      if (evt.getModifiers() == (ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK)) {
+        timedMsg(evt.getActionCommand());
+      }
     }//GEN-LAST:event_downloadQualityButtonMenuItemActionPerformed
 
     private void playlistOpenButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_playlistOpenButtonActionPerformed
@@ -6042,6 +6080,12 @@ public class GUI extends JFrame implements GuiListener {
     private void popularMoviesMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_popularMoviesMenuItemActionPerformed
       doPopularVideosSearch(false, false, false, popularMoviesMenuItem);
     }//GEN-LAST:event_popularMoviesMenuItemActionPerformed
+
+  private void trailerPlayerRadioButtonMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_trailerPlayerRadioButtonMenuItemActionPerformed
+    if (evt.getModifiers() == ActionEvent.CTRL_MASK) {
+      timedMsg(evt.getActionCommand());
+    }
+  }//GEN-LAST:event_trailerPlayerRadioButtonMenuItemActionPerformed
 
   private void exportSummaryLink(SelectedTableRow row, VideoStrExportListener strExportListener) {
     strExportListener.export(ContentType.TITLE, String.format(Str.get(781), row.video.id), false, this);
@@ -6792,7 +6836,6 @@ public class GUI extends JFrame implements GuiListener {
         try {
           RenderedImage posterImage = UI.image(new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(Integer.parseInt(Str.get(495)), -1,
                   Image.SCALE_SMOOTH)));
-          IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
           ImageIO.write(posterImage, "png", posterFile);
           if (summary == null) {
             return posterFilePath;
@@ -6867,7 +6910,7 @@ public class GUI extends JFrame implements GuiListener {
 
   @Override
   public void startPeerBlock() {
-    if (!workerListener.canFilterIpsWithoutBlocking()) {
+    if (playlistDownloaderRadioButtonMenuItem.isSelected()) {
       return;
     }
     boolean canShowPeerBlock = peerBlockNotificationCheckBoxMenuItem.isSelected();

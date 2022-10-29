@@ -24,6 +24,8 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -31,10 +33,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.StrUpdateListener.UpdateListener;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import str.Str;
 
 public class Connection {
@@ -109,24 +114,24 @@ public class Connection {
   }
 
   public static String getUpdateFile(String file, boolean showStatus) throws Exception {
-    return getSourceCode(file, DomainType.UPDATE, showStatus, true, false, Constant.MS_1HR, IOException.class).trim();
+    return getSourceCode(file, DomainType.UPDATE, showStatus, true, Constant.MS_1HR, IOException.class).trim();
   }
 
   public static String getSourceCode(String url, DomainType domainType, long cacheExpirationMs) throws Exception {
-    return getSourceCode(url, domainType, true, false, true, cacheExpirationMs);
+    return getSourceCode(url, domainType, true, false, cacheExpirationMs);
   }
 
   public static String getSourceCode(String url, DomainType domainType, boolean showStatus, long cacheExpirationMs) throws Exception {
-    return getSourceCode(url, domainType, showStatus, false, true, cacheExpirationMs);
+    return getSourceCode(url, domainType, showStatus, false, cacheExpirationMs);
   }
 
-  public static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, boolean compress, long cacheExpirationMs,
+  public static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs, Class<?>... throwables)
+          throws Exception {
+    return getSourceCode(url, domainType, showStatus, emptyOK, cacheExpirationMs, true, throwables);
+  }
+
+  private static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs, boolean followRedirects,
           Class<?>... throwables) throws Exception {
-    return getSourceCode(url, domainType, showStatus, emptyOK, compress, cacheExpirationMs, true, throwables);
-  }
-
-  private static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, boolean compress, long cacheExpirationMs,
-          boolean followRedirects, Class<?>... throwables) throws Exception {
     if (url == null || url.isEmpty()) {
       if (Debug.DEBUG) {
         Debug.println("Internal error: the URL is null or empty.");
@@ -140,8 +145,7 @@ public class Connection {
     if (sourceCodeFile.exists()) {
       if (IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
         try {
-          addToCache(sourceCode = getSourceCodeHelper(url, domainType, showStatus, emptyOK, compress, cacheExpirationMs, followRedirects, throwables),
-                  sourceCodeFile);
+          addToCache(sourceCode = getSourceCodeHelper(url, domainType, showStatus, emptyOK, cacheExpirationMs, followRedirects, throwables), sourceCodeFile);
         } catch (InterruptedException | CancellationException e) {
           throw e;
         } catch (Exception e) {
@@ -162,20 +166,18 @@ public class Connection {
           if (Debug.DEBUG) {
             Debug.print(e);
           }
-          addToCache(sourceCode = getSourceCodeHelper(url, domainType, showStatus, emptyOK, compress, cacheExpirationMs, followRedirects, throwables),
-                  sourceCodeFile);
+          addToCache(sourceCode = getSourceCodeHelper(url, domainType, showStatus, emptyOK, cacheExpirationMs, followRedirects, throwables), sourceCodeFile);
         }
       }
     } else {
-      addToCache(sourceCode = getSourceCodeHelper(url, domainType, showStatus, emptyOK, compress, cacheExpirationMs, followRedirects, throwables),
-              sourceCodeFile);
+      addToCache(sourceCode = getSourceCodeHelper(url, domainType, showStatus, emptyOK, cacheExpirationMs, followRedirects, throwables), sourceCodeFile);
     }
 
     return sourceCode;
   }
 
   private static String getSourceCodeHelper(final String url, final DomainType domainType, final boolean showStatus, final boolean emptyOK,
-          final boolean compress, final long cacheExpirationMs, final boolean followRedirects, final Class<?>... throwables) throws Exception {
+          final long cacheExpirationMs, final boolean followRedirects, final Class<?>... throwables) throws Exception {
     if (Debug.DEBUG) {
       Debug.println(url);
     }
@@ -197,7 +199,7 @@ public class Connection {
             return "";
           }
 
-          setConnectionProperties(connection, compress, null, 1);
+          setConnectionProperties(connection, null, 1);
           connection.connect();
           br = IO.bufferedReader(connection.getContentEncoding(), connection.getInputStream());
           if (isCancelled()) {
@@ -225,7 +227,7 @@ public class Connection {
             if (Debug.DEBUG) {
               Debug.println("following redirect from " + url + " to " + newUrl);
             }
-            return getSourceCode(newUrl, domainType, showStatus, emptyOK, compress, cacheExpirationMs, false, throwables);
+            return getSourceCode(newUrl, domainType, showStatus, emptyOK, cacheExpirationMs, false, throwables);
           }
           checkConnectionResponse(connection, url);
           if (!emptyOK && source.length() == 0) {
@@ -250,14 +252,14 @@ public class Connection {
             } else if (url.startsWith(proxy = Str.get(723))) {
               addShortTimeoutUrls();
               selectNextDownloadLinkInfoProxy();
-              return getSourceCode(Str.get(731) + url.substring(proxy.length()), domainType, showStatus, emptyOK, compress, cacheExpirationMs, followRedirects,
+              return getSourceCode(Str.get(731) + url.substring(proxy.length()), domainType, showStatus, emptyOK, cacheExpirationMs, followRedirects,
                       throwables);
             } else if (!(proxies = Str.get(726)).isEmpty()) {
               for (String currProxy : Regex.split(proxies, Constant.SEPARATOR1)) {
                 if (url.startsWith(currProxy)) {
                   addShortTimeoutUrls();
-                  return getSourceCode(Str.get(731) + url.substring(currProxy.length()), domainType, showStatus, emptyOK, compress, cacheExpirationMs,
-                          followRedirects, throwables);
+                  return getSourceCode(Str.get(731) + url.substring(currProxy.length()), domainType, showStatus, emptyOK, cacheExpirationMs, followRedirects,
+                          throwables);
                 }
               }
             }
@@ -411,12 +413,10 @@ public class Connection {
     }
   }
 
-  public static void setConnectionProperties(HttpURLConnection connection, boolean compress, String referer, int shortTimeoutSecs) {
+  public static void setConnectionProperties(HttpURLConnection connection, String referer, int shortTimeoutSecs) {
     connection.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1;q=0.9, us-ascii;q=0.8, *;q=0.7");
     connection.setRequestProperty("Accept-Language", "en-US, en-GB;q=0.9, en;q=0.8, *;q=0.7");
-    if (compress) {
-      connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
-    }
+    connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
     connection.setRequestProperty("User-Agent", Str.get(301));
     if (referer != null) {
       connection.setRequestProperty("Referer", referer);
@@ -470,12 +470,16 @@ public class Connection {
     saveData(url, outputPath, domainType, true);
   }
 
-  public static void saveData(final String url, final String outputPath, final DomainType domainType, final boolean showStatus) throws Exception {
+  public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus) throws Exception {
     saveData(url, outputPath, domainType, showStatus, null);
   }
 
-  public static void saveData(final String url, final String outputPath, final DomainType domainType, final boolean showStatus, final String referer)
-          throws Exception {
+  public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer) throws Exception {
+    saveData(url, null, outputPath, domainType, showStatus, referer, "", null);
+  }
+
+  public static void saveData(final String url, final Pair<String, byte[]> payload, final String outputPath, final DomainType domainType,
+          final boolean showStatus, final String referer, final String redirectUrl, final String cookie) throws Exception {
     if (Debug.DEBUG) {
       Debug.println(url);
     }
@@ -498,8 +502,44 @@ public class Connection {
             return;
           }
 
-          setConnectionProperties(connection, false, referer, 5);
+          setConnectionProperties(connection, referer, 5);
+          if (cookie != null) {
+            connection.setRequestProperty("Cookie", cookie);
+          }
+          if (payload != null) {
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setFixedLengthStreamingMode(payload.getRight().length);
+            connection.setRequestProperty("Content-Type", payload.getLeft());
+          }
           connection.connect();
+          if (payload != null) {
+            OutputStream os2 = null;
+            try {
+              (os2 = connection.getOutputStream()).write(payload.getRight());
+            } finally {
+              IO.close(os2);
+            }
+          }
+
+          int redirectUrlLen;
+          if (redirectUrl != null && (((redirectUrlLen = redirectUrl.length()) == 0 && Regex.isMatch(String.valueOf(connection.getResponseCode()), "30[12378]"))
+                  || redirectUrlLen > 0)) {
+            String newUrl = (redirectUrlLen == 0 ? connection.getHeaderField("Location") : redirectUrl);
+            if (!Regex.isMatch(newUrl, "(?i)https?+:.+")) {
+              URL oldUrl = new URL(url);
+              newUrl = oldUrl.getProtocol() + "://" + oldUrl.getHost() + newUrl;
+            }
+            if (Debug.DEBUG) {
+              Debug.println("following redirect from " + url + " to " + newUrl);
+            }
+            List<String> cookies = Stream.concat(Arrays.asList(cookie).stream(), ObjectUtils.defaultIfNull(connection.getHeaderFields().get("Set-Cookie"),
+                    Collections.<String>emptyList()).stream()).filter(currCookie -> currCookie != null).collect(Collectors.toList());
+            saveData(newUrl, redirectUrlLen == 0 ? payload : null, outputPath, domainType, showStatus, referer, null, cookies.isEmpty() ? null
+                    : cookies.stream().collect(Collectors.joining(";")));
+            return;
+          }
+
           is = IO.inputStream(connection.getContentEncoding(), connection.getInputStream());
           if (isCancelled()) {
             return;
@@ -595,7 +635,7 @@ public class Connection {
           return "";
         }
 
-        setConnectionProperties(connection, false, null, 5);
+        setConnectionProperties(connection, null, 5);
         is = connection.getInputStream();
         if (callingWorker.isCancelled()) {
           return "";

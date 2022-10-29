@@ -149,7 +149,7 @@ public class TorrentFinder extends Worker {
     if (Boolean.parseBoolean(Str.get(783))) {
       try {
         sourceCode = Connection.getSourceCode(url = String.format(Str.get(784), urlFormOptionsPart1, urlFormOptionsPart2), DomainType.DOWNLOAD_LINK_INFO,
-                !prefetch, false, true, Constant.MS_1HR, FileNotFoundException.class);
+                !prefetch, false, Constant.MS_1HR, FileNotFoundException.class);
       } catch (IOException2 e) {
         if (Debug.DEBUG) {
           Debug.println(e);
@@ -231,7 +231,7 @@ public class TorrentFinder extends Worker {
 
   public void getTorrents(boolean prefetch) throws Exception {
     String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.id, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, !prefetch, true,
-            true, Constant.MS_1HR);
+            Constant.MS_1HR);
     if (!isCancelled() && !sourceCode.isEmpty() && !prefetch) {
       Collection<Torrent> newTorrents = getTorrents(700, sourceCode);
       if (!newTorrents.isEmpty() && !isCancelled()) {

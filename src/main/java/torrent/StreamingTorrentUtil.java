@@ -7,8 +7,9 @@ import com.biglybt.core.download.DownloadManager;
 import com.biglybt.core.download.DownloadManagerEnhancer;
 import com.biglybt.core.download.DownloadManagerStats;
 import com.biglybt.core.download.EnhancedDownloadManager;
-import com.biglybt.core.download.ForceRecheckListener;
 import com.biglybt.core.global.GlobalManager;
+import com.biglybt.core.global.GlobalManagerEvent;
+import com.biglybt.core.global.GlobalManagerEventListener;
 import com.biglybt.core.torrent.TOTorrent;
 import com.biglybt.core.torrent.TOTorrentFile;
 import com.biglybt.core.util.ByteFormatter;
@@ -472,13 +473,17 @@ public class StreamingTorrentUtil {
         }
         isRechecked = true;
         downloadManager.stopIt(DownloadManager.STATE_STOPPED, false, false);
-        downloadManager.forceRecheck(new ForceRecheckListener() {
+        downloadManager.getGlobalManager().addEventListener(new GlobalManagerEventListener() {
           @Override
-          public void forceRecheckComplete(DownloadManager manager) {
-            manager.initialize();
-            manager.setForceStart(true);
+          public void eventOccurred(GlobalManagerEvent evt) {
+            if (evt.getEventType() == GlobalManagerEvent.ET_RECHECK_COMPLETE) {
+              evt.getDownload().initialize();
+              evt.getDownload().setForceStart(true);
+              downloadManager.getGlobalManager().removeEventListener(this);
+            }
           }
         });
+        downloadManager.forceRecheck();
       }
 
       if (state == DownloadManager.STATE_CHECKING) {

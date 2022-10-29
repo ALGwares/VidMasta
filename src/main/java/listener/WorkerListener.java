@@ -50,8 +50,6 @@ public interface WorkerListener {
 
   void portChanged(int port);
 
-  boolean canFilterIpsWithoutBlocking();
-
   void initPlaylist() throws Exception;
 
   void stream(String magnetLink, String name);

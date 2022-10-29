@@ -5,16 +5,20 @@ import gui.UI;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import listener.ContentType;
@@ -22,6 +26,7 @@ import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
 import listener.VideoStrExportListener;
+import org.apache.commons.lang3.tuple.Pair;
 import search.BoxSetVideo;
 import search.util.VideoSearch;
 import str.Str;
@@ -334,7 +339,6 @@ public class VideoFinder extends Worker {
   }
 
   private void readSummary() throws Exception {
-    IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
     File speech = new File(Constant.TEMP_DIR + Regex.toFileName(video.title + '-' + video.year) + "-" + (video.id.hashCode() & 0xfffffff) + Str.get(768));
     if (speech.exists()) {
       read(speech);
@@ -355,8 +359,12 @@ public class VideoFinder extends Worker {
       newSummary = Regex.match(newSummary, br1, "\\z");
     }
 
-    Connection.saveData(String.format(Str.get(767), URLEncoder.encode(Regex.clean(Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470), false),
-            Constant.UTF8)), speech.getPath(), DomainType.VIDEO_INFO);
+    String uuid = UUID.randomUUID().toString();
+    Method escape = Class.forName(Str.get(810)).getMethod(Str.get(811), String.class);
+    Object escaped = escape.invoke(null, Regex.clean(Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470), false));
+    Connection.saveData(String.format(Str.get(806), escaped), Str.get(808).isEmpty() ? null : Pair.of(Str.get(808), String.format(Str.get(
+            809), escaped, escape.invoke(null, uuid)).getBytes(StandardCharsets.UTF_8)), speech.getPath(), DomainType.VIDEO_INFO, true, null, String.format(
+            Str.get(807), Str.urlEncode(uuid)), null);
     if (!isCancelled()) {
       read(speech);
     }
@@ -428,7 +436,7 @@ public class VideoFinder extends Worker {
         String comments = null;
         try {
           if (torrent.commentsLink != null && !torrent.commentsLink.isEmpty() && !torrent.commentsLink.equals(Str.get(730) + Str.get(678))) {
-            Collection<String> commentsArr = Regex.matches(Connection.getSourceCode(torrent.commentsLink, DomainType.DOWNLOAD_LINK_INFO, true, true, true,
+            Collection<String> commentsArr = Regex.matches(Connection.getSourceCode(torrent.commentsLink, DomainType.DOWNLOAD_LINK_INFO, true, true,
                     Constant.MS_1HR), 151);
             if ((numComments = commentsArr.size()) != 0) {
               StringBuilder commentsBuf = new StringBuilder(4096);
@@ -694,22 +702,22 @@ public class VideoFinder extends Worker {
   }
 
   private String[] getTrailerLink2(Integer season) throws Exception {
-    long cacheExpirationMs = video.isTVShow ? Constant.MS_2DAYS : Constant.MS_3DAYS;
-    String sourceCode = Connection.getSourceCode(season == null ? String.format(Str.get(748), video.id) : String.format(Str.get(749), video.id, season),
-            DomainType.VIDEO_INFO, !prefetch, cacheExpirationMs);
+    String sourceCode1 = Connection.getSourceCode(season == null ? String.format(Str.get(748), video.id) : String.format(Str.get(749), video.id, season),
+            DomainType.VIDEO_INFO, !prefetch, video.isTVShow ? Constant.MS_2DAYS : Constant.MS_3DAYS);
     if (isCancelled()) {
       return null;
     }
 
-    for (String videoId : Regex.matches(sourceCode, 750)) {
-      sourceCode = Connection.getSourceCode(String.format(Str.get(752), videoId), DomainType.VIDEO_INFO, !prefetch, cacheExpirationMs);
+    for (String videoId : Regex.matches(sourceCode1, 750)) {
+      // Expire cached source code in 1hr because video link in source code has built in expiration of a few hours
+      String sourceCode = Connection.getSourceCode(String.format(Str.get(752), videoId), DomainType.VIDEO_INFO, !prefetch, Constant.MS_1HR);
       if (isCancelled()) {
         return null;
       }
 
       List<String> videoInfos = Regex.matches(sourceCode, 753);
       if (videoInfos.isEmpty()) {
-        sourceCode = Connection.getSourceCode(String.format(Str.get(755), videoId), DomainType.VIDEO_INFO, !prefetch, cacheExpirationMs);
+        sourceCode = Connection.getSourceCode(String.format(Str.get(755), videoId), DomainType.VIDEO_INFO, !prefetch, Constant.MS_1HR);
         if (isCancelled()) {
           return null;
         }
@@ -721,7 +729,8 @@ public class VideoFinder extends Worker {
         for (String videoInfoContent : Regex.matches(videoInfo, 756)) {
           String link = Regex.match(videoInfoContent, 758);
           if (!link.isEmpty() && !Regex.firstMatch(videoInfoContent, 760).isEmpty()) {
-            return new String[]{link, video.title + " (" + video.year + ')' + (season == null ? "" : " Season " + season)};
+            String title = Regex.match(sourceCode1, String.format(Str.get(804), Pattern.quote(videoId)), Str.get(805));
+            return new String[]{link, title.isEmpty() ? video.title + " (" + video.year + ')' : title};
           }
         }
       }

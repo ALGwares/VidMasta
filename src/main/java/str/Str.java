@@ -1,6 +1,9 @@
 package str;
 
 import i18n.I18nStr;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import listener.GuiListener;
 import listener.StrUpdateListener;
 import listener.StrUpdateListener.UpdateListener;
@@ -47,6 +50,14 @@ public class Str extends I18nStr {
       hashCode = 31 * hashCode + str.charAt(i);
     }
     return hashCode;
+  }
+
+  public static String urlEncode(String str) {
+    try {
+      return URLEncoder.encode(str, StandardCharsets.UTF_8.toString());
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Str() {

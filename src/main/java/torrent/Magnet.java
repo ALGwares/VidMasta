@@ -60,8 +60,7 @@ public class Magnet extends Thread {
   private static final CountDownLatch ipFilterInitializerStartSignal = new CountDownLatch(1);
   private static final AtomicBoolean isAzureusConfigured = new AtomicBoolean();
   public static final String VUZE_VERSION = "biglybt" + Constants.BIGLYBT_VERSION.replace(".", "");
-  private static final String VUZE_DIR = Constant.APP_DIR + VUZE_VERSION + Constant.FILE_SEPARATOR + "biglybt" + Constant.FILE_SEPARATOR, IP_FILTER_TOGGLE
-          = "Ip Filter Enabled";
+  private static final String VUZE_DIR = Constant.APP_DIR + VUZE_VERSION + Constant.FILE_SEPARATOR + "biglybt" + Constant.FILE_SEPARATOR;
   private static volatile Core core;
   public final String magnetLink;
   public final File torrent;
@@ -128,7 +127,6 @@ public class Magnet extends Thread {
     try {
       byte[] torrentBytes;
       try {
-        IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
         String magnetLinkHash = Regex.replaceAllRepeatedly(magnetLink, 801), tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
         Connection.saveData(String.format(Locale.ENGLISH, Str.get(803), magnetLinkHash), tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
         torrentBytes = Files.readAllBytes(Paths.get(tempTorrent));
@@ -149,10 +147,6 @@ public class Magnet extends Thread {
           return;
         }
         IO.write(torrent, torrentBytes);
-
-        if (!COConfigurationManager.getBooleanParameter(IP_FILTER_TOGGLE)) {
-          COConfigurationManager.setParameter(IP_FILTER_TOGGLE, true);
-        }
       }
 
       if (Debug.DEBUG) {
@@ -185,10 +179,6 @@ public class Magnet extends Thread {
     ipFilterInitializerStartSignal.countDown();
   }
 
-  public static boolean canFilterIpsWithoutBlocking() {
-    return IO.listFiles(VUZE_DIR + "torrents").length != 0;
-  }
-
   // Intentionally un-synchronized because a caller is the event dispatch thread
   public static void startAzureus(final GuiListener guiListener) {
     if (core != null) {
@@ -214,7 +204,6 @@ public class Magnet extends Thread {
       System.setProperty(SystemProperties.SYSPROP_SECURITY_MANAGER_PERMITEXIT, "1");
       System.setProperty("MULTI_INSTANCE", String.valueOf(true));
       System.setProperty(SystemProperties.SYSPROP_PLATFORM_MANAGER_DISABLE, String.valueOf(true));
-      boolean canFilterIpsWithoutBlocking = canFilterIpsWithoutBlocking();
       IO.fileOp(VUZE_DIR, IO.MK_DIR);
       System.setProperty(SystemProperties.SYSPROP_INSTALL_PATH, VUZE_DIR);
       System.setProperty(SystemProperties.SYSPROP_CONFIG_PATH, VUZE_DIR);
@@ -226,7 +215,7 @@ public class Magnet extends Thread {
       Connection.setAuthenticator();
       COConfigurationManager.setParameter("max active torrents", 256);
       COConfigurationManager.setParameter("max downloads", 256);
-      COConfigurationManager.setParameter(IP_FILTER_TOGGLE, canFilterIpsWithoutBlocking);
+      COConfigurationManager.setParameter("Ip Filter Enabled", true);
       COConfigurationManager.setParameter("Ip Filter Allow", false);
       COConfigurationManager.setParameter("Ip Filter Enable Banning", true);
       COConfigurationManager.setParameter("Ip Filter Ban Block Limit", (long) Integer.MAX_VALUE);

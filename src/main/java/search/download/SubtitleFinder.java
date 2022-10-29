@@ -303,7 +303,6 @@ public class SubtitleFinder extends Worker {
             }
             complete = true;
           }
-          IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
           if (subtitleFile.renameTo(tempSubtitleFile)) {
             cache.put(tempSubtitleFileName, subtitleFileName);
           }

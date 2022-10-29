@@ -3,6 +3,9 @@ package util;
 import com.sun.jna.platform.win32.Kernel32Util;
 import com.sun.jna.platform.win32.Shell32;
 import com.sun.jna.platform.win32.ShellAPI.SHELLEXECUTEINFO;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinUser;
 import debug.Debug;
 import java.io.BufferedReader;
 import java.io.File;
@@ -112,6 +115,15 @@ public class WindowsUtil {
     addMicrosoftRegistryEntry("Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", "SZ", peerBlockProgram, "RUNASADMIN");
     runJavaAsAdmin(Arrays.asList(Constant.PROGRAM_DIR + Constant.PEER_BLOCK + Constant.JAR, peerBlockProgram, Constant.APP_TITLE, Constant.APP_DIR
             + Constant.PEER_BLOCK + "Running", Constant.APP_DIR + Constant.PEER_BLOCK + "Exit"));
+  }
+
+  public static boolean closeWindow(String className, String windowName) {
+    HWND hwnd = User32.INSTANCE.FindWindow(className, windowName);
+    if (hwnd != null) {
+      User32.INSTANCE.PostMessage(hwnd, WinUser.WM_QUIT, null, null);
+      return true;
+    }
+    return false;
   }
 
   private WindowsUtil() {

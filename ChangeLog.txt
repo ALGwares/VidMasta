@@ -1,6 +1,16 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2022.10.29   | VidMasta 28.3
+
+CHANGE: CORE | Improved error handling for playback of trailers when using VLC media player for Windows
+CHANGE: CORE | Fixed title summary text-to-speech
+CHANGE: UI   | Added transient message when changing download/trailer quality via hotkeys
+CHANGE: UI   | Updated application to only start PeerBlock for IP filtering when downloader is changed from the built-in playlist downloader, which already has IP filtering
+
+
+
+
 2022.09.04   | VidMasta 28.2
 
 CHANGE: CORE | Improved performance of download initialization step

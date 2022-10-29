@@ -134,6 +134,26 @@ public class MediaPlayer {
         }).execute();
       }
 
+      if (playAndExit && Constant.WINDOWS) {
+        (new Worker() {
+          @Override
+          protected void doWork() {
+            try {
+              while (mediaPlayer.isAlive()) {
+                Thread.sleep(100);
+              }
+              for (int i = 0; i < 200 && !WindowsUtil.closeWindow("#32770", "VLC media player"); i++) {
+                Thread.sleep(50);
+              }
+            } catch (Exception e) {
+              if (Debug.DEBUG) {
+                Debug.print(e);
+              }
+            }
+          }
+        }).execute();
+      }
+
       return true;
     } catch (Exception e) {
       if (Debug.DEBUG) {

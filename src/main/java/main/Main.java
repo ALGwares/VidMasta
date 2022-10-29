@@ -150,6 +150,7 @@ public class Main implements WorkerListener {
     });
 
     removeTempFiles();
+    IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
     Connection.startStatusBar();
 
     (new Timer()).schedule(new TimerTask() {
@@ -449,11 +450,6 @@ public class Main implements WorkerListener {
   @Override
   public void portChanged(int port) {
     Magnet.changePorts(port);
-  }
-
-  @Override
-  public boolean canFilterIpsWithoutBlocking() {
-    return Magnet.canFilterIpsWithoutBlocking();
   }
 
   @Override
