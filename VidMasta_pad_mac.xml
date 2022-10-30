@@ -9,7 +9,7 @@
   <RoboSoft>
     <Company_UIN>CMP-010419D92FD</Company_UIN>
     <Company_Description></Company_Description>
-    <Product_UIN>APP-00F11FD8D97</Product_UIN>
+    <Product_UIN>APP-016A1E4BF0F</Product_UIN>
     <Search_String>VidMasta</Search_String>
     <Publish_on_CD>FALSE</Publish_on_CD>
     <RSProductType></RSProductType>
@@ -56,51 +56,20 @@
   <PAD_Certification_Promotion>
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
-  <ASBMPlannerID1stRound>12</ASBMPlannerID1stRound>
-  <Issues>0</Issues>
-  <NewsFeed>
-    <NewsFeed_FORM>Y</NewsFeed_FORM>
-    <NewsFeed_VERSION>1.0</NewsFeed_VERSION>
-    <NewsFeed_URL>http://Submit-Everywhere.com/extensions/NewsFeed.htm</NewsFeed_URL>
-    <NewsFeed_DESCRIPTION>This PAD extension allows you to add your RSS and Atom news feeds info into your PAD file. This info can be used by RSS feed submission software or by feed directories themselves.</NewsFeed_DESCRIPTION>
-    <NewsFeed_Type>RSS 0.90</NewsFeed_Type>
-    <NewsFeed_Language>English</NewsFeed_Language>
-    <NewsFeed_Purpose>News</NewsFeed_Purpose>
-    <NewsFeed_Author_Email>algwares.vidmasta@gmail.com</NewsFeed_Author_Email>
-    <NewsFeed_Author_First_Name>Anthony</NewsFeed_Author_First_Name>
-    <NewsFeed_Author_Last_Name>Gray</NewsFeed_Author_Last_Name>
-    <NewsFeed_Feed_URL></NewsFeed_Feed_URL>
-    <NewsFeed_Site_Name></NewsFeed_Site_Name>
-    <NewsFeed_Site_URL></NewsFeed_Site_URL>
-    <NewsFeed_Title></NewsFeed_Title>
-    <NewsFeed_Description_70></NewsFeed_Description_70>
-    <NewsFeed_Description_250></NewsFeed_Description_250>
-  </NewsFeed>
-  <Site>
-    <Site_FORM>Y</Site_FORM>
-    <Site_VERSION>1.0</Site_VERSION>
-    <Site_URL>http://Submit-Everywhere.com/extensions/Site.htm</Site_URL>
-    <Site_DESCRIPTION>This PAD extension allows you to add your site info into your PAD file. This info can be used by site submission software or by web directories themselves.</Site_DESCRIPTION>
-    <Site_Site_Title>VidMasta</Site_Site_Title>
-    <Site_Site_URL>http://sites.google.com/site/algwares/vidmasta</Site_Site_URL>
-    <Site_Description_100>VidMasta</Site_Description_100>
-    <Site_Description_250>VidMasta</Site_Description_250>
-    <Site_Description_450>VidMasta</Site_Description_450>
-    <Site_Keywords>VidMasta,ALGwares,Anthony Gray</Site_Keywords>
-    <Site_Contact_Email>algwares.vidmasta@gmail.com</Site_Contact_Email>
-    <Site_Contact_First_Name>Anthony</Site_Contact_First_Name>
-    <Site_Contact_Last_Name>Gray</Site_Contact_Last_Name>
-  </Site>
-  <Press_Release>
-    <Press_Release>VidMasta 28.3 Released</Press_Release>
-    <Press_Release_Plain>VidMasta 28.3 Released</Press_Release_Plain>
-    <Headline>VidMasta 28.3 Released</Headline>
-    <Summary>VidMasta 28.3 Released</Summary>
-    <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
-    <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
-  </Press_Release>
+  <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
+  <Issues>12</Issues>
   <Program_Info>
     <Program_Target_Platform>OS X</Program_Target_Platform>
+    <File_Info>
+      <Automatically_Detect_File_Size>N</Automatically_Detect_File_Size>
+      <File_Size_Bytes>33851591</File_Size_Bytes>
+      <File_Size_K>33058</File_Size_K>
+      <File_Size_MB>32.28</File_Size_MB>
+      <Filename_Versioned></Filename_Versioned>
+      <Filename_Previous></Filename_Previous>
+      <Filename_Generic></Filename_Generic>
+      <Filename_Long></Filename_Long>
+    </File_Info>
     <Program_Name>VidMasta</Program_Name>
     <Program_Version>28.3</Program_Version>
     <Program_Release_Month>10</Program_Release_Month>
@@ -110,20 +79,11 @@
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
-    <Program_OS_Support>Mac OS X,Mac OS X 10.1,Mac OS X 10.2,Mac OS X 10.3,Mac OS X 10.4,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8</Program_OS_Support>
+    <Program_OS_Support>Mac OS X,Mac OS X 10.1,Mac OS X 10.2,Mac OS X 10.3,Mac OS X 10.4,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8,Mac OS X 10.9</Program_OS_Support>
     <Program_Language>English,Dutch,French,Italian,Portuguese,Spanish,Turkish</Program_Language>
-    <Program_Change_Info>Made some modal dialogs non-modal and automatically loaded summary of first title search result.</Program_Change_Info>
+    <Program_Change_Info>Improved error handling for playback of trailers when using VLC media player for Windows. Fixed title summary text-to-speech. Added transient message when changing download/trailer quality via hotkeys. Updated application to only start PeerBlock when downloader is not the playlist.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
-    <File_Info>
-      <File_Size_Bytes>27324336</File_Size_Bytes>
-      <File_Size_K>26683</File_Size_K>
-      <File_Size_MB>26.06</File_Size_MB>
-      <Filename_Versioned></Filename_Versioned>
-      <Filename_Previous></Filename_Previous>
-      <Filename_Generic></Filename_Generic>
-      <Filename_Long></Filename_Long>
-    </File_Info>
     <Expire_Info>
       <Has_Expire_Info>N</Has_Expire_Info>
       <Expire_Based_On>Days</Expire_Based_On>
@@ -145,6 +105,31 @@
     <FacebookProductPage></FacebookProductPage>
     <GooglePlusProductPage></GooglePlusProductPage>
   </Program_Info>
+  <ASBMPlannerID2ndRound>2</ASBMPlannerID2ndRound>
+  <Dynamic_PAD>
+    <Dynamic_Distributive>N</Dynamic_Distributive>
+  </Dynamic_PAD>
+  <Allmyapps>
+    <Allmyapps_Terms_And_Conditions>Y</Allmyapps_Terms_And_Conditions>
+  </Allmyapps>
+  <NewsFeed>
+    <NewsFeed_FORM>Y</NewsFeed_FORM>
+    <NewsFeed_VERSION>1.0</NewsFeed_VERSION>
+    <NewsFeed_URL>http://Submit-Everywhere.com/extensions/NewsFeed.htm</NewsFeed_URL>
+    <NewsFeed_DESCRIPTION>This PAD extension allows you to add your RSS and Atom news feeds info into your PAD file. This info can be used by RSS feed submission software or by feed directories themselves.</NewsFeed_DESCRIPTION>
+    <NewsFeed_Type>RSS 0.90</NewsFeed_Type>
+    <NewsFeed_Language>English</NewsFeed_Language>
+    <NewsFeed_Purpose>News</NewsFeed_Purpose>
+    <NewsFeed_Author_Email>algwares.vidmasta@gmail.com</NewsFeed_Author_Email>
+    <NewsFeed_Author_First_Name>Anthony</NewsFeed_Author_First_Name>
+    <NewsFeed_Author_Last_Name>Gray</NewsFeed_Author_Last_Name>
+    <NewsFeed_Feed_URL></NewsFeed_Feed_URL>
+    <NewsFeed_Site_Name></NewsFeed_Site_Name>
+    <NewsFeed_Site_URL></NewsFeed_Site_URL>
+    <NewsFeed_Title></NewsFeed_Title>
+    <NewsFeed_Description_70></NewsFeed_Description_70>
+    <NewsFeed_Description_250></NewsFeed_Description_250>
+  </NewsFeed>
   <Web_Info>
     <Application_URLs>
       <Application_Info_URL>https://github.com/ALGwares/VidMasta</Application_Info_URL>
@@ -164,9 +149,6 @@
     <Distribution_Permissions>GPLv2+</Distribution_Permissions>
     <EULA>GPLv2+</EULA>
   </Permissions>
-  <Dynamic_PAD>
-    <Dynamic_Distributive>N</Dynamic_Distributive>
-  </Dynamic_PAD>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
     <AppStore_Category></AppStore_Category>
