@@ -92,20 +92,20 @@
     <Site_Contact_Last_Name>Gray</Site_Contact_Last_Name>
   </Site>
   <Press_Release>
-    <Press_Release>VidMasta 21.6 Released</Press_Release>
-    <Press_Release_Plain>VidMasta 21.6 Released</Press_Release_Plain>
-    <Headline>VidMasta 21.6 Released</Headline>
-    <Summary>VidMasta 21.6 Released</Summary>
+    <Press_Release>VidMasta 28.3 Released</Press_Release>
+    <Press_Release_Plain>VidMasta 28.3 Released</Press_Release_Plain>
+    <Headline>VidMasta 28.3 Released</Headline>
+    <Summary>VidMasta 28.3 Released</Summary>
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
   <Program_Info>
     <Program_Target_Platform>Linux</Program_Target_Platform>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>24.4</Program_Version>
-    <Program_Release_Month>01</Program_Release_Month>
-    <Program_Release_Day>12</Program_Release_Day>
-    <Program_Release_Year>2018</Program_Release_Year>
+    <Program_Version>28.3</Program_Version>
+    <Program_Release_Month>10</Program_Release_Month>
+    <Program_Release_Day>29</Program_Release_Day>
+    <Program_Release_Year>2022</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
@@ -147,14 +147,14 @@
   </Program_Info>
   <Web_Info>
     <Application_URLs>
-      <Application_Info_URL>http://sourceforge.net/projects/vidmasta</Application_Info_URL>
-      <Application_Order_URL>http://sourceforge.net/projects/vidmasta</Application_Order_URL>
-      <Application_Screenshot_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMastaScreenshot.png?format=raw&amp;VidMastaScreenshot.png</Application_Screenshot_URL>
-      <Application_Icon_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMastaIcon32x32.gif?format=raw&amp;VidMastaIcon32x32.gif</Application_Icon_URL>
-      <Application_XML_File_URL>http://sourceforge.net/p/vidmasta/code/ci/master/tree/VidMasta_pad.xml?format=raw&amp;VidMasta_pad_linux.xml</Application_XML_File_URL>
+      <Application_Info_URL>https://github.com/ALGwares/VidMasta</Application_Info_URL>
+      <Application_Order_URL>https://github.com/ALGwares/VidMasta</Application_Order_URL>
+      <Application_Screenshot_URL>https://raw.githubusercontent.com/ALGwares/VidMasta/master/VidMastaScreenshot.png</Application_Screenshot_URL>
+      <Application_Icon_URL>https://raw.githubusercontent.com/ALGwares/VidMasta/master/VidMastaIcon32x32.gif</Application_Icon_URL>
+      <Application_XML_File_URL>https://raw.githubusercontent.com/ALGwares/VidMasta/master/VidMasta_pad_linux.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>http://master.dl.sourceforge.net/project/vidmasta/vidmasta-setup-24.4.jar</Primary_Download_URL>
+      <Primary_Download_URL>https://github.com/ALGwares/VidMasta/releases/download/v28.3/vidmasta-setup-28.3.jar</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
