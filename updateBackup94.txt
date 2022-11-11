@@ -1,4 +1,4 @@
-371
+373
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -721,16 +721,16 @@ https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9
 https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9.8.1/UMS-9.8.1.dmg
 https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/9.8.1/UMS-9.8.1-x86.tgz
 https://postman-echo.com/get?
-https://piraat.xyz/api.php?url=/q.php?q=
-https://piraat.xyz
-https://piraat.xyz/api.php?url=/q.php?q=
-https://piraat.xyz/api.php?url=
-https://piraat.xyz:::https://mirrorbay.top:::https://piratebayz.top
-https://piraat.xyz
-https://piraat.xyz
-https://piraat.xyz/api.php?url=/precompiled/data_top100_
-https://piraat.xyz/ajax_details_comments.php?id=
-https://piratez.xyz
+https://mirrorbay.top/api.php?url=/q.php?q=
+https://mirrorbay.top
+https://mirrorbay.top/api.php?url=/q.php?q=
+https://mirrorbay.top/api.php?url=
+https://mirrorbay.top:::https://unblocktheship.org:::https://piratenow.xyz
+https://mirrorbay.top
+https://mirrorbay.top
+https://mirrorbay.top/api.php?url=/precompiled/data_top100_
+https://mirrorbay.top/ajax_details_comments.php?id=
+https://piratenow.xyz
 722,723,724,725,727,729,730,785,786,787
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z)(?![01](\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z))
@@ -738,7 +738,7 @@ https://piratez.xyz
 68747470733A2F2F7669646D617374612D757067726164652E61707073706F742E636F6D2F747269616C343F
 200
 true
-(?i)((Couldn't ((extract)|(process)) youtube video URL)|(open of \p{Graph}++ failed)|(access stream error)|(lua stream warning: ((error running script)|(Couldn't parse)))|(lua stream error:))
+(?i)((Couldn't ((extract)|(process)) youtube video URL)|(open of \p{Graph}++ failed)|(access stream error)|(lua stream warning: ((error running script)|(Couldn't parse)))|(lua stream error:)|(main input error: Your input can't be opened))
 (?<=\>)[^\<]*+(?=\<)
 ((?<=\<)\s*+(?i)script[\s\>])|(\<\s*+/\s*+(?i)script\s*+(?=\>))|(\<%)|(%\>)
 !--
@@ -784,9 +784,9 @@ https://www.imdb.com/title/tt%s/
 %sepisodes?season=%s
 false
 https://postman-echo.com/get?%s%s
-https://piraat.xyz/api.php?url=/q.php?q=%s
-https://piraat.xyz/api.php?url=/q.php?q=%s%s
-https://piraat.xyz/api.php?url=/q.php?q=%s/%s%s
+https://mirrorbay.top/api.php?url=/q.php?q=%s
+https://mirrorbay.top/api.php?url=/q.php?q=%s%s
+https://mirrorbay.top/api.php?url=/q.php?q=%s/%s%s
 https://raw.githubusercontent.com/videolan/vlc/master/share/lua/playlist/youtube.lua
 .*?(?i)youtube\.luac
 youtube.lua

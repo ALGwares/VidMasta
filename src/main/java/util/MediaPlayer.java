@@ -73,9 +73,10 @@ public class MediaPlayer {
     return Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && MEDIA_PLAYER_INDICATOR.exists();
   }
 
-  private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, final Runnable errorAction) {
+  private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, Runnable errorAction) {
     try {
-      if (errorAction != null && Boolean.TRUE.equals(failedHosts.getIfPresent(Connection.getShortUrl(location, false)))) {
+      String host = Connection.getShortUrl(location, false);
+      if (errorAction != null && Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
         errorAction.run();
         return true;
       }
@@ -86,73 +87,25 @@ public class MediaPlayer {
       Collections.addAll(args, IO.findFile(MEDIA_PLAYER_DIR.exists() ? MEDIA_PLAYER_DIR : ((oldMediaPlayerDir = new File(Constant.APP_DIR, Str.get(
               762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance",
               "--audio-language=" + language, "--sub-language=" + language, "--avi-index=2", "--no-qt-updates-notif", "--verbose=1");
-      if (playAndExit) {
-        args.add("--play-and-exit");
-      }
-      if (startMinimized) {
-        args.add("--qt-start-minimized");
-      }
-      if (quality != null) {
-        args.add("--preferred-resolution=" + quality);
-      }
-      if (title != null) {
-        args.add("--meta-title=" + title);
-      }
-
-      ProcessBuilder mediaPlayerBuilder = new ProcessBuilder(args);
-      if (errorAction != null) {
-        mediaPlayerBuilder.redirectErrorStream(true);
-      }
-      final Process mediaPlayer = mediaPlayerBuilder.start();
-      if (errorAction != null) {
-        (new Worker() {
-          @Override
-          protected void doWork() {
-            BufferedReader br = null;
-            try {
-              br = new BufferedReader(new InputStreamReader(mediaPlayer.getInputStream(), Constant.UTF8));
-              String line;
-              while ((line = br.readLine()) != null) {
-                if (Debug.DEBUG) {
-                  Debug.println(line);
-                }
-                if (!Regex.firstMatch(line, Str.get(739)).isEmpty()) {
-                  mediaPlayer.destroy();
-                  errorAction.run();
-                  failedHosts.get(Connection.getShortUrl(location, false), () -> true);
-                  return;
-                }
-              }
-            } catch (Exception e) {
-              if (Debug.DEBUG) {
-                Debug.print(e);
-              }
-            } finally {
-              IO.close(br);
-            }
-          }
-        }).execute();
+      if (errorAction != null && failedHosts.getIfPresent(host) == null) {
+        failedHosts.put(host, false);
+        List<String> testArgs = new ArrayList<>(args);
+        Collections.addAll(testArgs, "--run-time=2", "--gain=0", "--no-video", "--intf=dummy", "--qt-notification=0");
+        Process mediaPlayer = open(testArgs, host, true, true, quality, title, () -> {
+        });
+        boolean error = mediaPlayer.waitFor() != 0;
+        if (Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
+          errorAction.run();
+          return true;
+        }
+        if (error) {
+          failedHosts.put(host, true);
+          errorAction.run();
+          return true;
+        }
       }
 
-      if (playAndExit && Constant.WINDOWS) {
-        (new Worker() {
-          @Override
-          protected void doWork() {
-            try {
-              while (mediaPlayer.isAlive()) {
-                Thread.sleep(100);
-              }
-              for (int i = 0; i < 200 && !WindowsUtil.closeWindow("#32770", "VLC media player"); i++) {
-                Thread.sleep(50);
-              }
-            } catch (Exception e) {
-              if (Debug.DEBUG) {
-                Debug.print(e);
-              }
-            }
-          }
-        }).execute();
-      }
+      open(args, host, playAndExit, startMinimized, quality, title, errorAction);
 
       return true;
     } catch (Exception e) {
@@ -161,6 +114,81 @@ public class MediaPlayer {
       }
     }
     return false;
+  }
+
+  private static Process open(List<String> args, String host, boolean playAndExit, boolean startMinimized, Integer quality, String title,
+          final Runnable errorAction) throws Exception {
+    if (playAndExit) {
+      args.add("--play-and-exit");
+    }
+    if (startMinimized) {
+      args.add("--qt-start-minimized");
+    }
+    if (quality != null) {
+      args.add("--preferred-resolution=" + quality);
+    }
+    if (title != null) {
+      args.add("--meta-title=" + title);
+    }
+
+    ProcessBuilder mediaPlayerBuilder = new ProcessBuilder(args);
+    if (errorAction != null) {
+      mediaPlayerBuilder.redirectErrorStream(true);
+    }
+    final Process mediaPlayer = mediaPlayerBuilder.start();
+    if (errorAction != null) {
+      (new Worker() {
+        @Override
+        protected void doWork() {
+          BufferedReader br = null;
+          try {
+            br = new BufferedReader(new InputStreamReader(mediaPlayer.getInputStream(), Constant.UTF8));
+            String line;
+            while ((line = br.readLine()) != null) {
+              if (Debug.DEBUG) {
+                Debug.println(line);
+              }
+              if (!Regex.firstMatch(line, Str.get(739)).isEmpty()) {
+                if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
+                  failedHosts.put(host, true);
+                }
+                mediaPlayer.destroy();
+                errorAction.run();
+                return;
+              }
+            }
+          } catch (Exception e) {
+            if (Debug.DEBUG) {
+              Debug.print(e);
+            }
+          } finally {
+            IO.close(br);
+          }
+        }
+      }).execute();
+    }
+
+    if (playAndExit) {
+      (new Worker() {
+        @Override
+        protected void doWork() {
+          try {
+            while (mediaPlayer.isAlive()) {
+              Thread.sleep(100);
+            }
+            for (int i = 0; i < 200 && !WindowsUtil.closeWindow("#32770", "VLC media player"); i++) {
+              Thread.sleep(50);
+            }
+          } catch (Exception e) {
+            if (Debug.DEBUG) {
+              Debug.print(e);
+            }
+          }
+        }
+      }).execute();
+    }
+
+    return mediaPlayer;
   }
 
   private MediaPlayer() {

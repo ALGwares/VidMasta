@@ -199,7 +199,7 @@ public class Connection {
             return "";
           }
 
-          setConnectionProperties(connection, null, 1);
+          setConnectionProperties(connection, null, 2);
           connection.connect();
           br = IO.bufferedReader(connection.getContentEncoding(), connection.getInputStream());
           if (isCancelled()) {

@@ -730,7 +730,9 @@ public class VideoFinder extends Worker {
           String link = Regex.match(videoInfoContent, 758);
           if (!link.isEmpty() && !Regex.firstMatch(videoInfoContent, 760).isEmpty()) {
             String title = Regex.match(sourceCode1, String.format(Str.get(804), Pattern.quote(videoId)), Str.get(805));
-            return new String[]{link, title.isEmpty() ? video.title + " (" + video.year + ')' : title};
+            return new String[]{link, title.isEmpty() ? video.title + " (" + video.year + ')' : title + (Regex.replaceAll(Regex.htmlToPlainText(
+              Regex.replaceAll(title, 103).replace(':', ' ')), 339).trim().equalsIgnoreCase(Regex.replaceAll(Regex.htmlToPlainText(Regex.replaceAll(video.title,
+              103).replace(':', ' ')), 339).trim()) ? "" : " (" + video.title + ')')};
           }
         }
       }

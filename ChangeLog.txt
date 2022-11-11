@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2022.11.10   | VidMasta 28.4
+
+CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows
+CHANGE: CORE | Improved connection error handling
+
+
+
+
 2022.10.29   | VidMasta 28.3
 
 CHANGE: CORE | Improved error handling for playback of trailers when using VLC media player for Windows
