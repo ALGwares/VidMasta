@@ -379,7 +379,10 @@ public class TorrentFinder extends Worker {
   }
 
   private boolean isRightSeason(String title) {
-    int season = Integer.parseInt(video.season);
+    return !Boolean.FALSE.equals(isRightSeason(title, Integer.parseInt(video.season)));
+  }
+
+  public static Boolean isRightSeason(String title, int season) {
     String seasonRomanNumeral = getRomanNumeral(season), titleName = Regex.replaceAll(title, 222);
     if (Debug.DEBUG) {
       Debug.print("Desired Season (" + titleName + "): " + season + " (" + seasonRomanNumeral + ')');
@@ -434,7 +437,7 @@ public class TorrentFinder extends Worker {
     if (Debug.DEBUG) {
       Debug.println("\tPossibly Correct Season: '" + titleName + '\'');
     }
-    return true;
+    return null;
   }
 
   private static String getRomanNumeral(int num) {

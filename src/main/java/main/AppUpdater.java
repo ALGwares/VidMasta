@@ -5,7 +5,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.JOptionPane;
 import listener.DomainType;
 import listener.GuiListener;
 import str.Str;
@@ -20,26 +19,11 @@ import util.WindowsUtil;
 class AppUpdater {
 
   private static final String APP_UPDATE = "appUpdate" + Constant.TXT, INSTALL = "install.xml";
-  public static final String APP_UPDATE_FAIL = "updateFail" + Constant.APP_VERSION;
+  public static final String APP_UPDATER = "updater" + Constant.APP_VERSION;
   private String[] appUpdateStrs;
 
-  static void install() {
-    try {
-      installHelper();
-    } catch (Exception e) {
-      JOptionPane.showMessageDialog(null, ThrowableUtil.toString(e), Constant.APP_TITLE, Constant.ERROR_MSG);
-    }
-  }
-
-  private static void installHelper() {
-    if ((new File(Constant.APP_DIR + APP_UPDATE_FAIL)).exists()) {
-      return;
-    }
+  private static void install() throws Exception {
     File update = new File(Constant.APP_DIR + APP_UPDATE);
-    if (!update.exists()) {
-      return;
-    }
-
     String[] updateStrs;
     try {
       updateStrs = Regex.split(IO.read(update), Constant.SEPARATOR1);
@@ -75,6 +59,7 @@ class AppUpdater {
       IO.fileOp(update, IO.RM_FILE);
       IO.fileOp(installerScript, IO.RM_FILE_NOW_AND_ON_EXIT);
       IO.fileOp(installer, IO.RM_FILE);
+      throw e;
     }
   }
 
@@ -106,8 +91,8 @@ class AppUpdater {
 
   void update(GuiListener guiListener) {
     try {
-      if ((new File(Constant.APP_DIR + APP_UPDATE_FAIL)).exists()) {
-        throw new UpdateException("application update installation failed");
+      if ((new File(Constant.APP_DIR + APP_UPDATER)).exists()) {
+        return;
       }
 
       appUpdateStrs = Regex.split(Connection.getUpdateFile(Str.get(295), false), Constant.NEWLINE);
@@ -134,7 +119,7 @@ class AppUpdater {
       String installerPath = Constant.APP_DIR + "auto-vidmasta-setup-" + newAppVersion + installerSuffix;
       File installer = new File(installerPath);
       if (!installer.exists()) {
-        Connection.saveData(installerLink, installerPath, DomainType.UPDATE, false);
+        Connection.saveData(installerLink, installerPath, DomainType.UPDATE);
       }
       if (Long.parseLong(installerChecksum) != IO.checksum(installer)) {
         IO.fileOp(installer, IO.RM_FILE);
@@ -148,6 +133,8 @@ class AppUpdater {
 
       IO.write(Constant.APP_DIR + APP_UPDATE, (installerSuffix.equals(Constant.JAR) ? Constant.JAVA + Constant.SEPARATOR2 + Constant.JAR_OPTION
               + Constant.SEPARATOR2 : "") + installerPath + Constant.SEPARATOR1 + installerChecksum + Constant.SEPARATOR1 + installerXml.toString().trim());
+
+      install();
     } catch (Exception e) {
       if (Debug.DEBUG) {
         Debug.print(e);
@@ -159,7 +146,7 @@ class AppUpdater {
     }
   }
 
-  private static void restart(final String... args) {
+  private static void restart(final String... args) throws Exception {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -173,7 +160,6 @@ class AppUpdater {
           if (Debug.DEBUG) {
             Debug.print(e);
           }
-          IO.fileOp(Constant.APP_DIR + APP_UPDATE_FAIL, IO.MK_FILE);
           try {
             (new ProcessBuilder(Constant.JAVA, Constant.JAR_OPTION, Constant.PROGRAM_DIR + Constant.PROGRAM_JAR)).start();
           } catch (Exception e2) {
@@ -184,6 +170,7 @@ class AppUpdater {
         }
       }
     });
+    IO.fileOp(Constant.APP_DIR + APP_UPDATER, IO.MK_FILE);
     System.exit(0);
   }
 }

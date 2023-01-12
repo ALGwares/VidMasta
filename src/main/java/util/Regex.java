@@ -269,11 +269,7 @@ public class Regex {
   }
 
   public static Pattern pattern(String regex) {
-    Pattern pattern = cache.get(regex);
-    if (pattern == null) {
-      cache.put(regex, pattern = Pattern.compile(regex)); // Not a concurrency bug
-    }
-    return pattern;
+    return cache.computeIfAbsent(regex, Pattern::compile);
   }
 
   private Regex() {

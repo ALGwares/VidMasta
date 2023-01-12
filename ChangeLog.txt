@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2023.01.12   | VidMasta 28.5
+
+CHANGE: CORE | Improved trailer search by season
+CHANGE: CORE | Improved error handling for playback of trailers when using VLC media player for Windows
+
+
+
+
 2022.11.10   | VidMasta 28.4
 
 CHANGE: CORE | Improved error handling for playback when using VLC media player for Windows

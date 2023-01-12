@@ -9,16 +9,21 @@ import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import listener.ContentType;
@@ -26,6 +31,7 @@ import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
 import listener.VideoStrExportListener;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import search.BoxSetVideo;
 import search.util.VideoSearch;
@@ -708,7 +714,20 @@ public class VideoFinder extends Worker {
       return null;
     }
 
-    for (String videoId : Regex.matches(sourceCode1, 750)) {
+    Pattern titleRegex = Regex.pattern("(?i)((" + Pattern.quote(video.title) + ")|(" + Pattern.quote(Regex.htmlToPlainText(video.title)) + "))");
+    List<Entry<String, String>> results = Regex.matches(sourceCode1, 750).stream().map(videoId -> new SimpleImmutableEntry<>(videoId, Regex.match(sourceCode1,
+            String.format(Str.get(804), Pattern.quote(videoId)), Str.get(805)))).sorted(Collections.reverseOrder((result1, result2) -> {
+      CompareToBuilder compare = new CompareToBuilder();
+      Consumer<Function<String, Boolean>> appendToCompare = function -> compare.append(function.apply(result1.getValue()), function.apply(result2.getValue()));
+      if (season != null) {
+        appendToCompare.accept(title -> Boolean.TRUE.equals(TorrentFinder.isRightSeason(' ' + title, season)));
+      }
+      appendToCompare.accept(title -> titleRegex.matcher(title).find());
+      return compare.toComparison();
+    })).collect(Collectors.toList());
+    for (Entry<String, String> result : results) {
+      String videoId = result.getKey();
+
       // Expire cached source code in 1hr because video link in source code has built in expiration of a few hours
       String sourceCode = Connection.getSourceCode(String.format(Str.get(752), videoId), DomainType.VIDEO_INFO, !prefetch, Constant.MS_1HR);
       if (isCancelled()) {
@@ -717,7 +736,7 @@ public class VideoFinder extends Worker {
 
       List<String> videoInfos = Regex.matches(sourceCode, 753);
       if (videoInfos.isEmpty()) {
-        sourceCode = Connection.getSourceCode(String.format(Str.get(755), videoId), DomainType.VIDEO_INFO, !prefetch, Constant.MS_1HR);
+        sourceCode = Connection.getSourceCode(String.format(Str.get(812), videoId), DomainType.VIDEO_INFO, !prefetch, Constant.MS_1HR);
         if (isCancelled()) {
           return null;
         }
@@ -727,9 +746,9 @@ public class VideoFinder extends Worker {
 
       for (String videoInfo : videoInfos) {
         for (String videoInfoContent : Regex.matches(videoInfo, 756)) {
-          String link = Regex.match(videoInfoContent, 758);
+          String link = Regex.replaceAllRepeatedly(Regex.match(videoInfoContent, 758), 813);
           if (!link.isEmpty() && !Regex.firstMatch(videoInfoContent, 760).isEmpty()) {
-            String title = Regex.match(sourceCode1, String.format(Str.get(804), Pattern.quote(videoId)), Str.get(805));
+            String title = result.getValue();
             return new String[]{link, title.isEmpty() ? video.title + " (" + video.year + ')' : title + (Regex.replaceAll(Regex.htmlToPlainText(
               Regex.replaceAll(title, 103).replace(':', ' ')), 339).trim().equalsIgnoreCase(Regex.replaceAll(Regex.htmlToPlainText(Regex.replaceAll(video.title,
               103).replace(':', ' ')), 339).trim()) ? "" : " (" + video.title + ')')};

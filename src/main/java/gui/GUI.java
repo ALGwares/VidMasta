@@ -703,11 +703,7 @@ public class GUI extends JFrame implements GuiListener {
   }
 
   Icon getPoster(String imagePath) {
-    Icon image = posters.get(imagePath);
-    if (image == null) {
-      posters.put(imagePath, image = new ImageIcon((new ImageIcon(imagePath)).getImage().getScaledInstance(60, -1, Image.SCALE_SMOOTH))); // Not a concurrency bug
-    }
-    return image;
+    return posters.computeIfAbsent(imagePath, imgPath -> new ImageIcon((new ImageIcon(imgPath)).getImage().getScaledInstance(60, -1, Image.SCALE_SMOOTH)));
   }
 
   private void initFileNameExtensionFilters() {
@@ -7229,6 +7225,9 @@ public class GUI extends JFrame implements GuiListener {
     int numRows = playlistSyncTable.tableModel.getRowCount();
     for (int row = numRows - 1; row > -1; row--) {
       if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(item[playlistItemCol])) {
+        if (!item[playlistNameCol].equals(playlistSyncTable.tableModel.getValueAt(row, playlistNameCol))) {
+          playlistSyncTable.tableModel.setValueAt(item[playlistNameCol], row, playlistNameCol);
+        }
         return -1;
       }
     }

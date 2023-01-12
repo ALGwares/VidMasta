@@ -90,10 +90,19 @@ public class MediaPlayer {
       if (errorAction != null && failedHosts.getIfPresent(host) == null) {
         failedHosts.put(host, false);
         List<String> testArgs = new ArrayList<>(args);
-        Collections.addAll(testArgs, "--run-time=2", "--gain=0", "--no-video", "--intf=dummy", "--qt-notification=0");
-        Process mediaPlayer = open(testArgs, host, true, true, quality, title, () -> {
-        });
-        boolean error = mediaPlayer.waitFor() != 0;
+        Collections.addAll(testArgs, "--run-time=1.5", "--gain=0", "--no-video", "--intf=dummy", "--qt-notification=0");
+        boolean error;
+        try {
+          Process mediaPlayer = open(testArgs, host, true, true, quality, title, () -> {
+          });
+          Connection.setStatusBar(Str.str("transferring") + ' ' + Connection.getShortUrl(location, true));
+          error = mediaPlayer.waitFor() != 0;
+        } catch (InterruptedException e) {
+          failedHosts.invalidate(host);
+          throw e;
+        } finally {
+          Connection.unsetStatusBar();
+        }
         if (Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
           errorAction.run();
           return true;
@@ -107,6 +116,12 @@ public class MediaPlayer {
 
       open(args, host, playAndExit, startMinimized, quality, title, errorAction);
 
+      return true;
+    } catch (InterruptedException e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+      Thread.currentThread().interrupt();
       return true;
     } catch (Exception e) {
       if (Debug.DEBUG) {

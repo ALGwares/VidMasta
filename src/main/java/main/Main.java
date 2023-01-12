@@ -117,8 +117,6 @@ public class Main implements WorkerListener {
   }
 
   private static void initialize() throws Exception {
-    AppUpdater.install();
-
     final SplashScreen splashScreen = new SplashScreen();
     splashScreen.setVisible(true);
     final Rectangle initialSplashScreenBounds = splashScreen.getBounds();
@@ -516,14 +514,14 @@ public class Main implements WorkerListener {
       }
       IO.fileOp(cleanVersion, IO.MK_FILE);
 
-      Pattern fileName = Pattern.compile("(?!((" + Pattern.quote(cleanVersion.getName()) + ")|(" + Pattern.quote(Constant.UPDATE_FILE) + ")|("
+      Pattern filenameRegex = Pattern.compile("(?!((" + Pattern.quote(cleanVersion.getName()) + ")|(" + Pattern.quote(Constant.UPDATE_FILE) + ")|("
               + Pattern.quote(Constant.USER_SETTINGS) + ")|(" + Pattern.quote(Magnet.VUZE_VERSION) + ")|(" + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION)
-              + ")|(" + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATE_FAIL)
+              + ")|(" + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATER)
               + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)|(ipfilter[\\d\\.]*+)|(ipfilter\\.((dat)|(txt)))"
-              + "|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(updateFail[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)"
+              + "|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(update(r|(Fail))[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)"
               + "|(vidmasta\\-setup\\-21\\.[67]\\.exe)|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer))");
       for (File file : IO.listFiles(Constant.APP_DIR)) {
-        if (fileName.matcher(file.getName()).matches()) {
+        if (filenameRegex.matcher(file.getName()).matches()) {
           IO.fileOp(file, file.isDirectory() ? IO.RM_DIR : IO.RM_FILE);
         }
       }

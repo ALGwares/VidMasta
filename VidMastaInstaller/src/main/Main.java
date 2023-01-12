@@ -2,17 +2,20 @@ package main;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.regex.Pattern;
 import util.Constant;
 import util.IO;
 
 public class Main {
 
   public static void main(String[] args) throws Exception {
+    checkVersionNumbers();
     updateConfigs();
     innoExe();
     jar(new File(Constant.SAVE_DIR + Constant.INSTALLER + ".jar"), "installerJAR");
@@ -23,6 +26,20 @@ public class Main {
             + ".zip").toString(), Paths.get("C:", "Users", "Anthony", "workspace", "Netbeans", "VidMasta", "vidmasta").toString());
     //launch4jAdminPermissionsTesterExe(new File("C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR
     //        + "Desktop" + Constant.FILE_SEPARATOR + "adminPermissionsTester.exe"));
+  }
+
+  private static void checkVersionNumbers() throws Exception {
+    Path appDir = Paths.get("C:", "Users", "Anthony", "workspace", "Netbeans", Constant.APP_NAME);
+    checkVersion(appDir.resolve(Paths.get("src", "main", "java", "util", "IOConstant.java")), "double APP_VERSION \\= ", ";");
+    checkVersion(appDir.resolve(Paths.get("pom.xml")), "\\<version\\>", "\\</version\\>");
+    checkVersion(appDir.resolve(Paths.get(Constant.APP_NAME, "FAQ.html")), "\\<br\\>\\<br\\>\\s++Version ", "\\s++\\<br\\>\\<br\\>");
+    checkVersion(appDir.resolve(Paths.get(Constant.APP_NAME, "readme.html")), "\\<br\\>\\<br\\>\\s++Version ", "\\s++\\<br\\>\\<br\\>");
+  }
+
+  private static void checkVersion(Path path, String regexStart, String regexEnd) throws Exception {
+    if (!Pattern.compile("\\s" + regexStart + "\\Q" + Constant.APP_VERSION + "\\E" + regexEnd + "\\s").matcher(IO.read(path.toFile())).find()) {
+      throw new RuntimeException("wrong " + Constant.APP_NAME + " version in " + path);
+    }
   }
 
   private static void updateConfigs() throws Exception {
