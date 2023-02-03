@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import listener.DomainType;
 import str.Str;
@@ -85,15 +86,17 @@ public class MediaPlayer {
       File oldMediaPlayerDir;
       String language = Str.locale().getISO3Language();
       Collections.addAll(args, IO.findFile(MEDIA_PLAYER_DIR.exists() ? MEDIA_PLAYER_DIR : ((oldMediaPlayerDir = new File(Constant.APP_DIR, Str.get(
-              762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--no-one-instance",
-              "--audio-language=" + language, "--sub-language=" + language, "--avi-index=2", "--no-qt-updates-notif", "--verbose=1");
-      if (errorAction != null && failedHosts.getIfPresent(host) == null) {
+              762))).exists() ? oldMediaPlayerDir : new File(Constant.APP_DIR)), Regex.pattern(763)).getPath(), location, "--audio-language=" + language,
+              "--sub-language=" + language);
+      Collections.addAll(args, Regex.split(815, Constant.SEPARATOR1));
+      if (Boolean.parseBoolean(Str.get(819)) && errorAction != null && failedHosts.getIfPresent(host) == null) {
         failedHosts.put(host, false);
         List<String> testArgs = new ArrayList<>(args);
-        Collections.addAll(testArgs, "--run-time=1.5", "--gain=0", "--no-video", "--intf=dummy", "--qt-notification=0");
+        Collections.addAll(testArgs, Regex.split(816, Constant.SEPARATOR1));
         boolean error;
+        Process mediaPlayer = null;
         try {
-          Process mediaPlayer = open(testArgs, host, true, true, quality, title, () -> {
+          mediaPlayer = open(testArgs, host, true, true, quality, title, true, () -> {
           });
           Connection.setStatusBar(Str.str("transferring") + ' ' + Connection.getShortUrl(location, true));
           error = mediaPlayer.waitFor() != 0;
@@ -101,20 +104,37 @@ public class MediaPlayer {
           failedHosts.invalidate(host);
           throw e;
         } finally {
+          if (mediaPlayer != null) {
+            mediaPlayer.destroy();
+          }
           Connection.unsetStatusBar();
         }
-        if (Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
+
+        Runnable showError = () -> ForkJoinPool.commonPool().submit(() -> {
+          try {
+            Connection.setStatusBar(Str.str("mediaPlayerError", host));
+            Thread.sleep(5000);
+          } finally {
+            Connection.unsetStatusBar();
+          }
+          return null;
+        });
+        Boolean failed = failedHosts.getIfPresent(host);
+        if (failed == null) {
+          failedHosts.put(host, false);
+        } else if (failed) {
+          showError.run();
           errorAction.run();
           return true;
-        }
-        if (error) {
+        } else if (error) {
           failedHosts.put(host, true);
+          showError.run();
           errorAction.run();
           return true;
         }
       }
 
-      open(args, host, playAndExit, startMinimized, quality, title, errorAction);
+      open(args, host, playAndExit, startMinimized, quality, title, false, errorAction);
 
       return true;
     } catch (InterruptedException e) {
@@ -131,7 +151,7 @@ public class MediaPlayer {
     return false;
   }
 
-  private static Process open(List<String> args, String host, boolean playAndExit, boolean startMinimized, Integer quality, String title,
+  private static Process open(List<String> args, String host, boolean playAndExit, boolean startMinimized, Integer quality, String title, boolean test,
           final Runnable errorAction) throws Exception {
     if (playAndExit) {
       args.add("--play-and-exit");
@@ -163,7 +183,12 @@ public class MediaPlayer {
               if (Debug.DEBUG) {
                 Debug.println(line);
               }
-              if (!Regex.firstMatch(line, Str.get(739)).isEmpty()) {
+              if (test && !Regex.firstMatch(line, Str.get(818)).isEmpty()) {
+                failedHosts.invalidate(host);
+                mediaPlayer.destroy();
+                return;
+              }
+              if (!Regex.firstMatch(line, Str.get(817)).isEmpty()) {
                 if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
                   failedHosts.put(host, true);
                 }

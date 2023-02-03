@@ -5840,6 +5840,7 @@ public class GUI extends JFrame implements GuiListener {
         playlistPlayButtonMousePressed(evt);
         playlistPlayButtonActionPerformed(null);
       }
+      playlistTableValueChanged(new ListSelectionEvent(playlistSyncTable.getSelectionModel(), playlistSyncTable.getSelectedRow(), -1, false));
     }//GEN-LAST:event_playlistTableMouseClicked
 
   @SuppressWarnings("unchecked")
@@ -7335,9 +7336,13 @@ public class GUI extends JFrame implements GuiListener {
             if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
               int viewRow = playlistSyncTable.table.convertRowIndexToView(row);
               if (viewRow != -1) {
+                boolean disable = playlistSyncTable.table.getSelectedRowCount() != 0;
                 playlistSyncTable.table.setRowSelectionInterval(viewRow, viewRow);
                 JViewport viewport = (JViewport) playlistSyncTable.table.getParent();
                 viewport.scrollRectToVisible(rectangle(viewport, playlistSyncTable.table.getCellRect(viewRow, 0, true)));
+                if (disable) {
+                  playlistTableValueChanged(new ListSelectionEvent(playlistSyncTable.table.getSelectionModel(), -1, -1, false));
+                }
                 return true;
               }
               break;

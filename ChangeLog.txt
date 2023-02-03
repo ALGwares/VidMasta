@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2023.02.02   | VidMasta 28.6
+
+CHANGE: CORE | Improved error handling for playback of trailers when using VLC media player for Windows
+CHANGE: UI   | Fixed playlist item selection usability issue
+
+
+
+
 2023.01.12   | VidMasta 28.5
 
 CHANGE: CORE | Improved trailer search by season

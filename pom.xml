@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>algwares</groupId>
   <artifactId>vidmasta</artifactId>
-  <version>28.5</version>
+  <version>28.6</version>
   <packaging>jar</packaging>
     
   <properties>
@@ -43,7 +43,7 @@
     <dependency>
       <groupId>com.biglybt</groupId>
       <artifactId>biglybt</artifactId>
-      <version>3.2.0.0</version>
+      <version>3.3.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.swinglabs.swingx</groupId>
