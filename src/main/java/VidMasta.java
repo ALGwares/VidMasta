@@ -1,6 +1,7 @@
 
 import debug.Debug;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
@@ -26,8 +27,7 @@ public class VidMasta {
       }
 
       String java = System.getProperty("java.home", "java");
-      String fileSeparator = System.getProperty("file.separator", "/");
-      Process process = (new ProcessBuilder(java + (java.equals("java") ? "" : fileSeparator + "bin" + fileSeparator + "java"), "-cp", System.getProperty(
+      Process process = (new ProcessBuilder(java + (java.equals("java") ? "" : File.separator + "bin" + File.separator + "java"), "-cp", System.getProperty(
               "java.class.path"), "--add-opens", "java.base/sun.security.action=ALL-UNNAMED", "--add-opens", "java.desktop/sun.awt.shell=ALL-UNNAMED",
               "--add-opens", "java.base/java.net=ALL-UNNAMED", "--add-opens", "java.base/java.net=ALL-UNNAMED", "--add-opens",
               "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens", "java.desktop/sun.swing=ALL-UNNAMED", "--add-opens",

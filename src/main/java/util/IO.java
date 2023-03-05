@@ -381,6 +381,10 @@ public class IO {
     return files == null ? new File[0] : files;
   }
 
+  public static Set<File> listAllFiles(String filePath) {
+    return listAllFiles(new File(filePath));
+  }
+
   public static Set<File> listAllFiles(File file) {
     Set<File> files = new HashSet<File>(8);
     listAllFiles(file, files);

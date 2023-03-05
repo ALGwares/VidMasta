@@ -427,8 +427,7 @@ public class VideoSearch {
   }
 
   public static String imagePath(Video video) {
-    long imageName = Str.hashCode(video.id);
-    return (imageName % Constant.MAX_SUBDIRECTORIES) + Constant.FILE_SEPARATOR + imageName;
+    return Str.hashPath(video.id);
   }
 
   public static boolean isUploadYearTooOld(String sourceCode, int maxYearsOld, int baseYear) {

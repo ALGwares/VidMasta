@@ -20,6 +20,8 @@ public interface GuiListener {
 
   void timedMsg(String msg);
 
+  void timedMsg(String msg, long millis);
+
   boolean canProceedWithUnsafeDownload(String name, int numFakeComments, int numComments, String link, String comments);
 
   String summary(String summary, String imagePath);

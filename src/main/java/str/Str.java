@@ -1,6 +1,7 @@
 package str;
 
 import i18n.I18nStr;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +12,7 @@ import listener.StrUpdateListener.UpdateListener;
 public class Str extends I18nStr {
 
   private static StrUpdateListener strUpdateListener;
+  public static final int MAX_SUBDIRECTORIES = 100;
 
   public static void init(StrUpdateListener listener) {
     strUpdateListener = listener;
@@ -50,6 +52,14 @@ public class Str extends I18nStr {
       hashCode = 31 * hashCode + str.charAt(i);
     }
     return hashCode;
+  }
+
+  public static String hashPath(String filename) {
+    return hashPath(hashCode(filename));
+  }
+
+  public static String hashPath(long hashCode) {
+    return ((hashCode & 0xfffffff) % MAX_SUBDIRECTORIES) + File.separator + hashCode;
   }
 
   public static String urlEncode(String str) {

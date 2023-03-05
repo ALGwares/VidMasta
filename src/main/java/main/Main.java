@@ -126,7 +126,7 @@ public class Main implements WorkerListener {
     Connection.init(gui);
     StreamingTorrentUtil.init(gui, main);
 
-    for (int i = 0; i < Constant.MAX_SUBDIRECTORIES; i++) {
+    for (int i = 0; i < Str.MAX_SUBDIRECTORIES; i++) {
       IO.fileOp(Constant.CACHE_DIR + i, IO.MK_DIR);
     }
 
@@ -191,20 +191,8 @@ public class Main implements WorkerListener {
       }
     });
 
-    (new Worker() {
-      @Override
-      public void doWork() {
-        // Warm and clean cache
-        for (File file : IO.listFiles(Constant.CACHE_DIR)) {
-          if (file.isDirectory()) {
-            file.listFiles();
-          } else if (IO.isFileTooOld(file, 2592000000L)) {
-            IO.fileOp(file, IO.RM_FILE);
-          }
-        }
-      }
-    }).execute();
-
+    Worker.submit(() -> IO.listAllFiles(Constant.CACHE_DIR).stream().filter(file -> file.getName().endsWith(Constant.HTML) && IO.isFileTooOld(file,
+            2592000000L)).forEach(File::delete)); // Warm and clean cache 
     Magnet.initIpFilter();
     MediaPlayer.install();
     cleanUpAppDir();
@@ -520,10 +508,10 @@ public class Main implements WorkerListener {
               + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)|(ipfilter[\\d\\.]*+)|(ipfilter\\.((dat)|(txt)))"
               + "|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(update(r|(Fail))[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)"
               + "|(vidmasta\\-setup\\-21\\.[67]\\.exe)|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer))");
-      for (File file : IO.listFiles(Constant.APP_DIR)) {
-        if (filenameRegex.matcher(file.getName()).matches()) {
-          IO.fileOp(file, file.isDirectory() ? IO.RM_DIR : IO.RM_FILE);
-        }
+      Arrays.stream(IO.listFiles(Constant.APP_DIR)).filter(file -> filenameRegex.matcher(file.getName()).matches()).forEach(file -> IO.fileOp(file,
+              file.isDirectory() ? IO.RM_DIR : IO.RM_FILE));
+      if (Arrays.stream(IO.listFiles(Constant.CACHE_DIR)).anyMatch(File::isFile)) {
+        IO.listAllFiles(Constant.CACHE_DIR).stream().filter(File::isFile).forEach(File::delete);
       }
     } catch (Exception e) {
       if (Debug.DEBUG) {

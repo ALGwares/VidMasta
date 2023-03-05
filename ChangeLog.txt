@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2023.03.04   | VidMasta 28.7
+
+CHANGE: CORE | Improved error handling for playback of trailers when using VLC media player for Windows
+
+
+
+
 2023.02.02   | VidMasta 28.6
 
 CHANGE: CORE | Improved error handling for playback of trailers when using VLC media player for Windows

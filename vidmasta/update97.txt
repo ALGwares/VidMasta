@@ -1,4 +1,4 @@
-377
+379
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -790,14 +790,14 @@ https://mirrorbay.top/api.php?url=/q.php?q=%s/%s%s
 https://raw.githubusercontent.com/videolan/vlc/master/share/lua/playlist/youtube.lua
 .*?(?i)youtube\.luac
 youtube.lua
-(\>[^\<]++(\</((div)|a)\>)+?\<div[^>]*?\sdata\-testid\s*+\=\s*+"hero\-rating\-bar__user\-rating")|(class\s*+\=\s*+"AggregateRatingButton__TotalRatingAmount[^\>]*+\>[^\<]++\<)
-\>
-\<
+((?s)\sdata\-testid\s*+\=\s*+\"hero\-rating\-bar__aggregate\-rating__score\".+?\</div\>.+?\>\s*+\d[\d\.,\p{Alpha}]++)
+(?=\d[\d\.,\p{Alpha}]++\z)
+\z
 604800000
 https://github.com/ALGwares/VidMasta/releases/download/none/ipfilter.p2p.zip
 \(\d++
 \)
-https://www.imdb.com/title/tt%s/plotsummary
+https://www.imdb.com/title/tt%s/plotsummary/
 (?is)((\sdata\-testid\s*+\=\s*+\"list\-item".*?\sdata\-testid\s*+\=\s*+\"list\-item")|(\sid\s*+\=\s*+\"summary\-.*?\sid\s*+\=\s*+\"summary\-))[^\>]*+\>
 \</li\>(?=(?s).*?\sid\="synopsis")
 (\A(?i)magnet:\?xt\=urn:btih:)|(&.*\z)
@@ -818,5 +818,20 @@ https://www.imdb.com/video/%s/
 --run-time=3:::--gain=0:::--no-video:::--intf=dummy:::--qt-notification=0
 (?i)((Couldn't ((extract)|(process)) youtube video URL)|(open of \p{Graph}++ failed)|(access stream error)|(lua stream warning: ((error running script)|(Couldn't parse)))|(lua stream error:)|(main input error: Your input can't be opened))
 (?i)( Interrupted function call)
+true
+yt-dlp.exe
+yt-dlp_x86.exe
+https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
+https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_x86.exe
+true
+(?i)https?+://www\.youtube\.com/.+
+--no-part:::--no-cache-dir:::--verbose:::--no-update
+-o
+%s%%(title)s.%%(ext)s
+-S
+res:%s
+(?i)((: error: )|(Error loading Python DLL)|(LoadLibrary: The specified module could not be found\.))
+200
+524288
 true
 eof

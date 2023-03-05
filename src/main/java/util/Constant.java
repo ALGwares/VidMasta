@@ -15,8 +15,7 @@ public class Constant implements IOConstant {
   public static final int INFO_MSG = JOptionPane.INFORMATION_MESSAGE;
   public static final int WARN_MSG = JOptionPane.WARNING_MESSAGE;
   public static final String VERSION_FORMAT = "0.0";
-  public static final boolean WINDOWS_XP_AND_HIGHER, WINDOWS_VISTA_AND_HIGHER;
-  public static final int MAX_SUBDIRECTORIES = 100;
+  public static final boolean WINDOWS_XP_AND_HIGHER, WINDOWS_VISTA_AND_HIGHER, IS_64BIT_WINDOWS;
   public static final String[] EMPTY_STRS = new String[0];
   public static final long MS_1HR = 3600000, MS_2DAYS = 172_800_000, MS_3DAYS = 259_200_000;
   public static final String TV_SHOW = "TV Show";
@@ -37,7 +36,7 @@ public class Constant implements IOConstant {
   public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
   public static final String TXT = ".txt", HTML = ".html", TORRENT = ".torrent";
   public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
-  public static final int UPDATE_FILE_VERSION = 96;
+  public static final int UPDATE_FILE_VERSION = 97;
   public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
   public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
   public static final int SETTINGS_LEN = 81;
@@ -87,9 +86,12 @@ public class Constant implements IOConstant {
       PEER_BLOCK_VERSION = ((WINDOWS_XP_AND_HIGHER = osVersion > 5) ? PEER_BLOCK + '_' + (osVersion < 6 ? "xp" : "vista") + (System.getenv(
               "ProgramFiles(X86)") == null ? "" : "_64") : null);
       WINDOWS_VISTA_AND_HIGHER = osVersion >= 6;
+      String arch = System.getenv("PROCESSOR_ARCHITECTURE"), arch2;
+      IS_64BIT_WINDOWS = arch != null && arch.endsWith("64") || (arch2 = System.getenv("PROCESSOR_ARCHITEW6432")) != null && arch2.endsWith("64");
     } else {
       WINDOWS_XP_AND_HIGHER = false;
       WINDOWS_VISTA_AND_HIGHER = false;
+      IS_64BIT_WINDOWS = false;
       PEER_BLOCK_VERSION = null;
     }
   }

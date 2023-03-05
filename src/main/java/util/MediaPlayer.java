@@ -7,9 +7,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import listener.DomainType;
 import str.Str;
@@ -57,6 +58,19 @@ public class MediaPlayer {
           Debug.print(e);
         }
       }
+      try {
+        File downloader = new File(Constant.APP_DIR, Str.get(Constant.IS_64BIT_WINDOWS ? 820 : 821)), tempDownloader = new File(Constant.APP_DIR,
+                downloader.getName() + ".part");
+        if (!downloader.exists() || tempDownloader.exists() || IO.isFileTooOld(downloader, Constant.MS_2DAYS)) {
+          Connection.saveData(Str.get(Constant.IS_64BIT_WINDOWS ? 822 : 823), tempDownloader.getPath(), DomainType.UPDATE, false);
+          IO.write(tempDownloader, downloader);
+          IO.fileOp(tempDownloader, IO.RM_FILE);
+        }
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+      }
     }
   }
 
@@ -80,6 +94,58 @@ public class MediaPlayer {
       if (errorAction != null && Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
         errorAction.run();
         return true;
+      }
+
+      String host2;
+      if (Boolean.parseBoolean(Str.get(824)) && Regex.isMatch(location, Str.get(825)) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2 = host + '2'))
+              && (new File(Constant.APP_DIR, Str.get(Constant.IS_64BIT_WINDOWS ? 820 : 821))).exists()) {
+        List<String> args = new ArrayList<>(8);
+        File downloadDir = new File(Constant.TEMP_DIR, String.valueOf(System.currentTimeMillis()));
+        Collections.addAll(args, (new File(Constant.APP_DIR, Str.get(Constant.IS_64BIT_WINDOWS ? 820 : 821))).getPath(), location);
+        Collections.addAll(args, Regex.split(826, Constant.SEPARATOR1));
+        Collections.addAll(args, Str.get(827), String.format(Str.get(828), downloadDir.getPath() + Constant.FILE_SEPARATOR));
+        if (quality != null && quality != -1) {
+          Collections.addAll(args, Str.get(829), String.format(Str.get(830), quality));
+        }
+        ProcessBuilder downloaderBuilder = new ProcessBuilder(args);
+        downloaderBuilder.redirectErrorStream(true);
+        Process downloader = downloaderBuilder.start();
+        Worker.submit(() -> {
+          try (BufferedReader br = new BufferedReader(new InputStreamReader(downloader.getInputStream(), Constant.UTF8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+              if (Debug.DEBUG) {
+                Debug.println(line);
+              }
+              if (!Regex.firstMatch(line, 831).isEmpty()) {
+                if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host2))) {
+                  failedHosts.put(host2, true);
+                }
+                downloader.destroy();
+                return null;
+              }
+            }
+          }
+          return null;
+        });
+
+        try {
+          Connection.setStatusBar(Str.str("transferring") + ' ' + Connection.getShortUrl(location, true));
+          for (int i = 0, j = Integer.parseInt(Str.get(832)), numBytes = Integer.parseInt(Str.get(833)); i < j && Arrays.stream(IO.listFiles(
+                  downloadDir)).noneMatch(file -> file.length() >= numBytes) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && downloader.isAlive();
+                  i++) {
+            Thread.sleep(50);
+          }
+          Optional<File> download;
+          if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && (download = Arrays.stream(IO.listFiles(downloadDir)).findFirst()).isPresent()
+                  && MediaPlayer.open(834, download.get(), playAndExit, startMinimized) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2))) {
+            return true;
+          }
+          failedHosts.put(host2, true);
+          downloader.destroy();
+        } finally {
+          Connection.unsetStatusBar();
+        }
       }
 
       List<String> args = new ArrayList<String>(16);
@@ -110,7 +176,7 @@ public class MediaPlayer {
           Connection.unsetStatusBar();
         }
 
-        Runnable showError = () -> ForkJoinPool.commonPool().submit(() -> {
+        Runnable showError = () -> Worker.submit(() -> {
           try {
             Connection.setStatusBar(Str.str("mediaPlayerError", host));
             Thread.sleep(5000);

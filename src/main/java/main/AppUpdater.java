@@ -105,6 +105,8 @@ class AppUpdater {
         return;
       }
 
+      guiListener.timedMsg(Str.str("appUpdating"), 5000);
+
       String installerLink, installerChecksum, installerSuffix;
       if (Constant.WINDOWS) {
         installerLink = Regex.firstMatch(appUpdateStrs[appUpdateStrs.length - 1], "(?<=\\<\\!\\-\\-).+?(?=\\-\\-\\>)"); // Workaround

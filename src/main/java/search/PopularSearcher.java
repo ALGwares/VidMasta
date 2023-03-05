@@ -239,7 +239,7 @@ public class PopularSearcher extends AbstractSearcher {
       return null;
     }
 
-    File sourceCodeFile = new File(Constant.CACHE_DIR + Str.hashCode(titleLink) + Constant.HTML);
+    File sourceCodeFile = new File(Constant.CACHE_DIR + Str.hashPath(titleLink) + Constant.HTML);
     if (sourceCodeFile.exists()) {
       TitleParts titleParts = VideoSearch.getImdbTitleParts(IO.read(sourceCodeFile));
       if (!titleParts.title.isEmpty() && !titleParts.year.isEmpty() && guiListener.isBanned(titleID, titleParts.title, titleParts.year)) {

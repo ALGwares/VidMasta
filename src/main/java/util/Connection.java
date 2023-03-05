@@ -139,9 +139,8 @@ public class Connection {
       return "";
     }
 
-    Long urlHashCode = Str.hashCode(url);
     String sourceCode;
-    File sourceCodeFile = new File(Constant.CACHE_DIR + urlHashCode + Constant.HTML);
+    File sourceCodeFile = new File(Constant.CACHE_DIR + Str.hashPath(url) + Constant.HTML);
     if (sourceCodeFile.exists()) {
       if (IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
         try {
@@ -463,7 +462,7 @@ public class Connection {
   }
 
   public static void removeFromCache(String url) {
-    IO.fileOp(Constant.CACHE_DIR + Str.hashCode(url) + Constant.HTML, IO.RM_FILE);
+    IO.fileOp(Constant.CACHE_DIR + Str.hashPath(url) + Constant.HTML, IO.RM_FILE);
   }
 
   public static void saveData(String url, String outputPath, DomainType domainType) throws Exception {

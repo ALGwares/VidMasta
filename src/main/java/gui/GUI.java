@@ -372,7 +372,7 @@ public class GUI extends JFrame implements GuiListener {
                 Long sourceCodeId;
                 if (Constant.NO_RATING.equals(table.getModel().getValueAt(currModelRow, ratingCol))) {
                   numRatings = Str.str("total", 0);
-                } else if ((sourceCode = new File(Constant.CACHE_DIR + (sourceCodeId = Str.hashCode(String.format(Str.get(781), currId)))
+                } else if ((sourceCode = new File(Constant.CACHE_DIR + Str.hashPath(sourceCodeId = Str.hashCode(String.format(Str.get(781), currId)))
                         + Constant.HTML)).exists()) {
                   String tempNumRatings = "";
                   try {
@@ -6728,6 +6728,11 @@ public class GUI extends JFrame implements GuiListener {
 
   @Override
   public void timedMsg(final String msg) {
+    timedMsg(msg, -1);
+  }
+
+  @Override
+  public void timedMsg(final String msg, long millis) {
     if (timedMsgThread != null) {
       timedMsgThread.cancel(true);
     }
@@ -6740,7 +6745,7 @@ public class GUI extends JFrame implements GuiListener {
           timedMsgDialog.setLocationRelativeTo(GUI.this);
           UI.show(timedMsgDialog);
           try {
-            Thread.sleep(Regex.split(msg, " ").length * 400L);
+            Thread.sleep(millis < 0 ? Regex.split(msg, " ").length * 400L : millis);
             timedMsgDialog.setVisible(false);
           } catch (InterruptedException e) {
             if (Debug.DEBUG) {
