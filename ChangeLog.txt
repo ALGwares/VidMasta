@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2023.06.12   | VidMasta 28.8
+
+CHANGE: CORE | Improved trailer search accuracy
+CHANGE: CORE | Fixed concurrency bug in find functionality (ctrl+f)
+CHANGE: CORE | Fixed title summary text-to-speech
+
+
+
+
 2023.03.04   | VidMasta 28.7
 
 CHANGE: CORE | Improved error handling for playback of trailers when using VLC media player for Windows

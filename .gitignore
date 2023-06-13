@@ -1,13 +1,6 @@
-*.class
-
-# Package Files #
-*.war
-*.ear
-
-*.svn
+.svn
 *.lnk
 *~
-
 cnet_*.jpg
 nb-configuration.xml
 nbactions.xml
@@ -17,3 +10,4 @@ nbactions.xml
 **/dist
 **/build
 **/target
+/firefox*.zip

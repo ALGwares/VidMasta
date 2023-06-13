@@ -504,10 +504,11 @@ public class Main implements WorkerListener {
 
       Pattern filenameRegex = Pattern.compile("(?!((" + Pattern.quote(cleanVersion.getName()) + ")|(" + Pattern.quote(Constant.UPDATE_FILE) + ")|("
               + Pattern.quote(Constant.USER_SETTINGS) + ")|(" + Pattern.quote(Magnet.VUZE_VERSION) + ")|(" + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION)
-              + ")|(" + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATER)
-              + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)|(ipfilter[\\d\\.]*+)|(ipfilter\\.((dat)|(txt)))"
-              + "|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(update(r|(Fail))[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)"
-              + "|(vidmasta\\-setup\\-21\\.[67]\\.exe)|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer))");
+              + ")|(" + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(Str.get(Constant.WINDOWS ? 836 : (Constant.MAC ? 840 : 844))) + ")|("
+              + Pattern.quote(AppUpdater.APP_UPDATER) + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)"
+              + "|(ipfilter[\\d\\.]*+)|(ipfilter\\.((dat)|(txt)))|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(firefox\\-[\\d\\.]++)"
+              + "|(update(r|(Fail))[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe)"
+              + "|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer))");
       Arrays.stream(IO.listFiles(Constant.APP_DIR)).filter(file -> filenameRegex.matcher(file.getName()).matches()).forEach(file -> IO.fileOp(file,
               file.isDirectory() ? IO.RM_DIR : IO.RM_FILE));
       if (Arrays.stream(IO.listFiles(Constant.CACHE_DIR)).anyMatch(File::isFile)) {
@@ -551,7 +552,7 @@ public class Main implements WorkerListener {
   private static void setLookAndFeel() {
     try {
       String classNamePrefix = "de.javasoft.plaf.synthetica.Synthetica", rootPaneUIClass = classNamePrefix + "RootPaneUI", anonymousInnerClass1 = "$1";
-      ModClass.mod(Arrays.stream((new File(Debug.DEBUG ? Constant.PROGRAM_DIR + "target" : Constant.PROGRAM_DIR, "lib")).listFiles()).filter(
+      ModClass.mod(Arrays.stream((new File((new File("target")).exists() ? Constant.PROGRAM_DIR + "target" : Constant.PROGRAM_DIR, "lib")).listFiles()).filter(
               lib -> lib.getName().startsWith("synthetica-")).findFirst().get().getPath(), new ModClass(rootPaneUIClass, new byte[]{0, 2, 4, -84, 0},
                       new byte[]{0, 2, 3, -84, 0}), new ModClass(rootPaneUIClass + anonymousInnerClass1, new byte[]{71, 16, 16, 96, -75}, new byte[]{71, 16, 0,
         96, -75}), new ModClass(classNamePrefix + "LookAndFeel" + anonymousInnerClass1, new byte[]{0, 29, -103, 0, 6}, new byte[]{0, 29, -102, 0, 6}));

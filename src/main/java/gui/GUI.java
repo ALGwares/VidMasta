@@ -136,8 +136,6 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
@@ -225,9 +223,6 @@ public class GUI extends JFrame implements GuiListener {
             addProxiesTextArea, customExtensionTextField, portTextField, authenticationUsernameTextField, authenticationPasswordField);
     updateToggleButtons(true);
     initFileNameExtensionFilters();
-
-    findControl = new FindControl(findTextField);
-    playlistFindControl = new FindControl(playlistFindTextField);
 
     JOptionPane tempOptionPane = new JOptionPane();
     Color fgColor = tempOptionPane.getForeground(), bgColor = tempOptionPane.getBackground();
@@ -481,17 +476,8 @@ public class GUI extends JFrame implements GuiListener {
       }
     });
 
-    playlistSyncTable.tableModel.addTableModelListener(new TableModelListener() {
-      private final Map<String, List<String>> cache = new HashMap<String, List<String>>(100);
-
-      @Override
-      public void tableChanged(TableModelEvent evt) {
-        playlistFindControl.clearFindables();
-        for (Object row : playlistSyncTable.tableModel.getDataVector()) {
-          playlistFindControl.addFindable((String) ((List<?>) row).get(playlistNameCol), cache);
-        }
-      }
-    });
+    (findControl = new FindControl(findTextField)).addDataSource(resultsSyncTable.tableModel, currTitleCol);
+    (playlistFindControl = new FindControl(playlistFindTextField)).addDataSource(playlistSyncTable.tableModel, playlistNameCol);
 
     UI.add(trailerPlayerButtonGroup, trailerMediaPlayerRadioButtonMenuItem, trailerMediaPlayer1080RadioButtonMenuItem,
             trailerMediaPlayer720RadioButtonMenuItem, trailerMediaPlayer480RadioButtonMenuItem, trailerMediaPlayer360RadioButtonMenuItem,
@@ -7129,7 +7115,6 @@ public class GUI extends JFrame implements GuiListener {
       downloadLinkEpisodes.clear();
       subtitleEpisodes.clear();
     }
-    findControl.clearFindables();
   }
 
   @Override
@@ -7184,7 +7169,6 @@ public class GUI extends JFrame implements GuiListener {
       }
     });
     posterImagePaths.add((String) result[imageCol]);
-    findControl.addFindable((String) result[currTitleCol]);
   }
 
   @Override

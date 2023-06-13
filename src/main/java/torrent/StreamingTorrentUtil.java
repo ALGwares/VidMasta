@@ -38,12 +38,12 @@ import listener.PlaylistItem;
 import listener.Video;
 import listener.WorkerListener;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.mutable.MutableLong;
 import str.Str;
 import util.AbstractWorker.StateValue;
 import util.Constant;
 import util.IO;
 import util.MediaPlayer;
-import util.MutableLong;
 import util.Regex;
 import util.ThrowableUtil;
 import util.Worker;
@@ -593,11 +593,11 @@ public class StreamingTorrentUtil {
   private static long playETA(DiskManagerFileInfo fileInfo, DownloadManagerStats stats, long minBufferBytes, MutableLong prevDownloadRate) {
     long downloadRate = stats.getSmoothedDataReceiveRate();
     if (downloadRate <= 0) {
-      if ((downloadRate = prevDownloadRate.val) == Long.MAX_VALUE) {
+      if ((downloadRate = prevDownloadRate.longValue()) == Long.MAX_VALUE) {
         return Long.MAX_VALUE;
       }
     } else {
-      prevDownloadRate.val = downloadRate;
+      prevDownloadRate.setValue(downloadRate);
     }
     long remainingBuffer = minBufferBytes - fileInfo.getDownloaded();
     return remainingBuffer <= 0 ? 0 : remainingBuffer / downloadRate;

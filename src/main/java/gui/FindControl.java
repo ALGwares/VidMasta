@@ -3,13 +3,18 @@ package gui;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.JTextComponent;
 import util.Regex;
 
@@ -31,6 +36,18 @@ public class FindControl {
     showBorder = tempTextComponent.getBorder();
     hide(true);
     UI.addAutoCompleteSupport(findTextComponent, findables);
+  }
+
+  public void addDataSource(DefaultTableModel tableModel, int col) {
+    Map<String, List<String>> cache = new HashMap<>(100);
+    tableModel.addTableModelListener(evt -> {
+      findables.clear();
+      tableModel.getDataVector().forEach(row -> findables.addAll(cache.computeIfAbsent((String) ((List<?>) row).get(col), key -> Arrays.asList(key,
+              Regex.cleanAbbreviations(key)).stream().map(str -> {
+        String findable = Regex.htmlToPlainText(str);
+        return Arrays.asList(findable, Regex.replaceFirst(findable, 327), findable = Regex.clean(findable), Regex.replaceFirst(findable, 327));
+      }).flatMap(Collection::stream).collect(Collectors.toList()))));
+    });
   }
 
   public final void hide(boolean clearFindRow) {
@@ -59,27 +76,6 @@ public class FindControl {
       findTextComponent.setEnabled(true);
       findTextComponent.setText(query);
     }
-  }
-
-  private static List<String> findables(String str) {
-    List<String> findables = new ArrayList<String>(8);
-    for (String currStr : new String[]{str, Regex.cleanAbbreviations(str)}) {
-      String findable = Regex.htmlToPlainText(currStr);
-      Collections.addAll(findables, findable, Regex.replaceFirst(findable, 327), findable = Regex.clean(findable), Regex.replaceFirst(findable, 327));
-    }
-    return findables;
-  }
-
-  public void addFindable(String str, Map<String, List<String>> cache) {
-    List<String> strs = cache.get(str);
-    if (strs == null) {
-      cache.put(str, strs = findables(str));
-    }
-    findables.addAll(strs);
-  }
-
-  public void addFindable(String str) {
-    findables.addAll(findables(str));
   }
 
   public void find(KeyEvent evt, Runnable enterKeyAction, SyncTable table) {
@@ -149,9 +145,5 @@ public class FindControl {
   private void setFindRow(SyncTable table, int row) {
     table.changeSelection(row, 0, false, false);
     findRow = row;
-  }
-
-  public void clearFindables() {
-    findables.clear();
   }
 }

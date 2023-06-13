@@ -20,7 +20,6 @@ import util.Constant;
 import util.IO;
 import util.ProxyException;
 import util.Regex;
-import util.Task;
 
 public class PopularSearcher extends AbstractSearcher {
 
@@ -97,17 +96,14 @@ public class PopularSearcher extends AbstractSearcher {
 
   @Override
   protected void initCurrVideos() throws Exception {
-    Connection.runDownloadLinkInfoDeproxier(new Task() {
-      @Override
-      public void run() throws Exception {
-        boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
-        String currSource = currSourceCode, prevSource = prevSourceCode;
+    Connection.runDownloadLinkInfoDeproxier(() -> {
+      boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+      String currSource = currSourceCode, prevSource = prevSourceCode;
+      PopularSearcher.super.initCurrVideos();
+      if (!isCancelled() && !isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
+        currSourceCode = currSource;
+        prevSourceCode = prevSource;
         PopularSearcher.super.initCurrVideos();
-        if (!isCancelled() && !isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
-          currSourceCode = currSource;
-          prevSourceCode = prevSource;
-          PopularSearcher.super.initCurrVideos();
-        }
       }
     });
   }

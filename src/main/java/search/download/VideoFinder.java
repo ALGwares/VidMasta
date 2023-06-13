@@ -5,10 +5,9 @@ import gui.UI;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +16,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -32,7 +30,11 @@ import listener.GuiListener;
 import listener.Video;
 import listener.VideoStrExportListener;
 import org.apache.commons.lang3.builder.CompareToBuilder;
-import org.apache.commons.lang3.tuple.Pair;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import search.BoxSetVideo;
 import search.util.VideoSearch;
 import str.Str;
@@ -42,13 +44,14 @@ import torrent.StreamingTorrentUtil;
 import torrent.Torrent;
 import util.AbstractWorker;
 import util.Connection;
+import util.Connection.WebBrowserRequest;
 import util.ConnectionException;
 import util.Constant;
 import util.IO;
 import util.MediaPlayer;
 import util.Regex;
-import util.Task;
 import util.ThrowableUtil;
+import util.ThrowingRunnable;
 import util.Worker;
 
 public class VideoFinder extends Worker {
@@ -356,21 +359,34 @@ public class VideoFinder extends Worker {
     }
 
     String br1 = "\\<br\\>";
-    String newSummary = Regex.match(video.summary, VideoSearch.summaryTagRegex(Constant.STORYLINE_HTML_ID), "\\</td\\>");
-    if (newSummary.isEmpty()) {
+    String tempNewSummary = Regex.match(video.summary, VideoSearch.summaryTagRegex(Constant.STORYLINE_HTML_ID), "\\</td\\>"), newSummary;
+    if (tempNewSummary.isEmpty()) {
       String br2 = br1 + "\\s*+" + br1;
       newSummary = Regex.firstMatch(video.summary, VideoSearch.summaryTagRegex(Constant.GENRE_HTML_ID)).isEmpty() ? Regex.match(video.summary,
               "\\<font[^\\>]++\\>", br2) : Regex.match(video.summary, br2, br2);
     } else {
-      newSummary = Regex.match(newSummary, br1, "\\z");
+      newSummary = Regex.match(tempNewSummary, br1, "\\z");
     }
 
-    String uuid = UUID.randomUUID().toString();
-    Method escape = Class.forName(Str.get(810)).getMethod(Str.get(811), String.class);
-    Object escaped = escape.invoke(null, Regex.clean(Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470), false));
-    Connection.saveData(String.format(Str.get(806), escaped), Str.get(808).isEmpty() ? null : Pair.of(Str.get(808), String.format(Str.get(
-            809), escaped, escape.invoke(null, uuid)).getBytes(StandardCharsets.UTF_8)), speech.getPath(), DomainType.VIDEO_INFO, true, null, String.format(
-            Str.get(807), Str.urlEncode(uuid)), null);
+    WebBrowserRequest request = new WebBrowserRequest(857) {
+      @Override
+      protected void triggerSubRequest(FirefoxDriver driver, ThrowingRunnable<InterruptedException> sleep) throws Exception {
+        Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
+        (new WebDriverWait(driver, timeout)).until(ExpectedConditions.and(ExpectedConditions.presenceOfElementLocated(By.id(
+                Str.get(855))), ExpectedConditions.presenceOfElementLocated(By.id(Str.get(856)))));
+        WebElement textArea = driver.findElement(By.id(Str.get(855)));
+        textArea.clear();
+        sleep.run();
+        textArea.sendKeys(Regex.clean(Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470), false));
+        sleep.run();
+        driver.findElement(By.id(Str.get(856))).click();
+        sleep.run();
+        driver.get(driver.getCurrentUrl());
+        (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.id(Str.get(856))));
+      }
+    };
+    Connection.getSourceCode(Str.get(854), DomainType.VIDEO_INFO, true, false, -1, request);
+    Connection.saveData(request.subrequestUrl.get(), speech.getPath(), DomainType.VIDEO_INFO, true, null, 2, request.cookies.get());
     if (!isCancelled()) {
       read(speech);
     }
@@ -614,7 +630,7 @@ public class VideoFinder extends Worker {
 
     String[] link1 = null;
     try {
-      link1 = getTrailerLink1(season, true);
+      link1 = getTrailerLink(season, true);
       if (prefetch || isCancelled()) {
         return;
       }
@@ -629,7 +645,7 @@ public class VideoFinder extends Worker {
     if (link1 == null) {
       String[] link2 = null;
       try {
-        link2 = getTrailerLink2(season);
+        link2 = getTrailerLink(season, false);
         if (isCancelled()) {
           return;
         }
@@ -667,7 +683,7 @@ public class VideoFinder extends Worker {
       if (rerunner == null && link1 != null) {
         String[] link2 = null;
         try {
-          link2 = getTrailerLink2(season);
+          link2 = getTrailerLink(season, false);
         } catch (Exception e) {
           error(e);
         }
@@ -683,6 +699,12 @@ public class VideoFinder extends Worker {
         openTrailerLink(link, link1 == null ? browseLink : rerunner, browseLink);
       }
     }
+  }
+
+  private String[] getTrailerLink(Integer season, boolean link1) throws Exception {
+    boolean useLink2AsLink1 = Boolean.parseBoolean(Str.get(835)) && (season == null || video.season.equals(guiListener.getSeason(row, video.id)));
+    return link1 ? (useLink2AsLink1 ? getTrailerLink2(season) : getTrailerLink1(season, true)) : (useLink2AsLink1 ? getTrailerLink1(season, true)
+            : getTrailerLink2(season));
   }
 
   private String[] getTrailerLink1(Integer season, boolean canRetry) throws Exception {
@@ -714,7 +736,8 @@ public class VideoFinder extends Worker {
       return null;
     }
 
-    Pattern titleRegex = Regex.pattern("(?i)((" + Pattern.quote(video.title) + ")|(" + Pattern.quote(Regex.htmlToPlainText(video.title)) + "))");
+    Pattern officialRegex = Regex.pattern(858), titleRegex = Regex.pattern("(?i)((" + Pattern.quote(video.title) + ")|(" + Pattern.quote(Regex.htmlToPlainText(
+            video.title)) + "))");
     List<Entry<String, String>> results = Regex.matches(sourceCode1, 750).stream().map(videoId -> new SimpleImmutableEntry<>(videoId, Regex.match(sourceCode1,
             String.format(Str.get(804), Pattern.quote(videoId)), Str.get(805)))).sorted(Collections.reverseOrder((result1, result2) -> {
       CompareToBuilder compare = new CompareToBuilder();
@@ -722,6 +745,7 @@ public class VideoFinder extends Worker {
       if (season != null) {
         appendToCompare.accept(title -> Boolean.TRUE.equals(TorrentFinder.isRightSeason(' ' + title, season)));
       }
+      appendToCompare.accept(title -> officialRegex.matcher(title).find());
       appendToCompare.accept(title -> titleRegex.matcher(title).find());
       return compare.toComparison();
     })).collect(Collectors.toList());
@@ -1009,45 +1033,42 @@ public class VideoFinder extends Worker {
   }
 
   private void findDownloadLink() throws Exception {
-    Connection.runDownloadLinkInfoDeproxier(new Task() {
-      @Override
-      public void run() throws Exception {
-        if (prefetch) {
-          for (TorrentFinder finder : torrentFinders) {
-            finder.getTorrents(true, true);
-          }
-          return;
+    Connection.runDownloadLinkInfoDeproxier(() -> {
+      if (prefetch) {
+        for (TorrentFinder finder : torrentFinders) {
+          finder.getTorrents(true, true);
         }
+        return;
+      }
 
-        boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
-        try {
-          if (foreground) {
-            AbstractWorker.executeAndWaitFor(torrentFinders);
-          } else {
-            for (Worker torrentFinder : torrentFinders) {
-              AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
-            }
-          }
-        } catch (CancellationException e) {
-          if (Debug.DEBUG) {
-            Debug.println(e);
+      boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+      try {
+        if (foreground) {
+          AbstractWorker.executeAndWaitFor(torrentFinders);
+        } else {
+          for (Worker torrentFinder : torrentFinders) {
+            AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
           }
         }
-        if (isCancelled()) {
-          return;
+      } catch (CancellationException e) {
+        if (Debug.DEBUG) {
+          Debug.println(e);
         }
+      }
+      if (isCancelled()) {
+        return;
+      }
 
-        if (!isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
-          Collection<TorrentFinder> newTorrentFinders = new ArrayList<TorrentFinder>(torrentFinders.size());
-          for (TorrentFinder torrentFinder : torrentFinders) {
-            newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
-          }
-          if (foreground) {
-            AbstractWorker.executeAndWaitFor(newTorrentFinders);
-          } else {
-            for (Worker torrentFinder : newTorrentFinders) {
-              AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
-            }
+      if (!isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
+        Collection<TorrentFinder> newTorrentFinders = new ArrayList<TorrentFinder>(torrentFinders.size());
+        for (TorrentFinder torrentFinder : torrentFinders) {
+          newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
+        }
+        if (foreground) {
+          AbstractWorker.executeAndWaitFor(newTorrentFinders);
+        } else {
+          for (Worker torrentFinder : newTorrentFinders) {
+            AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
           }
         }
       }
