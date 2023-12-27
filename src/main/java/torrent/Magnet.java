@@ -9,16 +9,16 @@ import com.biglybt.core.ipfilter.IpFilter;
 import com.biglybt.core.ipfilter.impl.IPAddressRangeManagerV4;
 import com.biglybt.core.ipfilter.impl.IpFilterImpl;
 import com.biglybt.core.ipfilter.impl.IpRangeV4Impl;
-import com.biglybt.core.util.BDecoder;
 import com.biglybt.core.util.Constants;
 import com.biglybt.core.util.DisplayFormatters;
-import com.biglybt.core.util.FileUtil;
 import com.biglybt.core.util.SystemProperties;
+import com.biglybt.core.util.UrlUtils;
 import com.biglybt.pif.PluginInterface;
 import com.biglybt.pif.PluginManagerDefaults;
 import com.biglybt.pif.PluginState;
-import com.biglybt.pifimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import com.biglybt.plugin.dht.DHTPlugin;
+import com.biglybt.plugin.magnet.MagnetPlugin;
+import com.biglybt.plugin.magnet.MagnetPluginProgressListener;
 import debug.Debug;
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,14 +28,15 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
@@ -45,6 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import listener.DomainType;
 import listener.GuiListener;
+import org.apache.commons.lang3.StringUtils;
 import str.Str;
 import util.AbstractWorker;
 import util.Connection;
@@ -126,16 +128,51 @@ public class Magnet extends Thread {
     }
     try {
       byte[] torrentBytes;
+      String magnetLinkHash = Regex.replaceAllRepeatedly(magnetLink, 801);
       try {
-        String magnetLinkHash = Regex.replaceAllRepeatedly(magnetLink, 801), tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
+        String tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
         Connection.saveData(String.format(Locale.ENGLISH, Str.get(803), magnetLinkHash), tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
         torrentBytes = Files.readAllBytes(Paths.get(tempTorrent));
       } catch (Exception e) {
         if (Debug.DEBUG) {
           Debug.print(e);
         }
-        torrentBytes = FileUtil.readInputStreamAsByteArray(ResourceDownloaderFactoryImpl.getSingleton().create(new URL(magnetLink)).download(),
-                BDecoder.MAX_BYTE_ARRAY_SIZE);
+        Objects.requireNonNull(torrentBytes = ((MagnetPlugin) CoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(
+                MagnetPlugin.class).getPlugin()).download(new MagnetPluginProgressListener() {
+                  @Override
+                  public void reportSize(long size) {
+                  }
+
+                  @Override
+                  public void reportActivity(String str) {
+                    if (Debug.DEBUG) {
+                      Debug.println(Str.get(388) + magnetLinkHash + ' ' + str);
+                    }
+                  }
+
+                  @Override
+                  public void reportCompleteness(int percent) {
+                    if (Debug.DEBUG) {
+                      Debug.println(Str.get(388) + magnetLinkHash + " " + percent + "% complete");
+                    }
+                  }
+
+                  @Override
+                  public void reportContributor(InetSocketAddress address) {
+                  }
+
+                  @Override
+                  public boolean verbose() {
+                    return true;
+                  }
+
+                  @Override
+                  public boolean cancelled() {
+                    return false;
+                  }
+                }, UrlUtils.decodeTruncatedHashFromMagnetURI(magnetLinkHash.toUpperCase(Locale.ENGLISH)), StringUtils.substringAfter(magnetLink, "&"),
+                        new InetSocketAddress[0], Collections.emptyList(), Collections.emptyMap(), 90_000, MagnetPlugin.FL_NONE),
+                "magnet link download failed for: " + magnetLink);
       }
       isDoneDownloading.set(true);
 

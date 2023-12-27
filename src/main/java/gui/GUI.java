@@ -3273,7 +3273,7 @@ public class GUI extends JFrame implements GuiListener {
 
     List<String> genres = new ArrayList<String>(32);
     genres.add(Str.str("any"));
-    Collections.addAll(genres, Regex.split(359, Constant.SEPARATOR1));
+    Collections.addAll(genres, Regex.split(865, Constant.SEPARATOR1));
     UI.init(genreList, genres.toArray(Constant.EMPTY_STRS));
     genreList.setSelectedValue(Str.str("any"), true);
     genreList.addListSelectionListener(new ListSelectionListener() {

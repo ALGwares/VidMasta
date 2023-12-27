@@ -215,7 +215,7 @@ public class TorrentFinder extends Worker {
     return null;
   }
 
-  private boolean isSourceCodeValid(String sourceCode) throws ConnectionException {
+  private boolean isSourceCodeValid(String sourceCode) throws Exception {
     if (!Regex.firstMatch(sourceCode, 146).isEmpty() || Regex.firstMatch(sourceCode, 504).isEmpty()) {
       Connection.removeDownloadLinkInfoFromCache(url);
       if (Connection.deproxyDownloadLinkInfo()) {

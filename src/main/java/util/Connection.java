@@ -40,7 +40,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -53,6 +52,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.LazyInitializer;
 import org.openqa.selenium.Cookie;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.Event;
 import org.openqa.selenium.devtools.v113.network.Network;
@@ -74,8 +74,12 @@ public class Connection {
   private static UpdateListener deproxyDownloadLinkInfo;
   private static boolean reproxyDownloadLinkInfoUrlSet;
   private static volatile String downloadLinkInfoFailUrl;
-  private static Consumer<String> webBrowserRequestListener;
+  private static volatile Consumer<String> webBrowserRequestListener;
   private static Proxy webBrowserProxy = Proxy.NO_PROXY;
+  private static final Lock webBrowserLock = new ReentrantLock();
+  private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(850)));
+  private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean();
+  private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
   private static final LazyInitializer<FirefoxDriver> webBrowserDriver = new LazyInitializer<FirefoxDriver>() {
     @Override
     public FirefoxDriver initialize() {
@@ -85,8 +89,10 @@ public class Connection {
         if (!firefoxIndicator.exists()) {
           String zipFile = firefoxIndicator.getPath() + Constant.ZIP;
           try {
-            saveData(Str.get(Constant.WINDOWS ? 839 : (Constant.MAC ? 843 : 847)), zipFile, DomainType.UPDATE);
-            setStatusBar(Str.str("initializing") + "...");
+            saveData(Str.get(Constant.WINDOWS ? 839 : (Constant.MAC ? 843 : 847)), zipFile, DomainType.UPDATE, webBrowserInitShowStatus.get());
+            if (webBrowserInitShowStatus.get()) {
+              setStatusBar(webBrowserInitStatusMsg.updateAndGet(prev -> Str.str("initializing") + "..."));
+            }
             try {
               IO.fileOp(webBrowserDir, IO.RM_DIR);
               IO.unzip(zipFile, IO.dir(webBrowserDir.getPath()));
@@ -100,7 +106,9 @@ public class Connection {
           }
         }
 
-        setStatusBar(Str.str("initializing") + "...");
+        if (webBrowserInitShowStatus.get()) {
+          setStatusBar(webBrowserInitStatusMsg.updateAndGet(prev -> Str.str("initializing") + "..."));
+        }
         File firefoxDriver = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 837 : (Constant.MAC ? 841 : 845)));
         File firefoxBinary = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)));
         System.setProperty(GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY, firefoxDriver.getPath());
@@ -146,7 +154,8 @@ public class Connection {
           }
         }));
 
-        FirefoxDriver driver = driverRef.updateAndGet(prevDriver -> new FirefoxDriver(options));
+        driverRef.set(new FirefoxDriver(options));
+        FirefoxDriver driver = driverRef.get();
         DevTools devTools = driver.getDevTools();
         devTools.createSessionIfThereIsNotOne();
         devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
@@ -183,6 +192,7 @@ public class Connection {
         });
         return driver;
       } finally {
+        webBrowserInitStatusMsg.set(null);
         unsetStatusBar();
       }
     }
@@ -329,13 +339,20 @@ public class Connection {
     return (new AbstractWorker<String>() {
       @Override
       protected String doInBackground() throws Exception {
-        if (webBrowserRequest != null) {
-          webBrowserDriver.get();
-        }
         HttpURLConnection connection = null;
         BufferedReader br = null;
         StringBuilder source = new StringBuilder(8192);
         try {
+          if (webBrowserRequest != null) {
+            webBrowserInitShowStatus.set(showStatus);
+            if (showStatus) {
+              String msg = webBrowserInitStatusMsg.get();
+              if (msg != null) {
+                setStatusBar(msg);
+              }
+            }
+            webBrowserDriver.get();
+          }
           Proxy proxy = getProxy(domainType);
           String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
           if (isCancelled()) {
@@ -380,13 +397,7 @@ public class Connection {
             }
             checkConnectionResponse(connection, url);
           } else {
-            final Lock lock = new ReentrantLock();
-            final Condition driverLockCondition = lock.newCondition();
-            final ThrowingRunnable<InterruptedException> sleep = () -> {
-              for (long nanos = TimeUnit.MILLISECONDS.toNanos(Integer.parseInt(Str.get(850))); nanos > 0L; nanos = driverLockCondition.awaitNanos(nanos)) {
-              }
-            };
-            lock.lock();
+            webBrowserLock.lockInterruptibly();
             try {
               FirefoxDriver driver = webBrowserDriver.get();
               driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(shortTimeoutUrls.getIfPresent((new URL(url)).getHost()) == null
@@ -400,24 +411,32 @@ public class Connection {
                   setProxyScript = String.format(Str.get(853), socketAddress.getAddress().getHostAddress(), socketAddress.getPort());
                 }
                 driver.get(Str.get(851));
-                sleep.run();
+                webBrowserSleep.run();
                 webBrowserProxy = proxy;
                 driver.executeScript(setProxyScript);
-                sleep.run();
+                webBrowserSleep.run();
               }
-              setStatusBar(Str.str("transferring") + ' ' + statusMsg);
-              source.append(webBrowserRequest.get(url, driver, sleep));
+              if (showStatus) {
+                setStatusBar(Str.str("transferring") + ' ' + statusMsg);
+              }
+              source.append(webBrowserRequest.get(url, driver, webBrowserSleep));
             } catch (Exception e) {
               throw new IOException(e);
             } finally {
-              lock.unlock();
+              webBrowserLock.unlock();
             }
           }
 
           if (!emptyOK && source.length() == 0) {
             throw new IOException("empty source code");
           }
-        } catch (IOException e) {
+        } catch (IOException exception) {
+          IOException e = exception;
+          Throwable t = ThrowableUtil.rootCause(e);
+          if (t instanceof WebDriverException) {
+            e = new IOException(t.getClass().getName() + ": " + ((WebDriverException) t).getRawMessage());
+            e.setStackTrace(t.getStackTrace());
+          }
           String errorMsg = IO.consumeErrorStream(connection);
           addShortTimeoutUrls(url);
           for (Class<?> throwable : throwables) {
@@ -469,9 +488,9 @@ public class Connection {
     return Str.str("serverProblem", getShortUrl(url, false)) + ' ' + Str.str("pleaseRetry");
   }
 
-  public static void runDownloadLinkInfoDeproxier(ThrowingRunnable<Exception> deproxier) throws Exception {
+  public static void runDownloadLinkInfoDeproxier(ThrowingRunnable deproxier) throws Exception {
     try {
-      downloadLinkInfoProxyLock.lock();
+      downloadLinkInfoProxyLock.lockInterruptibly();
       try {
         ++numDownloadLinkInfoDeproxiers;
       } finally {
@@ -479,7 +498,7 @@ public class Connection {
       }
       deproxier.run();
     } finally {
-      downloadLinkInfoProxyLock.lock();
+      downloadLinkInfoProxyLock.lockInterruptibly();
       try {
         if (--numDownloadLinkInfoDeproxiers == 0 && Str.containsListener(deproxyDownloadLinkInfo)) {
           Str.removeListener(deproxyDownloadLinkInfo);
@@ -495,8 +514,8 @@ public class Connection {
     }
   }
 
-  public static boolean deproxyDownloadLinkInfo() {
-    downloadLinkInfoProxyLock.lock();
+  public static boolean deproxyDownloadLinkInfo() throws Exception {
+    downloadLinkInfoProxyLock.lockInterruptibly();
     try {
       if (Str.containsListener(deproxyDownloadLinkInfo)) {
         return false;
@@ -523,8 +542,8 @@ public class Connection {
     }
   }
 
-  public static boolean isDownloadLinkInfoDeproxied() {
-    downloadLinkInfoProxyLock.lock();
+  public static boolean isDownloadLinkInfoDeproxied() throws Exception {
+    downloadLinkInfoProxyLock.lockInterruptibly();
     try {
       return Str.containsListener(deproxyDownloadLinkInfo);
     } finally {
@@ -1015,7 +1034,7 @@ public class Connection {
       this.subrequestUrlRegexIndex = subrequestUrlRegexIndex;
     }
 
-    public String get(String url, FirefoxDriver driver, ThrowingRunnable<InterruptedException> sleep) throws Exception {
+    public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
       if (subrequestUrlRegexIndex == null) {
         driver.get(url);
         return driver.getPageSource();
@@ -1038,7 +1057,7 @@ public class Connection {
       return "<subrequest/>";
     }
 
-    protected void triggerSubRequest(FirefoxDriver driver, ThrowingRunnable<InterruptedException> sleep) throws Exception {
+    protected void triggerSubRequest(FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
     }
   }
 

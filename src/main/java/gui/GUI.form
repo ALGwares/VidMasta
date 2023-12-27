@@ -4558,7 +4558,7 @@
             <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="genreListValueChanged"/>
           </Events>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="        List&lt;String&gt; genres = new ArrayList&lt;String&gt;(32);&#xa;        genres.add(Str.str(&quot;any&quot;));&#xa;        Collections.addAll(genres, Regex.split(359, Constant.SEPARATOR1));&#xa;        UI.init(genreList, genres.toArray(Constant.EMPTY_STRS));&#xa;        genreList.setSelectedValue(Str.str(&quot;any&quot;), true);"/>
+            <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="        List&lt;String&gt; genres = new ArrayList&lt;String&gt;(32);&#xa;        genres.add(Str.str(&quot;any&quot;));&#xa;        Collections.addAll(genres, Regex.split(865, Constant.SEPARATOR1));&#xa;        UI.init(genreList, genres.toArray(Constant.EMPTY_STRS));&#xa;        genreList.setSelectedValue(Str.str(&quot;any&quot;), true);"/>
           </AuxValues>
         </Component>
       </SubComponents>

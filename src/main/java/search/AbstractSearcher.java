@@ -376,7 +376,7 @@ public abstract class AbstractSearcher extends Worker {
 
         String sourceCode = video.summary;
         video.oldTitle = VideoSearch.getOldTitle(sourceCode);
-        video.summary = VideoSearch.getSummary(sourceCode, video.isTVShow);
+        video.summary = VideoSearch.getSummary(sourceCode, video.isTVShow, video.year);
         video.imageLink = Regex.match(sourceCode, 190);
         if (video.imageLink.isEmpty()) {
           if (noImage(video)) {

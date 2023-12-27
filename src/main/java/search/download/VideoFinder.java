@@ -370,7 +370,7 @@ public class VideoFinder extends Worker {
 
     WebBrowserRequest request = new WebBrowserRequest(857) {
       @Override
-      protected void triggerSubRequest(FirefoxDriver driver, ThrowingRunnable<InterruptedException> sleep) throws Exception {
+      protected void triggerSubRequest(FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
         Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
         (new WebDriverWait(driver, timeout)).until(ExpectedConditions.and(ExpectedConditions.presenceOfElementLocated(By.id(
                 Str.get(855))), ExpectedConditions.presenceOfElementLocated(By.id(Str.get(856)))));
@@ -1110,7 +1110,7 @@ public class VideoFinder extends Worker {
       String imageLink = Regex.match(sourceCode, 188);
       guiListener.setImageLink(imageLink, row, video.id);
       video.imageLink = imageLink;
-      String summary = VideoSearch.getSummary(sourceCode, video.isTVShow);
+      String summary = VideoSearch.getSummary(sourceCode, video.isTVShow, video.year);
       guiListener.setSummary(summary, row, video.id);
       video.summary = summary;
     }

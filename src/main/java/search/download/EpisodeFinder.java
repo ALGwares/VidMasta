@@ -1,9 +1,10 @@
 package search.download;
 
 import debug.Debug;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,8 +12,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.text.Element;
 import listener.DomainType;
 import listener.GuiListener;
@@ -101,19 +105,12 @@ public class EpisodeFinder extends Worker {
     return nums;
   }
 
-  private void setEpisodeText(String season, String episode, String airdate, DateFormat[] dateFormats, boolean isNextEpisode) {
-    String airdateText;
-    if (Regex.isMatch(airdate, 534)) {
-      airdateText = VideoSearch.dateToString(dateFormats[0], Regex.replaceAll(airdate, 535), Boolean.parseBoolean(Str.get(558)));
-    } else if (Regex.isMatch(airdate, 546)) {
-      airdateText = VideoSearch.dateToString(dateFormats[1], Regex.replaceAll(airdate, 535), Boolean.parseBoolean(Str.get(559)));
-    } else if (Regex.isMatch(airdate, 745)) {
-      airdateText = VideoSearch.dateToString(dateFormats[2], Regex.replaceAll(airdate, 535), null);
-    } else {
-      airdateText = Str.str("unknown");
-    }
-    String seasonNumber, episodeNumber, episodeText = "S" + (seasonNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(season))) + "E"
-            + (episodeNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(episode))) + " (" + Str.str("airdate") + ' ' + airdateText + ')';
+  private void setEpisodeText(String season, String episode, String airdate, Function<String, SimpleDateFormat> getDateFormat, boolean isNextEpisode) {
+    SimpleDateFormat airdateFormat = getDateFormat.apply(airdate);
+    String airdatePattern, seasonNumber, episodeNumber, episodeText = "S" + (seasonNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(season)))
+            + "E" + (episodeNumber = String.format(Constant.TV_EPISODE_FORMAT, Integer.valueOf(episode))) + " (" + Str.str("airdate") + ' '
+            + (airdateFormat == null ? Str.str("unknown") : VideoSearch.dateToString(airdateFormat, Regex.replaceAll(airdate, 535), Regex.firstMatch(
+                    airdatePattern = airdateFormat.toPattern(), 863).isEmpty() ? null : !Regex.firstMatch(airdatePattern, 864).isEmpty())) + ')';
     if (isNextEpisode) {
       nextEpisodeText = episodeText;
     } else {
@@ -130,10 +127,12 @@ public class EpisodeFinder extends Worker {
   void findEpisodes(String url, String seasonToFind, String episodeToFind) throws Exception {
     boolean findSeasonAndEpisode = !seasonToFind.isEmpty() && !seasonToFind.equals(Constant.ANY) && !episodeToFind.isEmpty() && !episodeToFind.equals(
             Constant.ANY);
-    DateFormat[] dateFormats = {new SimpleDateFormat(Str.get(538), Locale.ENGLISH), new SimpleDateFormat(Str.get(547), Locale.ENGLISH), new SimpleDateFormat(
-      Str.get(746), Locale.ENGLISH)};
+    List<Entry<String, SimpleDateFormat>> dateFormats = Arrays.stream(Regex.split(862, Constant.SEPARATOR2)).map(str -> Regex.split(str,
+            Constant.SEPARATOR1)).map(strs -> new SimpleImmutableEntry<>(strs[0], new SimpleDateFormat(strs[1], Locale.ENGLISH))).collect(Collectors.toList());
+    Function<String, SimpleDateFormat> getDateFormat = date -> dateFormats.stream().filter(dateFormat -> Regex.isMatch(date, dateFormat.getKey())).map(
+            Entry::getValue).findFirst().orElse(null);
     if (findSeasonAndEpisode) {
-      setEpisodeText(seasonToFind, episodeToFind, "", dateFormats, true);
+      setEpisodeText(seasonToFind, episodeToFind, "", getDateFormat, true);
     }
     Calendar currDate = Calendar.getInstance();
     currDate.set(Calendar.HOUR_OF_DAY, 0);
@@ -173,19 +172,20 @@ public class EpisodeFinder extends Worker {
       for (int i = 0, j = currEpisodes.size() - 1; i <= j; i++) {
         String episode = currEpisodes.get(i), airdate = Regex.replaceAll(Regex.match(source, Str.get(528) + season + Str.get(529) + episode + Str.get(530),
                 Str.get(531)), Str.get(532), Str.get(533));
+        SimpleDateFormat airdateFormat = getDateFormat.apply(airdate);
         Calendar currAirdate;
-        if (Regex.isMatch(airdate, 534)) {
-          (currAirdate = Calendar.getInstance()).setTime(dateFormats[0].parse(Regex.replaceAll(airdate, 535)));
-        } else if (Regex.isMatch(airdate, 546)) {
-          (currAirdate = Calendar.getInstance()).setTime(dateFormats[1].parse(Regex.replaceAll(airdate, 535)));
-          currAirdate.set(Calendar.DAY_OF_MONTH, currAirdate.getActualMaximum(Calendar.DAY_OF_MONTH));
-        } else if (Regex.isMatch(airdate, 745)) {
-          (currAirdate = Calendar.getInstance()).setTime(dateFormats[2].parse(Regex.replaceAll(airdate, 535)));
-          currAirdate.set(Calendar.MONTH, currAirdate.getActualMaximum(Calendar.MONTH));
-          currAirdate.set(Calendar.DAY_OF_MONTH, currAirdate.getActualMaximum(Calendar.DAY_OF_MONTH));
-        } else {
+        if (airdateFormat == null) {
           airdate = "";
           currAirdate = null;
+        } else {
+          (currAirdate = Calendar.getInstance()).setTime(airdateFormat.parse(Regex.replaceAll(airdate, 535)));
+          String airdatePattern = airdateFormat.toPattern();
+          if (Regex.firstMatch(airdatePattern, 863).isEmpty()) {
+            currAirdate.set(Calendar.MONTH, currAirdate.getActualMaximum(Calendar.MONTH));
+          }
+          if (Regex.firstMatch(airdatePattern, 864).isEmpty()) {
+            currAirdate.set(Calendar.DAY_OF_MONTH, currAirdate.getActualMaximum(Calendar.DAY_OF_MONTH));
+          }
         }
 
         Episode currEpisode = new Episode(season, episode, airdate);
@@ -226,12 +226,12 @@ public class EpisodeFinder extends Worker {
     int numEpisodes = episodes.size();
     if (numEpisodes == 1) {
       Episode nextEpisode = episodes.get(0);
-      setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, dateFormats, true);
+      setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, getDateFormat, true);
       prevEpisodeText = nextEpisodeText;
     } else if (numEpisodes > 1) {
       Episode nextEpisode = episodes.get(numEpisodes - 1), prevEpisode = episodes.get(numEpisodes - 2);
-      setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, dateFormats, true);
-      setEpisodeText(prevEpisode.season, prevEpisode.episode, prevEpisode.airdate, dateFormats, false);
+      setEpisodeText(nextEpisode.season, nextEpisode.episode, nextEpisode.airdate, getDateFormat, true);
+      setEpisodeText(prevEpisode.season, prevEpisode.episode, prevEpisode.airdate, getDateFormat, false);
     }
   }
 

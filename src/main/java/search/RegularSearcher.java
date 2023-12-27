@@ -135,7 +135,7 @@ public class RegularSearcher extends AbstractSearcher {
     Video video = new Video(titleID, titleParts.title, titleParts.year, tvShow, VideoSearch.isImdbVideoType(sourceCode, tvShow ? 589 : 590));
     video.oldTitle = VideoSearch.getOldTitle(sourceCode);
     video.rating = VideoSearch.rating(Regex.match(sourceCode, 127));
-    video.summary = VideoSearch.getSummary(sourceCode, tvShow);
+    video.summary = VideoSearch.getSummary(sourceCode, tvShow, video.year);
     video.imageLink = Regex.match(sourceCode, 190);
     if (!video.imageLink.isEmpty()) {
       VideoSearch.saveImage(video);
@@ -255,7 +255,7 @@ public class RegularSearcher extends AbstractSearcher {
       return false;
     }
 
-    if (!genresStr.equals(Constant.ANY)) {
+    if (!genresStr.equals(Constant.ANY) && !Str.get(416).equals("a^")) {
       Collection<String> videoGenres = Regex.matches(Regex.match(source, 416), 418);
       if (videoGenres.isEmpty()) {
         if (Debug.DEBUG) {

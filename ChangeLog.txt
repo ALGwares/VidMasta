@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2023.12.27   | VidMasta 28.9
+
+CHANGE: CORE | Improved search error handling
+CHANGE: CORE | Improved magnet link downloading
+
+
+
+
 2023.06.12   | VidMasta 28.8
 
 CHANGE: CORE | Improved trailer search accuracy

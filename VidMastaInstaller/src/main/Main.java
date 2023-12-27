@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import util.Constant;
 import util.IO;
@@ -24,11 +25,15 @@ public class Main {
     createVersionFile();
     run(null, Paths.get("C:", "Program Files", "7-Zip", "7z.exe").toString(), "a", "-tzip", "-mx9", "-mmt", Paths.get(Constant.SAVE_DIR, Constant.INSTALLER
             + ".zip").toString(), Paths.get("C:", "Users", "Anthony", "workspace", "Netbeans", "VidMasta", "vidmasta").toString());
-    //launch4jAdminPermissionsTesterExe(new File("C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR
-    //        + "Desktop" + Constant.FILE_SEPARATOR + "adminPermissionsTester.exe"));
+//    launch4jAdminPermissionsTesterExe(new File("C:" + Constant.FILE_SEPARATOR + "Users" + Constant.FILE_SEPARATOR + "Anthony" + Constant.FILE_SEPARATOR
+//            + "Desktop" + Constant.FILE_SEPARATOR + "adminPermissionsTester.exe"));
   }
 
   private static void checkVersionNumbers() throws Exception {
+    if (!(new File("C:/Users/Anthony/workspace/Netbeans/vidmasta-tester/target/lib/" + Constant.APP_NAME.toLowerCase(Locale.ENGLISH) + "-"
+            + Constant.APP_VERSION + ".jar")).exists()) {
+      throw new RuntimeException("rebuild vidmasta-tester because wrong " + Constant.APP_NAME + " version in target/lib folder");
+    }
     Path appDir = Paths.get("C:", "Users", "Anthony", "workspace", "Netbeans", Constant.APP_NAME);
     checkVersion(appDir.resolve(Paths.get("src", "main", "java", "util", "IOConstant.java")), "double APP_VERSION \\= ", ";");
     checkVersion(appDir.resolve(Paths.get("pom.xml")), "\\<version\\>", "\\</version\\>");

@@ -6,6 +6,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.plaf.UIResource;
@@ -40,8 +41,9 @@ public class Renderer implements ListCellRenderer, UIResource {
   }
 
   public String[] setView(boolean sort, String... view) {
+    Function<Integer, String> viewVal = (modelView.length == view.length ? i -> view[i] : i -> modelView[i].getKey());
     for (int i = 0; i < modelView.length; i++) {
-      modelView[i].setValue(view[i]);
+      modelView[i].setValue(viewVal.apply(i));
     }
     return sort ? sortedModel() : model();
   }

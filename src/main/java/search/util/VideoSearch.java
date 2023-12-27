@@ -206,7 +206,7 @@ public class VideoSearch {
     return rating.isEmpty() ? Constant.NO_RATING : rating;
   }
 
-  public static String getSummary(String sourceCode, boolean isTVShow) {
+  public static String getSummary(String sourceCode, boolean isTVShow, String year) {
     List<String> genresArr = Regex.matches(Regex.match(sourceCode, 137), 139);
 
     StringBuilder genresStr = new StringBuilder(128);
@@ -283,7 +283,8 @@ public class VideoSearch {
       } else if (Regex.isMatch(releaseDate, 548)) {
         releaseDate = dateToString(new SimpleDateFormat(Str.get(549), Locale.ENGLISH), releaseDate, Boolean.parseBoolean(Str.get(557)));
       } else {
-        releaseDate = dateToString(new SimpleDateFormat("yyyy", Locale.ENGLISH), getImdbTitleParts(sourceCode).year, null);
+        String releaseYear = getImdbTitleParts(sourceCode).year;
+        releaseDate = dateToString(new SimpleDateFormat("yyyy", Locale.ENGLISH), releaseYear.isEmpty() ? year : releaseYear, null);
       }
       summary.append("<b>").append(Str.str("releaseDate")).append(" </b>").append(releaseDate);
     }
