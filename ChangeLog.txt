@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2024.03.19   | VidMasta 29.0
+
+CHANGE: CORE | Improved overall performance 
+
+
+
+
 2023.12.27   | VidMasta 28.9
 
 CHANGE: CORE | Improved search error handling

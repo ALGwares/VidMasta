@@ -54,7 +54,7 @@ public class StreamingTorrentUtil {
   private static WorkerListener workerListener;
   private static String wideSpace;
   private static final Object lock = new Object(), lock2 = new Object(), lock3 = new Object();
-  private static final int _40_5KB = 41472, _270KB = 276480, _540KB = 552960, _200MB = 209715200, _1000MB = 1048576000;
+  private static final int _40_5KB = 41472, _270KB = 276480, _540KB = 552960, _5MB = 5242880, _200MB = 209715200, _1000MB = 1048576000;
   private static final int _30DAYS_IN_SECS = 2592000;
   private static volatile PlaylistTorrentItem currPlaylistItem;
   private static File currSaveDir;
@@ -63,6 +63,7 @@ public class StreamingTorrentUtil {
   private static volatile Field canStream;
   private static volatile Thread player;
   private static final BlockingDeque<PlaylistTorrentItem> playlist = new LinkedBlockingDeque<PlaylistTorrentItem>();
+  private static volatile Boolean isLicenseExpired;
   private static final AtomicBoolean canAutoOpenPlaylistItem = new AtomicBoolean(true);
 
   public static void init(GuiListener gui, WorkerListener worker) {
@@ -256,7 +257,7 @@ public class StreamingTorrentUtil {
             Thread.sleep(333);
           }
 
-          guiListener.removePlaylistItem(playlistItem);
+          playlistItemRow = guiListener.removePlaylistItem(playlistItem);
 
           stream(magnet.torrent, name, -1, playlistItemRow, autoStart);
         } catch (Exception e) {
@@ -568,9 +569,11 @@ public class StreamingTorrentUtil {
       Thread.sleep(1000);
     }
 
-    if (isDownloadComplete && !playlistItem.isStopped() && !isPlaying && canAutoOpenPlaylistItem()) {
-      play(playlistItem, progress(playlistItem.item));
-      Thread.sleep(1000);
+    if (isDownloadComplete) {
+      if (!playlistItem.isStopped() && !isPlaying && canAutoOpenPlaylistItem()) {
+        play(playlistItem, progress(playlistItem.item));
+        Thread.sleep(1000);
+      }
     }
   }
 

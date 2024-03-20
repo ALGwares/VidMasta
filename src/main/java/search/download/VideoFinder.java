@@ -368,25 +368,29 @@ public class VideoFinder extends Worker {
       newSummary = Regex.match(tempNewSummary, br1, "\\z");
     }
 
-    WebBrowserRequest request = new WebBrowserRequest(857) {
+    WebBrowserRequest request = new WebBrowserRequest() {
       @Override
-      protected void triggerSubRequest(FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
+      public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
+        driver.get(url);
         Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
-        (new WebDriverWait(driver, timeout)).until(ExpectedConditions.and(ExpectedConditions.presenceOfElementLocated(By.id(
-                Str.get(855))), ExpectedConditions.presenceOfElementLocated(By.id(Str.get(856)))));
-        WebElement textArea = driver.findElement(By.id(Str.get(855)));
+        (new WebDriverWait(driver, timeout)).until(ExpectedConditions.and(ExpectedConditions.presenceOfElementLocated(By.xpath(
+                Str.get(867))), ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(868)))));
+        WebElement textArea = driver.findElement(By.xpath(Str.get(867)));
         textArea.clear();
         sleep.run();
         textArea.sendKeys(Regex.clean(Regex.replaceAll(Regex.replaceAll(newSummary, 468), 470), false));
         sleep.run();
-        driver.findElement(By.id(Str.get(856))).click();
-        sleep.run();
-        driver.get(driver.getCurrentUrl());
-        (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.id(Str.get(856))));
+        waitUntilRequestSent(Str.get(857), () -> {
+          driver.findElement(By.xpath(Str.get(868))).click();
+          sleep.run();
+          driver.get(driver.getCurrentUrl());
+          (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(868))));
+        }, driver);
+        return "<speechRequest/>";
       }
     };
     Connection.getSourceCode(Str.get(854), DomainType.VIDEO_INFO, true, false, -1, request);
-    Connection.saveData(request.subrequestUrl.get(), speech.getPath(), DomainType.VIDEO_INFO, true, null, 2, request.cookies.get());
+    Connection.saveData(request.urlAfterEvt, speech.getPath(), DomainType.VIDEO_INFO, true, null, 2, request.cookiesAfterEvt, false);
     if (!isCancelled()) {
       read(speech);
     }

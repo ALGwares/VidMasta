@@ -1,7 +1,6 @@
 package util;
 
 import debug.Debug;
-import java.util.concurrent.Callable;
 
 public class Worker extends AbstractWorker<Void> {
 
@@ -14,19 +13,12 @@ public class Worker extends AbstractWorker<Void> {
     return null;
   }
 
-  public static Worker submit(Runnable task) {
-    return submit(() -> {
-      task.run();
-      return null;
-    });
-  }
-
-  public static Worker submit(Callable<Void> task) {
+  public static Worker submit(ThrowingRunnable task) {
     Worker worker = new Worker() {
       @Override
       public void doWork() {
         try {
-          task.call();
+          task.run();
         } catch (Exception e) {
           if (Debug.DEBUG) {
             Debug.print(e);

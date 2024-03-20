@@ -150,6 +150,9 @@ public class Main implements WorkerListener {
     removeTempFiles();
     IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
     Connection.startStatusBar();
+    if (Boolean.parseBoolean(Str.get(866))) {
+      Worker.submit(() -> Connection.initWebBrowser());
+    }
 
     (new Timer()).schedule(new TimerTask() {
       @Override

@@ -2,6 +2,7 @@ package util;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Iterables;
 import debug.Debug;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
@@ -34,6 +35,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -51,7 +53,10 @@ import listener.StrUpdateListener.UpdateListener;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.LazyInitializer;
+import org.apache.commons.lang3.function.TriFunction;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.Event;
@@ -61,6 +66,9 @@ import org.openqa.selenium.firefox.FirefoxDriver.SystemProperty;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.GeckoDriverService;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import str.Str;
 
 public class Connection {
@@ -74,7 +82,8 @@ public class Connection {
   private static UpdateListener deproxyDownloadLinkInfo;
   private static boolean reproxyDownloadLinkInfoUrlSet;
   private static volatile String downloadLinkInfoFailUrl;
-  private static volatile Consumer<String> webBrowserRequestListener;
+  private static final AtomicReference<Consumer<String>> webBrowserRequestListener = new AtomicReference<>();
+  private static final AtomicReference<Consumer<String>> webBrowserResponseListener = new AtomicReference<>();
   private static Proxy webBrowserProxy = Proxy.NO_PROXY;
   private static final Lock webBrowserLock = new ReentrantLock();
   private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(850)));
@@ -83,9 +92,27 @@ public class Connection {
   private static final LazyInitializer<FirefoxDriver> webBrowserDriver = new LazyInitializer<FirefoxDriver>() {
     @Override
     public FirefoxDriver initialize() {
-      File firefoxIndicator = new File(Constant.APP_DIR, Str.get(Constant.WINDOWS ? 836 : (Constant.MAC ? 840 : 844)));
-      File webBrowserDir = new File(Constant.APP_DIR, "webBrowser");
       try {
+        File webBrowserDir = new File(Constant.APP_DIR, "webBrowser");
+        File firefoxBinary = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)));
+        File firefoxDriver = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 837 : (Constant.MAC ? 841 : 845)));
+        Consumer<Boolean> killWebBrowser = wait -> Arrays.asList(firefoxBinary, firefoxDriver).forEach(exe -> {
+          try {
+            Process process = (new ProcessBuilder(Constant.WINDOWS ? Arrays.asList("powershell", "get-process | where-object {$_.path -eq '" + exe.getPath()
+                    + "' -or ($_.name -eq '" + StringUtils.substringBeforeLast(exe.getName(), ".") + "' -and $_.path -eq $null)} | stop-process -force")
+                    : Arrays.asList("pkill", "-9", "-f", exe.getPath()))).start();
+            if (wait) {
+              process.waitFor();
+            }
+          } catch (Exception e) {
+            if (Debug.DEBUG) {
+              Debug.print(e);
+            }
+          }
+        });
+        killWebBrowser.accept(true);
+
+        File firefoxIndicator = new File(Constant.APP_DIR, Str.get(Constant.WINDOWS ? 836 : (Constant.MAC ? 840 : 844)));
         if (!firefoxIndicator.exists()) {
           String zipFile = firefoxIndicator.getPath() + Constant.ZIP;
           try {
@@ -109,8 +136,6 @@ public class Connection {
         if (webBrowserInitShowStatus.get()) {
           setStatusBar(webBrowserInitStatusMsg.updateAndGet(prev -> Str.str("initializing") + "..."));
         }
-        File firefoxDriver = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 837 : (Constant.MAC ? 841 : 845)));
-        File firefoxBinary = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)));
         System.setProperty(GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY, firefoxDriver.getPath());
         System.setProperty(SystemProperty.BROWSER_BINARY, firefoxBinary.getPath());
         FirefoxOptions options = new FirefoxOptions();
@@ -120,6 +145,7 @@ public class Connection {
         Arrays.stream(Regex.split(849, Constant.SEPARATOR2)).map(pref -> Regex.split(pref, Constant.SEPARATOR1)).forEach(pref -> profile.setPreference(pref[0],
                 Regex.isMatch(pref[1], "(true)|(false)") ? Boolean.parseBoolean(pref[1]) : (Regex.isMatch(pref[1], "\\d++") ? Integer.parseInt(pref[1])
                 : pref[1])));
+        Arrays.asList(869, 870).forEach(i -> profile.setPreference(Str.get(i), Constant.TEMP_DIR));
         options.setProfile(profile);
         AtomicReference<FirefoxDriver> driverRef = new AtomicReference<>();
         AtomicBoolean quit = new AtomicBoolean();
@@ -127,8 +153,15 @@ public class Connection {
           FirefoxDriver tempDriver = driverRef.get();
           if (tempDriver != null) {
             quit.set(true);
-            tempDriver.quit();
+            try {
+              tempDriver.quit();
+            } catch (Exception e) {
+              if (Debug.DEBUG) {
+                Debug.print(e);
+              }
+            }
           }
+          killWebBrowser.accept(false);
         }));
 
         System.setErr(new PrintStream(new OutputStream() {
@@ -159,17 +192,17 @@ public class Connection {
         DevTools devTools = driver.getDevTools();
         devTools.createSessionIfThereIsNotOne();
         devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
-        devTools.addListener(new Event<>("Network.requestWillBeSent", input -> {
-          String requestUrl = "";
-          input.beginObject();
-          while (input.hasNext()) {
-            switch (input.nextName()) {
-              case "request":
+        TriFunction<String, String, AtomicReference<Consumer<String>>, Void> addUrlListener = (evtName, urlType, urlHandler) -> {
+          devTools.addListener(new Event<>("Network." + evtName, input -> {
+            String url = "";
+            input.beginObject();
+            while (input.hasNext()) {
+              if (input.nextName().equals(urlType)) {
                 input.beginObject();
                 while (input.hasNext()) {
                   switch (input.nextName()) {
                     case "url":
-                      requestUrl = input.nextString();
+                      url = input.nextString();
                       break;
                     default:
                       input.skipValue();
@@ -177,19 +210,17 @@ public class Connection {
                   }
                 }
                 input.endObject();
-                break;
-              default:
+              } else {
                 input.skipValue();
-                break;
+              }
             }
-          }
-          input.endObject();
-          return requestUrl;
-        }), requestUrl -> {
-          if (webBrowserRequestListener != null) {
-            webBrowserRequestListener.accept(requestUrl);
-          }
-        });
+            input.endObject();
+            return url;
+          }), url -> Optional.ofNullable(urlHandler.get()).ifPresent(handler -> handler.accept(url)));
+          return null;
+        };
+        addUrlListener.apply("requestWillBeSent", "request", webBrowserRequestListener);
+        addUrlListener.apply("responseReceived", "response", webBrowserResponseListener);
         return driver;
       } finally {
         webBrowserInitStatusMsg.set(null);
@@ -251,6 +282,10 @@ public class Connection {
         Debug.print(e);
       }
     }
+  }
+
+  public static void initWebBrowser() throws Exception {
+    webBrowserDriver.get();
   }
 
   public static String getUpdateFile(String file) throws Exception {
@@ -333,6 +368,16 @@ public class Connection {
 
   private static String getSourceCodeHelper(String url, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
           int maxNumRedirects, WebBrowserRequest webBrowserRequest, Class<?>... throwables) throws Exception {
+    if (webBrowserRequest == null && Regex.isMatch(url, 871)) {
+      if (!Regex.isMatch(url, 873)) {
+        return getSourceCodeHelper(url, domainType, showStatus, emptyOK, -1, maxNumRedirects, new WebBrowserRequest(), throwables);
+      }
+      File temp = new File(Constant.TEMP_DIR, UUID.randomUUID().toString());
+      saveData(url, temp.getPath(), domainType, showStatus, null, 2, null, true);
+      String str = IO.read(temp);
+      IO.fileOp(temp, IO.RM_FILE);
+      return str;
+    }
     if (Debug.DEBUG) {
       Debug.println(url);
     }
@@ -354,7 +399,7 @@ public class Connection {
             webBrowserDriver.get();
           }
           Proxy proxy = getProxy(domainType);
-          String statusMsg = checkProxyAndSetStatusBar(proxy, url, showStatus, this);
+          String statusMsg = checkProxyAndSetStatusBar(webBrowserRequest == null ? proxy : Proxy.NO_PROXY, url, showStatus, this);
           if (isCancelled()) {
             return "";
           }
@@ -400,8 +445,17 @@ public class Connection {
             webBrowserLock.lockInterruptibly();
             try {
               FirefoxDriver driver = webBrowserDriver.get();
-              driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(shortTimeoutUrls.getIfPresent((new URL(url)).getHost()) == null
-                      ? guiListener.getTimeout() : 2));
+              ThrowingRunnable prepDriver = () -> driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(shortTimeoutUrls.getIfPresent((new URL(
+                      url)).getHost()) == null ? guiListener.getTimeout() : 5));
+              try {
+                prepDriver.run();
+              } catch (WebDriverException e) {
+                if (Debug.DEBUG) {
+                  Debug.print(e);
+                }
+                driver.getDevTools().createSession();
+                prepDriver.run();
+              }
               if (!webBrowserProxy.equals(proxy)) {
                 String setProxyScript;
                 if (proxy.equals(Proxy.NO_PROXY)) {
@@ -489,8 +543,8 @@ public class Connection {
   }
 
   public static void runDownloadLinkInfoDeproxier(ThrowingRunnable deproxier) throws Exception {
+    downloadLinkInfoProxyLock.lockInterruptibly();
     try {
-      downloadLinkInfoProxyLock.lockInterruptibly();
       try {
         ++numDownloadLinkInfoDeproxiers;
       } finally {
@@ -678,11 +732,73 @@ public class Connection {
   }
 
   public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer) throws Exception {
-    saveData(url, outputPath, domainType, showStatus, referer, 2, null);
+    saveData(url, outputPath, domainType, showStatus, referer, 2, null, false);
   }
 
-  public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer, int maxNumRedirects, String cookie)
-          throws Exception {
+  public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer, int maxNumRedirects, String cookie,
+          boolean useWebBrowser) throws Exception {
+    if (useWebBrowser || Regex.isMatch(url, 872)) {
+      getSourceCode(url, domainType, showStatus, true, -1, new WebBrowserRequest() {
+        @Override
+        public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
+          driver.get("about:about");
+          Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
+          (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(874))));
+
+          File download = null;
+          Runnable clearDownloads = null;
+          try {
+            waitUntilResponseReceived(String.format(Str.get(875), Regex.replaceAllRepeatedly(url, 876)), () -> driver.executeScript(String.format(Str.get(878),
+                    url, UUID.randomUUID().toString())), driver);
+            sleep.run();
+
+            driver.get("about:downloads");
+            sleep.run();
+            clearDownloads = () -> {
+              try {
+                (new Actions(driver)).contextClick(driver.findElement(By.xpath(Str.get(879)))).sendKeys(Keys.chord(Str.get(880))).perform();
+              } catch (WebDriverException e) {
+                if (Debug.DEBUG) {
+                  Debug.println(e);
+                }
+              }
+            };
+
+            String prevStatus = "";
+            for (long i = 0, sleepMs = 500, j = timeout.toMillis() / sleepMs; i < j; i++) {
+              String newestDownload = Iterables.getFirst(Regex.allMatches(driver.getPageSource(), 881), Str.get(887));
+              String filename = Regex.firstMatch(Regex.firstMatch(newestDownload, 882), 883);
+              String status = Regex.firstMatch(Regex.firstMatch(newestDownload, 884), 885);
+              if (Regex.isMatch(status, Str.get(886))) {
+                File output = new File(outputPath);
+                if (!(download = new File(Constant.TEMP_DIR, filename)).getCanonicalPath().equals(output.getCanonicalPath())) {
+                  IO.write(download, output);
+                  IO.fileOp(download, IO.RM_FILE);
+                }
+                clearDownloads.run();
+                return "<saveDataRequest/>";
+              }
+              if (!status.equals(prevStatus)) {
+                i = 0;
+              }
+              prevStatus = status;
+              Thread.sleep(sleepMs);
+            }
+            throw new IOException("download problem");
+          } catch (Exception e) {
+            if (download != null) {
+              IO.fileOp(download, IO.RM_FILE);
+            }
+            if (clearDownloads != null) {
+              clearDownloads.run();
+            }
+            throw e;
+          }
+        }
+      });
+      return;
+    }
+
     if (Debug.DEBUG) {
       Debug.println(url);
     }
@@ -723,7 +839,7 @@ public class Connection {
             List<String> cookies = Stream.concat(Arrays.asList(cookie).stream(), ObjectUtils.defaultIfNull(connection.getHeaderFields().get("Set-Cookie"),
                     Collections.<String>emptyList()).stream()).filter(currCookie -> currCookie != null).collect(Collectors.toList());
             saveData(newUrl, outputPath, domainType, showStatus, referer, maxNumRedirects - 1, cookies.isEmpty() ? null : cookies.stream().collect(
-                    Collectors.joining(";")));
+                    Collectors.joining(";")), useWebBrowser);
             return;
           }
 
@@ -1026,38 +1142,37 @@ public class Connection {
 
   public static class WebBrowserRequest {
 
-    private final Integer subrequestUrlRegexIndex;
-    public final AtomicReference<String> subrequestUrl = new AtomicReference<>();
-    public final AtomicReference<String> cookies = new AtomicReference<>();
-
-    public WebBrowserRequest(Integer subrequestUrlRegexIndex) {
-      this.subrequestUrlRegexIndex = subrequestUrlRegexIndex;
-    }
+    public volatile String urlAfterEvt, cookiesAfterEvt;
 
     public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
-      if (subrequestUrlRegexIndex == null) {
-        driver.get(url);
-        return driver.getPageSource();
-      }
-
-      final LinkedBlockingDeque<String> subrequestUrlQueue = new LinkedBlockingDeque<>();
-      try {
-        webBrowserRequestListener = request -> {
-          if (Regex.isMatch(request, subrequestUrlRegexIndex)) {
-            subrequestUrlQueue.add(request);
-          }
-        };
-        driver.get(url);
-        triggerSubRequest(driver, sleep);
-        subrequestUrl.set(Objects.requireNonNull(subrequestUrlQueue.pollFirst(driver.manage().timeouts().getPageLoadTimeout().getSeconds(), TimeUnit.SECONDS)));
-        cookies.set(driver.manage().getCookies().stream().map(Cookie::toString).collect(Collectors.joining(";")));
-      } finally {
-        webBrowserRequestListener = null;
-      }
-      return "<subrequest/>";
+      driver.get(url);
+      return driver.getPageSource();
     }
 
-    protected void triggerSubRequest(FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
+    public void waitUntilRequestSent(String requestUrlRegex, ThrowingRunnable requestEvtTrigger, FirefoxDriver driver) throws Exception {
+      waitUntilUrlEvt(requestUrlRegex, requestEvtTrigger, webBrowserRequestListener, driver);
+    }
+
+    public void waitUntilResponseReceived(String responseUrlRegex, ThrowingRunnable responseEvtTrigger, FirefoxDriver driver) throws Exception {
+      waitUntilUrlEvt(responseUrlRegex, responseEvtTrigger, webBrowserResponseListener, driver);
+    }
+
+    private void waitUntilUrlEvt(String urlRegex, Runnable urlEvtTrigger, AtomicReference<Consumer<String>> urlListener, FirefoxDriver driver)
+            throws Exception {
+      final LinkedBlockingDeque<String> urlQueue = new LinkedBlockingDeque<>();
+      try {
+        urlListener.set(newUrl -> {
+          if (Regex.isMatch(newUrl, urlRegex)) {
+            urlQueue.add(newUrl);
+          }
+        });
+        urlEvtTrigger.run();
+        urlAfterEvt = Objects.requireNonNull(urlQueue.pollFirst(driver.manage().timeouts().getPageLoadTimeout().getSeconds(), TimeUnit.SECONDS),
+                "timed out waiting for URL matching " + urlRegex);
+        cookiesAfterEvt = StringUtils.defaultIfEmpty(driver.manage().getCookies().stream().map(Cookie::toString).collect(Collectors.joining(";")), null);
+      } finally {
+        urlListener.set(null);
+      }
     }
   }
 

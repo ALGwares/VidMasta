@@ -80,7 +80,7 @@ public interface GuiListener {
 
   int newPlaylistItem(Object[] item, int insertRow);
 
-  void removePlaylistItem(PlaylistItem playlistItem);
+  int removePlaylistItem(PlaylistItem playlistItem);
 
   void setPlaylistItemProgress(FormattedNum progress, PlaylistItem playlistItem, boolean updateValOnly);
 

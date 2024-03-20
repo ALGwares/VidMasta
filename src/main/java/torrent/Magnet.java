@@ -546,4 +546,10 @@ public class Magnet extends Thread {
       }
     }
   }
+
+  public static String getIp(GuiListener guiListener) throws Exception {
+    startAzureus(guiListener);
+    waitForAzureusToStart();
+    return core.getInstanceManager().getMyInstance().getExternalAddress().getHostAddress();
+  }
 }

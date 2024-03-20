@@ -7253,22 +7253,21 @@ public class GUI extends JFrame implements GuiListener {
   }
 
   @Override
-  public void removePlaylistItem(final PlaylistItem playlistItem) {
-    UI.run(true, new Runnable() {
-      @Override
-      public void run() {
-        synchronized (playlistSyncTable.lock) {
-          for (int row = playlistSyncTable.tableModel.getRowCount() - 1; row > -1; row--) {
-            if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
-              int[] viewRows = playlistSyncTable.table.getSelectedRows();
-              playlistSyncTable.tableModel.removeRow(row);
-              if (viewRows.length != 0) {
-                selectFirstRow(viewRows);
-              }
-              return;
+  public int removePlaylistItem(final PlaylistItem playlistItem) {
+    return UI.run(() -> {
+      synchronized (playlistSyncTable.lock) {
+        int row = playlistSyncTable.tableModel.getRowCount() - 1;
+        for (; row > -1; row--) {
+          if (playlistSyncTable.tableModel.getValueAt(row, playlistItemCol).equals(playlistItem)) {
+            int[] viewRows = playlistSyncTable.table.getSelectedRows();
+            playlistSyncTable.tableModel.removeRow(row);
+            if (viewRows.length != 0) {
+              selectFirstRow(viewRows);
             }
+            return row;
           }
         }
+        return row;
       }
     });
   }

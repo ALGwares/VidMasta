@@ -122,11 +122,10 @@ public class MediaPlayer {
                   failedHosts.put(host2, true);
                 }
                 downloader.destroy();
-                return null;
+                return;
               }
             }
           }
-          return null;
         });
 
         try {
@@ -183,7 +182,6 @@ public class MediaPlayer {
           } finally {
             Connection.unsetStatusBar();
           }
-          return null;
         });
         Boolean failed = failedHosts.getIfPresent(host);
         if (failed == null) {
