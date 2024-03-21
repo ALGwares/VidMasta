@@ -2,12 +2,12 @@
 <XML_DIZ_INFO>
   <MASTER_PAD_VERSION_INFO>
     <MASTER_PAD_VERSION>4.0</MASTER_PAD_VERSION>
-    <MASTER_PAD_EDITOR>RoboSoft 4.0.797</MASTER_PAD_EDITOR>
+    <MASTER_PAD_EDITOR>RoboSoft 4.0.804</MASTER_PAD_EDITOR>
     <MASTER_PAD_EDITOR_URL>http://robosoft.rudenko.com</MASTER_PAD_EDITOR_URL>
     <MASTER_PAD_INFO>Portable Application Description, or PAD for short, is a data set that is used by shareware authors to disseminate information to anyone interested in their software products. To find out more go to http://www.asp-shareware.org/pad</MASTER_PAD_INFO>
   </MASTER_PAD_VERSION_INFO>
   <RoboSoft>
-    <Company_UIN>CMP-010419D92FD</Company_UIN>
+    <Company_UIN>CMP-018314334D7</Company_UIN>
     <Company_Description></Company_Description>
     <Product_UIN>APP-00F11FD8D97</Product_UIN>
     <Search_String>VidMasta</Search_String>
@@ -104,7 +104,7 @@
     <File_Info>
       <Automatically_Detect_File_Size>N</Automatically_Detect_File_Size>
       <File_Size_Bytes>118964995</File_Size_Bytes>
-      <File_Size_K>116177</File_Size_K>
+      <File_Size_K>116176</File_Size_K>
       <File_Size_MB>113.45</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
@@ -147,6 +147,9 @@
     <GooglePlusProductPage></GooglePlusProductPage>
   </Program_Info>
   <ASBMPlannerID2ndRound>2</ASBMPlannerID2ndRound>
+  <Allmyapps>
+    <Allmyapps_Terms_And_Conditions>Y</Allmyapps_Terms_And_Conditions>
+  </Allmyapps>
   <Dynamic_PAD>
     <Dynamic_Distributive>N</Dynamic_Distributive>
   </Dynamic_PAD>
@@ -169,9 +172,6 @@
     <Distribution_Permissions>GPLv2+</Distribution_Permissions>
     <EULA>GPLv2+</EULA>
   </Permissions>
-  <Allmyapps>
-    <Allmyapps_Terms_And_Conditions>Y</Allmyapps_Terms_And_Conditions>
-  </Allmyapps>
   <AppStore>
     <AppStore_AppID></AppStore_AppID>
     <AppStore_Category></AppStore_Category>
