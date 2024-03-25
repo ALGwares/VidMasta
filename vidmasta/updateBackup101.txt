@@ -1,4 +1,4 @@
-401
+403
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -730,7 +730,7 @@ https://mirrorbay.top
 https://mirrorbay.top
 https://mirrorbay.top/api.php?url=/precompiled/data_top100_
 https://mirrorbay.top/ajax_details_comments.php?id=
-https://piratebayproxy5.org
+https://piratehaven.xyz
 722,723,724,725,727,729,730,785,786,787
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s)0*+
 (\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z)(?![01](\*|,|_|\-|\.|\(|\[|\{|\)|\]|\}|(\<\s*+/?+((?i)strong)[^\>]*\>)|\s|\z))
@@ -887,4 +887,5 @@ C
 (?<=value\=")[^"]++
 .+\s[AP]M\z
 <vbox class="downloadContainer"></vbox>
+(?i)\<html
 eof

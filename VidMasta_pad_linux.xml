@@ -103,8 +103,8 @@
     <Program_Target_Platform>Linux</Program_Target_Platform>
     <File_Info>
       <Automatically_Detect_File_Size>N</Automatically_Detect_File_Size>
-      <File_Size_Bytes>51366570</File_Size_Bytes>
-      <File_Size_K>50162</File_Size_K>
+      <File_Size_Bytes>51367872</File_Size_Bytes>
+      <File_Size_K>50163</File_Size_K>
       <File_Size_MB>48.99</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
@@ -112,9 +112,9 @@
       <Filename_Long></Filename_Long>
     </File_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>29.0</Program_Version>
+    <Program_Version>29.1</Program_Version>
     <Program_Release_Month>03</Program_Release_Month>
-    <Program_Release_Day>19</Program_Release_Day>
+    <Program_Release_Day>25</Program_Release_Day>
     <Program_Release_Year>2024</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -122,7 +122,7 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Linux,Linux Console,Linux Gnome,Linux GPL,Linux Open Source</Program_OS_Support>
     <Program_Language>English,Dutch,French,Italian,Portuguese,Spanish,Turkish</Program_Language>
-    <Program_Change_Info>Improved error handling for playback of trailers when using VLC media player for Windows. Fixed title summary text-to-speech. Added transient message when changing download/trailer quality via hotkeys. Updated application to only start PeerBlock when downloader is not the playlist.</Program_Change_Info>
+    <Program_Change_Info>Fixed download error "Error reading torrent: Contents maybe HTML".</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
     <Expire_Info>

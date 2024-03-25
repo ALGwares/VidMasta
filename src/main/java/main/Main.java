@@ -511,7 +511,7 @@ public class Main implements WorkerListener {
               + Pattern.quote(AppUpdater.APP_UPDATER) + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)"
               + "|(ipfilter[\\d\\.]*+)|(ipfilter\\.((dat)|(txt)))|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(firefox\\-[\\d\\.]++)"
               + "|(update(r|(Fail))[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe)"
-              + "|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer))");
+              + "|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer)|(torrents))");
       Arrays.stream(IO.listFiles(Constant.APP_DIR)).filter(file -> filenameRegex.matcher(file.getName()).matches()).forEach(file -> IO.fileOp(file,
               file.isDirectory() ? IO.RM_DIR : IO.RM_FILE));
       if (Arrays.stream(IO.listFiles(Constant.CACHE_DIR)).anyMatch(File::isFile)) {

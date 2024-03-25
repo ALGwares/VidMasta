@@ -132,6 +132,9 @@ public class Magnet extends Thread {
       try {
         String tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
         Connection.saveData(String.format(Locale.ENGLISH, Str.get(803), magnetLinkHash), tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
+        if (!Regex.firstMatch(IO.read(tempTorrent), 888).isEmpty()) {
+          throw new IOException("Bad torrent for magnet link: " + magnetLink);
+        }
         torrentBytes = Files.readAllBytes(Paths.get(tempTorrent));
       } catch (Exception e) {
         if (Debug.DEBUG) {
