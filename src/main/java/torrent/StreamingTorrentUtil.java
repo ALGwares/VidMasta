@@ -63,7 +63,6 @@ public class StreamingTorrentUtil {
   private static volatile Field canStream;
   private static volatile Thread player;
   private static final BlockingDeque<PlaylistTorrentItem> playlist = new LinkedBlockingDeque<PlaylistTorrentItem>();
-  private static volatile Boolean isLicenseExpired;
   private static final AtomicBoolean canAutoOpenPlaylistItem = new AtomicBoolean(true);
 
   public static void init(GuiListener gui, WorkerListener worker) {

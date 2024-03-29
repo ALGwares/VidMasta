@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2024.03.29   | VidMasta 29.2
+
+CHANGE: CORE | Improved download initialization speed
+
+
+
+
 2024.03.25   | VidMasta 29.1
 
 CHANGE: CORE | Fixed download error "Error reading torrent: Contents maybe HTML"

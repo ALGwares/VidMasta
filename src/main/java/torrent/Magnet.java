@@ -33,6 +33,7 @@ import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -46,6 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import listener.DomainType;
 import listener.GuiListener;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import str.Str;
 import util.AbstractWorker;
@@ -344,10 +346,26 @@ public class Magnet extends Thread {
                 + instance.getUDPNonDataListenPort());
       }
 
+      Arrays.stream(IO.listFiles(Constant.PROGRAM_DIR + "plugins")).forEach(plugin -> {
+        File dest = new File(VUZE_DIR + "plugins", plugin.getName());
+        try {
+          if (!dest.exists()) {
+            FileUtils.copyDirectory(plugin, dest);
+          }
+        } catch (Exception e) {
+          if (Debug.DEBUG) {
+            Debug.print(e);
+          }
+          FileUtils.deleteQuietly(dest);
+        }
+      });
+
       Collection<String> enabledPluginNames = new ArrayList<String>(16), enabledPluginIDs = new ArrayList<String>(8);
       Collections.addAll(enabledPluginNames, "DHT", "DHT Tracker", "Local Tracker", "Tracker Peer Auth", "uTP Plugin", "Distributed DB",
-              "Distributed Tracker", "Magnet URI Handler", "External Seed", "LAN Peer Finder", "Client Identification");
-      Collections.addAll(enabledPluginIDs, "azutp", "azbpdht", "azbpdhdtracker", "azbpmagnet", "azextseed", "azlocaltracker", "bgclientid");
+              "Distributed Tracker", "Magnet URI Handler", "External Seed", "LAN Peer Finder", "Client Identification", "Location Provider",
+              "Swarm Discoveries", "uTP Plugin", "mlDHT");
+      Collections.addAll(enabledPluginIDs, "azutp", "azbpdht", "azbpdhdtracker", "azbpmagnet", "azextseed", "azlocaltracker", "bgclientid", "azlocprov",
+              "aercm", "azutp", "mldht");
 
       PluginManagerDefaults pluginManagerDefaults = core.getPluginManagerDefaults();
       for (String pluginName : pluginManagerDefaults.getDefaultPlugins()) {
@@ -393,6 +411,9 @@ public class Magnet extends Thread {
           }
         }
       }
+
+      System.err.println("mlDHT plugin does IPv6 connection test, which may print to System.err ignorable exception: java.net.SocketException: Network is"
+              + " unreachable: connect");
     } catch (Exception e) {
       if (Debug.DEBUG) {
         Debug.print(e);

@@ -90,11 +90,11 @@
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
   <Press_Release>
-    <Headline>VidMasta 29.0 Released</Headline>
-    <Summary>VidMasta 29.0 Released</Summary>
+    <Headline>VidMasta 29.2 Released</Headline>
+    <Summary>VidMasta 29.2 Released</Summary>
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
-    <Press_Release_Plain>VidMasta 29.0 Released</Press_Release_Plain>
-    <Press_Release>VidMasta 29.0 Released</Press_Release>
+    <Press_Release_Plain>VidMasta 29.2 Released</Press_Release_Plain>
+    <Press_Release>VidMasta 29.2 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
   <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
@@ -103,18 +103,18 @@
     <Program_Target_Platform>Windows</Program_Target_Platform>
     <File_Info>
       <Automatically_Detect_File_Size>N</Automatically_Detect_File_Size>
-      <File_Size_Bytes>118966386</File_Size_Bytes>
-      <File_Size_K>116178</File_Size_K>
-      <File_Size_MB>113.46</File_Size_MB>
+      <File_Size_Bytes>124706880</File_Size_Bytes>
+      <File_Size_K>121784</File_Size_K>
+      <File_Size_MB>118.93</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
       <Filename_Long></Filename_Long>
     </File_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>29.1</Program_Version>
+    <Program_Version>29.2</Program_Version>
     <Program_Release_Month>03</Program_Release_Month>
-    <Program_Release_Day>25</Program_Release_Day>
+    <Program_Release_Day>29</Program_Release_Day>
     <Program_Release_Year>2024</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
@@ -122,7 +122,7 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Win2000,WinXP,Win7 x32,Win7 x64,Windows 8,Windows 10,WinServer,WinOther,Windows2000,Windows2003,Windows Server 2000,Windows Server 2003,Windows Server 2008,Windows Server 2008r2,Windows Server 2012,Windows Tablet PC Edition 2005,Windows Media Center Edition 2005,WinVista,Windows Vista Starter,Windows Vista Home Basic,Windows Vista Home Premium,Windows Vista Business,Windows Vista Enterprise,Windows Vista Ultimate,WinVista x64,Windows Vista Home Basic x64,Windows Vista Home Premium x64,Windows Vista Business x64,Windows Vista Enterprise x64,Windows Vista Ultimate x64</Program_OS_Support>
     <Program_Language>English,Dutch,French,Italian,Portuguese,Spanish,Turkish</Program_Language>
-    <Program_Change_Info>Fixed download error "Error reading torrent: Contents maybe HTML".</Program_Change_Info>
+    <Program_Change_Info>Improved download initialization speed.</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
     <Expire_Info>
@@ -162,7 +162,7 @@
       <Application_XML_File_URL>https://raw.githubusercontent.com/ALGwares/VidMasta/master/VidMasta_pad.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>https://github.com/ALGwares/VidMasta/releases/download/v29.0/vidmasta-setup-29.0.exe</Primary_Download_URL>
+      <Primary_Download_URL>https://github.com/ALGwares/VidMasta/releases/download/v29.2/vidmasta-setup-29.2.exe</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
