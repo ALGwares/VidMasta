@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 
 public class Bundle {
 
-  private static final Locale DEFAULT_LOCALE = Locale.getDefault();
+  public static final Locale DEFAULT_LOCALE = Locale.getDefault();
   public final ResourceBundle bundle;
   public final Locale locale;
 

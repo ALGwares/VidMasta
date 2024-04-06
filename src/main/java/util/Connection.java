@@ -411,7 +411,11 @@ public class Connection {
             }
 
             setConnectionProperties(connection, null, 2);
+
+            post(connection);
+
             connection.connect();
+
             br = IO.bufferedReader(connection.getContentEncoding(), connection.getInputStream());
             if (isCancelled()) {
               return "";
@@ -825,6 +829,9 @@ public class Connection {
           if (cookie != null) {
             connection.setRequestProperty("Cookie", cookie);
           }
+
+          post(connection);
+
           connection.connect();
 
           if (maxNumRedirects > 0 && Regex.isMatch(String.valueOf(connection.getResponseCode()), "30[12378]")) {
@@ -993,6 +1000,24 @@ public class Connection {
     }
 
     return Regex.replaceAll(ip + port, 251);
+  }
+
+  private static void post(HttpURLConnection connection) throws IOException {
+    String params = Optional.ofNullable(connection.getURL().getQuery()).map(query -> Regex.firstMatch(query, 889)).orElse("");
+    if (params.isEmpty()) {
+      return;
+    }
+
+    connection.setRequestMethod("POST");
+    connection.setDoOutput(true);
+    byte[] content = params.getBytes(Constant.UTF8);
+    connection.setFixedLengthStreamingMode(content.length);
+    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+    connection.connect();
+
+    try (OutputStream os = connection.getOutputStream()) {
+      os.write(content);
+    }
   }
 
   public static void startStatusBar() {

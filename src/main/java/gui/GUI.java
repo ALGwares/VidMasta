@@ -4,6 +4,7 @@ import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JTextFieldDateEditor;
 import debug.Debug;
+import i18n.Bundle;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -51,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -661,6 +663,13 @@ public class GUI extends JFrame implements GuiListener {
 
   public void setInitialFocus() {
     titleTextField.requestFocusInWindow();
+
+    File hints = new File(Constant.APP_DIR, "hints");
+    if (!hints.exists() && Optional.ofNullable(Bundle.DEFAULT_LOCALE).map(Locale::getLanguage).filter(lang -> !"en".equalsIgnoreCase(lang)).isPresent()) {
+      IO.fileOp(hints, IO.MK_FILE);
+      viewMenu.doClick();
+      languageMenu.doClick();
+    }
   }
 
   public void startPosterCacher() {

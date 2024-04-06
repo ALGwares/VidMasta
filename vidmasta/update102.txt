@@ -1,4 +1,4 @@
-403
+404
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -290,7 +290,7 @@ href="
 "
 0000
 3
-http://vmproxycrawler.appspot.com/fetch?0
+https://vmproxycrawler.appspot.com/fetch?0
 https://docs.google.com/uc?id=0B3i91lMM4fZIZmFhZDQzOWMtYWQ4OS00NjBlLThmZjctMjQ0MjBmYWNjZDVh&export=download&hl=en_US
 https://docs.google.com/uc?id=0B3i91lMM4fZIOTU0MTk0ZTEtZDBkNi00ZWU1LWJlMGEtODQwOGU2YWQ3MmJk&export=download&hl=en_US
 https://docs.google.com/uc?id=0B3i91lMM4fZIMDg1YjU2YmItNjJmNS00NzA1LTgwNzYtM2ZmNWVkNTE5MjQw&export=download&hl=en_US
@@ -482,8 +482,8 @@ http://imtranslator.net/translate-and-speak/sockets/tts.asp?FA=1&dir=en&text=
 TTS_AUDIO_CLIP
 TTS_TITLE
 TTS_POSTER
-http://tpbcrawler.appspot.com/fetch?1
-http://tpbcrawler.appspot.com/fetch?0
+https://tpbcrawler.appspot.com/fetch?1
+https://tpbcrawler.appspot.com/fetch?0
 Sorry, our TTS Voice service is
 /usearch/[^/]++/((?=\d++/\?(startIndex\=1&)?+field\=((leechers)|(seeders))&sorder\=desc)|(\?startIndex\=(?=1&field\=((leechers)|(seeders))&sorder\=desc)))
 [/&].+?sc
@@ -687,8 +687,8 @@ non-subtitle text, image, music, application
 2623383230333B
 (?i)(\s+?)((Episode\s*+)|E)(?!
 (\z|\s+?))(\d{1,3}+|(I|(II)|(III)|(IV)|V|(VI)|(VII)|(VIII)|((?<!S)IX)|X|(XI)|(XII)|(XIII)|(XIV)|(XV)|(XVI)|(XVII)|(XVIII)|(XIX)|(XX)|(XXI)|(XXII)|(XXIII)|(XXIV)|(XXV)|(XXVI)|(XXVII)|(XXVIII)|(XXIX)|(XXX)|(XXXI)|(XXXII)|(XXXIII)|(XXXIV)|(XXXV)|(XXXVI)|(XXXVII)|(XXXVIII)|(XXXIX)|(XL)|(XLI)|(XLII)|(XLIII)|(XLIV)|(XLV)|(XLVI)|(XLVII)|(XLVIII)|(XLIX)|L|(LI)|(LII)|(LIII)|(LIV)|(LV)|(LVI)|(LVII)|(LVIII)|(LIX)|(LX)|(LXI)|(LXII)|(LXIII)|(LXIV)|(LXV)|(LXVI)|(LXVII)|(LXVIII)|(LXIX)|(LXX)|(LXXI)|(LXXII)|(LXXIII)|(LXXIV)|(LXXV)|(LXXVI)|(LXXVII)|(LXXVIII)|(LXXIX)|(LXXX)|(LXXXI)|(LXXXII)|(LXXXIII)|(LXXXIV)|(LXXXV)|(LXXXVI)|(LXXXVII)|(LXXXVIII)|(LXXXIX)|(XC)|(XCI)|(XCII)|(XCIII)|(XCIV)|(XCV)|(XCVI)|(XCVII)|(XCVIII)|(XCIX)|((?<!S)C)))(\z|\s+?)
-http://populartvshowscrawler.appspot.com/fetch
-http://popularmoviescrawler.appspot.com/fetch
+https://populartvshowscrawler.appspot.com/fetch
+https://popularmoviescrawler.appspot.com/fetch
 \d++((NEWLINENEWLINE)|\z)
 NEWLINE
 true
@@ -699,7 +699,7 @@ vlc-2.2.1/vlc.exe
 vlc-3.0.18
 .*\.((?i)(3g2)|(3ga)|(3gp)|(3gp2)|(3gpp)|(669)|(a52)|(aac)|(ac3)|(adt)|(adts)|(aif)|(aifc)|(aiff)|(amr)|(amv)|(aob)|(ape)|(asf)|(asx)|(au)|(avi)|(b4s)|(bik)|(bin)|(caf)|(cda)|(cue)|(divx)|(drc)|(dts)|(dv)|(f4v)|(flac)|(flv)|(gvi)|(gxf)|(ifo)|(it)|(m1v)|(m2t)|(m2ts)|(m2v)|(m3u)|(m3u8)|(m4a)|(m4p)|(m4v)|(mid)|(mka)|(mkv)|(mlp)|(mod)|(mov)|(mp1)|(mp2)|(mp2v)|(mp3)|(mp4)|(mp4v)|(mpa)|(mpc)|(mpe)|(mpeg)|(mpeg1)|(mpeg2)|(mpeg4)|(mpg)|(mpga)|(mpv2)|(mts)|(mtv)|(mxf)|(nsv)|(nuv)|(oga)|(ogg)|(ogm)|(ogv)|(ogx)|(oma)|(opus)|(pls)|(qcp)|(ra)|(ram)|(rec)|(rm)|(rmbv)|(rmi)|(rpl)|(s3m)|(sdp)|(snd)|(spx)|(swf)|(thp)|(tod)|(ts)|(tta)|(tts)|(vlc)|(vlt)|(vob)|(voc)|(vqf)|(vro)|(w64)|(wav)|(webm)|(wma)|(wmv)|(wsz)|(wv)|(wvx)|(xa)|(xesc)|(xm)|(xspf))
 https://sites.google.com/site/algwares/vidmasta
-http://tpbcrawler.appspot.com/fetch?v=2&id=
+https://tpbcrawler.appspot.com/fetch?v=2&id=
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Windows/UMS-5.2.3-Java6.exe/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/OS%20X/UMS-5.2.3-Java6.dmg/download
 http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/Linux/UMS-5.2.3-Java6.tgz/download
@@ -887,5 +887,7 @@ C
 (?<=value\=")[^"]++
 .+\s[AP]M\z
 <vbox class="downloadContainer"></vbox>
-(?i)\<html
+(?i)(\<html)|(\A\{"gid")
+.+?(?=&POST\=\z)
+https://itorrents.org/torrent/%S.torrent:::https://magnet2torrent.com/upload/index.php?magnet=magnet%%3A%%3Fxt%%3Durn%%3Abtih%%3A%S&POST=
 eof

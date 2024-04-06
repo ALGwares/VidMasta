@@ -48,6 +48,7 @@ import java.util.regex.Pattern;
 import listener.DomainType;
 import listener.GuiListener;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import str.Str;
 import util.AbstractWorker;
@@ -129,15 +130,28 @@ public class Magnet extends Thread {
       return;
     }
     try {
-      byte[] torrentBytes;
+      byte[] torrentBytes = null;
       String magnetLinkHash = Regex.replaceAllRepeatedly(magnetLink, 801);
       try {
         String tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
-        Connection.saveData(String.format(Locale.ENGLISH, Str.get(803), magnetLinkHash), tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
-        if (!Regex.firstMatch(IO.read(tempTorrent), 888).isEmpty()) {
-          throw new IOException("Bad torrent for magnet link: " + magnetLink);
+        for (String urlFormat : Regex.split(890, Constant.SEPARATOR1)) {
+          try {
+            String url = String.format(Locale.ENGLISH, urlFormat, magnetLinkHash);
+            Connection.saveData(url, tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
+            if (!Regex.firstMatch(IO.read(tempTorrent), 888).isEmpty()) {
+              throw new IOException("Bad torrent for: " + url);
+            }
+            torrentBytes = Files.readAllBytes(Paths.get(tempTorrent));
+            break;
+          } catch (Exception e) {
+            if (Debug.DEBUG) {
+              Debug.print(e);
+            }
+          }
         }
-        torrentBytes = Files.readAllBytes(Paths.get(tempTorrent));
+        if (ArrayUtils.isEmpty(torrentBytes)) {
+          throw new IOException("No torrent for magnet link: " + magnetLink);
+        }
       } catch (Exception e) {
         if (Debug.DEBUG) {
           Debug.print(e);
@@ -176,7 +190,7 @@ public class Magnet extends Thread {
                     return false;
                   }
                 }, UrlUtils.decodeTruncatedHashFromMagnetURI(magnetLinkHash.toUpperCase(Locale.ENGLISH)), StringUtils.substringAfter(magnetLink, "&"),
-                        new InetSocketAddress[0], Collections.emptyList(), Collections.emptyMap(), 90_000, MagnetPlugin.FL_NONE),
+                        new InetSocketAddress[0], Collections.emptyList(), Collections.emptyMap(), 60_000, MagnetPlugin.FL_NONE),
                 "magnet link download failed for: " + magnetLink);
       }
       isDoneDownloading.set(true);
@@ -412,8 +426,10 @@ public class Magnet extends Thread {
         }
       }
 
-      System.err.println("mlDHT plugin does IPv6 connection test, which may print to System.err ignorable exception: java.net.SocketException: Network is"
-              + " unreachable: connect");
+      if (Debug.DEBUG) {
+        System.err.println("mlDHT plugin does IPv6 connection test, which may print to System.err ignorable exception: java.net.SocketException: Network is"
+                + " unreachable: connect");
+      }
     } catch (Exception e) {
       if (Debug.DEBUG) {
         Debug.print(e);
