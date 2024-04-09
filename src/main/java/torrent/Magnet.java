@@ -48,7 +48,6 @@ import java.util.regex.Pattern;
 import listener.DomainType;
 import listener.GuiListener;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import str.Str;
 import util.AbstractWorker;
@@ -138,10 +137,11 @@ public class Magnet extends Thread {
           try {
             String url = String.format(Locale.ENGLISH, urlFormat, magnetLinkHash);
             Connection.saveData(url, tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
-            if (!Regex.firstMatch(IO.read(tempTorrent), 888).isEmpty()) {
+            String torrentData = (new String(torrentBytes = Files.readAllBytes(Paths.get(tempTorrent)), Constant.UTF8)).trim();
+            if (torrentData.isEmpty() || !Regex.firstMatch(torrentData, 888).isEmpty()) {
+              torrentBytes = null;
               throw new IOException("Bad torrent for: " + url);
             }
-            torrentBytes = Files.readAllBytes(Paths.get(tempTorrent));
             break;
           } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -149,7 +149,7 @@ public class Magnet extends Thread {
             }
           }
         }
-        if (ArrayUtils.isEmpty(torrentBytes)) {
+        if (torrentBytes == null) {
           throw new IOException("No torrent for magnet link: " + magnetLink);
         }
       } catch (Exception e) {

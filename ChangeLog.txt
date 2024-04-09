@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2024.04.09   | VidMasta 29.4
+
+CHANGE: CORE | Improved download initialization speed
+
+
+
+
 2024.04.06   | VidMasta 29.3
 
 CHANGE: CORE | Improved download initialization speed
