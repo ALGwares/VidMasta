@@ -1,4 +1,4 @@
-404
+405
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -191,11 +191,11 @@ https?+://www\.imdb\.com/((title/[^/]++/)|(Title%3f[^"]++))
 "
 (?i)\<meta[^\<]*?\sproperty\s*+\=\s*+"[^"]*?:image"[^\<]*?\scontent\="(?=[^"]+(?<!/((imdb_logo)|(NapCxx-VwSOJtCZ)))\.((jpe?+g)|(png)|(gif))")
 "
-(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Directors*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Directors*+\s*+\<.+?\<\s*+ul\s)
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Directors*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Directors*+\s*+\<.+?\<\s*+ul\s)|(\sdata\-testid\s*+\=\s*+"title\-pc\-principal\-credit"[^\>]*+\>.+?\>\s*+Directors*+\s*+\<.+?\<\s*+ul\s)
 <\s*+/div\s*+>
-(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Writers*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Writers*+\s*+\<.+?\<\s*+ul\s)
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Writers*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Writers*+\s*+\<.+?\<\s*+ul\s)|(\sdata\-testid\s*+\=\s*+"title\-pc\-principal\-credit"[^\>]*+\>.+?\>\s*+Writers*+\s*+\<.+?\<\s*+ul\s)
 <\s*+/div\s*+>
-(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Stars*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Stars*+\s*+\<.+?\<\s*+ul\s)
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Stars*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Stars*+\s*+\<.+?\<\s*+ul\s)|(\sdata\-testid\s*+\=\s*+"title\-pc\-principal\-credit"[^\>]*+\>.+?\>\s*+Stars*+\s*+\<.+?\<\s*+ul\s)
 <\s*+/div\s*+>
 <\s*+a[^>]++>(<\s*+span[^>]*+>)?+
 (<\s*+/span\s*+>)?+<\s*+/a\s*+>
@@ -559,7 +559,7 @@ true
 false
 true
 false
-(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Creators*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Creators*+\s*+\<.+?\<\s*+ul\s)
+(?is)(<\s*+div\s++class\s*+=\s*+"((txt-block)|(credit_summary_item))"[^>]*+>\s*+<\s*+h4\s++class\s*+=\s*+"inline"\s*+>\s*+Creators*+:\s*+<\s*+/h4\s*+>)|(\<\s*+div[^>]*?\sdata\-testid\s*+\=\s*+"title\-pc\-expandable\-panel"[^\>]*+\>.+?\>\s*+Creators*+\s*+\<.+?\<\s*+ul\s)|(\sdata\-testid\s*+\=\s*+"title\-pc\-principal\-credit"[^\>]*+\>.+?\>\s*+Creators*+\s*+\<.+?\<\s*+ul\s)
 \<\s*+/div\s*+\>
 20[58]
 20[127]
