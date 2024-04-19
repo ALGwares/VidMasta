@@ -11,4 +11,4 @@ nbactions.xml
 **/build
 **/target
 /firefox*.zip
-subprojects
+/subprojects
