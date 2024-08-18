@@ -75,6 +75,7 @@ public class Connection {
 
   private static GuiListener guiListener;
   private static final StatusBar statusBar = new StatusBar();
+  public static final int MAX_NUM_REDIRECTS = 3;
   private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
   private static final AtomicBoolean downloadLinkInfoFail = new AtomicBoolean();
   private static final Cache<String, Boolean> shortTimeoutUrls = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
@@ -306,12 +307,12 @@ public class Connection {
 
   public static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs, Class<?>... throwables)
           throws Exception {
-    return getSourceCode(url, domainType, showStatus, emptyOK, cacheExpirationMs, 2, null, throwables);
+    return getSourceCode(url, domainType, showStatus, emptyOK, cacheExpirationMs, MAX_NUM_REDIRECTS, null, throwables);
   }
 
   public static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
           WebBrowserRequest webBrowserRequest) throws Exception {
-    return getSourceCode(url, domainType, showStatus, emptyOK, cacheExpirationMs, 2, webBrowserRequest);
+    return getSourceCode(url, domainType, showStatus, emptyOK, cacheExpirationMs, MAX_NUM_REDIRECTS, webBrowserRequest);
   }
 
   private static String getSourceCode(String url, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs, int maxNumRedirects,
@@ -373,7 +374,7 @@ public class Connection {
         return getSourceCodeHelper(url, domainType, showStatus, emptyOK, -1, maxNumRedirects, new WebBrowserRequest(), throwables);
       }
       File temp = new File(Constant.TEMP_DIR, UUID.randomUUID().toString());
-      saveData(url, temp.getPath(), domainType, showStatus, null, 2, null, true);
+      saveData(url, temp.getPath(), domainType, showStatus, null, MAX_NUM_REDIRECTS, null, true);
       String str = IO.read(temp);
       IO.fileOp(temp, IO.RM_FILE);
       return str;
@@ -410,7 +411,7 @@ public class Connection {
               return "";
             }
 
-            setConnectionProperties(connection, null, 2);
+            setConnectionProperties(connection, null);
 
             post(connection);
 
@@ -450,7 +451,7 @@ public class Connection {
             try {
               FirefoxDriver driver = webBrowserDriver.get();
               ThrowingRunnable prepDriver = () -> driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(shortTimeoutUrls.getIfPresent((new URL(
-                      url)).getHost()) == null ? guiListener.getTimeout() : 5));
+                      url)).getHost()) == null ? guiListener.getTimeout() + 15 : 20));
               try {
                 prepDriver.run();
               } catch (WebDriverException e) {
@@ -674,7 +675,7 @@ public class Connection {
     }
   }
 
-  public static void setConnectionProperties(HttpURLConnection connection, String referer, int shortTimeoutSecs) {
+  public static void setConnectionProperties(HttpURLConnection connection, String referer) {
     connection.setRequestProperty("Accept-Charset", "utf-8, iso-8859-1;q=0.9, us-ascii;q=0.8, *;q=0.7");
     connection.setRequestProperty("Accept-Language", "en-US, en-GB;q=0.9, en;q=0.8, *;q=0.7");
     connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
@@ -682,7 +683,7 @@ public class Connection {
     if (referer != null) {
       connection.setRequestProperty("Referer", referer);
     }
-    int timeout = (shortTimeoutUrls.getIfPresent(connection.getURL().getHost()) == null ? guiListener.getTimeout() : shortTimeoutSecs) * 1000;
+    int timeout = (shortTimeoutUrls.getIfPresent(connection.getURL().getHost()) == null ? guiListener.getTimeout() : 5) * 1000;
     connection.setConnectTimeout(timeout);
     connection.setReadTimeout(timeout);
   }
@@ -736,7 +737,7 @@ public class Connection {
   }
 
   public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer) throws Exception {
-    saveData(url, outputPath, domainType, showStatus, referer, 2, null, false);
+    saveData(url, outputPath, domainType, showStatus, referer, MAX_NUM_REDIRECTS, null, false);
   }
 
   public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer, int maxNumRedirects, String cookie,
@@ -825,7 +826,7 @@ public class Connection {
             return;
           }
 
-          setConnectionProperties(connection, referer, 5);
+          setConnectionProperties(connection, referer);
           if (cookie != null) {
             connection.setRequestProperty("Cookie", cookie);
           }
@@ -940,7 +941,7 @@ public class Connection {
           return "";
         }
 
-        setConnectionProperties(connection, null, 5);
+        setConnectionProperties(connection, null);
         is = connection.getInputStream();
         if (callingWorker.isCancelled()) {
           return "";
@@ -1003,8 +1004,9 @@ public class Connection {
   }
 
   private static void post(HttpURLConnection connection) throws IOException {
-    String params = Optional.ofNullable(connection.getURL().getQuery()).map(query -> Regex.firstMatch(query, 889)).orElse("");
-    if (params.isEmpty()) {
+    URL url = connection.getURL();
+    String params;
+    if (!Regex.isMatch(url.toString(), 892) || StringUtils.isEmpty(params = url.getQuery())) {
       return;
     }
 
@@ -1171,7 +1173,16 @@ public class Connection {
 
     public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
       driver.get(url);
-      return driver.getPageSource();
+      String src = driver.getPageSource();
+      while (true) { // Give asynchronous JavaScript with variable/unpredictable page changes time to finish
+        sleep.run();
+        String src2 = driver.getPageSource();
+        if (src.equals(src2)) {
+          break;
+        }
+        src = src2;
+      }
+      return src;
     }
 
     public void waitUntilRequestSent(String requestUrlRegex, ThrowingRunnable requestEvtTrigger, FirefoxDriver driver) throws Exception {

@@ -230,7 +230,7 @@ public abstract class AbstractSearcher extends Worker {
       if (searcher.findImage) {
         searchers.add(searcher);
       } else {
-        searcher.doWork();
+        searcher.executeAndGet();
       }
     }
 

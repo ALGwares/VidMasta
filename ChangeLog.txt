@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2024.08.18   | VidMasta 29.5
+
+CHANGE: CORE | Fixed search results issue that sometimes decreases the number of results
+
+
+
+
 2024.04.09   | VidMasta 29.4
 
 CHANGE: CORE | Improved download initialization speed

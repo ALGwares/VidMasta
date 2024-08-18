@@ -382,15 +382,17 @@ public class VideoFinder extends Worker {
         sleep.run();
         waitUntilRequestSent(Str.get(857), () -> {
           driver.findElement(By.xpath(Str.get(868))).click();
-          sleep.run();
-          driver.get(driver.getCurrentUrl());
+          if (Boolean.parseBoolean(Str.get(891))) {
+            sleep.run();
+            driver.get(driver.getCurrentUrl());
+          }
           (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(868))));
         }, driver);
         return "<speechRequest/>";
       }
     };
     Connection.getSourceCode(Str.get(854), DomainType.VIDEO_INFO, true, false, -1, request);
-    Connection.saveData(request.urlAfterEvt, speech.getPath(), DomainType.VIDEO_INFO, true, null, 2, request.cookiesAfterEvt, false);
+    Connection.saveData(request.urlAfterEvt, speech.getPath(), DomainType.VIDEO_INFO, true, null, Connection.MAX_NUM_REDIRECTS, request.cookiesAfterEvt, false);
     if (!isCancelled()) {
       read(speech);
     }
