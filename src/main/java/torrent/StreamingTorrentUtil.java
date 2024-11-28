@@ -63,7 +63,6 @@ public class StreamingTorrentUtil {
   private static volatile Field canStream;
   private static volatile Thread player;
   private static final BlockingDeque<PlaylistTorrentItem> playlist = new LinkedBlockingDeque<PlaylistTorrentItem>();
-  private static volatile Boolean isLicenseExpired;
   private static final AtomicBoolean canAutoOpenPlaylistItem = new AtomicBoolean(true);
 
   public static void init(GuiListener gui, WorkerListener worker) {
@@ -396,9 +395,7 @@ public class StreamingTorrentUtil {
 
     playlistItem.item = fileInfos[playlistItem.groupIndex];
     try {
-      if (isLicenseValid()) {
-        stream(playlistItem, fileInfoSet, downloadManager, enhancedDownloadManager);
-      }
+      stream(playlistItem, fileInfoSet, downloadManager, enhancedDownloadManager);
     } catch (Exception e) {
       if (Debug.DEBUG) {
         Debug.print(e);
@@ -413,21 +410,6 @@ public class StreamingTorrentUtil {
       }
       rmSkippedFiles();
     }
-  }
-
-  private static boolean isLicenseValid() {
-    if (isLicenseExpired == null) {
-      isLicenseExpired = StreamingTorrentLicense.isExpired(guiListener, false);
-    }
-    if (isLicenseExpired) {
-      guiListener.showLicenseActivation();
-      return false;
-    }
-    return true;
-  }
-
-  public static void licenseActivated() {
-    isLicenseExpired = false;
   }
 
   private static void rmSkippedFiles() {
@@ -587,15 +569,9 @@ public class StreamingTorrentUtil {
     }
 
     if (isDownloadComplete) {
-      try {
-        if (!playlistItem.isStopped() && !isPlaying && canAutoOpenPlaylistItem()) {
-          play(playlistItem, progress(playlistItem.item));
-          Thread.sleep(1000);
-        }
-      } finally {
-        if (isStarted && playlistItem.item.getLength() > _5MB) {
-          isLicenseExpired = StreamingTorrentLicense.isExpired(guiListener, true);
-        }
+      if (!playlistItem.isStopped() && !isPlaying && canAutoOpenPlaylistItem()) {
+        play(playlistItem, progress(playlistItem.item));
+        Thread.sleep(1000);
       }
     }
   }

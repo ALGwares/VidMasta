@@ -307,7 +307,7 @@ public abstract class AbstractSearcher extends Worker {
     }
   }
 
-  protected void startPrefetcher() {
+  private void startPrefetcher() {
     if (!hasAnotherPage()) {
       return;
     }

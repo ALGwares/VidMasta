@@ -1,13 +1,6 @@
 VIDMASTA CHANGELOG
 ------------------
 
-2024.11.28   | VidMasta 29.6
-
-CHANGE: CORE | Improved overall error handling
-
-
-
-
 2024.08.18   | VidMasta 29.5
 
 CHANGE: CORE | Fixed search results issue that sometimes decreases the number of results

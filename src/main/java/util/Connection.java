@@ -702,16 +702,8 @@ public class Connection {
     try {
       IO.write(sourceCodeFile, sourceCode);
     } catch (Exception e) {
-      if (Debug.DEBUG) {
-        Debug.print(e);
-      }
-      try {
-        IO.write(sourceCodeFile, sourceCode);
-      } catch (Exception e2) {
-        if (Debug.DEBUG) {
-          Debug.print(e2);
-        }
-      }
+      IO.write(sourceCodeFile, sourceCode);
+      throw e;
     }
   }
 
