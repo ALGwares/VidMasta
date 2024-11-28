@@ -9,9 +9,11 @@ import com.biglybt.core.ipfilter.IpFilter;
 import com.biglybt.core.ipfilter.impl.IPAddressRangeManagerV4;
 import com.biglybt.core.ipfilter.impl.IpFilterImpl;
 import com.biglybt.core.ipfilter.impl.IpRangeV4Impl;
+import com.biglybt.core.torrent.impl.TOTorrentDeserialiseImpl;
 import com.biglybt.core.util.Constants;
 import com.biglybt.core.util.DisplayFormatters;
 import com.biglybt.core.util.SystemProperties;
+import com.biglybt.core.util.Timer;
 import com.biglybt.core.util.UrlUtils;
 import com.biglybt.pif.PluginInterface;
 import com.biglybt.pif.PluginManagerDefaults;
@@ -45,10 +47,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
 import listener.DomainType;
 import listener.GuiListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import str.Str;
 import util.AbstractWorker;
 import util.Connection;
@@ -56,6 +60,7 @@ import util.Constant;
 import util.IO;
 import util.Regex;
 import util.ThrowableUtil;
+import util.ThrowingRunnable;
 import util.Worker;
 
 public class Magnet extends Thread {
@@ -142,6 +147,7 @@ public class Magnet extends Thread {
               torrentBytes = null;
               throw new IOException("Bad torrent for: " + url);
             }
+            Validate.isTrue((new TOTorrentDeserialiseImpl(new File(tempTorrent))).getFileCount() > 0);
             break;
           } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -267,7 +273,27 @@ public class Magnet extends Thread {
       SystemProperties.setUserPath(VUZE_DIR);
       System.setProperty(SystemProperties.SYSPROP_DOC_PATH, VUZE_DIR + "Documents");
 
-      COConfigurationManager.initialise();
+      Thread configInit = new Thread(() -> {
+        try {
+          /* Trigger early loading of Timer class, which is a cause of deadlock: COConfigurationManager.initialise:273 -> ConfigurationManager.getInstance:110
+            -> ConfigurationManager.initialise:175 -> ConfigurationChecker.checkConfiguration:956 -> ConfigurationChecker.setupVerifier:969
+            -> SimpleTimer.<clinit>:45 -> java.base@17/java.lang.ClassLoader.loadClass:520 ...-> java.io.RandomAccessFile.read:405 */
+          (new Timer("initTimer")).destroy();
+          COConfigurationManager.initialise(); // There is a deadlock bug in this method call
+        } catch (Exception e) {
+          IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+        }
+      });
+      configInit.start();
+      ThrowingRunnable.of(() -> configInit.join(10_000)).run();
+      if (configInit.isAlive()) {
+        Exception e = new Exception("deadlock");
+        e.setStackTrace(configInit.getStackTrace());
+        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+        JOptionPane.showMessageDialog(null, Str.str("deadlockError", Constant.WINDOWS ? Constant.EXE : "", Constant.APP_TITLE), Constant.APP_TITLE,
+                Constant.ERROR_MSG);
+      }
+
       Connection.setAuthenticator();
       COConfigurationManager.setParameter("max active torrents", 256);
       COConfigurationManager.setParameter("max downloads", 256);

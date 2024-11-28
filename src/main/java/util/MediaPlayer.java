@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import listener.DomainType;
 import str.Str;
 
@@ -77,18 +78,19 @@ public class MediaPlayer {
   public static boolean open(int canOpenIndex, File file, boolean playAndExit, boolean startMinimized) {
     String filePath;
     return canOpen(canOpenIndex) && (filePath = file.getPath()).length() < 255 && Regex.isMatch(file.getName(), 698) && open(filePath, playAndExit,
-            startMinimized, null, null, null);
+            startMinimized, null, null, null, 0);
   }
 
   public static boolean open(int canOpenIndex, String url, int quality, String title, Runnable errorAction) {
-    return canOpen(canOpenIndex) && open(url, false, false, quality, title, errorAction);
+    return canOpen(canOpenIndex) && open(url, false, false, quality, title, errorAction, 0);
   }
 
   private static boolean canOpen(int canOpenIndex) {
     return Boolean.parseBoolean(Str.get(canOpenIndex)) && Constant.WINDOWS_XP_AND_HIGHER && MEDIA_PLAYER_INDICATOR.exists();
   }
 
-  private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, Runnable errorAction) {
+  private static boolean open(String location, boolean playAndExit, boolean startMinimized, Integer quality, String title, Runnable errorAction,
+          int retryCount) {
     try {
       String host = Connection.getShortUrl(location, false);
       if (errorAction != null && Boolean.TRUE.equals(failedHosts.getIfPresent(host))) {
@@ -110,12 +112,19 @@ public class MediaPlayer {
         ProcessBuilder downloaderBuilder = new ProcessBuilder(args);
         downloaderBuilder.redirectErrorStream(true);
         Process downloader = downloaderBuilder.start();
+        AtomicBoolean retry = new AtomicBoolean();
         Worker.submit(() -> {
           try (BufferedReader br = new BufferedReader(new InputStreamReader(downloader.getInputStream(), Constant.UTF8))) {
             String line;
             while ((line = br.readLine()) != null) {
               if (Debug.DEBUG) {
                 Debug.println(line);
+              }
+              if (!Regex.firstMatch(line, 893).isEmpty() && retryCount < Integer.parseInt(Str.get(894))) {
+                retry.set(true); // yt-dlp downloader is a little buggy and sometimes fails non-deterministically so retry
+                failedHosts.invalidate(host2);
+                downloader.destroy();
+                return;
               }
               if (!Regex.firstMatch(line, 831).isEmpty()) {
                 if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host2))) {
@@ -131,9 +140,14 @@ public class MediaPlayer {
         try {
           Connection.setStatusBar(Str.str("transferring") + ' ' + Connection.getShortUrl(location, true));
           for (int i = 0, j = Integer.parseInt(Str.get(832)), numBytes = Integer.parseInt(Str.get(833)); i < j && Arrays.stream(IO.listFiles(
-                  downloadDir)).noneMatch(file -> file.length() >= numBytes) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && downloader.isAlive();
-                  i++) {
+                  downloadDir)).noneMatch(file -> file.length() >= numBytes) && !retry.get() && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2))
+                  && downloader.isAlive(); i++) {
             Thread.sleep(50);
+          }
+          if (retry.get()) {
+            downloader.destroy();
+            failedHosts.invalidate(host2);
+            return open(location, playAndExit, startMinimized, quality, title, errorAction, retryCount + 1);
           }
           Optional<File> download;
           if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && (download = Arrays.stream(IO.listFiles(downloadDir)).findFirst()).isPresent()

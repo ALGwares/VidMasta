@@ -45,6 +45,7 @@ import search.download.SubtitleFinder;
 import search.download.VideoFinder;
 import str.Str;
 import torrent.Magnet;
+import torrent.StreamingTorrentLicense;
 import torrent.StreamingTorrentUtil;
 import util.AbstractWorker;
 import util.AbstractWorker.StateValue;
@@ -72,6 +73,7 @@ public class Main implements WorkerListener {
   private SubtitleFinder subtitleFinder;
   private Worker streamingTorrentReloader;
   private Prefetcher prefetcher;
+  private StreamingTorrentLicense streamingTorrentLicense;
 
   static {
     suppressStdOutput();
@@ -195,7 +197,7 @@ public class Main implements WorkerListener {
     });
 
     Worker.submit(() -> IO.listAllFiles(Constant.CACHE_DIR).stream().filter(file -> file.getName().endsWith(Constant.HTML) && IO.isFileTooOld(file,
-            2592000000L)).forEach(File::delete)); // Warm and clean cache 
+            2592000000L)).forEach(File::delete)); // Warm and clean cache
     Magnet.initIpFilter();
     MediaPlayer.install();
     cleanUpAppDir();
@@ -479,6 +481,18 @@ public class Main implements WorkerListener {
   public synchronized void changeLocale(Locale locale) {
     I18n.setLocale(locale);
     Magnet.localeChanged();
+  }
+
+  @Override
+  public void license(String activationCode) {
+    if (isWorkDone(streamingTorrentLicense)) {
+      (streamingTorrentLicense = new StreamingTorrentLicense(gui, activationCode)).execute();
+    }
+  }
+
+  @Override
+  public void licenseActivated() {
+    StreamingTorrentUtil.licenseActivated();
   }
 
   private void startPrefetcher(VideoFinder videoFinder) {

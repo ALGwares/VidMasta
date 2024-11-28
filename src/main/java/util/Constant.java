@@ -36,7 +36,7 @@ public class Constant implements IOConstant {
   public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";
   public static final String TXT = ".txt", HTML = ".html", TORRENT = ".torrent";
   public static final String DOWNLOAD_LINK_INFO_PROXY_INDEX = "torrentDbProxyIndex" + TXT;
-  public static final int UPDATE_FILE_VERSION = 103;
+  public static final int UPDATE_FILE_VERSION = 104;
   public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
   public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
   public static final int SETTINGS_LEN = 81;
@@ -87,7 +87,7 @@ public class Constant implements IOConstant {
               "ProgramFiles(X86)") == null ? "" : "_64") : null);
       WINDOWS_VISTA_AND_HIGHER = osVersion >= 6;
       String arch = System.getenv("PROCESSOR_ARCHITECTURE"), arch2;
-      IS_64BIT_WINDOWS = arch != null && arch.endsWith("64") || (arch2 = System.getenv("PROCESSOR_ARCHITEW6432")) != null && arch2.endsWith("64");
+      IS_64BIT_WINDOWS = (arch != null && arch.endsWith("64")) || ((arch2 = System.getenv("PROCESSOR_ARCHITEW6432")) != null && arch2.endsWith("64"));
     } else {
       WINDOWS_XP_AND_HIGHER = false;
       WINDOWS_VISTA_AND_HIGHER = false;

@@ -190,4 +190,14 @@ public interface GuiListener {
   String wideSpace();
 
   String invisibleSeparator();
+
+  void showLicenseActivation();
+
+  void licenseActivated(String activationCode);
+
+  void licenseDeactivated();
+
+  void licenseActivationStarted();
+
+  void licenseActivationStopped();
 }
