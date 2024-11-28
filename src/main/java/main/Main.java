@@ -195,7 +195,7 @@ public class Main implements WorkerListener {
     });
 
     Worker.submit(() -> IO.listAllFiles(Constant.CACHE_DIR).stream().filter(file -> file.getName().endsWith(Constant.HTML) && IO.isFileTooOld(file,
-            2592000000L)).forEach(File::delete)); // Warm and clean cache 
+            2592000000L)).forEach(File::delete)); // Warm and clean cache
     Magnet.initIpFilter();
     MediaPlayer.install();
     cleanUpAppDir();
