@@ -1047,6 +1047,10 @@ public class Connection {
     statusBar.unset(Thread.currentThread());
   }
 
+  public static void clearStatusBar() {
+    statusBar.clear();
+  }
+
   private static class StatusBar extends Thread {
 
     private final Queue<Msg> msgs = new ConcurrentLinkedQueue<Msg>();
@@ -1062,6 +1066,10 @@ public class Connection {
 
     void unset(Thread thread) {
       msgs.remove(new Msg(thread, null));
+    }
+
+    void clear() {
+      msgs.clear();
     }
 
     @Override

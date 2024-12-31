@@ -29,11 +29,11 @@ public class VidMasta {
       String java = System.getProperty("java.home", "java");
       Process process = (new ProcessBuilder(java + (java.equals("java") ? "" : File.separator + "bin" + File.separator + "java"), "-cp", System.getProperty(
               "java.class.path"), "--add-opens", "java.base/sun.security.action=ALL-UNNAMED", "--add-opens", "java.desktop/sun.awt.shell=ALL-UNNAMED",
-              "--add-opens", "java.base/java.net=ALL-UNNAMED", "--add-opens", "java.base/java.net=ALL-UNNAMED", "--add-opens",
-              "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens", "java.desktop/sun.swing=ALL-UNNAMED", "--add-opens",
-              "java.desktop/javax.swing.plaf.synth=ALL-UNNAMED", "--add-opens", "java.desktop/sun.swing.plaf.synth=ALL-UNNAMED", "--add-opens",
-              "java.desktop/sun.swing.table=ALL-UNNAMED", "--add-opens", "java.desktop/javax.swing.plaf.basic=ALL-UNNAMED", "--add-opens",
-              "java.base/java.lang=ALL-UNNAMED", "-DstartFlag=\"true\"", VidMasta.class.getName())).redirectErrorStream(true).start();
+              "--add-opens", "java.base/java.net=ALL-UNNAMED", "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens",
+              "java.desktop/sun.swing=ALL-UNNAMED", "--add-opens", "java.desktop/javax.swing.plaf.synth=ALL-UNNAMED", "--add-opens",
+              "java.desktop/sun.swing.plaf.synth=ALL-UNNAMED", "--add-opens", "java.desktop/sun.swing.table=ALL-UNNAMED", "--add-opens",
+              "java.desktop/javax.swing.plaf.basic=ALL-UNNAMED", "--add-opens", "java.base/java.lang=ALL-UNNAMED", "-DstartFlag=\"true\"",
+              VidMasta.class.getName())).redirectErrorStream(true).start();
       if (Debug.DEBUG) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
           String line;

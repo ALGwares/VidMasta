@@ -13,7 +13,6 @@ import com.biglybt.core.torrent.impl.TOTorrentDeserialiseImpl;
 import com.biglybt.core.util.Constants;
 import com.biglybt.core.util.DisplayFormatters;
 import com.biglybt.core.util.SystemProperties;
-import com.biglybt.core.util.Timer;
 import com.biglybt.core.util.UrlUtils;
 import com.biglybt.pif.PluginInterface;
 import com.biglybt.pif.PluginManagerDefaults;
@@ -60,7 +59,6 @@ import util.Constant;
 import util.IO;
 import util.Regex;
 import util.ThrowableUtil;
-import util.ThrowingRunnable;
 import util.Worker;
 
 public class Magnet extends Thread {
@@ -275,24 +273,34 @@ public class Magnet extends Thread {
 
       Thread configInit = new Thread(() -> {
         try {
-          /* Trigger early loading of Timer class, which is a cause of deadlock: COConfigurationManager.initialise:273 -> ConfigurationManager.getInstance:110
-            -> ConfigurationManager.initialise:175 -> ConfigurationChecker.checkConfiguration:956 -> ConfigurationChecker.setupVerifier:969
-            -> SimpleTimer.<clinit>:45 -> java.base@17/java.lang.ClassLoader.loadClass:520 ...-> java.io.RandomAccessFile.read:405 */
-          (new Timer("initTimer")).destroy();
           COConfigurationManager.initialise(); // There is a deadlock bug in this method call
         } catch (Exception e) {
           IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
         }
       });
       configInit.start();
-      ThrowingRunnable.of(() -> configInit.join(10_000)).run();
-      if (configInit.isAlive()) {
-        Exception e = new Exception("deadlock");
-        e.setStackTrace(configInit.getStackTrace());
-        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
-        JOptionPane.showMessageDialog(null, Str.str("deadlockError", Constant.WINDOWS ? Constant.EXE : "", Constant.APP_TITLE), Constant.APP_TITLE,
-                Constant.ERROR_MSG);
+      File deadlock = new File(Constant.APP_DIR, "deadlock");
+      try {
+        configInit.join(10_000);
+        if (configInit.isAlive()) {
+          Exception e = new Exception("deadlock");
+          e.setStackTrace(configInit.getStackTrace());
+          IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+          if (deadlock.exists()) {
+            JOptionPane.showMessageDialog(null, Str.str("deadlockError", Constant.WINDOWS ? Constant.EXE : "", Constant.APP_TITLE), Constant.APP_TITLE,
+                    Constant.ERROR_MSG);
+          } else {
+            IO.fileOp(deadlock, IO.MK_FILE);
+            Connection.clearStatusBar();
+            Connection.setStatusBar(Str.str("deadlockError", Constant.WINDOWS ? Constant.EXE : "", Constant.APP_TITLE));
+            (new ProcessBuilder(Constant.JAVA, "-cp", System.getProperty("java.class.path"), Constant.APP_TITLE)).start();
+            Runtime.getRuntime().halt(-1);
+          }
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
+      IO.fileOp(deadlock, IO.RM_FILE);
 
       Connection.setAuthenticator();
       COConfigurationManager.setParameter("max active torrents", 256);

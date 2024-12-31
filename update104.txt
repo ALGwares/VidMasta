@@ -1,4 +1,4 @@
-416
+419
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -523,11 +523,11 @@ https://www.imdb.com/title/tt
 ((&[^"]*+)?+")|\<
 \d++
 /episodes?season=
-\>\s*+S
+\<div[^\>]*+\>\s*+S
 \s*+[,\.]\s*+Ep?+
 [\s\<]
 \d++
-\>\s*+S
+\<div[^\>]*+\>\s*+S
 \s*+[,\.]\s*+Ep?+
 [\s\<](?s).*?\<((div\s++class\s*+\=\s*+"airdate)|(span\s++class\s*+\=\s*+"[^"]++))"\s*+\>
 \<
@@ -819,10 +819,10 @@ https://www.imdb.com/video/%s/
 (?i)((Couldn't ((extract)|(process)) youtube video URL)|(open of \p{Graph}++ failed)|(access stream error)|(lua stream warning: ((error running script)|(Couldn't parse)))|(lua stream error:)|(main input error: Your input can't be opened))
 (?i)( Interrupted function call)
 true
-yt-dlp.exe
 yt-dlp_x86.exe
-https://github.com/yt-dlp/yt-dlp/releases/download/2024.10.07/yt-dlp.exe
-https://github.com/yt-dlp/yt-dlp/releases/download/2024.10.07/yt-dlp_x86.exe
+yt-dlp_x86.exe
+https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_x86.exe
+https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_x86.exe
 true
 (?i)https?+://www\.youtube\.com/.+
 --no-part:::--no-cache-dir:::--verbose:::--no-update:::--format-sort:::aext,vext:::--format:::best[height<=?1080]
@@ -865,12 +865,12 @@ true
 M
 d
 Action:::Adventure:::Animation:::Biography:::Comedy:::Crime:::Documentary:::Drama:::Family:::Fantasy:::Film-Noir:::Game-Show:::History:::Horror:::Music:::Musical:::Mystery:::News:::Reality-TV:::Romance:::Sci-Fi:::Short:::Sport:::Talk-Show:::Thriller:::War:::Western
-false
+true
 //*[@id='voicetext']
 //*[@id='downloadenbutton']
 browser.download.lastDir
 browser.download.dir
-(?i)https?+://www\.imdb\.com/search/title/\?(?=.*?&start\=).*
+(?i)https?+://www\.imdb\.com/((search/title/\?(?=.*?&start\=))|(title/[^/]++/episodes/\?season\=)).*
 a^
 (?i)https?+://docs\.google\.com.*
 /*[local-name()='html']/*[local-name()='body']

@@ -10,5 +10,6 @@ nbactions.xml
 **/dist
 **/build
 **/target
+**/torrent/*ense.*
 /firefox*.zip
 /subprojects

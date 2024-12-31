@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2024.12.31   | VidMasta 29.7
+
+CHANGE: CORE | Improved startup error handling
+
+
+
+
 2024.11.28   | VidMasta 29.6
 
 CHANGE: CORE | Improved overall error handling
