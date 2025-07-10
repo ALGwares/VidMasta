@@ -31,6 +31,7 @@ public class Constant implements IOConstant {
   public static final String TV_EPISODE_FORMAT = "%02d", RATING_FORMAT = "#.0", NO_RATING = "-";
   public static final String STORYLINE_HTML_ID = "storyline", STORYLINE_LINK1_HTML_ID = "storylineLink1", STORYLINE_LINK2_HTML_ID = "storylineLink2";
   public static final String GENRE_HTML_ID = "genre", TV_NEXT_EPISODE_HTML_ID = "nextEpisode", TV_PREV_EPISODE_HTML_ID = "prevEpisode";
+  public static final String EPISODE_LOADING_HTML_ID = "episodeLoading", STORYLINE_LOADING_HTML_ID = "storylineLoading";
   public static final String TITLE_INDENT = "&nbsp;&nbsp;&nbsp;";
   public static final int TITLE_INDENT_LEN = TITLE_INDENT.length();
   public static final String BLANK_HTML_PAGE = "<html><head></head><body marginwidth=\"10\"><br></body></html>";

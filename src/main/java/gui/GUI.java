@@ -5971,13 +5971,16 @@ public class GUI extends JFrame implements GuiListener {
       menu.removeAll();
       List<String> titles = new ArrayList<String>(100);
 
+      String selectedTitle = null;
       synchronized (resultsSyncTable.lock) {
         int row = resultsSyncTable.table.getSelectedRow();
         if (row != -1) {
           int modelRow = resultsSyncTable.table.convertRowIndexToModel(row);
           String title = bannedTitle((String) resultsSyncTable.tableModel.getValueAt(modelRow, idCol), (String) resultsSyncTable.tableModel.getValueAt(
                   modelRow, currTitleCol), (String) resultsSyncTable.tableModel.getValueAt(modelRow, yearCol));
-          if (!bannedTitles.contains(title)) {
+          if (bannedTitles.contains(title)) {
+            selectedTitle = title;
+          } else {
             titles.add(title);
           }
         }
@@ -6049,6 +6052,7 @@ public class GUI extends JFrame implements GuiListener {
           JScrollPane scrollPane = new JScrollPane(list);
           scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
           scrollPane.setBorder(null);
+          UI.scrollTo(list, selectedTitle);
           ((Container) menu.add(new JMenu(" "))).add(scrollPane);
         }
       }
@@ -6870,6 +6874,19 @@ public class GUI extends JFrame implements GuiListener {
     UI.run(false, () -> {
       try {
         summaryEditorPaneDocument.insertAfterEnd(element, System.getProperty("htmlFont1") + text + "</font>");
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+      }
+    });
+  }
+
+  @Override
+  public void removeSummaryElement(Element element) {
+    UI.run(false, () -> {
+      try {
+        summaryEditorPaneDocument.removeElement(element);
       } catch (Exception e) {
         if (Debug.DEBUG) {
           Debug.print(e);

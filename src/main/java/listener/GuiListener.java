@@ -30,6 +30,8 @@ public interface GuiListener {
 
   void insertAfterSummaryElement(Element element, String text);
 
+  void removeSummaryElement(Element element);
+
   void browserNotification(DomainType domainType);
 
   void startPeerBlock();

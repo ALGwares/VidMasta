@@ -64,10 +64,12 @@ public class EpisodeFinder extends Worker {
     } finally {
       if (!isCancelled()) {
         synchronized (SummaryFinder.LOCK) {
+          guiListener.removeSummaryElement(guiListener.getSummaryElement(Constant.EPISODE_LOADING_HTML_ID));
           String summary = showEpisode(guiListener.getSummaryElement(Constant.TV_PREV_EPISODE_HTML_ID), prevEpisodeText, Constant.TV_PREV_EPISODE_HTML_ID,
                   showEpisode(guiListener.getSummaryElement(Constant.TV_NEXT_EPISODE_HTML_ID), nextEpisodeText, Constant.TV_NEXT_EPISODE_HTML_ID,
                           updateSummary ? video.summary : null));
           if (summary != null) {
+            summary = Regex.replaceFirst(summary, "\\<img id\\=\"" + Constant.EPISODE_LOADING_HTML_ID + "\"[^\\>]++\\>", "");
             guiListener.setSummary(summary, row, video.id);
             video.summary = summary;
           }

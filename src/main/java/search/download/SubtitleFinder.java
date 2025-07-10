@@ -84,6 +84,7 @@ public class SubtitleFinder extends Worker {
   private void findSubtitle() throws Exception {
     String searchTitle = URLEncoder.encode(video.title, Constant.UTF8), searchYear = String.valueOf(Integer.parseInt(video.year)
             - Integer.parseInt(Str.get(342)));
+    // 403 errors are transient and due to Cloudflare/CAPTCHA
     String source = getSourceCode(isTVShow ? Str.get(439) + languageID + Str.get(440) + video.season + Str.get(441) + video.episode + Str.get(442) + searchYear
             + Str.get(443) + searchTitle : Str.get(444) + languageID + Str.get(445) + searchYear + Str.get(446) + searchTitle);
     String titleLink = Regex.match(source, 506);
@@ -120,6 +121,7 @@ public class SubtitleFinder extends Worker {
     }
   }
 
+  // 403 errors are transient and due to Cloudflare/CAPTCHA
   private String getSourceCode(String url) throws Exception {
     String source;
     try {

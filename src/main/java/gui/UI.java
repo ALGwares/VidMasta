@@ -793,6 +793,16 @@ public class UI {
     list.repaint();
   }
 
+  public static void scrollTo(JList list, Object val) {
+    final ListModel listModel = list.getModel();
+    for (int i = 0, size = listModel.getSize(); i < size; i++) {
+      if (listModel.getElementAt(i).equals(val)) {
+        list.ensureIndexIsVisible(i);
+        return;
+      }
+    }
+  }
+
   public static void add(ButtonGroup buttonGroup, AbstractButton... buttons) {
     for (AbstractButton button : buttons) {
       buttonGroup.add(button);

@@ -49,6 +49,7 @@ public class SummaryFinder extends Worker {
     } finally {
       if (!isCancelled()) {
         synchronized (LOCK) {
+          guiListener.removeSummaryElement(guiListener.getSummaryElement(Constant.STORYLINE_LOADING_HTML_ID));
           Element storyLineElement1 = guiListener.getSummaryElement(Constant.STORYLINE_LINK1_HTML_ID);
           if (storyLineElement1 == null) {
             if (!summary.isEmpty()) {
@@ -66,8 +67,9 @@ public class SummaryFinder extends Worker {
             guiListener.insertAfterSummaryElement(storyLineElement1, summary = summary.isEmpty() ? Str.get(159) : summary);
           }
           if (updateSummary) {
-            summary = Regex.replaceFirst(video.summary, "\\<span\\s++id\\s*+\\=\\s*+\"((" + Constant.STORYLINE_LINK1_HTML_ID + ")|("
-                    + Constant.STORYLINE_LINK2_HTML_ID + "))\"\\>[^\\<]++\\</span\\>", summary);
+            summary = Regex.replaceFirst(Regex.replaceFirst(video.summary, "\\<img id\\=\"" + Constant.STORYLINE_LOADING_HTML_ID + "\"[^\\>]++\\>", ""),
+                    "\\<span\\s++id\\s*+\\=\\s*+\"((" + Constant.STORYLINE_LINK1_HTML_ID + ")|(" + Constant.STORYLINE_LINK2_HTML_ID
+                    + "))\"\\>[^\\<]++\\</span\\>", summary);
             guiListener.setSummary(summary, row, video.id);
             video.summary = summary;
           }

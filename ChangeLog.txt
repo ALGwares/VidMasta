@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2025.07.10   | VidMasta 29.8
+
+CHANGE: UI   | Adding loading animations for when title summary is loading
+CHANGE: UI   | Improved title banning feature
+
+
+
+
 2024.12.31   | VidMasta 29.7
 
 CHANGE: CORE | Improved startup error handling

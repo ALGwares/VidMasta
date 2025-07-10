@@ -281,7 +281,7 @@ public class Magnet extends Thread {
       configInit.start();
       File deadlock = new File(Constant.APP_DIR, "deadlock");
       try {
-        configInit.join(10_000);
+        configInit.join(5_000);
         if (configInit.isAlive()) {
           Exception e = new Exception("deadlock");
           e.setStackTrace(configInit.getStackTrace());

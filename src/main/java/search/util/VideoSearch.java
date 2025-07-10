@@ -241,7 +241,9 @@ public class VideoSearch {
       summary.append(summary1);
     } else if (isEmpty1 && !isEmpty2) {
       if (linkSummary2) {
-        summary.append("<span id=\"").append(Constant.STORYLINE_LINK1_HTML_ID).append("\">").append(summary2).append("</span>");
+        summary.append("<span id=\"").append(Constant.STORYLINE_LINK1_HTML_ID).append("\">").append(summary2).append("</span>").append("<img id=\"").append(
+                Constant.STORYLINE_LOADING_HTML_ID).append("\" src=\"file:///").append(Regex.replaceAll(Constant.PROGRAM_DIR + "loading.gif", 237)).append(
+                "\">");
       } else {
         summary.append(summary2);
       }
@@ -249,9 +251,10 @@ public class VideoSearch {
       summary.append(summary1);
     } else if (!isEmpty1) {
       summary.append(summary1);
-      storyline = (linkSummary2 ? (new StringBuilder("<span id=\"")).append(Constant.STORYLINE_LINK2_HTML_ID).append("\">").append(summary2).append("</span>")
-              : (new StringBuilder(System.getProperty("htmlFont3"))).append("<b id=\"").append(Constant.STORYLINE_HTML_ID).append("\">").append(Str.str(
-                      "storyline")).append("</b></font>").append(br1).append(summary2));
+      storyline = (linkSummary2 ? (new StringBuilder("<span id=\"")).append(Constant.STORYLINE_LINK2_HTML_ID).append("\">").append(summary2).append(
+              "</span>").append("<img id=\"").append(Constant.STORYLINE_LOADING_HTML_ID).append("\" src=\"file:///").append(Regex.replaceAll(
+              Constant.PROGRAM_DIR + "loading.gif", 237)).append("\">") : (new StringBuilder(System.getProperty("htmlFont3"))).append("<b id=\"").append(
+              Constant.STORYLINE_HTML_ID).append("\">").append(Str.str("storyline")).append("</b></font>").append(br1).append(summary2));
     } else {
       summary.append(Str.get(159));
     }
@@ -274,8 +277,10 @@ public class VideoSearch {
 
     summary.append(br2);
     if (isTVShow && (!Regex.matches(sourceCode, 520).isEmpty() || !Regex.match(sourceCode, 550).isEmpty())) {
-      summary.append("<b id=\"").append(Constant.TV_NEXT_EPISODE_HTML_ID).append("\">").append(Str.str("nextEpisode")).append(" </b>").append(br1).append(
-              "<b id=\"").append(Constant.TV_PREV_EPISODE_HTML_ID).append("\">").append(Str.str("prevEpisode")).append(" </b>");
+      summary.append("<b id=\"").append(Constant.TV_NEXT_EPISODE_HTML_ID).append("\">").append(Str.str("nextEpisode")).append(" </b>").append(
+              "<img id=\"").append(Constant.EPISODE_LOADING_HTML_ID).append("\" src=\"file:///").append(Regex.replaceAll(Constant.PROGRAM_DIR
+              + "loadingSmall.gif", 237)).append("\">").append(br1).append("<b id=\"").append(Constant.TV_PREV_EPISODE_HTML_ID).append("\">").append(Str.str(
+              "prevEpisode")).append(" </b>");
     } else {
       String releaseDate = Regex.replaceAll(Regex.match(sourceCode, 539), 541);
       if (Regex.isMatch(releaseDate, 543)) {
