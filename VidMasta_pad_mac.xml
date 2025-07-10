@@ -90,11 +90,11 @@
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
   <Press_Release>
-    <Headline>VidMasta 29.7 Released</Headline>
-    <Summary>VidMasta 29.7 Released</Summary>
+    <Headline>VidMasta 29.8 Released</Headline>
+    <Summary>VidMasta 29.8 Released</Summary>
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
-    <Press_Release_Plain>VidMasta 29.7 Released</Press_Release_Plain>
-    <Press_Release>VidMasta 29.7 Released</Press_Release>
+    <Press_Release_Plain>VidMasta 29.8 Released</Press_Release_Plain>
+    <Press_Release>VidMasta 29.8 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
   <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
@@ -112,7 +112,7 @@
       <Filename_Long></Filename_Long>
     </File_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>29.7</Program_Version>
+    <Program_Version>29.8</Program_Version>
     <Program_Release_Month>12</Program_Release_Month>
     <Program_Release_Day>31</Program_Release_Day>
     <Program_Release_Year>2024</Program_Release_Year>
@@ -122,7 +122,7 @@
     <Program_Install_Support>Install and Uninstall</Program_Install_Support>
     <Program_OS_Support>Mac OS X,Mac OS X 10.1,Mac OS X 10.2,Mac OS X 10.3,Mac OS X 10.4,Mac OS X 10.5,Mac OS X 10.6,Mac OS X 10.7,Mac OS X 10.8,Mac OS X 10.9</Program_OS_Support>
     <Program_Language>English,Dutch,French,Italian,Portuguese,Spanish,Turkish</Program_Language>
-    <Program_Change_Info>Improved startup error handling.</Program_Change_Info>
+    <Program_Change_Info></Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Network &amp; Internet::File Sharing/Peer to Peer</Program_Category_Class>
     <Expire_Info>
@@ -162,7 +162,7 @@
       <Application_XML_File_URL>https://raw.githubusercontent.com/ALGwares/VidMasta/master/VidMasta_pad_mac.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>https://github.com/ALGwares/VidMasta/releases/download/v29.7/vidmasta-setup-29.7.jar</Primary_Download_URL>
+      <Primary_Download_URL>https://github.com/ALGwares/VidMasta/releases/download/v29.8/vidmasta-setup-29.8.jar</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
