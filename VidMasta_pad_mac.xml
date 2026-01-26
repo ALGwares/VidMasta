@@ -90,11 +90,11 @@
     <Apply_For_Certification>N</Apply_For_Certification>
   </PAD_Certification_Promotion>
   <Press_Release>
-    <Headline>VidMasta 29.8 Released</Headline>
-    <Summary>VidMasta 29.8 Released</Summary>
+    <Headline>VidMasta 29.9 Released</Headline>
+    <Summary>VidMasta 29.9 Released</Summary>
     <Keywords>VidMasta,ALGwares,Anthony Gray</Keywords>
-    <Press_Release_Plain>VidMasta 29.8 Released</Press_Release_Plain>
-    <Press_Release>VidMasta 29.8 Released</Press_Release>
+    <Press_Release_Plain>VidMasta 29.9 Released</Press_Release_Plain>
+    <Press_Release>VidMasta 29.9 Released</Press_Release>
     <Related_URL>http://sites.google.com/site/algwares/vidmasta</Related_URL>
   </Press_Release>
   <ASBMPlannerID1stRound>1</ASBMPlannerID1stRound>
@@ -102,20 +102,20 @@
   <Program_Info>
     <Program_Target_Platform>OS X</Program_Target_Platform>
     <File_Info>
-      <Automatically_Detect_File_Size>N</Automatically_Detect_File_Size>
-      <File_Size_Bytes>61282544</File_Size_Bytes>
-      <File_Size_K>59846</File_Size_K>
-      <File_Size_MB>58.44</File_Size_MB>
+      <Automatically_Detect_File_Size>Y</Automatically_Detect_File_Size>
+      <File_Size_Bytes>62914560</File_Size_Bytes>
+      <File_Size_K>61440</File_Size_K>
+      <File_Size_MB>60</File_Size_MB>
       <Filename_Versioned></Filename_Versioned>
       <Filename_Previous></Filename_Previous>
       <Filename_Generic></Filename_Generic>
       <Filename_Long></Filename_Long>
     </File_Info>
     <Program_Name>VidMasta</Program_Name>
-    <Program_Version>29.8</Program_Version>
-    <Program_Release_Month>12</Program_Release_Month>
-    <Program_Release_Day>31</Program_Release_Day>
-    <Program_Release_Year>2024</Program_Release_Year>
+    <Program_Version>29.9</Program_Version>
+    <Program_Release_Month>1</Program_Release_Month>
+    <Program_Release_Day>26</Program_Release_Day>
+    <Program_Release_Year>2026</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
@@ -162,7 +162,7 @@
       <Application_XML_File_URL>https://raw.githubusercontent.com/ALGwares/VidMasta/master/VidMasta_pad_mac.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>https://github.com/ALGwares/VidMasta/releases/download/v29.8/vidmasta-setup-29.8.jar</Primary_Download_URL>
+      <Primary_Download_URL>https://github.com/ALGwares/VidMasta/releases/download/v29.9/vidmasta-setup-29.9.jar</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>

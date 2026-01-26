@@ -13,12 +13,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 import listener.DomainType;
 import str.Str;
 
 public class MediaPlayer {
 
   private static final File MEDIA_PLAYER_DIR = new File(Constant.APP_DIR, "mediaPlayer"), MEDIA_PLAYER_INDICATOR = new File(Constant.APP_DIR, Str.get(697));
+  private static final File FFMPEG_DIR = new File(Constant.APP_DIR, "ffmpeg"), FFMPEG_INDICATOR = new File(Constant.APP_DIR, Str.get(899));
   private static final Cache<String, Boolean> failedHosts = CacheBuilder.newBuilder().expireAfterWrite(Constant.MS_1HR, TimeUnit.MILLISECONDS).build();
 
   public static void install() {
@@ -56,7 +59,24 @@ public class MediaPlayer {
         }
       } catch (Exception e) {
         if (Debug.DEBUG) {
-          Debug.print(e);
+          Debug.println(e);
+        }
+      }
+      if (!FFMPEG_INDICATOR.exists()) {
+        String zipFile = FFMPEG_INDICATOR.getPath() + Constant.ZIP;
+        try {
+          Connection.saveData(Str.get(900), zipFile, DomainType.UPDATE, false);
+          try {
+            IO.fileOp(FFMPEG_DIR, IO.RM_DIR);
+            IO.unzip(zipFile, IO.dir(FFMPEG_DIR.getPath()));
+            IO.fileOp(FFMPEG_INDICATOR, IO.MK_FILE);
+          } finally {
+            IO.fileOp(zipFile, IO.RM_FILE);
+          }
+        } catch (Exception e) {
+          if (Debug.DEBUG) {
+            Debug.print(e);
+          }
         }
       }
       try {
@@ -104,10 +124,11 @@ public class MediaPlayer {
         List<String> args = new ArrayList<>(8);
         File downloadDir = new File(Constant.TEMP_DIR, String.valueOf(System.currentTimeMillis()));
         Collections.addAll(args, (new File(Constant.APP_DIR, Str.get(Constant.IS_64BIT_WINDOWS ? 820 : 821))).getPath(), location);
-        Collections.addAll(args, Regex.split(826, Constant.SEPARATOR1));
+        Collections.addAll(args, Regex.split(901, Constant.SEPARATOR1));
         Collections.addAll(args, Str.get(827), String.format(Str.get(828), downloadDir.getPath() + Constant.FILE_SEPARATOR));
-        if (quality != null && quality != -1) {
-          Collections.addAll(args, Str.get(829), String.format(Str.get(830), quality));
+        if (FFMPEG_INDICATOR.exists()) {
+          Collections.addAll(args, Str.get(902), IO.findFile(FFMPEG_DIR, Regex.pattern(903)).getPath());
+          Collections.addAll(args, Str.get(904), String.format(Str.get(retryCount == 0 ? (quality != null && quality != -1 ? 905 : 906) : 907), quality));
         }
         ProcessBuilder downloaderBuilder = new ProcessBuilder(args);
         downloaderBuilder.redirectErrorStream(true);
@@ -139,9 +160,9 @@ public class MediaPlayer {
 
         try {
           Connection.setStatusBar(Str.str("transferring") + ' ' + Connection.getShortUrl(location, true));
-          for (int i = 0, j = Integer.parseInt(Str.get(832)), numBytes = Integer.parseInt(Str.get(833)); i < j && Arrays.stream(IO.listFiles(
-                  downloadDir)).noneMatch(file -> file.length() >= numBytes) && !retry.get() && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2))
-                  && downloader.isAlive(); i++) {
+          Supplier<Stream<File>> downloads = () -> Arrays.stream(IO.listFiles(downloadDir)).filter(file -> Regex.firstMatch(file.getName(), 897).isEmpty());
+          for (int i = 0, j = Integer.parseInt(Str.get(832)), numBytes = Integer.parseInt(Str.get(833)); i < j && downloads.get().noneMatch(file -> file.length()
+                  >= numBytes) && !retry.get() && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && downloader.isAlive(); i++) {
             Thread.sleep(50);
           }
           if (retry.get()) {
@@ -150,8 +171,8 @@ public class MediaPlayer {
             return open(location, playAndExit, startMinimized, quality, title, errorAction, retryCount + 1);
           }
           Optional<File> download;
-          if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && (download = Arrays.stream(IO.listFiles(downloadDir)).findFirst()).isPresent()
-                  && MediaPlayer.open(834, download.get(), playAndExit, startMinimized) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2))) {
+          if (!Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && (download = downloads.get().findFirst()).isPresent() && MediaPlayer.open(834,
+                  download.get(), playAndExit, startMinimized) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2))) {
             return true;
           }
           failedHosts.put(host2, true);

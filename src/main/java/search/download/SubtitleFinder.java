@@ -122,7 +122,7 @@ public class SubtitleFinder extends Worker {
   }
 
   // 403 errors are transient and due to Cloudflare/CAPTCHA
-  private String getSourceCode(String url) throws Exception {
+  protected String getSourceCode(String url) throws Exception {
     String source;
     try {
       source = Connection.getSourceCode(prevUrl = url, DomainType.SUBTITLE, Constant.MS_1HR);
