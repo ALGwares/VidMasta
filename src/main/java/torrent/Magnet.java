@@ -273,8 +273,19 @@ public class Magnet extends Thread {
 
       Thread configInit = new Thread(() -> {
         try {
+          try {
+            com.biglybt.core.util.Debug.outNoStack(""); // Sometimes prevent deadlock by pre-loading com.biglybt.core.util.Debug
+            (new File("biglybt_error.log")).delete();
+          } catch (Exception e) {
+            if (Debug.DEBUG) {
+              Debug.print(e);
+            }
+          }
           COConfigurationManager.initialise(); // There is a deadlock bug in this method call
         } catch (Exception e) {
+          if (Debug.DEBUG) {
+            Debug.print(e);
+          }
           IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
         }
       });

@@ -6,7 +6,7 @@ import java.util.Locale;
 public interface IOConstant {
 
   String APP_TITLE = "VidMasta";
-  double APP_VERSION = 29.9;
+  double APP_VERSION = 30.0;
   String STD_NEWLINE = "\n", STD_NEWLINE2 = STD_NEWLINE + STD_NEWLINE, NEWLINE = System.getProperty("line.separator", STD_NEWLINE), NEWLINE2 = NEWLINE + NEWLINE;
   String FILE_SEPARATOR = File.separator;
   String UTF8 = "UTF-8";

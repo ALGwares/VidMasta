@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -392,7 +393,8 @@ public class VideoFinder extends Worker {
       }
     };
     Connection.getSourceCode(Str.get(854), DomainType.VIDEO_INFO, true, false, -1, request);
-    Connection.saveData(request.urlAfterEvt, speech.getPath(), DomainType.VIDEO_INFO, true, null, Connection.MAX_NUM_REDIRECTS, request.cookiesAfterEvt, false);
+    Connection.saveData(Optional.ofNullable(request.urlAfterEvt).orElseThrow(() -> new ConnectionException(Connection.error(Str.get(854)))), speech.getPath(),
+            DomainType.VIDEO_INFO, true, null, Connection.MAX_NUM_REDIRECTS, request.cookiesAfterEvt, false);
     if (!isCancelled()) {
       read(speech);
     }

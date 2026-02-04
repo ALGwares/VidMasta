@@ -19,6 +19,7 @@ import util.ConnectionException;
 import util.Constant;
 import util.ProxyException;
 import util.Regex;
+import util.ThrowingSupplier;
 
 public class RegularSearcher extends AbstractSearcher {
 
@@ -160,7 +161,7 @@ public class RegularSearcher extends AbstractSearcher {
   }
 
   @Override
-  protected String getUrl(int page, boolean isTVShow, int numResultsPerSearch) throws Exception {
+  protected String getUrl(int page, boolean isTVShow, int numResultsPerSearch) {
     int maxNumResultsPerSearch = Integer.parseInt(Str.get(503));
     int numResultsPerPage = (numResultsPerSearch > maxNumResultsPerSearch ? maxNumResultsPerSearch : numResultsPerSearch);
     String urlCountries = (countries.equals(Constant.ANY) ? Str.get(179) : Str.get(180) + countries);
@@ -168,7 +169,8 @@ public class RegularSearcher extends AbstractSearcher {
     String urlLanguages = (languages.equals(Constant.ANY) ? Str.get(181) : Str.get(182) + languages);
     String urlReleaseDates = (startDateStr.isEmpty() && endDateStr.isEmpty() ? Str.get(240) : Str.get(14) + startDateStr + Str.get(15) + endDateStr);
     String urlStart = (page == 0 ? Str.get(144) : Str.get(13) + ((page * numResultsPerPage) + 1));
-    String urlTitle = (title.isEmpty() ? Str.get(142) : Str.get(10) + URLEncoder.encode(Regex.htmlToPlainText(title), Constant.UTF8));
+    String urlTitle = (title.isEmpty() ? Str.get(142) : Str.get(10) + ThrowingSupplier.get(() -> URLEncoder.encode(Regex.htmlToPlainText(title),
+            Constant.UTF8)));
     String urlTitleType = Str.get(16) + Str.get(isTVShow ? 18 : 17);
     String urlUserRating = (minRating.equals(Constant.ANY) ? Str.get(143) : (Str.get(11) + minRating + Str.get(12)));
     return Str.get(6) + numResultsPerPage + urlCountries + urlGenres + urlLanguages + urlReleaseDates + Str.get(19) + urlStart + urlTitle + urlTitleType

@@ -6,9 +6,11 @@ import debug.Debug;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -49,19 +51,6 @@ public class MediaPlayer {
     }
 
     if (MEDIA_PLAYER_INDICATOR.exists()) {
-      try {
-        File script = new File(IO.findFile(MEDIA_PLAYER_DIR, Regex.pattern(789)).getParentFile(), Str.get(790)), tempScript = new File(Constant.APP_DIR,
-                script.getName());
-        if (!script.exists() || tempScript.exists() || IO.isFileTooOld(script, Constant.MS_1HR)) {
-          Connection.saveData(Str.get(788), tempScript.getPath(), DomainType.UPDATE, false);
-          IO.write(tempScript, script);
-          IO.fileOp(tempScript, IO.RM_FILE);
-        }
-      } catch (Exception e) {
-        if (Debug.DEBUG) {
-          Debug.println(e);
-        }
-      }
       if (!FFMPEG_INDICATOR.exists()) {
         String zipFile = FFMPEG_INDICATOR.getPath() + Constant.ZIP;
         try {
@@ -139,7 +128,7 @@ public class MediaPlayer {
             String line;
             while ((line = br.readLine()) != null) {
               if (Debug.DEBUG) {
-                Debug.println(line);
+                Debug.println((new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aaa")).format(new Date()) + ": " + line);
               }
               if (!Regex.firstMatch(line, 893).isEmpty() && retryCount < Integer.parseInt(Str.get(894))) {
                 retry.set(true); // yt-dlp downloader is a little buggy and sometimes fails non-deterministically so retry

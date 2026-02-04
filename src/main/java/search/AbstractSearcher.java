@@ -100,7 +100,11 @@ public abstract class AbstractSearcher extends Worker {
       try {
         updateTable();
       } catch (Exception e) {
-        restore();
+        try {
+          restore();
+        } catch (Exception e2) {
+          guiListener.error(e2);
+        }
         if (!isCancelled()) {
           guiListener.error(e);
         }
@@ -156,7 +160,7 @@ public abstract class AbstractSearcher extends Worker {
 
   protected abstract boolean addCurrVideos();
 
-  protected abstract String getUrl(int page, boolean isTVShow, int numResultsPerSearch) throws Exception;
+  protected abstract String getUrl(int page, boolean isTVShow, int numResultsPerSearch);
 
   protected abstract DomainType domainType();
 
@@ -179,14 +183,15 @@ public abstract class AbstractSearcher extends Worker {
   }
 
   private boolean hasAnotherPage() {
-    return !Regex.firstMatch(currSourceCode, Str.get(anotherPageRegexIndex())).isEmpty();
+    return !Regex.firstMatch(currSourceCode, Str.get(anotherPageRegexIndex())).isEmpty() && (currSearchPage < 1 || !getUrls(currSearchPage).equals(getUrls(
+            currSearchPage - 1)));
   }
 
   private boolean hasNextSearchPage() {
     return isNewSearch() || !videoBuffer.isEmpty() || hasAnotherPage();
   }
 
-  private Map<String, String> getUrls(int page) throws Exception {
+  private Map<String, String> getUrls(int page) {
     Map<String, String> urls = new TreeMap<String, String>();
     if (isTVShow == null) {
       for (boolean tvShow : separators.keySet()) {
@@ -225,6 +230,8 @@ public abstract class AbstractSearcher extends Worker {
     Collection<Video> videos = videoBuffer.subList(0, numVideos);
     Collection<Searcher> searchers = new ArrayList<Searcher>(numVideos);
 
+    System.gc();
+
     for (Video video : videos) {
       Searcher searcher = new Searcher(video, findImage(video));
       if (searcher.findImage) {
@@ -234,8 +241,11 @@ public abstract class AbstractSearcher extends Worker {
       }
     }
 
+    System.gc();
+
     AbstractWorker.executeAndWaitFor(searchers);
     if (isCancelled()) {
+      System.gc();
       return;
     }
 
@@ -243,6 +253,8 @@ public abstract class AbstractSearcher extends Worker {
     if (videoBuffer.isEmpty()) {
       currSearchPage++;
     }
+
+    System.gc();
   }
 
   protected void initCurrVideos() throws Exception {

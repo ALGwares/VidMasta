@@ -150,7 +150,10 @@ public class Main implements WorkerListener {
     removeTempFiles();
     IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
     Connection.startStatusBar();
-    if (Boolean.parseBoolean(Str.get(866))) {
+    if (Boolean.parseBoolean(Str.get(926))) {
+      Worker.submit(() -> Connection.createCurl());
+    }
+    if (Boolean.parseBoolean(Str.get(927))) {
       Worker.submit(() -> Connection.createWebBrowser(false));
     }
 
@@ -507,12 +510,12 @@ public class Main implements WorkerListener {
 
       Pattern filenameRegex = Pattern.compile("(?!((" + Pattern.quote(cleanVersion.getName()) + ")|(" + Pattern.quote(Constant.UPDATE_FILE) + ")|("
               + Pattern.quote(Constant.USER_SETTINGS) + ")|(" + Pattern.quote(Magnet.VUZE_VERSION) + ")|(" + Pattern.quote(Constant.PEER_BLOCK_CONF_VERSION)
-              + ")|(" + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(Str.get(899)) + ")|(" + Pattern.quote(Str.get(Constant.WINDOWS ? 836
-              : (Constant.MAC ? 840 : 844))) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATER)
+              + ")|(" + Pattern.quote(Str.get(697)) + ")|(" + Pattern.quote(Str.get(899)) + ")|(" + Pattern.quote(Str.get(911)) + ")|(" + Pattern.quote(Str.get(
+              Constant.WINDOWS ? 836 : (Constant.MAC ? 840 : 844))) + ")|(" + Pattern.quote(AppUpdater.APP_UPDATER)
               + ")))((clean[\\d\\.]++)|(update\\d*+\\.txt)|(userSettings\\d*+\\.txt)|(vuze\\d*+)|(biglybt\\d*+)|(ipfilter[\\d\\.]*+)"
-              + "|(ipfilter\\.((dat)|(txt)))|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(ffmpeg\\-[\\d\\.\\-]++)|(firefox\\-[\\d\\.]++)"
+              + "|(ipfilter\\.((dat)|(txt)))|(peerblockConf[\\d\\.]++)|(vlc\\-[\\d\\.]++)|(ffmpeg\\-[\\d\\.\\-]++)|(firefox\\-[\\d\\.\\-]++)"
               + "|(update(r|(Fail))[\\d\\.]++)|(peerblock)|(jre\\-8u9[12]\\-windows\\-i586\\.exe)|(vidmasta\\-setup\\-21\\.[67]\\.exe)"
-              + "|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer)|(torrents))");
+              + "|(java\\d*+Version_?+\\d*+\\.txt)|(BitTorrentClient\\d*+\\.cer)|(torrents)|(curl\\-impersonate\\-[\\d\\.]++))");
       Arrays.stream(IO.listFiles(Constant.APP_DIR)).filter(file -> filenameRegex.matcher(file.getName()).matches()).forEach(file -> IO.fileOp(file,
               file.isDirectory() ? IO.RM_DIR : IO.RM_FILE));
       if (Arrays.stream(IO.listFiles(Constant.CACHE_DIR)).anyMatch(File::isFile)) { // Backward compatibility

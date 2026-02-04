@@ -9,7 +9,14 @@ public class Worker extends AbstractWorker<Void> {
 
   @Override
   protected Void doInBackground() throws Exception {
-    doWork();
+    try {
+      doWork();
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+      throw e;
+    }
     return null;
   }
 
