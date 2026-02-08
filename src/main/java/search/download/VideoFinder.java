@@ -371,8 +371,8 @@ public class VideoFinder extends Worker {
 
     WebBrowserRequest request = new WebBrowserRequest() {
       @Override
-      public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
-        super.get(url, driver, sleep);
+      public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
+        super.get(url, driver, sleep, cacheExpirationMs);
         Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
         (new WebDriverWait(driver, timeout)).until(ExpectedConditions.and(ExpectedConditions.presenceOfElementLocated(By.xpath(
                 Str.get(867))), ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(868)))));
@@ -385,7 +385,7 @@ public class VideoFinder extends Worker {
           driver.findElement(By.xpath(Str.get(868))).click();
           if (Boolean.parseBoolean(Str.get(891))) {
             sleep.run();
-            super.get(driver.getCurrentUrl(), driver, sleep);
+            super.get(driver.getCurrentUrl(), driver, sleep, cacheExpirationMs);
           }
           (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(868))));
         }, driver);

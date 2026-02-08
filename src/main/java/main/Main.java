@@ -150,12 +150,7 @@ public class Main implements WorkerListener {
     removeTempFiles();
     IO.fileOp(Constant.TEMP_DIR, IO.MK_DIR);
     Connection.startStatusBar();
-    if (Boolean.parseBoolean(Str.get(926))) {
-      Worker.submit(() -> Connection.createCurl());
-    }
-    if (Boolean.parseBoolean(Str.get(927))) {
-      Worker.submit(() -> Connection.createWebBrowser(false));
-    }
+    Connection.startHttpClients();
 
     (new Timer()).schedule(new TimerTask() {
       @Override

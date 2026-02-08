@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.02.07   | VidMasta 30.1
+
+CHANGE: CORE   | Fixed connectivity issues
+CHANGE: CORE   | Fixed performance issues
+
+
+
+
 2026.02.03   | VidMasta 30.0
 
 CHANGE: CORE   | Fixed connectivity issues

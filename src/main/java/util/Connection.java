@@ -95,7 +95,7 @@ public class Connection {
   private static Proxy webBrowserProxy = Proxy.NO_PROXY;
   private static final Lock webBrowserLock = new ReentrantLock();
   private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(896)));
-  private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean();
+  private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean(), curlInitShowStatus = new AtomicBoolean();
   private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
   private static final AtomicReference<LazyInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
   private static final LazyInitializer<String> curl = new LazyInitializer<String>() {
@@ -105,7 +105,8 @@ public class Connection {
         File curlDir = new File(Constant.APP_DIR, "curl"), curlIndicator = new File(Constant.APP_DIR, Str.get(911));
         if (!curlIndicator.exists()) {
           File curlCompressed = new File(Constant.APP_DIR, Str.get(925));
-          Connection.saveData(Str.get(Constant.WINDOWS ? 908 : (Constant.MAC ? 909 : 910)), curlCompressed.getPath(), DomainType.UPDATE, false);
+          Connection.saveData(Str.get(Constant.WINDOWS ? 908 : (Constant.MAC ? 909 : 910)), curlCompressed.getPath(), DomainType.UPDATE,
+                  curlInitShowStatus.get());
           try {
             IO.fileOp(curlDir, IO.RM_DIR);
             ArchiverFactory.createArchiver(curlCompressed).extract(curlCompressed, new File(curlDir, curlIndicator.getName()));
@@ -145,16 +146,16 @@ public class Connection {
         if (Debug.DEBUG) {
           Debug.print(e);
         }
+        Throwable cause = ThrowableUtil.rootCause(e);
+        if (cause instanceof InterruptedException || cause instanceof CancellationException) {
+          throw new RuntimeException(e);
+        }
         return null;
       }
     }
   };
 
-  public static String createCurl() throws Exception {
-    return curl.get();
-  }
-
-  public static FirefoxDriver createWebBrowser(boolean restart) throws Exception {
+  private static FirefoxDriver createWebBrowser(boolean restart) throws Exception {
     if (restart) {
       webBrowserDriver.set(null);
     }
@@ -299,6 +300,10 @@ public class Connection {
           if (Debug.DEBUG) {
             Debug.print(e);
           }
+          Throwable cause = ThrowableUtil.rootCause(e);
+          if (cause instanceof InterruptedException || cause instanceof CancellationException) {
+            throw e;
+          }
           return null;
         } finally {
           webBrowserInitStatusMsg.set(null);
@@ -307,6 +312,19 @@ public class Connection {
       }
     });
     return webBrowserDriver.get().get();
+  }
+
+  public static void startHttpClients() {
+    if (Boolean.parseBoolean(Str.get(926))) {
+      Worker.submit(() -> curl.get());
+    } else {
+      curlInitShowStatus.set(true);
+    }
+    if (Boolean.parseBoolean(Str.get(927))) {
+      Worker.submit(() -> createWebBrowser(false));
+    } else {
+      webBrowserInitShowStatus.set(true);
+    }
   }
 
   public static void init(GuiListener listener) {
@@ -447,7 +465,7 @@ public class Connection {
     boolean useCurl = Regex.isMatch(url, 923) && curl.get() != null;
     if (webBrowserRequest == null && Regex.isMatch(url, 871) && !useCurl && createWebBrowser(false) != null) {
       if (!Regex.isMatch(url, 873)) {
-        return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, -1, maxNumRedirects, new WebBrowserRequest(), throwables);
+        return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest(), throwables);
       }
       File temp = new File(Constant.TEMP_DIR, UUID.randomUUID().toString());
       saveData(url, temp.getPath(), domainType, showStatus, null, MAX_NUM_REDIRECTS, null, true);
@@ -560,7 +578,7 @@ public class Connection {
               if (showStatus) {
                 setStatusBar(Str.str("transferring") + ' ' + statusMsg);
               }
-              source.append(webBrowserRequest.get(url, driver, webBrowserSleep));
+              source.append(webBrowserRequest.get(url, driver, webBrowserSleep, cacheExpirationMs));
             });
             try {
               try {
@@ -589,6 +607,7 @@ public class Connection {
                   }
                   source.append(IO.read(output));
                   if (webBrowserRequest.outputPath == null) {
+                    webBrowserRequest.cache(url, source.toString());
                     IO.fileOp(output, IO.RM_FILE);
                   }
                 }
@@ -943,7 +962,7 @@ public class Connection {
     if ((useWebBrowser || (Regex.isMatch(url, 872) && !useCurl)) && createWebBrowser(false) != null) {
       getSourceCode(url, domainType, showStatus, true, -1, new WebBrowserRequest(outputPath, referer, cookie) {
         @Override
-        public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
+        public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
           driver.get("about:about");
           Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
           (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(874))));
@@ -1402,25 +1421,39 @@ public class Connection {
       this.cookie = cookie;
     }
 
-    public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep) throws Exception {
-      long startTime = System.currentTimeMillis();
-      driver.get(url);
-      (new WebDriverWait(driver, driver.manage().timeouts().getPageLoadTimeout())).until(driver2 -> "complete".equals(driver.executeScript(
-              "return document.readyState")));
-      String src = Optional.ofNullable(driver.getPageSource()).orElse("");
-      while (true) { // Give asynchronous JavaScript with variable/unpredictable page changes time to finish
-        sleep.run();
-        String src2 = Optional.ofNullable(driver.getPageSource()).orElse("");
-        if (src.equals(src2)) {
-          break;
+    public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
+      File sourceCodeFile = new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML);
+      if (cacheExpirationMs <= 0 || !sourceCodeFile.exists() || IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
+        long startTime = System.currentTimeMillis();
+        driver.get(url);
+        (new WebDriverWait(driver, driver.manage().timeouts().getPageLoadTimeout())).until(driver2 -> "complete".equals(driver.executeScript(
+                "return document.readyState")));
+        String src = Optional.ofNullable(driver.getPageSource()).orElse("");
+        while (true) { // Give asynchronous JavaScript with variable/unpredictable page changes time to finish
+          sleep.run();
+          String src2 = Optional.ofNullable(driver.getPageSource()).orElse("");
+          if (src.equals(src2)) {
+            break;
+          }
+          src = src2;
         }
-        src = src2;
+        long endTime = System.currentTimeMillis();
+        if (Debug.DEBUG) {
+          Debug.println(url + " (web browser took " + ((endTime - startTime) / 1_000) + "s)");
+        }
+        cache(url, src);
+        return src;
       }
-      long endTime = System.currentTimeMillis();
       if (Debug.DEBUG) {
-        Debug.println(url + " (web browser took " + ((endTime - startTime) / 1_000) + "s)");
+        Debug.println("fetching " + url + " (web browser cache)");
       }
-      return src;
+      return IO.read(sourceCodeFile);
+    }
+
+    void cache(String url, String source) throws Exception {
+      if (!Regex.isMatch(source, 898)) {
+        IO.write(new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML), source);
+      }
     }
 
     public void waitUntilRequestSent(String requestUrlRegex, ThrowingRunnable requestEvtTrigger, FirefoxDriver driver) throws Exception {

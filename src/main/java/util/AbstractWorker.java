@@ -12,7 +12,17 @@ import java.util.concurrent.TimeoutException;
 
 public abstract class AbstractWorker<T> implements RunnableFuture<T> {
 
-  private static final ExecutorService executorService = Executors.newCachedThreadPool();
+  private static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+  private static final ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
+  private final ExecutorService threadPool;
+
+  public AbstractWorker() {
+    this(false);
+  }
+
+  public AbstractWorker(boolean useFixedThreadPool) {
+    threadPool = (useFixedThreadPool ? fixedThreadPool : cachedThreadPool);
+  }
 
   public enum StateValue {
 
@@ -49,7 +59,7 @@ public abstract class AbstractWorker<T> implements RunnableFuture<T> {
 
   public T executeAndGet() throws Exception {
     try {
-      executorService.execute(future);
+      threadPool.execute(future);
       return get(future);
     } catch (Exception e) {
       future.cancel(true);
@@ -58,7 +68,7 @@ public abstract class AbstractWorker<T> implements RunnableFuture<T> {
   }
 
   public void execute() {
-    executorService.execute(future);
+    threadPool.execute(future);
   }
 
   @Override
@@ -116,6 +126,7 @@ public abstract class AbstractWorker<T> implements RunnableFuture<T> {
   }
 
   public static void shutdown() {
-    executorService.shutdownNow();
+    cachedThreadPool.shutdownNow();
+    fixedThreadPool.shutdownNow();
   }
 }

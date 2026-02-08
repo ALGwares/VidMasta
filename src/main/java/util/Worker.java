@@ -4,6 +4,14 @@ import debug.Debug;
 
 public class Worker extends AbstractWorker<Void> {
 
+  public Worker() {
+    this(false);
+  }
+
+  public Worker(boolean useFixedThreadPool) {
+    super(useFixedThreadPool);
+  }
+
   protected void doWork() throws Exception {
   }
 

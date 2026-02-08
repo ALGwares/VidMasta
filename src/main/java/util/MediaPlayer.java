@@ -108,6 +108,7 @@ public class MediaPlayer {
       }
 
       String host2;
+      boolean timedOut = false;
       if (Boolean.parseBoolean(Str.get(824)) && Regex.isMatch(location, Str.get(825)) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2 = host + '2'))
               && (new File(Constant.APP_DIR, Str.get(Constant.IS_64BIT_WINDOWS ? 820 : 821))).exists()) {
         List<String> args = new ArrayList<>(8);
@@ -150,8 +151,9 @@ public class MediaPlayer {
         try {
           Connection.setStatusBar(Str.str("transferring") + ' ' + Connection.getShortUrl(location, true));
           Supplier<Stream<File>> downloads = () -> Arrays.stream(IO.listFiles(downloadDir)).filter(file -> Regex.firstMatch(file.getName(), 897).isEmpty());
-          for (int i = 0, j = Integer.parseInt(Str.get(832)), numBytes = Integer.parseInt(Str.get(833)); i < j && downloads.get().noneMatch(file -> file.length()
-                  >= numBytes) && !retry.get() && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2)) && downloader.isAlive(); i++) {
+          int i = 0, j = Integer.parseInt(Str.get(832)), numBytes = Integer.parseInt(Str.get(833));
+          for (; i < j && downloads.get().noneMatch(file -> file.length() >= numBytes) && !retry.get() && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2))
+                  && downloader.isAlive(); i++) {
             Thread.sleep(50);
           }
           if (retry.get()) {
@@ -164,7 +166,13 @@ public class MediaPlayer {
                   download.get(), playAndExit, startMinimized) && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2))) {
             return true;
           }
-          failedHosts.put(host2, true);
+          if (timedOut = (i == j && !Boolean.TRUE.equals(failedHosts.getIfPresent(host2)))) {
+            if (Debug.DEBUG) {
+              Debug.println("\n" + host + " downloader timed out for " + location + "\n");
+            }
+          } else {
+            failedHosts.put(host2, true);
+          }
           downloader.destroy();
         } finally {
           Connection.unsetStatusBar();
@@ -210,12 +218,8 @@ public class MediaPlayer {
         Boolean failed = failedHosts.getIfPresent(host);
         if (failed == null) {
           failedHosts.put(host, false);
-        } else if (failed) {
-          showError.run();
-          errorAction.run();
-          return true;
-        } else if (error) {
-          failedHosts.put(host, true);
+        } else if (failed || error) {
+          failedHosts.put(host, !timedOut);
           showError.run();
           errorAction.run();
           return true;

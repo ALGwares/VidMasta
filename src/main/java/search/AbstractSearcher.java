@@ -230,8 +230,6 @@ public abstract class AbstractSearcher extends Worker {
     Collection<Video> videos = videoBuffer.subList(0, numVideos);
     Collection<Searcher> searchers = new ArrayList<Searcher>(numVideos);
 
-    System.gc();
-
     for (Video video : videos) {
       Searcher searcher = new Searcher(video, findImage(video));
       if (searcher.findImage) {
@@ -241,11 +239,8 @@ public abstract class AbstractSearcher extends Worker {
       }
     }
 
-    System.gc();
-
     AbstractWorker.executeAndWaitFor(searchers);
     if (isCancelled()) {
-      System.gc();
       return;
     }
 
@@ -253,8 +248,6 @@ public abstract class AbstractSearcher extends Worker {
     if (videoBuffer.isEmpty()) {
       currSearchPage++;
     }
-
-    System.gc();
   }
 
   protected void initCurrVideos() throws Exception {
@@ -360,6 +353,7 @@ public abstract class AbstractSearcher extends Worker {
     private boolean findImage;
 
     Searcher(Video video, boolean findImage) {
+      super(true);
       this.video = video;
       this.findImage = findImage;
     }
