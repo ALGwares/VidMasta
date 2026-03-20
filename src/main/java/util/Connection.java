@@ -27,6 +27,7 @@ import java.net.Proxy.Type;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -40,7 +41,9 @@ import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,6 +58,7 @@ import java.util.stream.Stream;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.StrUpdateListener.UpdateListener;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.LazyInitializer;
@@ -77,6 +81,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rauschig.jarchivelib.ArchiverFactory;
 import str.Str;
+import util.function.ThrowingFunction;
+import util.function.ThrowingRunnable;
+import util.function.ThrowingSupplier;
 
 public class Connection {
 
@@ -94,10 +101,12 @@ public class Connection {
   private static final AtomicReference<Consumer<String>> webBrowserResponseListener = new AtomicReference<>();
   private static Proxy webBrowserProxy = Proxy.NO_PROXY;
   private static final Lock webBrowserLock = new ReentrantLock();
-  private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(896)));
+  private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(931)));
+  private static final ThrowingRunnable webBrowserAsyncSleep = () -> Thread.sleep(Integer.parseInt(Str.get(932)));
   private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean(), curlInitShowStatus = new AtomicBoolean();
   private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
   private static final AtomicReference<LazyInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
+  private static final ConcurrentMap<String, String> webBrowserCookies = new ConcurrentHashMap<>(4);
   private static final LazyInitializer<String> curl = new LazyInitializer<String>() {
     @Override
     protected String initialize() {
@@ -342,6 +351,15 @@ public class Connection {
       }
     });
     setAuthenticator();
+    try {
+      Optional.of(Constant.APP_DIR + "cookies.txt").map(File::new).filter(File::exists).map(ThrowingFunction.of(file -> FileUtils.readLines(file,
+              StandardCharsets.UTF_8))).ifPresent(cookies -> cookies.forEach(cookie -> webBrowserCookies.put(StringUtils.substringBefore(cookie, '\t'),
+              StringUtils.substringAfter(cookie, '\t'))));
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    }
   }
 
   public static void setAuthenticator() {
@@ -462,7 +480,7 @@ public class Connection {
 
   private static String getSourceCodeHelper(String url, String originalUrl, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
           int maxNumRedirects, WebBrowserRequest webBrowserRequest, Class<?>... throwables) throws Exception {
-    boolean useCurl = Regex.isMatch(url, 923) && curl.get() != null;
+    boolean useCurl = Regex.isMatch(url, 933) && curl.get() != null;
     if (webBrowserRequest == null && Regex.isMatch(url, 871) && !useCurl && createWebBrowser(false) != null) {
       if (!Regex.isMatch(url, 873)) {
         return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest(), throwables);
@@ -504,8 +522,45 @@ public class Connection {
           }
 
           if (!useWebBrowser) {
+            Supplier<String> cookiesStr = () -> webBrowserCookies.values().stream().sorted().collect(Collectors.joining("\n"));
+            String prevWebBrowserCookies = cookiesStr.get();
+            AtomicReference<ThrowingFunction<Integer, String>> retry = new AtomicReference<>();
+            retry.set(responseCode -> {
+              if (!Regex.isMatch(String.valueOf(responseCode), 934) || createWebBrowser(false) == null) {
+                return null;
+              }
+              ThrowingSupplier<String> getSource = () -> {
+                return useCurl ? Optional.ofNullable(curl(url, null, null, maxNumRedirects, null, proxy, this::isCancelled, retry.get())).map(
+                        ThrowingFunction.of(IO::read)).orElse("") : getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs,
+                        maxNumRedirects, null, throwables);
+              };
+              try {
+                return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest() {
+                  @Override
+                  public String retry() throws Exception {
+                    if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
+                      return getSource.get();
+                    }
+                    if (Debug.DEBUG) {
+                      Debug.println("retrying with web browser because " + (useCurl ? "curl" : "direct request") + " failed: HTTP " + responseCode + " " + url
+                              + " (web browser)");
+                    }
+                    return null;
+                  }
+                }, throwables);
+              } catch (Exception e) {
+                if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
+                  if (Debug.DEBUG) {
+                    Debug.print(new Exception("ignorable exception", e));
+                  }
+                  return getSource.get();
+                }
+                throw e;
+              }
+            });
+
             if (useCurl) {
-              String output = curl(url, null, null, maxNumRedirects, null, proxy, this::isCancelled);
+              String output = curl(url, null, null, maxNumRedirects, null, proxy, this::isCancelled, retry.get());
               if (output == null) {
                 return "";
               }
@@ -518,6 +573,9 @@ public class Connection {
               }
 
               setConnectionProperties(connection, null);
+              if (!webBrowserCookies.isEmpty()) {
+                connection.setRequestProperty("Cookie", webBrowserCookies.values().stream().collect(Collectors.joining(";")));
+              }
 
               post(connection);
 
@@ -540,7 +598,8 @@ public class Connection {
                 source.append(line).append(Constant.NEWLINE);
               }
 
-              if (maxNumRedirects > 0 && Regex.isMatch(String.valueOf(connection.getResponseCode()), "30[12378]")) {
+              int responseCode = connection.getResponseCode();
+              if (maxNumRedirects > 0 && Regex.isMatch(String.valueOf(responseCode), "30[12378]")) {
                 String newUrl = connection.getHeaderField("Location");
                 if (!Regex.isMatch(newUrl, "(?i)https?+:.+")) {
                   URL oldUrl = new URL(url);
@@ -552,6 +611,12 @@ public class Connection {
                 return getSourceCode(newUrl, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects - 1, webBrowserRequest,
                         throwables);
               }
+
+              String sourceCode = retry.get().apply(responseCode);
+              if (sourceCode != null) {
+                return sourceCode;
+              }
+
               checkConnectionResponse(connection, url);
             }
           } else {
@@ -581,36 +646,41 @@ public class Connection {
               source.append(webBrowserRequest.get(url, driver, webBrowserSleep, cacheExpirationMs));
             });
             try {
-              try {
-                getSourceCode.accept(false);
-              } catch (TimeoutException e) {
-                throw e;
-              } catch (WebDriverException e) {
-                if (Debug.DEBUG) {
-                  Debug.println("restarting web browser because it probably died: " + Regex.firstMatch(e.toString(), ".+"));
-                }
+              String sourceCode = webBrowserRequest.retry();
+              if (sourceCode == null) {
                 try {
-                  getSourceCode.accept(true);
-                } catch (TimeoutException e2) {
-                  throw e2;
-                } catch (WebDriverException e2) {
-                  if (!Regex.isMatch(url, 930) || curl.get() == null) {
-                    throw e2;
-                  }
+                  getSourceCode.accept(false);
+                } catch (TimeoutException e) {
+                  throw e;
+                } catch (WebDriverException e) {
                   if (Debug.DEBUG) {
-                    Debug.println("retrying with curl because web browser failed: " + Regex.firstMatch(e2.toString(), ".+") + '\n' + url + " (curl)");
+                    Debug.println("restarting web browser because it probably died: " + Regex.firstMatch(e.toString(), ".+"));
                   }
-                  String output = curl(url, webBrowserRequest.outputPath, webBrowserRequest.referer, maxNumRedirects, webBrowserRequest.cookie, proxy,
-                          this::isCancelled);
-                  if (output == null) {
-                    return "";
-                  }
-                  source.append(IO.read(output));
-                  if (webBrowserRequest.outputPath == null) {
-                    webBrowserRequest.cache(url, source.toString());
-                    IO.fileOp(output, IO.RM_FILE);
+                  try {
+                    getSourceCode.accept(true);
+                  } catch (TimeoutException e2) {
+                    throw e2;
+                  } catch (WebDriverException e2) {
+                    if (!Regex.isMatch(url, 930) || curl.get() == null) {
+                      throw e2;
+                    }
+                    if (Debug.DEBUG) {
+                      Debug.println("retrying with curl because web browser failed: " + Regex.firstMatch(e2.toString(), ".+") + '\n' + url + " (curl)");
+                    }
+                    String output = curl(url, webBrowserRequest.outputPath, webBrowserRequest.referer, maxNumRedirects, webBrowserRequest.cookie, proxy,
+                            this::isCancelled, null);
+                    if (output == null) {
+                      return "";
+                    }
+                    source.append(IO.read(output));
+                    if (webBrowserRequest.outputPath == null) {
+                      webBrowserRequest.cache(url, source.toString());
+                      IO.fileOp(output, IO.RM_FILE);
+                    }
                   }
                 }
+              } else {
+                source.append(sourceCode);
               }
             } catch (Exception e) {
               throw new IOException("web browser error for " + url, e);
@@ -672,8 +742,8 @@ public class Connection {
     }).executeAndGet();
   }
 
-  private static String curl(String url, String outputPath, String referer, int maxNumRedirects, String cookie, Proxy proxy, Supplier<Boolean> isCancelled)
-          throws Exception {
+  private static String curl(String url, String outputPath, String referer, int maxNumRedirects, String cookie, Proxy proxy, Supplier<Boolean> isCancelled,
+          ThrowingFunction<Integer, String> retry) throws Exception {
     List<String> curlArgs = Lists.newArrayList(curl.get());
     Collections.addAll(curlArgs, Regex.split(913, Constant.SEPARATOR1));
     if (outputPath != null) {
@@ -689,6 +759,7 @@ public class Connection {
             quote.apply(address.getAddress().getHostAddress() + ':' + address.getPort())));
     Optional.ofNullable(postData(urlObj)).ifPresent(postData -> Collections.addAll(curlArgs, Str.get(919), quote.apply(postData)));
     Optional.ofNullable(cookie).ifPresent(cookieData -> Collections.addAll(curlArgs, Str.get(928), quote.apply(cookieData)));
+    webBrowserCookies.values().stream().sorted().forEach(cookieData -> Collections.addAll(curlArgs, Str.get(928), quote.apply(cookieData)));
     String output = (outputPath == null ? Constant.TEMP_DIR + UUID.randomUUID().toString() : outputPath);
     Collections.addAll(curlArgs, Str.get(920), quote.apply(output));
     curlArgs.add(quote.apply(url));
@@ -730,7 +801,15 @@ public class Connection {
         }
         throw new IOException(error(url));
       }
-      checkConnectionResponse(Integer.parseInt(Regex.firstMatch(curlOutput.toString(), 922)), url, () -> "");
+
+      int responseCode = Integer.parseInt(Regex.firstMatch(curlOutput.toString(), 922));
+      String source;
+      if (retry != null && (source = retry.apply(responseCode)) != null) {
+        IO.write(output, source);
+        return output;
+      }
+
+      checkConnectionResponse(responseCode, url, () -> "");
       return output;
     } catch (Exception e) {
       IO.fileOp(output, IO.RM_FILE);
@@ -1041,7 +1120,7 @@ public class Connection {
             return;
           }
           if (useCurl) {
-            curl(url, outputPath, referer, maxNumRedirects, cookie, proxy, this::isCancelled);
+            curl(url, outputPath, referer, maxNumRedirects, cookie, proxy, this::isCancelled, null);
           } else {
             connection = (HttpURLConnection) (new URL(url)).openConnection(proxy);
             if (isCancelled()) {
@@ -1421,6 +1500,10 @@ public class Connection {
       this.cookie = cookie;
     }
 
+    public String retry() throws Exception {
+      return null;
+    }
+
     public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
       File sourceCodeFile = new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML);
       if (cacheExpirationMs <= 0 || !sourceCodeFile.exists() || IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
@@ -1430,7 +1513,7 @@ public class Connection {
                 "return document.readyState")));
         String src = Optional.ofNullable(driver.getPageSource()).orElse("");
         while (true) { // Give asynchronous JavaScript with variable/unpredictable page changes time to finish
-          sleep.run();
+          webBrowserAsyncSleep.run();
           String src2 = Optional.ofNullable(driver.getPageSource()).orElse("");
           if (src.equals(src2)) {
             break;
@@ -1442,6 +1525,10 @@ public class Connection {
           Debug.println(url + " (web browser took " + ((endTime - startTime) / 1_000) + "s)");
         }
         cache(url, src);
+        driver.manage().getCookies().stream().filter(currCookie -> Regex.isMatch(currCookie.toString(), 935)).forEach(currCookie -> webBrowserCookies.put(
+                currCookie.getDomain() + ' ' + currCookie.getName(), currCookie.toString()));
+        IO.write(Constant.APP_DIR + "cookies.txt", webBrowserCookies.entrySet().stream().map(currCookie -> currCookie.getKey() + '\t'
+                + currCookie.getValue()).sorted().collect(Collectors.joining(Constant.NEWLINE)));
         return src;
       }
       if (Debug.DEBUG) {

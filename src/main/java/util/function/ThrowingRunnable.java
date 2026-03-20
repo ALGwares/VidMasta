@@ -1,4 +1,6 @@
-package util;
+package util.function;
+
+import util.ThrowableUtil;
 
 @FunctionalInterface
 public interface ThrowingRunnable extends Runnable {

@@ -52,8 +52,8 @@ import util.IO;
 import util.MediaPlayer;
 import util.Regex;
 import util.ThrowableUtil;
-import util.ThrowingRunnable;
 import util.Worker;
+import util.function.ThrowingRunnable;
 
 public class VideoFinder extends Worker {
 

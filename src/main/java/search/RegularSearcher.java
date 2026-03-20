@@ -19,7 +19,7 @@ import util.ConnectionException;
 import util.Constant;
 import util.ProxyException;
 import util.Regex;
-import util.ThrowingSupplier;
+import util.function.ThrowingSupplier;
 
 public class RegularSearcher extends AbstractSearcher {
 

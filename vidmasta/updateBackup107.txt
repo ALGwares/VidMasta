@@ -1,4 +1,4 @@
-440
+444
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -895,7 +895,7 @@ a^
 (?i)ERROR:.*?((Requested format is not available\.)|( 403: Forbidden))
 1
 https://1337x.torrentbay.st:::https://1337x.to
-500
+1500
 (?i)\.((((f[^\.]++)|(temp))\.[^\.]++)|(part[^\.]*+)|(ytdl)|(tmp))\z
 (?is)((\s*+)|(.*?Enable JavaScript and then reload the page\..*))
 ffmpeg-2026-01-22
@@ -922,12 +922,17 @@ curl-impersonate-1.4.2
 --output
 a^
 (?<=\< HTTP/\d(\.\d)?+ )\d++(?!(?s).*?\< HTTP/\d(\.\d)?+ \d++)
-^((?![/\.]imdb\.com/search/title/?+\?(?=.*?&start\=)).)*$
+^((?!(?i)[/\.]imdb\.com/((search/title/?+\?(?=.*?&start\=))|(title/tt[^/]+?/??\z))).)*$
 ^((?!/curl\-impersonate/).)*$
 curl-impersonate-1.4.2.tar.gz
 true
-false
+true
 --cookie
 --version
 .+
+500
+1500
+^((?!(?i)[/\.]imdb\.com/(search/title/?+\?(?=.*?&start\=))).)*$
+202
+aws\-waf\-token\=.++
 eof

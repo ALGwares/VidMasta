@@ -1,6 +1,7 @@
-package util;
+package util.function;
 
 import java.util.function.Supplier;
+import util.ThrowableUtil;
 
 @FunctionalInterface
 public interface ThrowingSupplier<T> extends Supplier<T> {

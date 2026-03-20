@@ -1,6 +1,7 @@
 package util;
 
 import debug.Debug;
+import util.function.ThrowingRunnable;
 
 public class Worker extends AbstractWorker<Void> {
 
