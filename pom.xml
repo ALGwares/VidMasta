@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>algwares</groupId>
   <artifactId>vidmasta</artifactId>
-  <version>30.2</version>
+  <version>30.3</version>
   <packaging>jar</packaging>
     
   <properties>

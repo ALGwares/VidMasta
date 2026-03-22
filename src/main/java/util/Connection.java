@@ -38,12 +38,14 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -107,6 +109,7 @@ public class Connection {
   private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
   private static final AtomicReference<LazyInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
   private static final ConcurrentMap<String, String> webBrowserCookies = new ConcurrentHashMap<>(4);
+  private static final Set<String> initErrors = new CopyOnWriteArraySet<>();
   private static final LazyInitializer<String> curl = new LazyInitializer<String>() {
     @Override
     protected String initialize() {
@@ -114,8 +117,7 @@ public class Connection {
         File curlDir = new File(Constant.APP_DIR, "curl"), curlIndicator = new File(Constant.APP_DIR, Str.get(911));
         if (!curlIndicator.exists()) {
           File curlCompressed = new File(Constant.APP_DIR, Str.get(925));
-          Connection.saveData(Str.get(Constant.WINDOWS ? 908 : (Constant.MAC ? 909 : 910)), curlCompressed.getPath(), DomainType.UPDATE,
-                  curlInitShowStatus.get());
+          saveData(Str.get(Constant.WINDOWS ? 908 : (Constant.MAC ? 909 : 910)), curlCompressed.getPath(), DomainType.UPDATE, curlInitShowStatus.get());
           try {
             IO.fileOp(curlDir, IO.RM_DIR);
             ArchiverFactory.createArchiver(curlCompressed).extract(curlCompressed, new File(curlDir, curlIndicator.getName()));
@@ -152,13 +154,7 @@ public class Connection {
         }
         return curlCmd;
       } catch (Exception e) {
-        if (Debug.DEBUG) {
-          Debug.print(e);
-        }
-        Throwable cause = ThrowableUtil.rootCause(e);
-        if (cause instanceof InterruptedException || cause instanceof CancellationException) {
-          throw new RuntimeException(e);
-        }
+        handleInitError(e);
         return null;
       }
     }
@@ -306,13 +302,7 @@ public class Connection {
           }
           return driver;
         } catch (Exception e) {
-          if (Debug.DEBUG) {
-            Debug.print(e);
-          }
-          Throwable cause = ThrowableUtil.rootCause(e);
-          if (cause instanceof InterruptedException || cause instanceof CancellationException) {
-            throw e;
-          }
+          handleInitError(e);
           return null;
         } finally {
           webBrowserInitStatusMsg.set(null);
@@ -321,6 +311,17 @@ public class Connection {
       }
     });
     return webBrowserDriver.get().get();
+  }
+
+  private static void handleInitError(Exception e) {
+    Throwable cause = ThrowableUtil.rootCause(e);
+    if (cause instanceof InterruptedException || cause instanceof CancellationException) {
+      ThrowableUtil.sneakyThrow(e);
+    }
+    String msg = Str.str("connectionInitError") + ' ' + Regex.firstMatch(cause.toString(), ".+");
+    if (initErrors.add(msg)) {
+      guiListener.error(new Exception(msg, e));
+    }
   }
 
   public static void startHttpClients() {
