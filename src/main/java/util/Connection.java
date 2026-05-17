@@ -17,6 +17,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -106,6 +109,7 @@ public class Connection {
   private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(931)));
   private static final ThrowingRunnable webBrowserAsyncSleep = () -> Thread.sleep(Integer.parseInt(Str.get(932)));
   private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean(), curlInitShowStatus = new AtomicBoolean();
+  private static final AtomicBoolean webBrowserInitialized = new AtomicBoolean();
   private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
   private static final AtomicReference<LazyInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
   private static final ConcurrentMap<String, String> webBrowserCookies = new ConcurrentHashMap<>(4);
@@ -154,7 +158,7 @@ public class Connection {
         }
         return curlCmd;
       } catch (Exception e) {
-        handleInitError(e);
+        handleInitError(e, true);
         return null;
       }
     }
@@ -302,9 +306,10 @@ public class Connection {
           }
           return driver;
         } catch (Exception e) {
-          handleInitError(e);
+          handleInitError(e, !webBrowserInitialized.get());
           return null;
         } finally {
+          webBrowserInitialized.set(true);
           webBrowserInitStatusMsg.set(null);
           unsetStatusBar();
         }
@@ -313,14 +318,20 @@ public class Connection {
     return webBrowserDriver.get().get();
   }
 
-  private static void handleInitError(Exception e) {
+  private static void handleInitError(Exception e, boolean isStartup) {
     Throwable cause = ThrowableUtil.rootCause(e);
     if (cause instanceof InterruptedException || cause instanceof CancellationException) {
       ThrowableUtil.sneakyThrow(e);
     }
-    String msg = Str.str("connectionInitError") + ' ' + Regex.firstMatch(cause.toString(), ".+");
+    String msg = Str.str("connectionInitError") + ' ' + Regex.firstMatch(String.valueOf(cause), ".+");
     if (initErrors.add(msg)) {
-      guiListener.error(new Exception(msg, e));
+      if (isStartup) {
+        Writer stackTrace = new StringWriter();
+        e.printStackTrace(new PrintWriter(stackTrace));
+        guiListener.error(new Exception(msg + "\n\n" + stackTrace));
+      } else {
+        IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
+      }
     }
   }
 

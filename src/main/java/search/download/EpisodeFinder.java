@@ -142,7 +142,7 @@ public class EpisodeFinder extends Worker {
     currDate.set(Calendar.SECOND, 0);
     currDate.set(Calendar.MILLISECOND, 0);
 
-    String source = Connection.getSourceCode(url, DomainType.VIDEO_INFO, false, Constant.MS_2DAYS);
+    String source = Connection.getSourceCode(String.format(Str.get(936), url), DomainType.VIDEO_INFO, false, Constant.MS_2DAYS);
     List<String> seasons = Regex.matches(source, 520);
     seasons.add(Regex.match(source, 550));
     seasons = sortedNumListSet(seasons, false);

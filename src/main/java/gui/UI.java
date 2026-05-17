@@ -56,6 +56,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -1082,6 +1084,9 @@ public class UI {
 
   private static int showOptionDialog(final Component parent, Component parentChild, Object msg, String title, int type, boolean confirm, boolean modal) {
     JOptionPane optionPane = new JOptionPane(msg, confirm ? JOptionPane.QUESTION_MESSAGE : type, confirm ? type : JOptionPane.DEFAULT_OPTION);
+    Optional.ofNullable(optionPane.getMessage()).filter(Container.class::isInstance).map(Container.class::cast).ifPresent(msgObj -> Arrays.stream(
+            msgObj.getComponents()).filter(JScrollPane.class::isInstance).map(JScrollPane.class::cast).map(JScrollPane::getVerticalScrollBar).filter(
+            Objects::nonNull).findFirst().ifPresent(verticalScrollBar -> EventQueue.invokeLater(() -> verticalScrollBar.setValue(0))));
     Dialog dialog = optionPane.createDialog(parent, title);
     dialog.setAlwaysOnTop(true);
     dialog.setModal(modal);

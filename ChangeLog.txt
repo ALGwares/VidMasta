@@ -1,6 +1,14 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.05.17   | VidMasta 30.4
+
+CHANGE: UI   | Fixed sometimes missing episode information in summary for TV shows
+CHANGE: CORE | Improved error handling
+
+
+
+
 2026.03.22   | VidMasta 30.3
 
 CHANGE: CORE | Improved startup error handling
