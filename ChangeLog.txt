@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.06.06   | VidMasta 30.6
+
+CHANGE: CORE | Fixed subtitle downloading connection issue
+
+
+
+
 2026.05.17   | VidMasta 30.5
 
 CHANGE: UI   | Fixed sometimes missing episode information in summary for TV shows

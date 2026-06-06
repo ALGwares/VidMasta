@@ -1,4 +1,4 @@
-445
+449
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -519,8 +519,8 @@ http://kat.unbanthe.net:::http://kat.unbanthe.org
 33,39,41,47,117,466,491,505,518
 http://kat.unbanthe.net
 https://www.imdb.com/title/tt
-(?i)(href\s*+\=\s*+"[^"]*?episodes/?+\?season\=)|(\<\s*+option[^\>]*+\>(?=\s*+\d{1,3}\s*+\<(?s).+?\s((id\s*+\=\s*+"browse\-episodes\-year")|(href\s*+\=\s*+"[^"]*?episodes/?+\?year\=))))|(\<\s*+span[^\>]*+\>\s*+S(?=\s*+\d{1,3}\s*+\<(?s).+?\sclass\s*+\=\s*+"EpisodeBarGraph_))
-((&[^"]*+)?+")|\<
+(?i)(href\s*+\=\s*+"[^"]*?episodes/?+\?season\=)|(\<\s*+option[^\>]*+\>(?=\s*+\d{1,3}\s*+\<(?s).+?\s((id\s*+\=\s*+"browse\-episodes\-year")|(href\s*+\=\s*+"[^"]*?episodes/?+\?year\=))))|(\<\s*+span[^\>]*+\>\s*+S(?=\s*+\d{1,3}(((\s|(&nbsp;))++Episodes)|((\s|(&nbsp;))*+\<))(?s).+?\sclass\s*+\=\s*+"EpisodeBarGraph))
+(?i)((&[^"]*+)?+")|((\s|(&nbsp;))++Episodes)|((\s|(&nbsp;))*+\<)
 \d++
 /episodes?season=
 \<div[^\>]*+\>\s*+S
@@ -549,8 +549,8 @@ MMMM d yyyy
 MMMM yyyy
 ((?i)((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)))\s++\d{4}+
 MMMM yyyy
-<\s*+div[^>]+?class\s*+=\s*+"next\-episode"[^>]*+>(?s).+?\(S
-,(?s).+?<\s*+h2\s*+>\s*+Episodes\s*+<\s*+/h2\s*+>
+(?i)(\<\s*+div[^\>]+?class\s*+\=\s*+"next\-episode"[^\>]*+\>(?s).+?\(S)|(\sdata\-testid\s*+\=\s*+"episodes?+(\-ratings)?+\-head)
+(,(?s).+?\<\s*+h2\s*+\>\s*+Episodes\s*+\<\s*+/h2\s*+\>)|((?<=er)")
 \u00b9:SPACE1;\u00b2:SPACE2;\u00b3:SPACE3;\u00a2:c;\u00a5:Y;\u00a6:|;\u00aa:a;\u00af:-;\u00b4:';\u00b5:u;\u00c6:Ae;\u00d0:D;\u00d7:x;\u00d8:O;\u00de:p;\u00df:B;\u00e6:ae;\u00f8:o;\u00fe:p;\u0152:Oe;\u0153:oe;\u0192:f;\u2013:-;\u2014:-;\u20ac:E;\u2122:TM;\u00a1:SPACE;\u00bf:SPACE
 ;
 :
@@ -848,7 +848,7 @@ firefox/geckodriver
 firefox/firefox
 https://github.com/ALGwares/VidMasta/releases/download/none/firefox88.0-2-linux32.zip
 -headless:::--allow-downgrade
-app.update.enabled:::false~~~app.update.service.enabled:::false~~~app.update.background.enabled:::false~~~app.update.background.rolledout:::false~~~media.volume_scale:::0.0~~~browser.aboutConfig.showWarning:::false~~~permissions.default.image:::2~~~permissions.default.stylesheet:::2~~~dom.ipc.plugins.enabled.libflashplayer.so:::false~~~browser.display.use_document_fonts:::0~~~dom.media.autoplay-policy-detection.enabled:::true~~~media.autoplay.default:::5~~~media.autoplay.blocking_policy:::2~~~media.autoplay.allow-extension-background-pages:::false~~~media.autoplay.block-event.enabled:::true~~~media.autoplay.block-webaudio:::true~~~browser.download.useDownloadDir:::true~~~browser.download.folderList:::2~~~browser.helperApps.neverAsk.saveToDisk:::application/epub+zip;application/gzip;application/java-archive;application/json;application/ld+json;application/msword;application/octet-stream;application/ogg;application/pdf;application/rtf;application/vnd.amazon.ebook;application/vnd.apple.installer+xml;application/vnd.mozilla.xul+xml;application/vnd.ms-excel;application/vnd.ms-fontobject;application/vnd.ms-powerpoint;application/vnd.oasis.opendocument.presentation;application/vnd.oasis.opendocument.spreadsheet;application/vnd.oasis.opendocument.text;application/vnd.openxmlformats-officedocument.presentationml.presentation;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/vnd.rar;application/vnd.visio;application/x-7z-compressed;application/x-abiword;application/x-bzip;application/x-bzip2;application/x-cdf;application/x-csh;application/x-freearc;application/x-httpd-php;application/x-sh;application/x-tar;application/xhtml+xml;application/xml;application/zip;audio/3gpp;audio/3gpp2;audio/aac;audio/midi;audio/mp3;audio/mpeg;audio/ogg;audio/opus;audio/wav;audio/webm;audio/x-midi;font/otf;font/ttf;font/woff;font/woff2;image/apng;image/avif;image/bmp;image/gif;image/jpeg;image/png;image/svg+xml;image/tiff;image/vnd.microsoft.icon;image/webp;text/calendar;text/css;text/csv;text/html;text/javascript;text/plain;video/3gpp;video/3gpp2;video/mp2t;video/mp4;video/mpeg;video/ogg;video/webm;video/x-msvideo~~~general.useragent.override:::Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36~~~security.ssl.enable_ocsp_stapling:::false
+app.update.enabled:::false~~~app.update.service.enabled:::false~~~app.update.background.enabled:::false~~~app.update.background.rolledout:::false~~~media.volume_scale:::0.0~~~browser.aboutConfig.showWarning:::false~~~permissions.default.image:::2~~~permissions.default.stylesheet:::2~~~dom.ipc.plugins.enabled.libflashplayer.so:::false~~~browser.display.use_document_fonts:::0~~~dom.media.autoplay-policy-detection.enabled:::true~~~media.autoplay.default:::5~~~media.autoplay.blocking_policy:::2~~~media.autoplay.allow-extension-background-pages:::false~~~media.autoplay.block-event.enabled:::true~~~media.autoplay.block-webaudio:::true~~~browser.download.useDownloadDir:::true~~~browser.download.folderList:::2~~~browser.helperApps.neverAsk.saveToDisk:::application/epub+zip;application/gzip;application/java-archive;application/json;application/ld+json;application/msword;application/octet-stream;application/ogg;application/pdf;application/rtf;application/vnd.amazon.ebook;application/vnd.apple.installer+xml;application/vnd.mozilla.xul+xml;application/vnd.ms-excel;application/vnd.ms-fontobject;application/vnd.ms-powerpoint;application/vnd.oasis.opendocument.presentation;application/vnd.oasis.opendocument.spreadsheet;application/vnd.oasis.opendocument.text;application/vnd.openxmlformats-officedocument.presentationml.presentation;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/vnd.rar;application/vnd.visio;application/x-7z-compressed;application/x-abiword;application/x-bzip;application/x-bzip2;application/x-cdf;application/x-csh;application/x-freearc;application/x-httpd-php;application/x-sh;application/x-tar;application/xhtml+xml;application/xml;application/zip;audio/3gpp;audio/3gpp2;audio/aac;audio/midi;audio/mp3;audio/mpeg;audio/ogg;audio/opus;audio/wav;audio/webm;audio/x-midi;font/otf;font/ttf;font/woff;font/woff2;image/apng;image/avif;image/bmp;image/gif;image/jpeg;image/png;image/svg+xml;image/tiff;image/vnd.microsoft.icon;image/webp;text/calendar;text/css;text/csv;text/html;text/javascript;text/plain;video/3gpp;video/3gpp2;video/mp2t;video/mp4;video/mpeg;video/ogg;video/webm;video/x-msvideo~~~security.ssl.enable_ocsp_stapling:::false~~~devtools.jsonview.enabled:::false
 2000
 about:config
 var prefs=Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefBranch);NEWLINEprefs.setIntPref('network.proxy.type',0);
@@ -897,7 +897,7 @@ a^
 https://1337x.torrentbay.st:::https://1337x.to
 1500
 (?i)\.((((f[^\.]++)|(temp))\.[^\.]++)|(part[^\.]*+)|(ytdl)|(tmp))\z
-(?is)((\s*+)|(.*?Enable JavaScript and then reload the page\..*))
+(?is)((\s*+)|(.*?((Enable JavaScript and then reload the page)|(Failed to calculate challenge)|(Performing security verification)).*))
 ffmpeg-2026-01-22
 https://github.com/GyanD/codexffmpeg/releases/download/2026-01-22-git-4561fc5e48/ffmpeg-2026-01-22-git-4561fc5e48-essentials_build.zip
 --no-cache-dir:::--verbose:::--no-update:::--format-sort:::aext,vext
@@ -936,4 +936,18 @@ true
 202
 aws\-waf\-token\=.++
 %s?
+((401)|(403))
+-headless:::-new-instance:::-private
+-profile
+-new-tab
+(?i)((aws\-waf\-token)|(cf_)|(techaro\.lol\-anubis)).*
+(?i)((Enable JavaScript and then reload the page)|(Failed to calculate challenge)|(Performing security verification))
+20
+10
+-new-instance:::-private
+user_pref("browser.shell.checkDefaultBrowser", false);NEWLINEuser_pref("app.update.enabled", false);NEWLINEuser_pref("app.update.service.enabled", false);NEWLINEuser_pref("app.update.background.enabled", false);NEWLINEuser_pref("app.update.background.rolledout", false);NEWLINEuser_pref("media.volume_scale", "0.0");NEWLINEuser_pref("dom.media.autoplay-policy-detection.enabled", true);NEWLINEuser_pref("media.autoplay.default", 5);NEWLINEuser_pref("media.autoplay.blocking_policy", 2);NEWLINEuser_pref("media.autoplay.allow-extension-background-pages", false);NEWLINEuser_pref("media.autoplay.block-event.enabled", true);NEWLINEuser_pref("media.autoplay.block-webaudio", true);NEWLINE
+40
+.*?(?i)application\.ini
+(?<=(\A|\s)(?i)Version\=)\d++
+113
 eof

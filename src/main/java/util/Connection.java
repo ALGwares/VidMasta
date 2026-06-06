@@ -2,6 +2,7 @@ package util;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import debug.Debug;
@@ -33,9 +34,17 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -52,9 +61,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -86,6 +97,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rauschig.jarchivelib.ArchiverFactory;
 import str.Str;
+import util.function.ThrowingBiFunction;
+import util.function.ThrowingConsumer;
 import util.function.ThrowingFunction;
 import util.function.ThrowingRunnable;
 import util.function.ThrowingSupplier;
@@ -102,6 +115,9 @@ public class Connection {
   private static UpdateListener deproxyDownloadLinkInfo;
   private static boolean reproxyDownloadLinkInfoUrlSet;
   private static volatile String downloadLinkInfoFailUrl;
+  public static final File WEB_BROWSER_PROFILE = new File(Constant.APP_DIR, "webBrowserProfile");
+  public static final File WEB_BROWSER_COOKIE_DB = new File(WEB_BROWSER_PROFILE, "cookies.sqlite");
+  public static final File COOKIES = new File(Constant.APP_DIR, "cookies.txt");
   private static final AtomicReference<Consumer<String>> webBrowserRequestListener = new AtomicReference<>();
   private static final AtomicReference<Consumer<String>> webBrowserResponseListener = new AtomicReference<>();
   private static Proxy webBrowserProxy = Proxy.NO_PROXY;
@@ -364,9 +380,17 @@ public class Connection {
     });
     setAuthenticator();
     try {
-      Optional.of(Constant.APP_DIR + "cookies.txt").map(File::new).filter(File::exists).map(ThrowingFunction.of(file -> FileUtils.readLines(file,
-              StandardCharsets.UTF_8))).ifPresent(cookies -> cookies.forEach(cookie -> webBrowserCookies.put(StringUtils.substringBefore(cookie, '\t'),
-              StringUtils.substringAfter(cookie, '\t'))));
+      Optional.of(COOKIES).filter(File::exists).map(ThrowingFunction.of(file -> FileUtils.readLines(file, StandardCharsets.UTF_8))).ifPresent(cookies
+              -> cookies.forEach(cookie -> webBrowserCookies.put(StringUtils.substringBefore(cookie, '\t'), StringUtils.substringAfter(cookie, '\t'))));
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    }
+    IO.fileOp(WEB_BROWSER_PROFILE, IO.RM_DIR);
+    IO.fileOp(WEB_BROWSER_PROFILE, IO.MK_DIR);
+    try {
+      IO.write(new File(WEB_BROWSER_PROFILE, "user.js"), Str.get(946));
     } catch (Exception e) {
       if (Debug.DEBUG) {
         Debug.print(e);
@@ -492,10 +516,16 @@ public class Connection {
 
   private static String getSourceCodeHelper(String url, String originalUrl, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
           int maxNumRedirects, WebBrowserRequest webBrowserRequest, Class<?>... throwables) throws Exception {
+    return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, webBrowserRequest, true, throwables);
+  }
+
+  private static String getSourceCodeHelper(String url, String originalUrl, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
+          int maxNumRedirects, WebBrowserRequest webBrowserRequest, boolean canRetry, Class<?>... throwables) throws Exception {
     boolean useCurl = Regex.isMatch(url, 933) && curl.get() != null;
     if (webBrowserRequest == null && Regex.isMatch(url, 871) && !useCurl && createWebBrowser(false) != null) {
       if (!Regex.isMatch(url, 873)) {
-        return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest(), throwables);
+        return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest(), canRetry,
+                throwables);
       }
       File temp = new File(Constant.TEMP_DIR, UUID.randomUUID().toString());
       saveData(url, temp.getPath(), domainType, showStatus, null, MAX_NUM_REDIRECTS, null, true);
@@ -533,44 +563,143 @@ public class Connection {
             return "";
           }
 
-          if (!useWebBrowser) {
-            Supplier<String> cookiesStr = () -> webBrowserCookies.values().stream().sorted().collect(Collectors.joining("\n"));
-            String prevWebBrowserCookies = cookiesStr.get();
-            AtomicReference<ThrowingFunction<Integer, String>> retry = new AtomicReference<>();
-            retry.set(responseCode -> {
-              if (!Regex.isMatch(String.valueOf(responseCode), 934) || createWebBrowser(false) == null) {
-                return null;
-              }
-              ThrowingSupplier<String> getSource = () -> {
-                return useCurl ? Optional.ofNullable(curl(url, null, null, maxNumRedirects, null, proxy, this::isCancelled, retry.get())).map(
-                        ThrowingFunction.of(IO::read)).orElse("") : getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs,
-                        maxNumRedirects, null, throwables);
-              };
-              try {
-                return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest() {
-                  @Override
-                  public String retry() throws Exception {
-                    if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
-                      return getSource.get();
-                    }
-                    if (Debug.DEBUG) {
-                      Debug.println("retrying with web browser because " + (useCurl ? "curl" : "direct request") + " failed: HTTP " + responseCode + " " + url
-                              + " (web browser)");
-                    }
-                    return null;
-                  }
-                }, throwables);
-              } catch (Exception e) {
-                if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
-                  if (Debug.DEBUG) {
-                    Debug.print(new Exception("ignorable exception", e));
-                  }
-                  return getSource.get();
-                }
-                throw e;
-              }
-            });
+          Supplier<String> cookiesStr = () -> webBrowserCookies.values().stream().sorted().collect(Collectors.joining("\n"));
+          AtomicReference<ThrowingBiFunction<Integer, CharSequence, String>> retry = new AtomicReference<>(), retry2 = new AtomicReference<>();
+          ThrowingSupplier<String> getSource = () -> getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects,
+                  webBrowserRequest, false, throwables);
+          String client = (useWebBrowser ? "web browser" : (useCurl ? "curl" : "direct request"));
+          retry.set((responseCode, response) -> {
+            if (!canRetry || !Regex.isMatch(String.valueOf(responseCode), 934) || createWebBrowser(false) == null) {
+              return retry2.get().apply(responseCode, response);
+            }
 
+            String prevWebBrowserCookies = cookiesStr.get();
+            try {
+              return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest() {
+                @Override
+                public String retry() throws Exception {
+                  if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
+                    return getSource.get();
+                  }
+                  if (Debug.DEBUG) {
+                    Debug.println("retrying with web browser because " + client + " failed: HTTP " + responseCode + " " + url + " (web browser)");
+                  }
+                  return null;
+                }
+              }, canRetry, throwables);
+            } catch (Exception e) {
+              if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
+                if (Debug.DEBUG) {
+                  Debug.print(new Exception("ignorable exception", e));
+                }
+                return getSource.get();
+              }
+              throw e;
+            }
+          });
+          retry2.set((responseCode, response) -> {
+            if (!canRetry || (!Regex.isMatch(String.valueOf(responseCode), 937) && Regex.firstMatch(response.toString(), 942).isEmpty())) {
+              return null;
+            }
+            String prevWebBrowserCookies = cookiesStr.get();
+            createWebBrowser(false);
+            if (!(new File(Constant.APP_DIR, Str.get(Constant.WINDOWS ? 836 : (Constant.MAC ? 840 : 844)))).exists()) {
+              return null;
+            }
+            if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
+              return getSource.get();
+            }
+            if (Debug.DEBUG) {
+              Debug.println("retrying with standalone web browser because " + client + " failed: " + (responseCode == -1 ? '\'' + Regex.firstMatch(
+                      response.toString(), 942) + '\'' : ("HTTP " + responseCode)) + ' ' + url + " (standalone web browser)");
+            }
+
+            String cookieSql = " FROM moz_cookies WHERE LOWER(host) LIKE '%" + Regex.replaceFirst((new URL(url)).getHost().toLowerCase(Locale.ENGLISH),
+                    "\\Awww\\.", "") + "%'";
+            if (WEB_BROWSER_COOKIE_DB.exists()) {
+              try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath()); Statement statement
+                      = cookiesDbConnection.createStatement()) {
+                statement.executeUpdate("DELETE" + cookieSql);
+              } catch (Exception e) {
+                if (Debug.DEBUG) {
+                  Debug.print(e);
+                }
+              }
+            }
+
+            File webBrowser = new File(Constant.APP_DIR, "webBrowser");
+            ThrowingConsumer<Boolean> runStandaloneWebBrowser = headless -> {
+              List<String> args = Lists.newArrayList((new File(webBrowser, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)))).getPath());
+              Collections.addAll(args, Regex.split(headless ? 938 : 945, Constant.SEPARATOR1));
+              Collections.addAll(args, Str.get(939), WEB_BROWSER_PROFILE.getPath());
+              Collections.addAll(args, Str.get(940), url);
+              Process firefox = (new ProcessBuilder(args)).redirectErrorStream(true).start();
+              try {
+                final AtomicInteger timer = new AtomicInteger();
+                int prevCookieCount = -1;
+                for (int timeout = Integer.parseInt(Str.get(headless ? 943 : 947)); timer.get() < timeout; timer.incrementAndGet()) {
+                  Thread.sleep(1_000);
+                  if (!WEB_BROWSER_COOKIE_DB.exists()) {
+                    continue;
+                  }
+                  try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath());
+                          Statement statement = cookiesDbConnection.createStatement()) {
+                    ResultSet results = statement.executeQuery("SELECT count(*)" + cookieSql);
+                    while (results.next()) {
+                      int cookieCount = results.getInt(1);
+                      if (cookieCount != prevCookieCount) {
+                        if (cookieCount > 0) {
+                          timeout = Integer.parseInt(Str.get(944));
+                        }
+                        timer.set(0);
+                      }
+                      prevCookieCount = cookieCount;
+                    }
+                  } catch (Exception e) {
+                    if (Debug.DEBUG) {
+                      Debug.print(e);
+                    }
+                    Thread.sleep((timeout - (timer.get() + 1)) * 1_000);
+                    break;
+                  }
+                }
+              } finally {
+                firefox.destroy();
+              }
+
+              try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath()); Statement statement
+                      = cookiesDbConnection.createStatement()) {
+                ResultSet results = statement.executeQuery("SELECT name, value, expiry, path, host" + cookieSql);
+                while (results.next()) {
+                  if (Regex.isMatch(results.getString("name"), 941)) {
+                    webBrowserCookies.put(results.getString("host") + ' ' + results.getString("name"), results.getString("name") + "=" + results.getString(
+                            "value") + "; expires=" + Instant.ofEpochSecond(Long.parseLong(results.getString("expiry"))).atZone(ZoneId.of("GMT")).format(
+                                    DateTimeFormatter.RFC_1123_DATE_TIME) + "; path=" + results.getString("path") + "; domain=" + results.getString("host"));
+                  }
+                }
+              } catch (Exception e) {
+                if (Debug.DEBUG) {
+                  Debug.print(e);
+                }
+              }
+            };
+
+            runStandaloneWebBrowser.accept(true);
+            if (prevWebBrowserCookies.equals(cookiesStr.get()) && Optional.ofNullable(IO.findFile(webBrowser, Regex.pattern(Str.get(948)))).map(
+                    ThrowingFunction.of(IO::read)).map(appInfo -> Regex.firstMatch(appInfo, 949)).filter(majorVersion -> !majorVersion.isEmpty()).map(
+                    Integer::parseInt).filter(version -> version >= Integer.parseInt(Str.get(950))).isPresent()) {
+              guiListener.timedMsg(Str.str("checkStandaloneWebBrowser", (new URL(url)).getHost()));
+              runStandaloneWebBrowser.accept(false);
+            }
+            if (prevWebBrowserCookies.equals(cookiesStr.get())) {
+              throw new IOException("retry with standalone web browser retry failed");
+            }
+
+            saveCookies();
+
+            return getSource.get();
+          });
+          if (!useWebBrowser) {
             if (useCurl) {
               String output = curl(url, null, null, maxNumRedirects, null, proxy, this::isCancelled, retry.get());
               if (output == null) {
@@ -589,25 +718,33 @@ public class Connection {
                 connection.setRequestProperty("Cookie", webBrowserCookies.values().stream().collect(Collectors.joining(";")));
               }
 
-              post(connection);
+              try {
+                post(connection);
 
-              connection.connect();
+                connection.connect();
 
-              br = IO.bufferedReader(connection.getContentEncoding(), connection.getInputStream());
-              if (isCancelled()) {
-                return "";
-              }
-
-              if (showStatus) {
-                setStatusBar(Str.str("transferring") + ' ' + statusMsg);
-              }
-
-              String line;
-              while ((line = br.readLine()) != null) {
+                br = IO.bufferedReader(connection.getContentEncoding(), connection.getInputStream());
                 if (isCancelled()) {
                   return "";
                 }
-                source.append(line).append(Constant.NEWLINE);
+
+                if (showStatus) {
+                  setStatusBar(Str.str("transferring") + ' ' + statusMsg);
+                }
+
+                String line;
+                while ((line = br.readLine()) != null) {
+                  if (isCancelled()) {
+                    return "";
+                  }
+                  source.append(line).append(Constant.NEWLINE);
+                }
+              } catch (IOException e) {
+                String sourceCode = retry.get().apply(connection.getResponseCode(), source);
+                if (sourceCode != null) {
+                  return sourceCode;
+                }
+                throw e;
               }
 
               int responseCode = connection.getResponseCode();
@@ -624,7 +761,7 @@ public class Connection {
                         throwables);
               }
 
-              String sourceCode = retry.get().apply(responseCode);
+              String sourceCode = retry.get().apply(responseCode, source);
               if (sourceCode != null) {
                 return sourceCode;
               }
@@ -655,7 +792,9 @@ public class Connection {
               if (showStatus) {
                 setStatusBar(Str.str("transferring") + ' ' + statusMsg);
               }
-              source.append(webBrowserRequest.get(url, driver, webBrowserSleep, cacheExpirationMs));
+              String sourceCode = webBrowserRequest.get(url, driver, webBrowserSleep, cacheExpirationMs);
+              webBrowserLock.unlock();
+              source.append(Optional.ofNullable(retry2.get().apply(-1, sourceCode)).orElse(sourceCode));
             });
             try {
               String sourceCode = webBrowserRequest.retry();
@@ -697,12 +836,14 @@ public class Connection {
             } catch (Exception e) {
               throw new IOException("web browser error for " + url, e);
             } finally {
-              webBrowserLock.unlock();
+              try {
+                webBrowserLock.unlock();
+              } catch (Exception e) {/* Ignore */ }
             }
           }
 
           if (!emptyOK && Regex.isMatch(source.toString(), 898)) {
-            throw new IOException("empty source code");
+            throw new IOException("empty source code:\n'" + source + "'");
           }
         } catch (IOException exception) {
           IOException e = exception;
@@ -755,7 +896,7 @@ public class Connection {
   }
 
   private static String curl(String url, String outputPath, String referer, int maxNumRedirects, String cookie, Proxy proxy, Supplier<Boolean> isCancelled,
-          ThrowingFunction<Integer, String> retry) throws Exception {
+          ThrowingBiFunction<Integer, CharSequence, String> retry) throws Exception {
     List<String> curlArgs = Lists.newArrayList(curl.get());
     Collections.addAll(curlArgs, Regex.split(913, Constant.SEPARATOR1));
     if (outputPath != null) {
@@ -816,7 +957,7 @@ public class Connection {
 
       int responseCode = Integer.parseInt(Regex.firstMatch(curlOutput.toString(), 922));
       String source;
-      if (retry != null && (source = retry.apply(responseCode)) != null) {
+      if (retry != null && (source = retry.apply(responseCode, curlOutput)) != null) {
         IO.write(output, source);
         return output;
       }
@@ -1344,6 +1485,11 @@ public class Connection {
     }
   }
 
+  private static void saveCookies() throws Exception {
+    IO.write(COOKIES, webBrowserCookies.entrySet().stream().map(currCookie -> currCookie.getKey() + '\t' + currCookie.getValue()).sorted().collect(
+            Collectors.joining(Constant.NEWLINE)));
+  }
+
   public static void startStatusBar() {
     statusBar.setPriority(Thread.MIN_PRIORITY);
     statusBar.start();
@@ -1517,6 +1663,10 @@ public class Connection {
     }
 
     public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
+      return get(url, driver, sleep, cacheExpirationMs, true);
+    }
+
+    private String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs, boolean loadCookies) throws Exception {
       File sourceCodeFile = new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML);
       if (cacheExpirationMs <= 0 || !sourceCodeFile.exists() || IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
         long startTime = System.currentTimeMillis();
@@ -1534,13 +1684,44 @@ public class Connection {
         }
         long endTime = System.currentTimeMillis();
         if (Debug.DEBUG) {
-          Debug.println(url + " (web browser took " + ((endTime - startTime) / 1_000) + "s)");
+          Debug.println(url + " (web browser" + (loadCookies ? "" : " retry with updated cookies") + " took " + ((endTime - startTime) / 1_000) + "s)");
         }
+
+        if (loadCookies && !Regex.firstMatch(src, 942).isEmpty()) {
+          String oldCookies = "", newCookies = "";
+          try {
+            Supplier<String> cookiesStr = () -> driver.manage().getCookies().stream().map(currCookie -> ImmutableMap.of("name", currCookie.getName(), "value",
+                    currCookie.getValue(), "domain", currCookie.getDomain(), "path", currCookie.getPath(), "expires",
+                    currCookie.getExpiry()).toString()).sorted().collect(Collectors.joining("\n"));
+            oldCookies = cookiesStr.get();
+            BiFunction<String, String, String> cookieAttr = (cookieStr, attrName) -> Regex.match(cookieStr, ";\\s*+(?i)" + attrName + "\\s*+\\=\\s*+", ";|\\z");
+            String host = (new URL(driver.getCurrentUrl())).getHost();
+            List<Cookie> cookies = webBrowserCookies.values().stream().filter(currCookie -> {
+              String domain = cookieAttr.apply(currCookie, "domain");
+              return host.equalsIgnoreCase(domain) || host.equalsIgnoreCase(Regex.replaceFirst(domain, "\\A\\.(?i)(www\\.)?+", "www.")) || host.equalsIgnoreCase(
+                      Regex.replaceFirst(domain, "\\A\\.(?i)(www\\.)?+", ""));
+            }).map(currCookie -> new Cookie(Regex.firstMatch(currCookie, "\\A[^\\=]++"), Regex.match(currCookie, "\\A[^\\=]++\\=", ";|\\z"), cookieAttr.apply(
+                    currCookie, "domain"), cookieAttr.apply(currCookie, "path"), Optional.of(cookieAttr.apply(currCookie, "expires")).filter(
+                    StringUtils::isNotEmpty).map(expiry -> Date.from(LocalDateTime.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(expiry)).atZone(
+                    ZoneId.of("GMT")).toInstant())).orElse(null))).collect(Collectors.toList());
+            if (!cookies.isEmpty()) {
+              cookies.forEach(driver.manage()::addCookie);
+              newCookies = cookiesStr.get();
+            }
+          } catch (Exception e) {
+            if (Debug.DEBUG) {
+              Debug.print(e);
+            }
+          }
+          if (!newCookies.isEmpty() && !oldCookies.equals(newCookies)) {
+            return get(url, driver, sleep, cacheExpirationMs, false);
+          }
+        }
+
         cache(url, src);
         driver.manage().getCookies().stream().filter(currCookie -> Regex.isMatch(currCookie.toString(), 935)).forEach(currCookie -> webBrowserCookies.put(
                 currCookie.getDomain() + ' ' + currCookie.getName(), currCookie.toString()));
-        IO.write(Constant.APP_DIR + "cookies.txt", webBrowserCookies.entrySet().stream().map(currCookie -> currCookie.getKey() + '\t'
-                + currCookie.getValue()).sorted().collect(Collectors.joining(Constant.NEWLINE)));
+        saveCookies();
         return src;
       }
       if (Debug.DEBUG) {

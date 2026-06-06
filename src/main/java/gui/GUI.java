@@ -6739,13 +6739,15 @@ public class GUI extends JFrame implements GuiListener {
       @Override
       public void doWork() {
         synchronized (timedMsgLock) {
-          timedMsgLabel.setText(msg);
-          timedMsgDialog.pack();
-          timedMsgDialog.setLocationRelativeTo(GUI.this);
-          UI.show(timedMsgDialog);
+          UI.run(false, () -> {
+            timedMsgLabel.setText(msg);
+            timedMsgDialog.pack();
+            timedMsgDialog.setLocationRelativeTo(GUI.this);
+            UI.show(timedMsgDialog);
+          });
           try {
             Thread.sleep(millis < 0 ? Regex.split(msg, " ").length * 400L : millis);
-            timedMsgDialog.setVisible(false);
+            UI.run(false, () -> timedMsgDialog.setVisible(false));
           } catch (InterruptedException e) {
             if (Debug.DEBUG) {
               Debug.print(e);

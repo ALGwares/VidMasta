@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>algwares</groupId>
   <artifactId>vidmasta</artifactId>
-  <version>30.5</version>
+  <version>30.6</version>
   <packaging>jar</packaging>
     
   <properties>
@@ -80,6 +80,11 @@
       <groupId>org.rauschig</groupId>
       <artifactId>jarchivelib</artifactId>
       <version>1.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+      <version>3.53.1.0</version>
     </dependency>
   </dependencies>
         

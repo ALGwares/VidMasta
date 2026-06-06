@@ -272,6 +272,6 @@ public class Regex {
     return cache.computeIfAbsent(regex, Pattern::compile);
   }
 
-  private Regex() {
+  protected Regex() {
   }
 }
