@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.07.17   | VidMasta 30.7
+
+CHANGE: CORE | Improved overall performance
+
+
+
+
 2026.06.06   | VidMasta 30.6
 
 CHANGE: CORE | Fixed subtitle downloading connection issue
@@ -112,7 +119,7 @@ CHANGE: CORE | Fixed download error "Error reading torrent: Contents maybe HTML"
 
 2024.03.19   | VidMasta 29.0
 
-CHANGE: CORE | Improved overall performance 
+CHANGE: CORE | Improved overall performance
 
 
 

@@ -1,4 +1,4 @@
-449
+450
 https://www.bing.com/search?q=
 https://www.google.com/search?q=
 https://search.yahoo.com/search?q=
@@ -950,4 +950,6 @@ user_pref("browser.shell.checkDefaultBrowser", false);NEWLINEuser_pref("app.upda
 .*?(?i)application\.ini
 (?<=(\A|\s)(?i)Version\=)\d++
 113
+&amp;
+&
 eof

@@ -42,6 +42,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -57,6 +60,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +69,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -129,6 +133,7 @@ public class Connection {
   private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
   private static final AtomicReference<LazyInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
   private static final ConcurrentMap<String, String> webBrowserCookies = new ConcurrentHashMap<>(4);
+  private static final Set<String> webBrowserHosts = new ConcurrentSkipListSet<>();
   private static final Set<String> initErrors = new CopyOnWriteArraySet<>();
   private static final LazyInitializer<String> curl = new LazyInitializer<String>() {
     @Override
@@ -669,13 +674,18 @@ public class Connection {
 
               try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath()); Statement statement
                       = cookiesDbConnection.createStatement()) {
+                boolean removeHost = false;
                 ResultSet results = statement.executeQuery("SELECT name, value, expiry, path, host" + cookieSql);
                 while (results.next()) {
                   if (Regex.isMatch(results.getString("name"), 941)) {
                     webBrowserCookies.put(results.getString("host") + ' ' + results.getString("name"), results.getString("name") + "=" + results.getString(
                             "value") + "; expires=" + Instant.ofEpochSecond(Long.parseLong(results.getString("expiry"))).atZone(ZoneId.of("GMT")).format(
                                     DateTimeFormatter.RFC_1123_DATE_TIME) + "; path=" + results.getString("path") + "; domain=" + results.getString("host"));
+                    removeHost = true;
                   }
+                }
+                if (removeHost) {
+                  webBrowserHosts.remove((new URL(url)).getHost());
                 }
               } catch (Exception e) {
                 if (Debug.DEBUG) {
@@ -843,7 +853,7 @@ public class Connection {
           }
 
           if (!emptyOK && Regex.isMatch(source.toString(), 898)) {
-            throw new IOException("empty source code:\n'" + source + "'");
+            throw new IOException("empty source code: '" + Regex.firstMatch(source.toString(), 942) + "'");
           }
         } catch (IOException exception) {
           IOException e = exception;
@@ -1176,25 +1186,26 @@ public class Connection {
     IO.fileOp(Constant.CACHE_DIR + Str.hashPath(url) + Constant.HTML, IO.RM_FILE);
   }
 
-  public static void saveData(String url, String outputPath, DomainType domainType) throws Exception {
-    saveData(url, outputPath, domainType, true);
+  public static String saveData(String url, String outputPath, DomainType domainType) throws Exception {
+    return saveData(url, outputPath, domainType, true);
   }
 
-  public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus) throws Exception {
-    saveData(url, outputPath, domainType, showStatus, null);
+  public static String saveData(String url, String outputPath, DomainType domainType, boolean showStatus) throws Exception {
+    return saveData(url, outputPath, domainType, showStatus, null);
   }
 
-  public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer) throws Exception {
-    saveData(url, outputPath, domainType, showStatus, referer, MAX_NUM_REDIRECTS, null, false);
+  public static String saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer) throws Exception {
+    return saveData(url, outputPath, domainType, showStatus, referer, MAX_NUM_REDIRECTS, null, false);
   }
 
-  public static void saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer, int maxNumRedirects, String cookie,
+  public static String saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer, int maxNumRedirects, String cookie,
           boolean useWebBrowser) throws Exception {
     boolean useCurl = Regex.isMatch(url, 924) && curl.get() != null;
     if ((useWebBrowser || (Regex.isMatch(url, 872) && !useCurl)) && createWebBrowser(false) != null) {
-      getSourceCode(url, domainType, showStatus, true, -1, new WebBrowserRequest(outputPath, referer, cookie) {
+      return getSourceCode(url, domainType, showStatus, true, -1, new WebBrowserRequest(outputPath, referer, cookie) {
         @Override
         public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
+          long startTime = System.currentTimeMillis();
           driver.get("about:about");
           Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
           (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(874))));
@@ -1221,19 +1232,24 @@ public class Connection {
             String prevStatus = "";
             for (long i = 0, sleepMs = 500, j = timeout.toMillis() / sleepMs; i < j; i++) {
               String newestDownload = Iterables.getFirst(Regex.allMatches(Optional.ofNullable(driver.getPageSource()).orElse(""), 881), Str.get(887));
-              String filename = Regex.firstMatch(Regex.firstMatch(newestDownload, 882), 883);
+              String filename = Regex.replaceAllRepeatedly(Regex.firstMatch(Regex.firstMatch(newestDownload, 882), 883), 951);
               String status = Regex.firstMatch(Regex.firstMatch(newestDownload, 884), 885);
               if (Regex.isMatch(status, Str.get(886))) {
                 File output = new File(outputPath);
-                if (!(download = new File(Constant.TEMP_DIR, filename)).getCanonicalPath().equals(output.getCanonicalPath())) {
+                if (output.isDirectory()) {
+                  output = new File(outputPath, filename);
+                }
+                String outputFilePath = output.getCanonicalPath();
+                if (!(download = new File(Constant.TEMP_DIR, filename)).getCanonicalPath().equals(outputFilePath)) {
                   IO.write(download, output);
                   IO.fileOp(download, IO.RM_FILE);
                 }
                 clearDownloads.run();
+                long endTime = System.currentTimeMillis();
                 if (Debug.DEBUG) {
-                  Debug.println(url + " (web browser save)");
+                  Debug.println(url + " (web browser save took " + ((endTime - startTime) / 1_000) + "s)");
                 }
-                return "<saveDataRequest/>";
+                return outputFilePath;
               }
               if (!status.equals(prevStatus)) {
                 i = 0;
@@ -1253,7 +1269,6 @@ public class Connection {
           }
         }
       });
-      return;
     }
 
     if (Debug.DEBUG) {
@@ -1344,6 +1359,7 @@ public class Connection {
         }
       }
     }).executeAndGet();
+    return outputPath;
   }
 
   public static String getShortUrl(String url, boolean showDots) {
@@ -1670,6 +1686,7 @@ public class Connection {
       File sourceCodeFile = new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML);
       if (cacheExpirationMs <= 0 || !sourceCodeFile.exists() || IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
         long startTime = System.currentTimeMillis();
+        loadCookies(driver);
         driver.get(url);
         (new WebDriverWait(driver, driver.manage().timeouts().getPageLoadTimeout())).until(driver2 -> "complete".equals(driver.executeScript(
                 "return document.readyState")));
@@ -1687,37 +1704,11 @@ public class Connection {
           Debug.println(url + " (web browser" + (loadCookies ? "" : " retry with updated cookies") + " took " + ((endTime - startTime) / 1_000) + "s)");
         }
 
-        if (loadCookies && !Regex.firstMatch(src, 942).isEmpty()) {
-          String oldCookies = "", newCookies = "";
-          try {
-            Supplier<String> cookiesStr = () -> driver.manage().getCookies().stream().map(currCookie -> ImmutableMap.of("name", currCookie.getName(), "value",
-                    currCookie.getValue(), "domain", currCookie.getDomain(), "path", currCookie.getPath(), "expires",
-                    currCookie.getExpiry()).toString()).sorted().collect(Collectors.joining("\n"));
-            oldCookies = cookiesStr.get();
-            BiFunction<String, String, String> cookieAttr = (cookieStr, attrName) -> Regex.match(cookieStr, ";\\s*+(?i)" + attrName + "\\s*+\\=\\s*+", ";|\\z");
-            String host = (new URL(driver.getCurrentUrl())).getHost();
-            List<Cookie> cookies = webBrowserCookies.values().stream().filter(currCookie -> {
-              String domain = cookieAttr.apply(currCookie, "domain");
-              return host.equalsIgnoreCase(domain) || host.equalsIgnoreCase(Regex.replaceFirst(domain, "\\A\\.(?i)(www\\.)?+", "www.")) || host.equalsIgnoreCase(
-                      Regex.replaceFirst(domain, "\\A\\.(?i)(www\\.)?+", ""));
-            }).map(currCookie -> new Cookie(Regex.firstMatch(currCookie, "\\A[^\\=]++"), Regex.match(currCookie, "\\A[^\\=]++\\=", ";|\\z"), cookieAttr.apply(
-                    currCookie, "domain"), cookieAttr.apply(currCookie, "path"), Optional.of(cookieAttr.apply(currCookie, "expires")).filter(
-                    StringUtils::isNotEmpty).map(expiry -> Date.from(LocalDateTime.from(DateTimeFormatter.RFC_1123_DATE_TIME.parse(expiry)).atZone(
-                    ZoneId.of("GMT")).toInstant())).orElse(null))).collect(Collectors.toList());
-            if (!cookies.isEmpty()) {
-              cookies.forEach(driver.manage()::addCookie);
-              newCookies = cookiesStr.get();
-            }
-          } catch (Exception e) {
-            if (Debug.DEBUG) {
-              Debug.print(e);
-            }
-          }
-          if (!newCookies.isEmpty() && !oldCookies.equals(newCookies)) {
-            return get(url, driver, sleep, cacheExpirationMs, false);
-          }
+        if (loadCookies && !Regex.firstMatch(src, 942).isEmpty() && loadCookies(driver)) {
+          return get(url, driver, sleep, cacheExpirationMs, false);
         }
 
+        webBrowserHosts.add((new URL(url)).getHost());
         cache(url, src);
         driver.manage().getCookies().stream().filter(currCookie -> Regex.isMatch(currCookie.toString(), 935)).forEach(currCookie -> webBrowserCookies.put(
                 currCookie.getDomain() + ' ' + currCookie.getName(), currCookie.toString()));
@@ -1728,6 +1719,62 @@ public class Connection {
         Debug.println("fetching " + url + " (web browser cache)");
       }
       return IO.read(sourceCodeFile);
+    }
+
+    private boolean loadCookies(FirefoxDriver driver) {
+      String url = driver.getCurrentUrl();
+      if (!Regex.isMatch(url, "\\A(?i)https?+://.+")) {
+        return false;
+      }
+
+      String oldCookies = "", newCookies = "";
+      try {
+        String host = (new URL(url)).getHost();
+        if (!webBrowserHosts.add(host)) {
+          return false;
+        }
+
+        Supplier<String> cookiesStr = () -> driver.manage().getCookies().stream().map(currCookie -> ImmutableMap.of("name", currCookie.getName(), "value",
+                currCookie.getValue(), "domain", currCookie.getDomain(), "path", currCookie.getPath(), "expires",
+                Optional.ofNullable(currCookie.getExpiry()).map(Date::toString).orElse("")).toString()).sorted().collect(Collectors.joining("\n"));
+        oldCookies = cookiesStr.get();
+        BinaryOperator<String> cookieAttr = (cookieStr, attrName) -> Regex.match(cookieStr, ";\\s*+(?i)" + attrName + "\\s*+\\=\\s*+", ";|\\z");
+        List<Cookie> cookies = webBrowserCookies.values().stream().filter(currCookie -> {
+          String domain = cookieAttr.apply(currCookie, "domain");
+          return host.equalsIgnoreCase(domain) || host.equalsIgnoreCase(Regex.replaceFirst(domain, "\\A\\.(?i)(www\\.)?+", "www.")) || host.equalsIgnoreCase(
+                  Regex.replaceFirst(domain, "\\A\\.(?i)(www\\.)?+", ""));
+        }).map(currCookie -> new Cookie(Regex.firstMatch(currCookie, "\\A[^\\=]++"), Regex.match(currCookie, "\\A[^\\=]++\\=", ";|\\z"), cookieAttr.apply(
+                currCookie, "domain"), cookieAttr.apply(currCookie, "path"), Optional.of(cookieAttr.apply(currCookie, "expires")).filter(
+                StringUtils::isNotEmpty).map(expiry -> {
+                  TemporalAccessor dateTime;
+                  try {
+                    dateTime = DateTimeFormatter.RFC_1123_DATE_TIME.parse(expiry);
+                  } catch (DateTimeParseException e) {
+                    if (Debug.DEBUG) {
+                      Debug.println("unexpected (1) cookie expiration date: " + e);
+                    }
+                    try {
+                      dateTime = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).parse(expiry);
+                    } catch (DateTimeParseException e2) {
+                      if (Debug.DEBUG) {
+                        Debug.println("unexpected (2) cookie expiration date: " + e2);
+                      }
+                      dateTime = null;
+                    }
+                  }
+                  return Optional.ofNullable(dateTime).map(date -> Date.from(LocalDateTime.from(date).atZone(Optional.ofNullable(date.query(
+                          TemporalQueries.zoneId())).orElse(ZoneId.of("GMT"))).toInstant())).orElse(null);
+                }).orElse(null))).collect(Collectors.toList());
+        if (!cookies.isEmpty()) {
+          cookies.forEach(driver.manage()::addCookie);
+          newCookies = cookiesStr.get();
+        }
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+      }
+      return !newCookies.isEmpty() && !oldCookies.equals(newCookies);
     }
 
     void cache(String url, String source) throws Exception {
