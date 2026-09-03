@@ -87,6 +87,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.Event;
@@ -241,6 +242,7 @@ public class Connection {
           FirefoxOptions options = new FirefoxOptions();
           options.setBinary(firefoxBinary.getPath());
           options.setAcceptInsecureCerts(true);
+          options.setUnhandledPromptBehaviour(UnexpectedAlertBehaviour.ACCEPT);
           options.addArguments(Regex.split(848, Constant.SEPARATOR1));
           FirefoxProfile profile = new FirefoxProfile();
           Arrays.stream(Regex.split(849, Constant.SEPARATOR2)).map(pref -> Regex.split(pref, Constant.SEPARATOR1)).forEach(pref -> profile.setPreference(pref[0],
@@ -1689,7 +1691,10 @@ public class Connection {
         loadCookies(driver);
         driver.get(url);
         (new WebDriverWait(driver, driver.manage().timeouts().getPageLoadTimeout())).until(driver2 -> "complete".equals(driver.executeScript(
-                "return document.readyState")));
+                "window.alert = function() { return true; };"
+                + "window.confirm = function() { return true; };"
+                + "window.prompt = function() { return true; };"
+                + "return document.readyState;")));
         String src = Optional.ofNullable(driver.getPageSource()).orElse("");
         while (true) { // Give asynchronous JavaScript with variable/unpredictable page changes time to finish
           webBrowserAsyncSleep.run();

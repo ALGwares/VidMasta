@@ -5769,14 +5769,32 @@ public class GUI extends JFrame implements GuiListener {
         }
         Arrays.sort(modelRows);
 
+        Set<File> torrents = new HashSet<>();
         for (int i = modelRows.length - 1; i > -1; i--) {
-          ((PlaylistItem) playlistSyncTable.tableModel.getValueAt(modelRows[i], playlistItemCol)).stop();
+          PlaylistItem item = (PlaylistItem) playlistSyncTable.tableModel.getValueAt(modelRows[i], playlistItemCol);
+          Optional.ofNullable(item.groupFile()).ifPresent(torrents::add);
+          item.stop();
         }
         List<?> rows = playlistSyncTable.tableModel.getDataVector();
         for (int i = modelRows.length - 1; i > -1; i--) {
           rows.remove(modelRows[i]);
         }
+
+        if (!torrents.isEmpty()) {
+          playlistSyncTable.tableModel.fireTableDataChanged();
+          for (int row = playlistSyncTable.table.getRowCount() - 1; row > -1; row--) {
+            torrents.remove(((PlaylistItem) playlistSyncTable.tableModel.getValueAt(playlistSyncTable.table.convertRowIndexToModel(row),
+                    playlistItemCol)).groupFile());
+          }
+          for (int i = rows.size() - 1; i > -1; i--) {
+            PlaylistItem item = (PlaylistItem) ((List<?>) rows.get(i)).get(playlistItemCol);
+            if (torrents.contains(item.groupFile())) {
+              rows.remove(i);
+            }
+          }
+        }
         playlistSyncTable.tableModel.fireTableDataChanged();
+        torrents.forEach(File::delete);
 
         selectFirstRow(viewRows);
       }
