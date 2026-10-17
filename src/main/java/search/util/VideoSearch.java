@@ -26,6 +26,7 @@ import util.ConnectionException;
 import util.Constant;
 import util.IO;
 import util.Regex;
+import util.Worker;
 
 public class VideoSearch {
 
@@ -50,14 +51,38 @@ public class VideoSearch {
   }
 
   public static String getTitleLink(String title, String year) throws Exception {
-    String encodedQuery = URLEncoder.encode(Regex.clean(title) + (year.isEmpty() ? "" : ' ' + year) + Str.get(76), Constant.UTF8);
+    return getTitleLink(title, year, Constant.MS_2DAYS);
+  }
+
+  public static String getTitleLink(String title, String year, long cacheExpirationMs) throws Exception {
+    String encodedQuery = URLEncoder.encode(Regex.clean(title) + (year.isEmpty() ? "" : ' ' + year) + Str.get(76), Constant.UTF8), result = "";
+    for (int i = 0; i < NUM_SEARCH_ENGINES; i++) {
+      File sourceCodeFile = new File(Constant.CACHE_DIR + Str.hashPath(searchEngines.get(i) + encodedQuery) + Constant.HTML);
+      if (sourceCodeFile.exists() && !(result = Regex.firstMatch(IO.read(sourceCodeFile), 619)).isEmpty() && !(result = URLDecoder.decode(result,
+              Constant.UTF8)).isEmpty()) {
+        result = Str.get(96) + result;
+        break;
+      }
+    }
+
+    if (result.isEmpty()) {
+      return getTitleLinkHelper(encodedQuery, true, cacheExpirationMs);
+    }
+    Worker.submit(() -> {
+      Connection.awaitSearchCompletion();
+      getTitleLinkHelper(encodedQuery, false, cacheExpirationMs);
+    });
+    return result;
+  }
+
+  private static String getTitleLinkHelper(String encodedQuery, boolean showStatus, long cacheExpirationMs) throws Exception {
     List<String> engines = new ArrayList<String>(searchEngines);
     boolean noResultFound = false;
 
     for (int i = NUM_SEARCH_ENGINES; i > 0; i--) {
       String searchEngine = engines.get(rand.nextInt(i));
       try {
-        String result = Regex.firstMatch(Connection.getSourceCode(searchEngine + encodedQuery, DomainType.SEARCH_ENGINE, Constant.MS_2DAYS), 619);
+        String result = Regex.firstMatch(Connection.getSourceCode(searchEngine + encodedQuery, DomainType.SEARCH_ENGINE, showStatus, cacheExpirationMs), 619);
         if (!result.isEmpty() && !(result = URLDecoder.decode(result, Constant.UTF8)).isEmpty()) {
           return Str.get(96) + result;
         }

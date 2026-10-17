@@ -320,6 +320,7 @@ public abstract class AbstractSearcher extends Worker {
     prefetcher = new Worker() {
       @Override
       protected void doWork() throws Exception {
+        Connection.awaitSearchCompletion();
         if (Debug.DEBUG) {
           Debug.println("prefetching search page " + (currSearchPage + 2));
         }

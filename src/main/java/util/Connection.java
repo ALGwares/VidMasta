@@ -83,6 +83,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.LazyInitializer;
 import org.apache.commons.lang3.function.TriFunction;
+import static org.awaitility.Awaitility.await;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.Keys;
@@ -111,6 +112,7 @@ import util.function.ThrowingSupplier;
 public class Connection {
 
   private static GuiListener guiListener;
+  private static Callable<Boolean> isSearchingDone;
   private static final StatusBar statusBar = new StatusBar();
   public static final int MAX_NUM_REDIRECTS = 3;
   private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
@@ -126,7 +128,7 @@ public class Connection {
   private static final AtomicReference<Consumer<String>> webBrowserRequestListener = new AtomicReference<>();
   private static final AtomicReference<Consumer<String>> webBrowserResponseListener = new AtomicReference<>();
   private static Proxy webBrowserProxy = Proxy.NO_PROXY;
-  private static final Lock webBrowserLock = new ReentrantLock();
+  private static final Lock webBrowserLock = new ReentrantLock(), standaloneWebBrowserLock = new ReentrantLock();
   private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(931)));
   private static final ThrowingRunnable webBrowserAsyncSleep = () -> Thread.sleep(Integer.parseInt(Str.get(932)));
   private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean(), curlInitShowStatus = new AtomicBoolean();
@@ -371,8 +373,13 @@ public class Connection {
     }
   }
 
-  public static void init(GuiListener listener) {
-    guiListener = listener;
+  public static void awaitSearchCompletion() throws Exception {
+    await().forever().until(isSearchingDone);
+  }
+
+  public static void init(GuiListener guiListener, Callable<Boolean> isSearchingDone) {
+    Connection.guiListener = guiListener;
+    Connection.isSearchingDone = isSearchingDone;
     Str.addListener(new UpdateListener() {
       @Override
       public void update(String[] strs) {
@@ -485,33 +492,36 @@ public class Connection {
     String sourceCode;
     File sourceCodeFile = new File(Constant.CACHE_DIR + Str.hashPath(url) + Constant.HTML);
     if (sourceCodeFile.exists()) {
-      if (IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
+      if (Debug.DEBUG) {
+        Debug.println("fetching " + url);
+      }
+      try {
+        sourceCode = IO.read(sourceCodeFile);
+        if (!emptyOK && Regex.isMatch(sourceCode, 898)) {
+          IO.fileOp(sourceCodeFile, IO.RM_FILE);
+          throw new IOException("empty cached source code: '" + Regex.firstMatch(sourceCode, 942) + "'");
+        }
         try {
-          addToCache(sourceCode = getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, webBrowserRequest,
-                  throwables), sourceCodeFile);
-        } catch (InterruptedException | CancellationException e) {
-          throw e;
-        } catch (Exception e) {
-          if (Debug.DEBUG) {
-            Debug.println("fetching (due to " + ThrowableUtil.cause(e) + ") " + url);
+          if (IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
+            Worker.submit(() -> {
+              awaitSearchCompletion();
+              addToCache(getSourceCodeHelper(url, originalUrl, domainType, false, emptyOK, cacheExpirationMs, maxNumRedirects,
+                      webBrowserRequest, throwables), sourceCodeFile);
+            });
           }
-          sourceCode = IO.read(sourceCodeFile);
-        }
-      } else {
-        if (Debug.DEBUG) {
-          Debug.println("fetching " + url);
-        }
-        try {
-          sourceCode = IO.read(sourceCodeFile);
-        } catch (InterruptedException | CancellationException e) {
-          throw e;
         } catch (Exception e) {
           if (Debug.DEBUG) {
             Debug.print(e);
           }
-          addToCache(sourceCode = getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, webBrowserRequest,
-                  throwables), sourceCodeFile);
         }
+      } catch (InterruptedException | CancellationException e) {
+        throw e;
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+        addToCache(sourceCode = getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, webBrowserRequest,
+                throwables), sourceCodeFile);
       }
     } else {
       addToCache(sourceCode = getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, webBrowserRequest,
@@ -616,100 +626,113 @@ public class Connection {
             if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
               return getSource.get();
             }
-            if (Debug.DEBUG) {
-              Debug.println("retrying with standalone web browser because " + client + " failed: " + (responseCode == -1 ? '\'' + Regex.firstMatch(
-                      response.toString(), 942) + '\'' : ("HTTP " + responseCode)) + ' ' + url + " (standalone web browser)");
-            }
+            standaloneWebBrowserLock.lockInterruptibly();
+            try {
+              if (!prevWebBrowserCookies.equals(cookiesStr.get())) {
+                standaloneWebBrowserLock.unlock();
+                return getSource.get();
+              }
+              if (Debug.DEBUG) {
+                Debug.println("retrying with standalone web browser because " + client + " failed: " + (responseCode == -1 ? '\'' + Regex.firstMatch(
+                        response.toString(), 942) + '\'' : ("HTTP " + responseCode)) + ' ' + url + " (standalone web browser)");
+              }
 
-            String cookieSql = " FROM moz_cookies WHERE LOWER(host) LIKE '%" + Regex.replaceFirst((new URL(url)).getHost().toLowerCase(Locale.ENGLISH),
-                    "\\Awww\\.", "") + "%'";
-            if (WEB_BROWSER_COOKIE_DB.exists()) {
-              try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath()); Statement statement
-                      = cookiesDbConnection.createStatement()) {
-                statement.executeUpdate("DELETE" + cookieSql);
-              } catch (Exception e) {
-                if (Debug.DEBUG) {
-                  Debug.print(e);
+              String cookieSql = " FROM moz_cookies WHERE LOWER(host) LIKE '%" + Regex.replaceFirst((new URL(url)).getHost().toLowerCase(Locale.ENGLISH),
+                      "\\Awww\\.", "") + "%'";
+              if (WEB_BROWSER_COOKIE_DB.exists()) {
+                try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath());
+                        Statement statement = cookiesDbConnection.createStatement()) {
+                  statement.executeUpdate("DELETE" + cookieSql);
+                } catch (Exception e) {
+                  if (Debug.DEBUG) {
+                    Debug.print(e);
+                  }
                 }
               }
-            }
 
-            File webBrowser = new File(Constant.APP_DIR, "webBrowser");
-            ThrowingConsumer<Boolean> runStandaloneWebBrowser = headless -> {
-              List<String> args = Lists.newArrayList((new File(webBrowser, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)))).getPath());
-              Collections.addAll(args, Regex.split(headless ? 938 : 945, Constant.SEPARATOR1));
-              Collections.addAll(args, Str.get(939), WEB_BROWSER_PROFILE.getPath());
-              Collections.addAll(args, Str.get(940), url);
-              Process firefox = (new ProcessBuilder(args)).redirectErrorStream(true).start();
-              try {
-                final AtomicInteger timer = new AtomicInteger();
-                int prevCookieCount = -1;
-                for (int timeout = Integer.parseInt(Str.get(headless ? 943 : 947)); timer.get() < timeout; timer.incrementAndGet()) {
-                  Thread.sleep(1_000);
-                  if (!WEB_BROWSER_COOKIE_DB.exists()) {
-                    continue;
-                  }
-                  try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath());
-                          Statement statement = cookiesDbConnection.createStatement()) {
-                    ResultSet results = statement.executeQuery("SELECT count(*)" + cookieSql);
-                    while (results.next()) {
-                      int cookieCount = results.getInt(1);
-                      if (cookieCount != prevCookieCount) {
-                        if (cookieCount > 0) {
-                          timeout = Integer.parseInt(Str.get(944));
+              File webBrowser = new File(Constant.APP_DIR, "webBrowser");
+              ThrowingConsumer<Boolean> runStandaloneWebBrowser = headless -> {
+                List<String> args = Lists.newArrayList((new File(webBrowser, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)))).getPath());
+                Collections.addAll(args, Regex.split(headless ? 938 : 945, Constant.SEPARATOR1));
+                Collections.addAll(args, Str.get(939), WEB_BROWSER_PROFILE.getPath());
+                Collections.addAll(args, Str.get(940), url);
+                Process firefox = (new ProcessBuilder(args)).redirectErrorStream(true).start();
+                try {
+                  final AtomicInteger timer = new AtomicInteger();
+                  int prevCookieCount = -1;
+                  for (int timeout = Integer.parseInt(Str.get(headless ? 943 : 947)); timer.get() < timeout; timer.incrementAndGet()) {
+                    Thread.sleep(1_000);
+                    if (!WEB_BROWSER_COOKIE_DB.exists()) {
+                      continue;
+                    }
+                    try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath());
+                            Statement statement = cookiesDbConnection.createStatement()) {
+                      ResultSet results = statement.executeQuery("SELECT count(*)" + cookieSql);
+                      while (results.next()) {
+                        int cookieCount = results.getInt(1);
+                        if (cookieCount != prevCookieCount) {
+                          if (cookieCount > 0) {
+                            timeout = Integer.parseInt(Str.get(944));
+                          }
+                          timer.set(0);
                         }
-                        timer.set(0);
+                        prevCookieCount = cookieCount;
                       }
-                      prevCookieCount = cookieCount;
+                    } catch (Exception e) {
+                      if (Debug.DEBUG) {
+                        Debug.print(e);
+                      }
+                      Thread.sleep((timeout - (timer.get() + 1)) * 1_000);
+                      break;
                     }
-                  } catch (Exception e) {
-                    if (Debug.DEBUG) {
-                      Debug.print(e);
+                  }
+                } finally {
+                  firefox.destroy();
+                }
+
+                try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath());
+                        Statement statement = cookiesDbConnection.createStatement()) {
+                  boolean removeHost = false;
+                  ResultSet results = statement.executeQuery("SELECT name, value, expiry, path, host" + cookieSql);
+                  while (results.next()) {
+                    if (Regex.isMatch(results.getString("name"), 941)) {
+                      webBrowserCookies.put(results.getString("host") + ' ' + results.getString("name"), results.getString("name") + "=" + results.getString(
+                              "value") + "; expires=" + Instant.ofEpochSecond(Long.parseLong(results.getString("expiry"))).atZone(ZoneId.of("GMT")).format(
+                                      DateTimeFormatter.RFC_1123_DATE_TIME) + "; path=" + results.getString("path") + "; domain=" + results.getString("host"));
+                      removeHost = true;
                     }
-                    Thread.sleep((timeout - (timer.get() + 1)) * 1_000);
-                    break;
+                  }
+                  if (removeHost) {
+                    webBrowserHosts.remove((new URL(url)).getHost());
+                  }
+                } catch (Exception e) {
+                  if (Debug.DEBUG) {
+                    Debug.print(e);
                   }
                 }
-              } finally {
-                firefox.destroy();
+              };
+
+              runStandaloneWebBrowser.accept(true);
+              if (prevWebBrowserCookies.equals(cookiesStr.get()) && Optional.ofNullable(IO.findFile(webBrowser, Regex.pattern(Str.get(948)))).map(
+                      ThrowingFunction.of(IO::read)).map(appInfo -> Regex.firstMatch(appInfo, 949)).filter(majorVersion -> !majorVersion.isEmpty()).map(
+                      Integer::parseInt).filter(version -> version >= Integer.parseInt(Str.get(950))).isPresent()) {
+                guiListener.timedMsg(Str.str("checkStandaloneWebBrowser", (new URL(url)).getHost()));
+                runStandaloneWebBrowser.accept(false);
+              }
+              if (prevWebBrowserCookies.equals(cookiesStr.get())) {
+                standaloneWebBrowserLock.unlock();
+                throw new IOException("retry with standalone web browser retry failed");
               }
 
-              try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath()); Statement statement
-                      = cookiesDbConnection.createStatement()) {
-                boolean removeHost = false;
-                ResultSet results = statement.executeQuery("SELECT name, value, expiry, path, host" + cookieSql);
-                while (results.next()) {
-                  if (Regex.isMatch(results.getString("name"), 941)) {
-                    webBrowserCookies.put(results.getString("host") + ' ' + results.getString("name"), results.getString("name") + "=" + results.getString(
-                            "value") + "; expires=" + Instant.ofEpochSecond(Long.parseLong(results.getString("expiry"))).atZone(ZoneId.of("GMT")).format(
-                                    DateTimeFormatter.RFC_1123_DATE_TIME) + "; path=" + results.getString("path") + "; domain=" + results.getString("host"));
-                    removeHost = true;
-                  }
-                }
-                if (removeHost) {
-                  webBrowserHosts.remove((new URL(url)).getHost());
-                }
-              } catch (Exception e) {
-                if (Debug.DEBUG) {
-                  Debug.print(e);
-                }
-              }
-            };
+              saveCookies();
 
-            runStandaloneWebBrowser.accept(true);
-            if (prevWebBrowserCookies.equals(cookiesStr.get()) && Optional.ofNullable(IO.findFile(webBrowser, Regex.pattern(Str.get(948)))).map(
-                    ThrowingFunction.of(IO::read)).map(appInfo -> Regex.firstMatch(appInfo, 949)).filter(majorVersion -> !majorVersion.isEmpty()).map(
-                    Integer::parseInt).filter(version -> version >= Integer.parseInt(Str.get(950))).isPresent()) {
-              guiListener.timedMsg(Str.str("checkStandaloneWebBrowser", (new URL(url)).getHost()));
-              runStandaloneWebBrowser.accept(false);
+              standaloneWebBrowserLock.unlock();
+              return getSource.get();
+            } finally {
+              try {
+                standaloneWebBrowserLock.unlock();
+              } catch (Exception e) {/* Ignore */ }
             }
-            if (prevWebBrowserCookies.equals(cookiesStr.get())) {
-              throw new IOException("retry with standalone web browser retry failed");
-            }
-
-            saveCookies();
-
-            return getSource.get();
           });
           if (!useWebBrowser) {
             if (useCurl) {

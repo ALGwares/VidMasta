@@ -45,6 +45,7 @@ public class Prefetcher extends Worker {
         continue;
       }
       try {
+        Connection.awaitSearchCompletion();
         if (Debug.DEBUG) {
           Debug.println("prefetching " + contentType.name() + " links");
         }

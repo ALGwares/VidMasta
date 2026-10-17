@@ -123,7 +123,7 @@ public class Main implements WorkerListener {
 
     final Main main = new Main();
     final GUI gui = (GUI) main.gui;
-    Connection.init(gui);
+    Connection.init(gui, main::areWorkersDone);
     StreamingTorrentUtil.init(gui, main);
 
     for (int i = 0; i < Str.MAX_SUBDIRECTORIES; i++) {

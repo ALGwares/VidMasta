@@ -1,6 +1,13 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.10.16   | VidMasta 30.9
+
+CHANGE: CORE | Fixed connectivity issues
+
+
+
+
 2026.09.02   | VidMasta 30.8
 
 CHANGE: CORE | Improved error handling
