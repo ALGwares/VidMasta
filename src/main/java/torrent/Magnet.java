@@ -3,13 +3,22 @@ package torrent;
 import com.biglybt.core.Core;
 import com.biglybt.core.CoreFactory;
 import com.biglybt.core.config.COConfigurationManager;
+import com.biglybt.core.config.impl.ConfigurationManager;
+import com.biglybt.core.download.DownloadManager;
+import com.biglybt.core.download.DownloadManagerState;
+import com.biglybt.core.download.impl.DownloadManagerAdapter;
+import com.biglybt.core.global.GlobalManager;
+import com.biglybt.core.global.GlobalManagerAdapter;
 import com.biglybt.core.instancemanager.ClientInstance;
 import com.biglybt.core.internat.MessageText;
 import com.biglybt.core.ipfilter.IpFilter;
 import com.biglybt.core.ipfilter.impl.IPAddressRangeManagerV4;
 import com.biglybt.core.ipfilter.impl.IpFilterImpl;
 import com.biglybt.core.ipfilter.impl.IpRangeV4Impl;
+import com.biglybt.core.torrent.TOTorrent;
 import com.biglybt.core.torrent.impl.TOTorrentDeserialiseImpl;
+import com.biglybt.core.util.AEDiagnostics;
+import com.biglybt.core.util.AEMonitor;
 import com.biglybt.core.util.Constants;
 import com.biglybt.core.util.DisplayFormatters;
 import com.biglybt.core.util.SystemProperties;
@@ -21,11 +30,18 @@ import com.biglybt.plugin.dht.DHTPlugin;
 import com.biglybt.plugin.magnet.MagnetPlugin;
 import com.biglybt.plugin.magnet.MagnetPluginProgressListener;
 import debug.Debug;
+import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.management.LockInfo;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MonitorInfo;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.DatagramSocket;
@@ -37,13 +53,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
@@ -132,20 +154,25 @@ public class Magnet extends Thread {
       return;
     }
     try {
+      configAzureus(); // Prevent this thread's first use of BiglyBT from racing (and deadlocking with) BiglyBT's initialization in configAzureus()
       byte[] torrentBytes = null;
       String magnetLinkHash = Regex.replaceAllRepeatedly(magnetLink, 801);
+      byte[] infoHash = UrlUtils.decodeTruncatedHashFromMagnetURI(magnetLinkHash.toUpperCase(Locale.ENGLISH));
       try {
         String tempTorrent = Constant.TEMP_DIR + magnetLinkHash + ".torrent";
         for (String urlFormat : Regex.split(890, Constant.SEPARATOR1)) {
           try {
             String url = String.format(Locale.ENGLISH, urlFormat, magnetLinkHash);
             Connection.saveData(url, tempTorrent, DomainType.DOWNLOAD_LINK_INFO);
-            String torrentData = (new String(torrentBytes = Files.readAllBytes(Paths.get(tempTorrent)), Constant.UTF8)).trim();
+            byte[] bytes = Files.readAllBytes(Paths.get(tempTorrent));
+            String torrentData = (new String(bytes, Constant.UTF8)).trim();
             if (torrentData.isEmpty() || !Regex.firstMatch(torrentData, 888).isEmpty()) {
-              torrentBytes = null;
               throw new IOException("Bad torrent for: " + url);
             }
-            Validate.isTrue((new TOTorrentDeserialiseImpl(new File(tempTorrent))).getFileCount() > 0);
+            TOTorrent cachedTorrent = new TOTorrentDeserialiseImpl(new File(tempTorrent));
+            Validate.isTrue(cachedTorrent.getFileCount() > 0, "No files in torrent for: %s", url);
+            Validate.isTrue(Arrays.equals(cachedTorrent.getHash(), infoHash), "Torrent with another info hash for: %s", url); // Such as a wrong cached file
+            torrentBytes = bytes; // Set only once valid: otherwise an invalid torrent from one URL is saved if the remaining URLs fail
             break;
           } catch (Exception e) {
             if (Debug.DEBUG) {
@@ -160,6 +187,7 @@ public class Magnet extends Thread {
         if (Debug.DEBUG) {
           Debug.print(e);
         }
+        waitForAzureusToStart(); // BiglyBT starts asynchronously (startAzureus()), and until it has, MagnetPlugin isn't available
         Objects.requireNonNull(torrentBytes = ((MagnetPlugin) CoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(
                 MagnetPlugin.class).getPlugin()).download(new MagnetPluginProgressListener() {
                   @Override
@@ -193,7 +221,11 @@ public class Magnet extends Thread {
                   public boolean cancelled() {
                     return false;
                   }
-                }, UrlUtils.decodeTruncatedHashFromMagnetURI(magnetLinkHash.toUpperCase(Locale.ENGLISH)), StringUtils.substringAfter(magnetLink, "&"),
+
+                  @Override
+                  public void setupComplete(long addedTime) {
+                  }
+                }, infoHash, StringUtils.substringAfter(magnetLink, "&"),
                         new InetSocketAddress[0], Collections.emptyList(), Collections.emptyMap(), 60_000, MagnetPlugin.FL_NONE),
                 "magnet link download failed for: " + magnetLink);
       }
@@ -231,6 +263,22 @@ public class Magnet extends Thread {
     AbstractWorker.get(azureusStarter);
   }
 
+  // Call before using BiglyBT outside this class. BiglyBT's first use initializes it, which has to happen in configAzureus(): that sets BiglyBT's paths and
+  // system properties first (otherwise BiglyBT uses its default profile), and two threads initializing BiglyBT at once can deadlock. Returns false without
+  // waiting if BiglyBT is not configured yet and this is the event dispatch thread, because configuring can wait 20 seconds for the update check.
+  public static boolean awaitAzureusConfig() {
+    if (!isAzureusConfigured.get() && !EventQueue.isDispatchThread()) {
+      try {
+        configAzureus();
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+      }
+    }
+    return isAzureusConfigured.get();
+  }
+
   public static void initIpFilter() {
     configAzureus();
     ipFilterInitializer = new IpFilterInitializer();
@@ -260,7 +308,11 @@ public class Magnet extends Thread {
 
       Str.waitForUpdate(); // Attempt a HTTPS connection to ensure HTTPS connections are not possibly prevented by Azureus javax.net.ssl.trustStore bug
 
-      System.setProperty(SystemProperties.SYSPROP_SECURITY_MANAGER_INSTALL, "0");
+      // BiglyBT never installs its security manager on Java 18+. There, this property's only effect would be a Debug call inside BiglyBT's
+      // configuration initialization, which is what lets another thread's first use of BiglyBT deadlock with configInit below.
+      if (!Constants.isJava18OrHigher) {
+        System.setProperty(SystemProperties.SYSPROP_SECURITY_MANAGER_INSTALL, "0");
+      }
       System.setProperty(SystemProperties.SYSPROP_SECURITY_MANAGER_PERMITEXIT, "1");
       System.setProperty("MULTI_INSTANCE", String.valueOf(true));
       System.setProperty(SystemProperties.SYSPROP_PLATFORM_MANAGER_DISABLE, String.valueOf(true));
@@ -273,28 +325,39 @@ public class Magnet extends Thread {
 
       Thread configInit = new Thread(() -> {
         try {
+          cacheAzureusJar();
+          AzureusConfigLock configLock = (Constants.isJava18OrHigher ? null : AzureusConfigLock.hold());
           try {
-            com.biglybt.core.util.Debug.outNoStack(""); // Sometimes prevent deadlock by pre-loading com.biglybt.core.util.Debug
+            // Debug's initializer starts BiglyBT's diagnostics and configuration, so initializing it first makes this thread hold Debug's
+            // initialization for all of that. BiglyBT threads and JVM-wide hooks (stdout/stderr redirect, DNS resolver) that BiglyBT installs meanwhile
+            // then wait for Debug instead of starting a second, conflicting initialization.
+            com.biglybt.core.util.Debug.outNoStack("");
             (new File("biglybt_error.log")).delete();
           } catch (Exception e) {
             if (Debug.DEBUG) {
               Debug.print(e);
             }
+          } finally {
+            if (configLock != null) {
+              configLock.release();
+            }
           }
-          COConfigurationManager.initialise(); // There is a deadlock bug in this method call
+          COConfigurationManager.initialise();
         } catch (Exception e) {
           if (Debug.DEBUG) {
             Debug.print(e);
           }
           IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
         }
-      });
+      }, "Azureus config init");
+      // Get this before configInit starts: BiglyBT initializes the JDK's management classes too, and if configInit got stuck in them, so would this thread
+      ThreadMXBean threadMXBean = threadMXBean();
       configInit.start();
       File deadlock = new File(Constant.APP_DIR, "deadlock");
       try {
-        configInit.join(5_000);
-        if (configInit.isAlive()) {
-          Exception e = new Exception("deadlock");
+        String stuckReason = awaitAzureusConfigInit(configInit, threadMXBean);
+        if (stuckReason != null) {
+          Exception e = new Exception("deadlock: " + stuckReason + Constant.NEWLINE + threadDump(threadMXBean));
           e.setStackTrace(configInit.getStackTrace());
           IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
           if (deadlock.exists()) {
@@ -337,6 +400,243 @@ public class Magnet extends Thread {
 
       isAzureusConfigured.set(true);
     }
+  }
+
+  // Reading BiglyBT's jar sequentially puts it in the OS file cache. Otherwise, after a cold boot, loading BiglyBT's classes one at a time takes thousands
+  // of random reads, which on a hard disk made BiglyBT's initialization take 6 to 10 seconds instead of 1.
+  private static void cacheAzureusJar() {
+    try {
+      File jar = new File(SystemProperties.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+      if (!jar.isFile()) {
+        return;
+      }
+      byte[] buffer = new byte[1_048_576];
+      try (InputStream is = new FileInputStream(jar)) {
+        while (is.read(buffer) != -1) {
+          // Discard: only the OS file cache is wanted
+        }
+      }
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    }
+  }
+
+  // On Java 8-17, BiglyBT's configuration initialization calls Debug while it holds ConfigurationManager's lock (class_mon), and Debug's initializer takes
+  // that lock to start the configuration. So a thread that starts BiglyBT through another class can deadlock with configInit, which starts it through
+  // Debug. To rule that out, configInit takes class_mon before Debug's initializer and lets go of it as soon as the configuration initialization inside
+  // that initializer releases its own hold, i.e. once the configuration is ready. Until then, a thread starting BiglyBT through another class waits for
+  // class_mon before it can reach Debug. This replaces class_mon's lock with this wrapper, which delegates to the original lock, so threads using either
+  // object still share one lock (only the final getQueueLength() and hasQueuedThreads() can't delegate, and nothing calls them on class_mon). Java 18+
+  // doesn't need this (see SYSPROP_SECURITY_MANAGER_INSTALL in configAzureus()), and newer JDKs warn about, then refuse, setting final fields reflectively.
+  private static final class AzureusConfigLock extends ReentrantLock {
+
+    private static final long serialVersionUID = 1L;
+    private final transient AEMonitor monitor;
+    private final transient Field monitorLockField;
+    private final transient ReentrantLock delegate;
+    private transient volatile Thread holder;
+
+    private AzureusConfigLock(AEMonitor monitor, Field monitorLockField, ReentrantLock delegate) {
+      this.monitor = monitor;
+      this.monitorLockField = monitorLockField;
+      this.delegate = delegate;
+    }
+
+    // Returns null if BiglyBT's internals have changed
+    static AzureusConfigLock hold() {
+      try {
+        Field classMonField = ConfigurationManager.class.getDeclaredField("class_mon");
+        classMonField.setAccessible(true);
+        AEMonitor monitor = (AEMonitor) classMonField.get(null);
+        Field monitorLockField = AEMonitor.class.getDeclaredField("lock");
+        monitorLockField.setAccessible(true);
+        AzureusConfigLock configLock = new AzureusConfigLock(monitor, monitorLockField, (ReentrantLock) monitorLockField.get(monitor));
+        monitorLockField.set(monitor, configLock);
+        synchronized (AEDiagnostics.class) {
+          // Let a Debug initialization that another thread already started finish first: it holds this monitor until its configuration is ready. That only
+          // narrows the race: one that hasn't reached AEDiagnostics.getLogger() yet (or starts before configInit's Debug call) can still deadlock with
+          // configInit, so BiglyBT's first use outside this class still has to wait for configAzureus() (awaitAzureusConfig()).
+        }
+        configLock.delegate.lock();
+        configLock.holder = Thread.currentThread();
+        return configLock;
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+        return null;
+      }
+    }
+
+    void release() {
+      try {
+        monitorLockField.set(monitor, delegate);
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+      }
+      if (holder == Thread.currentThread()) {
+        holder = null;
+        delegate.unlock();
+      }
+    }
+
+    @Override
+    public void lock() {
+      delegate.lock();
+    }
+
+    @Override
+    public void lockInterruptibly() throws InterruptedException {
+      delegate.lockInterruptibly();
+    }
+
+    @Override
+    public boolean tryLock() {
+      return delegate.tryLock();
+    }
+
+    @Override
+    public boolean tryLock(long timeout, TimeUnit unit) throws InterruptedException {
+      return delegate.tryLock(timeout, unit);
+    }
+
+    @Override
+    public void unlock() {
+      delegate.unlock();
+      if (holder == Thread.currentThread() && delegate.getHoldCount() == 1) { // The configuration initialization released its hold
+        holder = null;
+        delegate.unlock();
+      }
+    }
+
+    @Override
+    public Condition newCondition() {
+      return delegate.newCondition();
+    }
+
+    @Override
+    public int getHoldCount() {
+      return delegate.getHoldCount();
+    }
+
+    @Override
+    public boolean isHeldByCurrentThread() {
+      return delegate.isHeldByCurrentThread();
+    }
+
+    @Override
+    public boolean isLocked() {
+      return delegate.isLocked();
+    }
+  }
+
+  // Returns null once configInit finishes, or why it is considered deadlocked: for 10 seconds, neither configInit nor any thread it waits for (the owner of
+  // the lock it waits on, that thread's lock owner, and so on) made progress. A thread waiting for another thread's class initialization shows no lock
+  // owner, so then only its own progress counts.
+  private static String awaitAzureusConfigInit(Thread configInit, ThreadMXBean threadMXBean) throws InterruptedException {
+    long maxStallNanos = TimeUnit.SECONDS.toNanos(10), maxNanos = TimeUnit.SECONDS.toNanos(120), start = System.nanoTime(), lastProgress = start;
+    Map<Long, List<StackTraceElement>> lastStacks = new HashMap<Long, List<StackTraceElement>>(8);
+    while (true) {
+      configInit.join(250);
+      if (!configInit.isAlive()) {
+        return null;
+      }
+      long now = System.nanoTime();
+      boolean progress = false;
+      Map<Long, List<StackTraceElement>> stacks = new HashMap<Long, List<StackTraceElement>>(8);
+      if (threadMXBean == null) {
+        progress = isProgressing(configInit.getId(), configInit.getState(), configInit.getStackTrace(), stacks, lastStacks);
+      } else {
+        for (long id = configInit.getId(); id != -1 && !stacks.containsKey(id);) {
+          ThreadInfo info = threadMXBean.getThreadInfo(id, Integer.MAX_VALUE);
+          if (info == null) {
+            break;
+          }
+          progress |= isProgressing(id, info.getThreadState(), info.getStackTrace(), stacks, lastStacks);
+          id = info.getLockOwnerId();
+        }
+      }
+      lastStacks = stacks;
+      if (progress) {
+        lastProgress = now;
+      } else if (now - lastProgress >= maxStallNanos) {
+        return "no progress for " + TimeUnit.NANOSECONDS.toSeconds(maxStallNanos) + " seconds";
+      }
+      if (now - start >= maxNanos) {
+        return "not finished after " + TimeUnit.NANOSECONDS.toSeconds(maxNanos) + " seconds";
+      }
+    }
+  }
+
+  // Records a thread's stack and returns whether the thread made progress: its stack changed, or it is in a state a deadlocked thread never is, a timed wait
+  // (which ends by itself) or native code such as a file read
+  private static boolean isProgressing(long id, Thread.State state, StackTraceElement[] stack, Map<Long, List<StackTraceElement>> stacks,
+          Map<Long, List<StackTraceElement>> lastStacks) {
+    List<StackTraceElement> frames = Arrays.asList(stack);
+    stacks.put(id, frames);
+    return !frames.equals(lastStacks.get(id)) || state == Thread.State.TIMED_WAITING || (state == Thread.State.RUNNABLE && stack.length != 0
+            && stack[0].isNativeMethod());
+  }
+
+  private static ThreadMXBean threadMXBean() {
+    try {
+      return ManagementFactory.getThreadMXBean();
+    } catch (Exception | LinkageError e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+      return null;
+    }
+  }
+
+  // Every thread's stack, with the locks it holds and the lock it waits for: a deadlock always involves more than one thread
+  private static String threadDump(ThreadMXBean threadMXBean) {
+    StringBuilder dump = new StringBuilder(32_768);
+    if (threadMXBean != null) {
+      try {
+        for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
+          dump.append('"').append(info.getThreadName()).append("\" ").append(info.getThreadState());
+          if (info.getLockName() != null) {
+            dump.append(" on ").append(info.getLockName());
+          }
+          if (info.getLockOwnerName() != null) {
+            dump.append(" owned by \"").append(info.getLockOwnerName()).append('"');
+          }
+          dump.append(Constant.NEWLINE);
+          StackTraceElement[] stack = info.getStackTrace();
+          for (int i = 0; i < stack.length; i++) {
+            dump.append("\tat ").append(stack[i]).append(Constant.NEWLINE);
+            for (MonitorInfo monitor : info.getLockedMonitors()) {
+              if (monitor.getLockedStackDepth() == i) {
+                dump.append("\t- locked ").append(monitor).append(Constant.NEWLINE);
+              }
+            }
+          }
+          for (LockInfo lock : info.getLockedSynchronizers()) {
+            dump.append("\t- locked ").append(lock).append(Constant.NEWLINE);
+          }
+          dump.append(Constant.NEWLINE);
+        }
+        return dump.toString();
+      } catch (Exception e) {
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+        dump.setLength(0);
+      }
+    }
+    for (Map.Entry<Thread, StackTraceElement[]> thread : Thread.getAllStackTraces().entrySet()) {
+      dump.append('"').append(thread.getKey().getName()).append("\" ").append(thread.getKey().getState()).append(Constant.NEWLINE);
+      for (StackTraceElement frame : thread.getValue()) {
+        dump.append("\tat ").append(frame).append(Constant.NEWLINE);
+      }
+      dump.append(Constant.NEWLINE);
+    }
+    return dump.toString();
   }
 
   private static synchronized void initAzureus(GuiListener guiListener) {
@@ -470,6 +770,7 @@ public class Magnet extends Thread {
           }
         }
       }
+      startMetadataDownloads(core.getGlobalManager());
 
       if (Debug.DEBUG) {
         System.err.println("mlDHT plugin does IPv6 connection test, which may print to System.err ignorable exception: java.net.SocketException: Network is"
@@ -482,6 +783,38 @@ public class Magnet extends Thread {
     } finally {
       Connection.unsetStatusBar();
     }
+  }
+
+  // MagnetPlugin gets a magnet link's torrent from peers with a metadata download that it only force starts, leaving the Start/Stop Rules plugin to initialize
+  // and start it. That plugin is disabled, so do that here, as StreamingTorrentUtil does for its downloads. Otherwise metadata downloads never start, and
+  // MagnetPlugin only looks for the torrent from other BiglyBT clients, which is slow and often finds nothing.
+  private static void startMetadataDownloads(GlobalManager globalManager) {
+    globalManager.addListener(new GlobalManagerAdapter() {
+      @Override
+      public void downloadManagerAdded(DownloadManager download) {
+        if (!download.getDownloadState().getFlag(DownloadManagerState.FLAG_METADATA_DOWNLOAD)) {
+          return;
+        }
+        download.addListener(new DownloadManagerAdapter() {
+          @Override
+          public void stateChanged(DownloadManager manager, int state) {
+            if (state != DownloadManager.STATE_WAITING && state != DownloadManager.STATE_READY) {
+              return;
+            }
+            Worker.submit(() -> { // Not during BiglyBT's state change notification
+              synchronized (this) { // One at a time: initializing or starting a download twice makes BiglyBT fail it
+                int currState = manager.getState();
+                if (currState == DownloadManager.STATE_WAITING) {
+                  manager.initialize();
+                } else if (currState == DownloadManager.STATE_READY) {
+                  manager.startDownload();
+                }
+              }
+            });
+          }
+        }, true);
+      }
+    }, true);
   }
 
   public static synchronized void stopAzureus() {

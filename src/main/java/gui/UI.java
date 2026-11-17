@@ -1,6 +1,7 @@
 package gui;
 
 import debug.Debug;
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -121,6 +122,7 @@ import util.Connection;
 import util.Constant;
 import util.Regex;
 import util.ThrowableUtil;
+import util.WindowsUtil;
 import util.Worker;
 
 public class UI {
@@ -705,7 +707,7 @@ public class UI {
       @Override
       public void actionPerformed(ActionEvent evt) {
         try {
-          SystemTray.getSystemTray().add(trayIcon);
+          addToSystemTray(trayIcon);
           frame.setVisible(false);
         } catch (Exception e) {
           if (Debug.DEBUG) {
@@ -736,6 +738,14 @@ public class UI {
     }
 
     return trayIcon;
+  }
+
+  public static void addToSystemTray(TrayIcon trayIcon) throws AWTException {
+    if (Constant.WINDOWS) {
+      WindowsUtil.addTrayIcon(trayIcon);
+    } else {
+      SystemTray.getSystemTray().add(trayIcon);
+    }
   }
 
   private static String trayIconTitle(Frame frame) {

@@ -17,7 +17,6 @@ import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
@@ -5376,7 +5375,7 @@ public class GUI extends JFrame implements GuiListener {
       setVisible(false);
       if (trayIcon != null && UI.trayIcon(this) == null && isPlaylistActive()) {
         try {
-          SystemTray.getSystemTray().add(trayIcon);
+          UI.addToSystemTray(trayIcon);
           String title = trayIcon.getToolTip(), msg = null;
           int index = title.indexOf('\n');
           if (index != -1) {

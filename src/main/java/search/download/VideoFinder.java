@@ -30,13 +30,16 @@ import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
 import listener.VideoStrExportListener;
+import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import search.BoxSetVideo;
+import search.util.TitleParts;
 import search.util.VideoSearch;
 import str.Str;
 import torrent.FileTypeChecker;
@@ -511,8 +514,8 @@ public class VideoFinder extends Worker {
         torrentDownloadError(torrent);
       }
       startPeerBlock();
-      StreamingTorrentUtil.stream(torrent.magnetLink, VideoSearch.getTitleParts(torrent.name, video.isTVShow).title + guiListener.invisibleSeparator()
-              + Constant.FILE_SEPARATOR + torrent.name, true);
+      TitleParts titleParts = VideoSearch.getTitleParts(torrent.name, video.isTVShow);
+      StreamingTorrentUtil.stream(torrent.magnetLink, titleParts.title + guiListener.invisibleSeparator() + Constant.FILE_SEPARATOR + torrent.name, true);
 
       if (video.isTVShow && !video.season.equals(Constant.ANY) && !video.episode.equals(Constant.ANY)) {
         (new Worker() {
@@ -529,13 +532,17 @@ public class VideoFinder extends Worker {
               int index = nextEpisode.indexOf('E');
               nextVideo.season = nextEpisode.substring(1, index);
               nextVideo.episode = nextEpisode.substring(index + 1);
-              String prevEpisode;
-              if ((nextVideo.season.equals(video.season) && Integer.parseInt(nextVideo.episode) == Integer.parseInt(video.episode) + 1)
-                      || (Integer.parseInt(nextVideo.season) == Integer.parseInt(video.season) + 1 && !(prevEpisode = Regex.firstMatch(
-                      episodeSearcher.prevEpisodeText, "\\AS\\d++E\\d++")).isEmpty() && prevEpisode.substring(1, index = prevEpisode.indexOf(
-                              'E')).equals(video.season) && prevEpisode.substring(index + 1).equals(video.episode))) {
-                nextVideo.oldTitle = video.oldTitle;
-                StreamingTorrentUtil.stream(nextVideo, VideoUtil.describe(nextVideo), false);
+              for (Pair<String, String> episodePair : StreamEx.of(Pair.of(video.season, video.episode)).append(titleParts.episodes.stream().map(episode
+                      -> Pair.of(titleParts.season, episode))).toList()) {
+                String season = episodePair.getLeft(), episode = episodePair.getRight(), prevEpisode;
+                if (!season.isEmpty() && !episode.isEmpty() && ((nextVideo.season.equals(season) && Integer.parseInt(nextVideo.episode) == Integer.parseInt(
+                        episode) + 1) || (Integer.parseInt(nextVideo.season) == Integer.parseInt(season) + 1 && !(prevEpisode = Regex.firstMatch(
+                        episodeSearcher.prevEpisodeText, "\\AS\\d++E\\d++")).isEmpty() && prevEpisode.substring(1, index = prevEpisode.indexOf('E')).equals(
+                                season) && prevEpisode.substring(index + 1).equals(episode)))) {
+                  nextVideo.oldTitle = video.oldTitle;
+                  StreamingTorrentUtil.stream(nextVideo, VideoUtil.describe(nextVideo), false);
+                  break;
+                }
               }
             } catch (Exception e) {
               if (Debug.DEBUG) {

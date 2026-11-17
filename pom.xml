@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>algwares</groupId>
   <artifactId>vidmasta</artifactId>
-  <version>30.9</version>
+  <version>31.0</version>
   <packaging>jar</packaging>
-    
+
   <properties>
     <java.version>1.8</java.version>
     <jna.version>5.14.0</jna.version>
@@ -14,7 +15,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
-  
+
   <dependencies>
     <dependency>
       <groupId>com.toedter</groupId>
@@ -34,17 +35,17 @@
     <dependency>
       <groupId>com.jyloo</groupId>
       <artifactId>synthetica</artifactId>
-      <version>2.30.0</version>
+      <version>2.35.1</version>
     </dependency>
     <dependency>
       <groupId>com.jyloo</groupId>
       <artifactId>syntheticablackmoon</artifactId>
-      <version>2.9.6</version>
+      <version>2.9.8</version>
     </dependency>
     <dependency>
       <groupId>com.biglybt</groupId>
       <artifactId>biglybt</artifactId>
-      <version>4.0.0.0</version>
+      <version>4.1.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.swinglabs.swingx</groupId>
@@ -91,8 +92,13 @@
       <artifactId>awaitility</artifactId>
       <version>4.3.0</version>
     </dependency>
+    <dependency>
+      <groupId>one.util</groupId>
+      <artifactId>streamex</artifactId>
+      <version>0.9.0</version>
+    </dependency>
   </dependencies>
-        
+
   <build>
     <finalName>VidMasta</finalName>
     <plugins>
@@ -162,11 +168,15 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <repositories>
     <repository>
       <id>data-local</id>
       <url>file://${basedir}/repository</url>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
     </repository>
     <repository>
       <id>central</id>

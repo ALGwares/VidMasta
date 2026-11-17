@@ -38,6 +38,7 @@ import listener.PlaylistItem;
 import listener.Video;
 import listener.WorkerListener;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
 import str.Str;
 import util.AbstractWorker.StateValue;
@@ -74,6 +75,7 @@ public class StreamingTorrentUtil {
   }
 
   public static void startPlayer() {
+    Magnet.awaitAzureusConfig();
     synchronized (lock) {
       if (player != null) {
         return;
@@ -892,7 +894,8 @@ public class StreamingTorrentUtil {
   }
 
   public static FormattedNum size(long size) {
-    return new AbstractNum(size, size < 0 ? "" : DisplayFormatters.formatByteCountToKiBEtc(size)) {
+    return new AbstractNum(size, size < 0 ? "" : (Magnet.awaitAzureusConfig() ? DisplayFormatters.formatByteCountToKiBEtc(size)
+            : FileUtils.byteCountToDisplaySize(size))) {
       @Override
       public FormattedNum copy(Number newVal) {
         return null;
@@ -911,6 +914,7 @@ public class StreamingTorrentUtil {
   }
 
   public static PlaylistItem playlistItem(String groupID, String uri, File groupFile, int groupIndex, String name, boolean isFirstVersion) {
+    Magnet.awaitAzureusConfig(); // The item reads its torrent with BiglyBT later on the event dispatch thread (play, copy link), where it can't wait for that
     return new PlaylistTorrentItem(groupFile, isFirstVersion ? uri + Constant.FILE_SEPARATOR + name : uri, groupID, name, groupIndex);
   }
 

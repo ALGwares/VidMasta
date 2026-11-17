@@ -21,6 +21,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.management.ManagementFactory;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -34,6 +35,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -45,11 +47,18 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
@@ -69,27 +78,36 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.management.ObjectName;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.StrUpdateListener.UpdateListener;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.apache.commons.lang3.concurrent.LazyInitializer;
 import org.apache.commons.lang3.function.TriFunction;
-import static org.awaitility.Awaitility.await;
+import org.awaitility.Awaitility;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoSuchSessionException;
+import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WindowType;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.Event;
 import org.openqa.selenium.devtools.v113.network.Network;
@@ -99,6 +117,8 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.json.Json;
+import org.openqa.selenium.remote.UnreachableBrowserException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rauschig.jarchivelib.ArchiverFactory;
@@ -108,6 +128,7 @@ import util.function.ThrowingConsumer;
 import util.function.ThrowingFunction;
 import util.function.ThrowingRunnable;
 import util.function.ThrowingSupplier;
+import util.function.ThrowingUtil;
 
 public class Connection {
 
@@ -127,39 +148,79 @@ public class Connection {
   public static final File COOKIES = new File(Constant.APP_DIR, "cookies.txt");
   private static final AtomicReference<Consumer<String>> webBrowserRequestListener = new AtomicReference<>();
   private static final AtomicReference<Consumer<String>> webBrowserResponseListener = new AtomicReference<>();
-  private static Proxy webBrowserProxy = Proxy.NO_PROXY;
-  private static final Lock webBrowserLock = new ReentrantLock(), standaloneWebBrowserLock = new ReentrantLock();
+  private static volatile Proxy webBrowserProxy = Proxy.NO_PROXY;
+  // Page loads share the web browser through its read lock by loading in separate windows, while its write lock gives exclusive use of the web browser, such
+  // as to drive it for a custom request, change its proxy or restart it
+  private static final ReentrantReadWriteLock webBrowserLock = new ReentrantReadWriteLock(true);
+  private static final ReentrantLock webBrowserChangeLock = new ReentrantLock(), standaloneWebBrowserLock = new ReentrantLock();
+  private static final AtomicReference<FirefoxDriver> restartedWebBrowser = new AtomicReference<>();
+  private static final int MAX_NUM_WEB_BROWSER_WINDOWS = maxNumWebBrowserWindows();
+  private static final AtomicReference<WebBrowserWindows> webBrowserWindows = new AtomicReference<>();
   private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(931)));
-  private static final ThrowingRunnable webBrowserAsyncSleep = () -> Thread.sleep(Integer.parseInt(Str.get(932)));
   private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean(), curlInitShowStatus = new AtomicBoolean();
   private static final AtomicBoolean webBrowserInitialized = new AtomicBoolean();
   private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
   private static final AtomicReference<LazyInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
+  private static final AtomicReference<FirefoxDriver> lastWebBrowserDriver = new AtomicReference<>();
+  private static final AtomicBoolean webBrowserQuit = new AtomicBoolean(), webBrowserShutdownHookAdded = new AtomicBoolean();
+  private static volatile long webBrowserRetryTime;
+  private static volatile int numWebBrowserFailures;
   private static final ConcurrentMap<String, String> webBrowserCookies = new ConcurrentHashMap<>(4);
   private static final Set<String> webBrowserHosts = new ConcurrentSkipListSet<>();
   private static final Set<String> initErrors = new CopyOnWriteArraySet<>();
-  private static final LazyInitializer<String> curl = new LazyInitializer<String>() {
+  // Requests wait for the first initialization of curl. After it fails, initialization is retried in the background, without requests waiting for it, since the
+  // cause can be temporary: right after a cold boot, curl once hung at startup without any output, for hours.
+  private static final LazyInitializer<List<String>> firstCurlInit = new LazyInitializer<List<String>>() {
     @Override
-    protected String initialize() {
-      try {
-        File curlDir = new File(Constant.APP_DIR, "curl"), curlIndicator = new File(Constant.APP_DIR, Str.get(911));
-        if (!curlIndicator.exists()) {
-          File curlCompressed = new File(Constant.APP_DIR, Str.get(925));
-          saveData(Str.get(Constant.WINDOWS ? 908 : (Constant.MAC ? 909 : 910)), curlCompressed.getPath(), DomainType.UPDATE, curlInitShowStatus.get());
-          try {
-            IO.fileOp(curlDir, IO.RM_DIR);
-            ArchiverFactory.createArchiver(curlCompressed).extract(curlCompressed, new File(curlDir, curlIndicator.getName()));
-            IO.fileOp(curlIndicator, IO.MK_FILE);
-          } finally {
-            IO.fileOp(curlCompressed, IO.RM_FILE);
-          }
+    protected List<String> initialize() {
+      return initCurl();
+    }
+  };
+  private static volatile List<String> retriedCurlCmd;
+  private static final AtomicBoolean isRetryingCurlInit = new AtomicBoolean();
+  private static volatile long curlInitRetryNanoTime; // A monotonic time, unlike the wall clock, which can be corrected backwards after a cold boot
+  private static volatile int numCurlInitFailures;
+  private static final Set<Process> curlProcesses = ConcurrentHashMap.newKeySet();
+  private static final AtomicBoolean curlShutdownHookAdded = new AtomicBoolean();
+  // Hosts whose connections rejected ECH (Encrypted Client Hello), such as through antivirus HTTPS scanning, so that later requests don't try it again
+  private static final Set<String> echRejectingHosts = ConcurrentHashMap.newKeySet();
+
+  // Returns the command (curl and its arguments) that a request's arguments are added to, or null if curl is unavailable
+  private static List<String> curlCommand() throws ConcurrentException {
+    List<String> curlCmd = firstCurlInit.get();
+    if (curlCmd == null && (curlCmd = retriedCurlCmd) == null && System.nanoTime() - curlInitRetryNanoTime >= 0 && isRetryingCurlInit.compareAndSet(false,
+            true)) {
+      Worker.submit(() -> {
+        try {
+          retriedCurlCmd = initCurl();
+        } finally {
+          isRetryingCurlInit.set(false);
         }
-        String curlCmd = IO.findFile(curlDir, Regex.pattern(912)).getPath();
-        List<String> curlArgs = Lists.newArrayList(curlCmd);
-        Collections.addAll(curlArgs, Regex.split(929, Constant.SEPARATOR1));
-        ProcessBuilder curlBuilder = new ProcessBuilder(curlArgs);
-        curlBuilder.redirectErrorStream(true);
-        Process curlProcess = curlBuilder.start();
+      });
+    }
+    return curlCmd;
+  }
+
+  // Returns curl's command, or null if curl is unavailable
+  private static List<String> initCurl() {
+    try {
+      File curlDir = new File(Constant.APP_DIR, "curl"), curlIndicator = new File(Constant.APP_DIR, Str.get(911));
+      if (!curlIndicator.exists()) {
+        File curlCompressed = new File(Constant.APP_DIR, Str.get(925));
+        saveData(Str.get(Constant.WINDOWS ? 908 : (Constant.MAC ? 909 : 910)), curlCompressed.getPath(), DomainType.UPDATE, curlInitShowStatus.get());
+        try {
+          IO.fileOp(curlDir, IO.RM_DIR);
+          ArchiverFactory.createArchiver(curlCompressed).extract(curlCompressed, new File(curlDir, curlIndicator.getName()));
+          IO.fileOp(curlIndicator, IO.MK_FILE);
+        } finally {
+          IO.fileOp(curlCompressed, IO.RM_FILE);
+        }
+      }
+      List<String> curlCmd = curlCommand(IO.findFile(curlDir, Regex.pattern(912)));
+      List<String> curlArgs = new ArrayList<>(curlCmd);
+      Collections.addAll(curlArgs, Regex.split(929, Constant.SEPARATOR1));
+      Process curlProcess = startCurl(curlArgs);
+      try {
         StringBuffer curlOutput = new StringBuffer(512);
         Worker.submit(() -> {
           try (BufferedReader br = new BufferedReader(new InputStreamReader(curlProcess.getInputStream(), Constant.UTF8))) {
@@ -169,28 +230,104 @@ public class Connection {
             }
           }
         });
-        if (!curlProcess.waitFor(10, TimeUnit.SECONDS)) {
-          curlProcess.destroy();
+        // Generous, because the first run after a cold boot can be slow, such as while antivirus scans curl
+        if (!curlProcess.waitFor(30, TimeUnit.SECONDS)) {
           throw new RuntimeException("\n" + curlOutput + "\nCurl initialization timed out.");
         }
         int exitValue = curlProcess.exitValue();
         if (exitValue != 0) {
           throw new RuntimeException("\n" + curlOutput + "\nCurl initialization bad exit value: " + exitValue + ".");
         }
+      } finally {
+        stopCurl(curlProcess);
+      }
+      numCurlInitFailures = 0;
+      if (Debug.DEBUG) {
+        Debug.println("curl initialized: " + curlCmd);
+      }
+      return Collections.unmodifiableList(curlCmd);
+    } catch (Exception e) {
+      Throwable cause = ThrowableUtil.rootCause(e);
+      if (cause instanceof InterruptedException || cause instanceof CancellationException) {
+        ThrowingUtil.sneakyThrow(e); // Not a failure
+      }
+      int numFailures = ++numCurlInitFailures;
+      if (numFailures == 1) { // Not reported, since initialization is retried right away: a new process can work where one hung
         if (Debug.DEBUG) {
-          Debug.println("curl initialized");
+          Debug.print(e);
         }
-        return curlCmd;
+      } else {
+        handleInitError(e, numFailures == 2);
+      }
+      curlInitRetryNanoTime = System.nanoTime() + (numFailures == 1 ? 0 : (TimeUnit.MINUTES.toNanos(1) << Math.min(numFailures - 2, 5))); // Then 1 to 32 minutes
+      return null;
+    }
+  }
+
+  // Starts curl, which is killed if the app exits while it runs
+  private static Process startCurl(List<String> curlArgs) throws IOException {
+    if (curlShutdownHookAdded.compareAndSet(false, true)) {
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> curlProcesses.forEach(Process::destroy), "curl stopper"));
+    }
+    Process curlProcess = (new ProcessBuilder(curlArgs)).redirectErrorStream(true).start();
+    curlProcesses.add(curlProcess);
+    return curlProcess;
+  }
+
+  // Kills curl unless it has exited. On Windows, that's curl itself rather than its wrapper (see curlCommand(File)).
+  private static void stopCurl(Process curlProcess) {
+    curlProcess.destroy();
+    curlProcesses.remove(curlProcess);
+  }
+
+  // On Windows, curl comes with a batch file wrapper that only adds the arguments for impersonating a web browser. Running curl itself with those arguments
+  // instead means that destroying the process kills curl, whereas destroying the wrapper only kills its cmd.exe, leaving curl running (and holding the output
+  // pipe open). Falls back to the wrapper unless its command line is in the expected form: "%~dp0curl.exe" arguments %*
+  private static List<String> curlCommand(File wrapper) {
+    if (Constant.WINDOWS && wrapper.getName().toLowerCase(Locale.ENGLISH).endsWith(".bat")) {
+      try {
+        String wrapperDir = "%~dp0";
+        for (String line : Files.readAllLines(wrapper.toPath(), StandardCharsets.ISO_8859_1)) {
+          if (!(line = line.trim()).endsWith("%*")) {
+            continue;
+          }
+          List<String> curlCmd = new ArrayList<>(8);
+          Matcher arg = Regex.matcher("(?:[^\\s\"]++|\"[^\"]*+\")++", line.substring(0, line.length() - 2));
+          while (arg.find()) {
+            curlCmd.add(arg.group().replace("\"", ""));
+          }
+          // Apart from the wrapper's directory, the wrapper's command must be literal, with nothing for cmd.exe to expand
+          if (!curlCmd.isEmpty() && StringUtils.startsWithIgnoreCase(curlCmd.get(0), wrapperDir) && curlCmd.stream().noneMatch(currArg -> StringUtils.containsAny(
+                  StringUtils.removeStartIgnoreCase(currArg, wrapperDir), '%', '!', '^'))) {
+            File curlExe = new File(wrapper.getParentFile(), curlCmd.get(0).substring(wrapperDir.length()));
+            if (curlExe.isFile()) {
+              curlCmd.set(0, curlExe.getPath());
+              return curlCmd;
+            }
+          }
+          break;
+        }
       } catch (Exception e) {
-        handleInitError(e, true);
-        return null;
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+      }
+      if (Debug.DEBUG) {
+        Debug.println("running curl through its wrapper: " + wrapper);
       }
     }
-  };
+    return Lists.newArrayList(wrapper.getPath());
+  }
 
   private static FirefoxDriver createWebBrowser(boolean restart) throws Exception {
+    LazyInitializer<FirefoxDriver> prevWebBrowserDriver;
     if (restart) {
       webBrowserDriver.set(null);
+    } else if ((prevWebBrowserDriver = webBrowserDriver.get()) != null && prevWebBrowserDriver.get() == null
+            && System.currentTimeMillis() >= webBrowserRetryTime && !standaloneWebBrowserLock.isLocked()) {
+      // Try again in case the failure to create it was temporary, but not during a standalone web browser run: creating the web browser stops every process
+      // started from its executable, which the standalone web browser shares
+      webBrowserDriver.compareAndSet(prevWebBrowserDriver, null);
     }
     webBrowserDriver.compareAndSet(null, new LazyInitializer<FirefoxDriver>() {
       @Override
@@ -199,20 +336,7 @@ public class Connection {
           File webBrowserDir = new File(Constant.APP_DIR, "webBrowser");
           File firefoxBinary = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)));
           File firefoxDriver = new File(webBrowserDir, Str.get(Constant.WINDOWS ? 837 : (Constant.MAC ? 841 : 845)));
-          Consumer<Boolean> killWebBrowser = wait -> Arrays.asList(firefoxBinary, firefoxDriver).forEach(exe -> {
-            try {
-              Process process = (new ProcessBuilder(Constant.WINDOWS ? Arrays.asList("powershell", "get-process | where-object {$_.path -eq '" + exe.getPath()
-                      + "' -or ($_.name -eq '" + StringUtils.substringBeforeLast(exe.getName(), ".") + "' -and $_.path -eq $null)} | stop-process -force")
-                      : Arrays.asList("pkill", "-9", "-f", exe.getPath()))).start();
-              if (wait) {
-                process.waitFor();
-              }
-            } catch (Exception e) {
-              if (Debug.DEBUG) {
-                Debug.print(e);
-              }
-            }
-          });
+          Consumer<Boolean> killWebBrowser = wait -> killProcesses(wait, firefoxBinary, firefoxDriver);
           killWebBrowser.accept(true);
 
           File firefoxIndicator = new File(Constant.APP_DIR, Str.get(Constant.WINDOWS ? 836 : (Constant.MAC ? 840 : 844)));
@@ -235,6 +359,7 @@ public class Connection {
               throw new RuntimeException(e);
             }
           }
+          disableWebBrowserUpdates(firefoxBinary);
 
           if (webBrowserInitShowStatus.get()) {
             setStatusBar(webBrowserInitStatusMsg.updateAndGet(prev -> Str.str("initializing") + "..."));
@@ -245,6 +370,9 @@ public class Connection {
           options.setBinary(firefoxBinary.getPath());
           options.setAcceptInsecureCerts(true);
           options.setUnhandledPromptBehaviour(UnexpectedAlertBehaviour.ACCEPT);
+          // FirefoxDriver.get() returns without waiting for the page to load so that pages can load concurrently in separate windows (see
+          // WebBrowserWindow.load())
+          options.setPageLoadStrategy(PageLoadStrategy.NONE);
           options.addArguments(Regex.split(848, Constant.SEPARATOR1));
           FirefoxProfile profile = new FirefoxProfile();
           Arrays.stream(Regex.split(849, Constant.SEPARATOR2)).map(pref -> Regex.split(pref, Constant.SEPARATOR1)).forEach(pref -> profile.setPreference(pref[0],
@@ -252,29 +380,29 @@ public class Connection {
                   : pref[1])));
           Arrays.asList(869, 870).forEach(i -> profile.setPreference(Str.get(i), Constant.TEMP_DIR));
           options.setProfile(profile);
-          AtomicReference<FirefoxDriver> driverRef = new AtomicReference<>();
-          AtomicBoolean quit = new AtomicBoolean();
-          Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            FirefoxDriver tempDriver = driverRef.get();
-            if (tempDriver != null) {
-              quit.set(true);
-              try {
-                tempDriver.quit();
-              } catch (Exception e) {
-                if (Debug.DEBUG) {
-                  Debug.print(e);
+          if (webBrowserShutdownHookAdded.compareAndSet(false, true)) { // Once instead of for every web browser
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+              FirefoxDriver tempDriver = lastWebBrowserDriver.get();
+              if (tempDriver != null) {
+                webBrowserQuit.set(true);
+                try {
+                  tempDriver.quit();
+                } catch (Exception e) {
+                  if (Debug.DEBUG) {
+                    Debug.print(e);
+                  }
                 }
               }
-            }
-            killWebBrowser.accept(false);
-          }));
+              killWebBrowser.accept(false);
+            }));
+          }
 
           System.setErr(new PrintStream(new OutputStream() {
             private final StringBuffer line = new StringBuffer(1024);
 
             @Override
             public void write(int b) {
-              if (quit.get()) {
+              if (webBrowserQuit.get()) {
                 return;
               }
               if (b == '\n') {
@@ -292,8 +420,22 @@ public class Connection {
             }
           }));
 
-          driverRef.set(new FirefoxDriver(options));
-          FirefoxDriver driver = driverRef.get();
+          FirefoxDriver driver = null;
+          for (int attempt = 1; driver == null; attempt++) {
+            try {
+              driver = new FirefoxDriver(options);
+            } catch (WebDriverException e) { // Such as when Firefox briefly can't read its own files and quits while starting
+              if (attempt == 3) {
+                throw e;
+              }
+              if (Debug.DEBUG) {
+                Debug.println("retrying web browser creation: " + Regex.firstMatch(e.toString(), ".+"));
+              }
+              killWebBrowser.accept(true);
+              Thread.sleep(attempt * 2_000L);
+            }
+          }
+          lastWebBrowserDriver.set(driver);
           DevTools devTools = driver.getDevTools();
           devTools.createSessionIfThereIsNotOne();
           devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
@@ -326,12 +468,17 @@ public class Connection {
           };
           addUrlListener.apply("requestWillBeSent", "request", webBrowserRequestListener);
           addUrlListener.apply("responseReceived", "response", webBrowserResponseListener);
+          webBrowserWindows.set(new WebBrowserWindows(driver)); // The DevTools session is in the first (main) window
+          webBrowserProxy = Proxy.NO_PROXY; // A new web browser has no proxy set or cookies loaded
+          webBrowserHosts.clear();
           if (Debug.DEBUG) {
             Debug.println("web browser " + (restart ? "re" : "") + "created");
           }
+          numWebBrowserFailures = 0;
           return driver;
         } catch (Exception e) {
-          handleInitError(e, !webBrowserInitialized.get());
+          handleInitError(e, !webBrowserInitialized.get()); // Rethrows an interruption, which isn't a failure to count
+          webBrowserRetryTime = System.currentTimeMillis() + (TimeUnit.MINUTES.toMillis(1) << Math.min(numWebBrowserFailures++, 5)); // 1 to 32 minutes
           return null;
         } finally {
           webBrowserInitialized.set(true);
@@ -343,10 +490,62 @@ public class Connection {
     return webBrowserDriver.get().get();
   }
 
+  // A window for each processor (2 to 4), but no more than one for each GB of memory, such as on 32-bit Windows with little memory
+  private static int maxNumWebBrowserWindows() {
+    int numWindows = Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors()));
+    try {
+      Object memory = ManagementFactory.getPlatformMBeanServer().getAttribute(new ObjectName("java.lang:type=OperatingSystem"), "TotalPhysicalMemorySize");
+      if (memory instanceof Number) {
+        numWindows = (int) Math.max(1, Math.min(numWindows, Math.round(((Number) memory).longValue() / (double) (1L << 30))));
+      }
+    } catch (Exception e) { // Such as a Java without this attribute
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    }
+    return numWindows;
+  }
+
+  // Firefox updates itself (the update prefs have been ignored since Firefox 63), which could replace the bundled version with one that the web browser
+  // automation doesn't support (such as on Windows 10/11, where the release channel moves past ESR 115), so an enterprise policy disables updates. On
+  // Windows, removing the updater also stops an update that was already downloaded from being applied when Firefox next starts.
+  private static void disableWebBrowserUpdates(File firefoxBinary) {
+    try {
+      File installDir = firefoxBinary.getParentFile();
+      File policiesFile = new File(new File(Constant.MAC ? new File(installDir.getParentFile(), "Resources") : installDir, "distribution"), "policies.json");
+      Json json = new Json();
+      Map<String, Object> config = new LinkedHashMap<>();
+      if (policiesFile.exists()) {
+        config.putAll(json.<Map<String, Object>>toType(IO.read(policiesFile), Json.MAP_TYPE));
+      }
+      @SuppressWarnings("unchecked")
+      Map<String, Object> policies = new LinkedHashMap<>((Map<String, Object>) config.getOrDefault("policies", Collections.emptyMap()));
+      if (!Boolean.TRUE.equals(policies.get("DisableAppUpdate"))) {
+        policies.put("DisableAppUpdate", true);
+        config.put("policies", policies);
+        IO.fileOp(policiesFile.getParentFile(), IO.MK_DIR);
+        IO.write(policiesFile, json.toJson(config).replaceAll("(?<!\\\\)((?:\\\\\\\\)*)\\\\u002f", "$1/")); // Unescape Selenium's escaped slashes
+      }
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    }
+    if (Constant.WINDOWS) {
+      File installDir = firefoxBinary.getParentFile(), updater = new File(installDir, "updater.exe"), stagedUpdate = new File(installDir, "updated");
+      if (updater.exists() && !IO.fileOp(updater, IO.RM_FILE) && Debug.DEBUG) {
+        Debug.println("unable to remove web browser updater");
+      }
+      if (stagedUpdate.exists()) {
+        IO.fileOp(stagedUpdate, IO.RM_DIR);
+      }
+    }
+  }
+
   private static void handleInitError(Exception e, boolean isStartup) {
     Throwable cause = ThrowableUtil.rootCause(e);
     if (cause instanceof InterruptedException || cause instanceof CancellationException) {
-      ThrowableUtil.sneakyThrow(e);
+      ThrowingUtil.sneakyThrow(e);
     }
     String msg = Str.str("connectionInitError") + ' ' + Regex.firstMatch(String.valueOf(cause), ".+");
     if (initErrors.add(msg)) {
@@ -362,7 +561,7 @@ public class Connection {
 
   public static void startHttpClients() {
     if (Boolean.parseBoolean(Str.get(926))) {
-      Worker.submit(() -> curl.get());
+      Worker.submit(() -> curlCommand());
     } else {
       curlInitShowStatus.set(true);
     }
@@ -374,7 +573,7 @@ public class Connection {
   }
 
   public static void awaitSearchCompletion() throws Exception {
-    await().forever().until(isSearchingDone);
+    Awaitility.await().forever().until(isSearchingDone);
   }
 
   public static void init(GuiListener guiListener, Callable<Boolean> isSearchingDone) {
@@ -538,8 +737,10 @@ public class Connection {
 
   private static String getSourceCodeHelper(String url, String originalUrl, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
           int maxNumRedirects, WebBrowserRequest webBrowserRequest, boolean canRetry, Class<?>... throwables) throws Exception {
-    boolean useCurl = Regex.isMatch(url, 933) && curl.get() != null;
-    if (webBrowserRequest == null && Regex.isMatch(url, 871) && !useCurl && createWebBrowser(false) != null) {
+    boolean useCurl = Regex.isMatch(url, 933) && curlCommand() != null;
+    // A repeated request (canRetry is false) keeps its original client instead of switching to the web browser: it can run while its original request uses
+    // the web browser (in retry()), which a nested web browser request could wait for forever
+    if (webBrowserRequest == null && canRetry && Regex.isMatch(url, 871) && !useCurl && createWebBrowser(false) != null) {
       if (!Regex.isMatch(url, 873)) {
         return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest(), canRetry,
                 throwables);
@@ -652,7 +853,8 @@ public class Connection {
 
               File webBrowser = new File(Constant.APP_DIR, "webBrowser");
               ThrowingConsumer<Boolean> runStandaloneWebBrowser = headless -> {
-                List<String> args = Lists.newArrayList((new File(webBrowser, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)))).getPath());
+                File firefoxBinary = new File(webBrowser, Str.get(Constant.WINDOWS ? 838 : (Constant.MAC ? 842 : 846)));
+                List<String> args = Lists.newArrayList(firefoxBinary.getPath());
                 Collections.addAll(args, Regex.split(headless ? 938 : 945, Constant.SEPARATOR1));
                 Collections.addAll(args, Str.get(939), WEB_BROWSER_PROFILE.getPath());
                 Collections.addAll(args, Str.get(940), url);
@@ -687,7 +889,7 @@ public class Connection {
                     }
                   }
                 } finally {
-                  firefox.destroy();
+                  stopStandaloneWebBrowser(firefox, firefoxBinary);
                 }
 
                 try (java.sql.Connection cookiesDbConnection = DriverManager.getConnection("jdbc:sqlite:" + WEB_BROWSER_COOKIE_DB.getPath());
@@ -709,6 +911,9 @@ public class Connection {
                   if (Debug.DEBUG) {
                     Debug.print(e);
                   }
+                }
+                if (Thread.interrupted()) { // Stopping the standalone web browser only keeps a cancellation pending, so don't go on to a visible run
+                  throw new InterruptedException();
                 }
               };
 
@@ -804,76 +1009,64 @@ public class Connection {
               checkConnectionResponse(connection, url);
             }
           } else {
-            webBrowserLock.lockInterruptibly();
-            Consumer<Boolean> getSourceCode = restartWebBrowser -> ThrowingRunnable.run(() -> {
-              FirefoxDriver driver = createWebBrowser(restartWebBrowser);
-              driver.getDevTools().createSessionIfThereIsNotOne();
-              driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(shortTimeoutUrls.getIfPresent((new URL(url)).getHost()) == null
-                      ? (guiListener.getTimeout() + 45) : 45));
-              if (!webBrowserProxy.equals(proxy)) {
-                String setProxyScript;
-                if (proxy.equals(Proxy.NO_PROXY)) {
-                  setProxyScript = Str.get(852);
-                } else {
-                  InetSocketAddress socketAddress = (InetSocketAddress) proxy.address();
-                  setProxyScript = String.format(Str.get(853), socketAddress.getAddress().getHostAddress(), socketAddress.getPort());
+            AtomicReference<FirefoxDriver> webBrowserUsed = new AtomicReference<>();
+            ThrowingConsumer<Boolean> getSourceCode = restartWebBrowser -> {
+              AtomicBoolean retried = new AtomicBoolean();
+              String sourceCode = useWebBrowser(url, proxy, webBrowserRequest, restartWebBrowser ? webBrowserUsed.get() : null, webBrowserUsed, window -> {
+                if (!restartWebBrowser) {
+                  String retrySourceCode = webBrowserRequest.retry(); // Now that it's this request's turn to use the web browser
+                  if (retrySourceCode != null) {
+                    retried.set(true);
+                    return retrySourceCode;
+                  }
                 }
-                driver.get(Str.get(851));
-                webBrowserSleep.run();
-                webBrowserProxy = proxy;
-                driver.executeScript(setProxyScript);
-                webBrowserSleep.run();
-              }
-              if (showStatus) {
-                setStatusBar(Str.str("transferring") + ' ' + statusMsg);
-              }
-              String sourceCode = webBrowserRequest.get(url, driver, webBrowserSleep, cacheExpirationMs);
-              webBrowserLock.unlock();
-              source.append(Optional.ofNullable(retry2.get().apply(-1, sourceCode)).orElse(sourceCode));
-            });
+                if (showStatus) {
+                  setStatusBar(Str.str("transferring") + ' ' + statusMsg);
+                }
+                return webBrowserRequest.exclusive ? webBrowserRequest.get(url, window.driver, webBrowserSleep, cacheExpirationMs)
+                        : webBrowserRequest.get(url, window, cacheExpirationMs, true);
+              });
+              source.append(retried.get() ? sourceCode : Optional.ofNullable(retry2.get().apply(-1, sourceCode)).orElse(sourceCode));
+            };
             try {
-              String sourceCode = webBrowserRequest.retry();
-              if (sourceCode == null) {
+              try {
+                getSourceCode.acceptWithException(false);
+              } catch (TimeoutException e) {
+                throw e;
+              } catch (WebDriverException e) {
                 try {
-                  getSourceCode.accept(false);
-                } catch (TimeoutException e) {
-                  throw e;
-                } catch (WebDriverException e) {
+                  if (e instanceof WebBrowserErrorPageException) {
+                    throw e; // Restarting the web browser wouldn't help
+                  }
                   if (Debug.DEBUG) {
                     Debug.println("restarting web browser because it probably died: " + Regex.firstMatch(e.toString(), ".+"));
                   }
-                  try {
-                    getSourceCode.accept(true);
-                  } catch (TimeoutException e2) {
+                  getSourceCode.acceptWithException(true);
+                } catch (TimeoutException e2) {
+                  throw e2;
+                } catch (WebDriverException e2) {
+                  if (!Regex.isMatch(url, 930) || curlCommand() == null) {
                     throw e2;
-                  } catch (WebDriverException e2) {
-                    if (!Regex.isMatch(url, 930) || curl.get() == null) {
-                      throw e2;
-                    }
-                    if (Debug.DEBUG) {
-                      Debug.println("retrying with curl because web browser failed: " + Regex.firstMatch(e2.toString(), ".+") + '\n' + url + " (curl)");
-                    }
-                    String output = curl(url, webBrowserRequest.outputPath, webBrowserRequest.referer, maxNumRedirects, webBrowserRequest.cookie, proxy,
-                            this::isCancelled, null);
-                    if (output == null) {
-                      return "";
-                    }
-                    source.append(IO.read(output));
-                    if (webBrowserRequest.outputPath == null) {
-                      webBrowserRequest.cache(url, source.toString());
-                      IO.fileOp(output, IO.RM_FILE);
-                    }
+                  }
+                  if (Debug.DEBUG) {
+                    Debug.println("retrying with curl because web browser failed: " + Regex.firstMatch(e2.toString(), ".+") + '\n' + url + " (curl)");
+                  }
+                  String output = curl(url, webBrowserRequest.outputPath, webBrowserRequest.referer, maxNumRedirects, webBrowserRequest.cookie, proxy,
+                          this::isCancelled, null);
+                  if (output == null) {
+                    return "";
+                  }
+                  source.append(IO.read(output));
+                  if (webBrowserRequest.outputPath == null) {
+                    webBrowserRequest.cache(url, source.toString());
+                    IO.fileOp(output, IO.RM_FILE);
                   }
                 }
-              } else {
-                source.append(sourceCode);
               }
+            } catch (InterruptedException | CancellationException e) {
+              throw e;
             } catch (Exception e) {
               throw new IOException("web browser error for " + url, e);
-            } finally {
-              try {
-                webBrowserLock.unlock();
-              } catch (Exception e) {/* Ignore */ }
             }
           }
 
@@ -930,9 +1123,208 @@ public class Connection {
     }).executeAndGet();
   }
 
+  // Runs a task with the web browser. Page loads share the web browser by loading in separate windows, while requests that drive the web browser themselves
+  // get exclusive use of it in its main window (whose DevTools session the request and response listeners use). The web browser is restarted if it's
+  // deadWebBrowser, unless that's already been done.
+  private static String useWebBrowser(String url, Proxy proxy, WebBrowserRequest request, FirefoxDriver deadWebBrowser,
+          AtomicReference<FirefoxDriver> webBrowserUsed, ThrowingFunction<WebBrowserWindow, String> task) throws Exception {
+    Duration pageLoadTimeout = Duration.ofSeconds(shortTimeoutUrls.getIfPresent((new URL(url)).getHost()) == null ? (guiListener.getTimeout() + 45) : 45);
+    Lock readLock = webBrowserLock.readLock(), writeLock = webBrowserLock.writeLock(), lock = null;
+    try {
+      FirefoxDriver driver = null;
+      if (request.exclusive) {
+        writeLock.lockInterruptibly();
+        lock = writeLock;
+        driver = changeWebBrowser(deadWebBrowser, proxy, pageLoadTimeout, webBrowserUsed);
+      } else {
+        while (lock == null) {
+          if (!isWebBrowserChangeNeeded(deadWebBrowser, proxy)) {
+            readLock.lockInterruptibly();
+            lock = readLock;
+            // Get the web browser before checking its proxy, because creating the web browser resets its proxy. Then, while the lock is held, the web
+            // browser can't be replaced.
+            if ((driver = createWebBrowser(false)) != null && !webBrowserProxy.equals(proxy)) {
+              lock = null;
+              readLock.unlock();
+            }
+            continue;
+          }
+          // A change needs exclusive use of the web browser. Making one change at a time lets requests that need the same change skip waiting for exclusive
+          // use once it's been made.
+          webBrowserChangeLock.lockInterruptibly();
+          try {
+            if (isWebBrowserChangeNeeded(deadWebBrowser, proxy)) {
+              writeLock.lockInterruptibly();
+              lock = writeLock;
+              driver = changeWebBrowser(deadWebBrowser, proxy, pageLoadTimeout, webBrowserUsed);
+              readLock.lock(); // Downgrade to share the web browser
+              writeLock.unlock();
+              lock = readLock;
+            }
+          } finally {
+            webBrowserChangeLock.unlock();
+          }
+        }
+      }
+
+      WebBrowserWindows windows = webBrowserWindows.get();
+      if (driver == null || windows == null || windows.driver != driver) {
+        throw new IOException("web browser unavailable");
+      }
+      webBrowserUsed.set(driver);
+
+      if (request.exclusive) {
+        windows.window(windows.mainWindow, pageLoadTimeout).run(mainDriver -> {
+          mainDriver.getDevTools().createSessionIfThereIsNotOne();
+          mainDriver.manage().timeouts().pageLoadTimeout(pageLoadTimeout);
+          return null;
+        });
+        try {
+          return task.applyWithException(new WebBrowserWindow(driver, pageLoadTimeout));
+        } finally {
+          windows.forgetCurrentWindow(); // In case the request switched windows
+        }
+      }
+
+      String host = (new URL(url)).getHost(), window = windows.acquire(host);
+      try {
+        return task.applyWithException(windows.window(window, pageLoadTimeout));
+      } finally {
+        windows.release(window, host);
+      }
+    } finally {
+      if (lock != null) {
+        lock.unlock();
+      }
+    }
+  }
+
+  private static boolean isWebBrowserChangeNeeded(FirefoxDriver deadWebBrowser, Proxy proxy) {
+    return isWebBrowserRestartNeeded(deadWebBrowser) || !webBrowserProxy.equals(proxy);
+  }
+
+  // Unless another request already restarted it, or tried to
+  private static boolean isWebBrowserRestartNeeded(FirefoxDriver deadWebBrowser) {
+    return deadWebBrowser != null && deadWebBrowser == lastWebBrowserDriver.get() && deadWebBrowser != restartedWebBrowser.get();
+  }
+
+  // Restarts the web browser and sets its proxy as needed, while having exclusive use of it. Returns the web browser, or null if it's unavailable.
+  private static FirefoxDriver changeWebBrowser(FirefoxDriver deadWebBrowser, Proxy proxy, Duration pageLoadTimeout,
+          AtomicReference<FirefoxDriver> webBrowserUsed) throws Exception {
+    if (isWebBrowserRestartNeeded(deadWebBrowser)) {
+      restartedWebBrowser.set(deadWebBrowser);
+      createWebBrowser(true);
+    }
+    FirefoxDriver driver = createWebBrowser(false); // Before checking the proxy, because creating the web browser resets its proxy
+    if (driver == null || webBrowserProxy.equals(proxy)) {
+      return driver;
+    }
+    webBrowserUsed.set(driver); // So that the web browser gets restarted if it dies while setting its proxy
+
+    String setProxyScript;
+    if (proxy.equals(Proxy.NO_PROXY)) {
+      setProxyScript = Str.get(852);
+    } else {
+      InetSocketAddress socketAddress = (InetSocketAddress) proxy.address();
+      setProxyScript = String.format(Str.get(853), socketAddress.getAddress().getHostAddress(), socketAddress.getPort());
+    }
+    WebBrowserWindows windows = webBrowserWindows.get();
+    WebBrowserWindow mainWindow = windows.window(windows.mainWindow, pageLoadTimeout);
+    mainWindow.load(Str.get(851), false);
+    webBrowserSleep.run();
+    mainWindow.run(mainDriver -> mainDriver.executeScript(setProxyScript));
+    webBrowserProxy = proxy;
+    webBrowserSleep.run();
+    return driver;
+  }
+
+  // Stops the standalone web browser. On Windows, its process can be a launcher that starts the actual web browser in another process and exits, so this also
+  // stops (and waits for) any web browser process using the standalone web browser's profile, which a following run couldn't otherwise use.
+  private static void stopStandaloneWebBrowser(Process firefox, File firefoxBinary) {
+    firefox.destroy();
+    if (Constant.WINDOWS) { // The profile path is matched with -like, so its wildcard characters are escaped
+      int numStopped = stopProcesses("Get-WmiObject Win32_Process -Filter " + powerShellString("Name='" + firefoxBinary.getName() + '\'') + " | Where-Object"
+              + " {$_.CommandLine -like " + powerShellString('*' + WEB_BROWSER_PROFILE.getPath().replaceAll("[`\\[\\]*?]", "`$0") + '*') + "} | ForEach-Object"
+              + " {$_.ProcessId}", true);
+      if (numStopped > 0 && Debug.DEBUG) {
+        Debug.println("stopped " + numStopped + " standalone web browser process(es) that outlived its launcher process");
+      }
+    }
+  }
+
+  // Stops every process started from one of the executables, and if wait is true, waits for them to exit.
+  private static void killProcesses(boolean wait, File... exes) {
+    if (!Constant.WINDOWS) {
+      Arrays.stream(exes).forEach(exe -> {
+        try {
+          Process process = (new ProcessBuilder("pkill", "-9", "-f", exe.getPath())).start();
+          if (wait) {
+            process.waitFor();
+          }
+        } catch (Exception e) {
+          if (Debug.DEBUG) {
+            Debug.print(e);
+          }
+        }
+      });
+      return;
+    }
+
+    // Executable paths are matched through WMI because in 32-bit PowerShell (which 32-bit Java starts), Get-Process can't see the paths of 64-bit processes, so it
+    // can't tell VidMasta's processes from others with the same name, such as the user's own 64-bit Firefox. Get-Process is the fallback if WMI fails.
+    UnaryOperator<String> isExe = pathProperty -> Arrays.stream(exes).map(exe -> "$_." + pathProperty + " -eq " + powerShellString(exe.getPath())).collect(
+            Collectors.joining(" -or "));
+    int numStopped = stopProcesses("try {Get-WmiObject Win32_Process -Filter " + powerShellString(Arrays.stream(exes).map(exe -> "Name='" + exe.getName() + '\'')
+            .collect(Collectors.joining(" OR "))) + " -ErrorAction Stop | Where-Object {" + isExe.apply("ExecutablePath") + "} | ForEach-Object {$_.ProcessId}}"
+            + " catch {Get-Process -Name " + Arrays.stream(exes).map(exe -> powerShellString(StringUtils.substringBeforeLast(exe.getName(), "."))).collect(
+                    Collectors.joining(",")) + " -ErrorAction SilentlyContinue | Where-Object {" + isExe.apply("Path") + "} | ForEach-Object {$_.Id}}", wait);
+    if (numStopped > 0 && Debug.DEBUG) {
+      Debug.println("stopped " + numStopped + " web browser process(es)");
+    }
+  }
+
+  // Runs Windows PowerShell to stop the processes whose IDs the given statement outputs, and if wait is true, waits up to 10 seconds for them to exit. Returns how
+  // many it stopped, or -1 if unknown. The statement should only use cmdlets and operators (no .NET calls), so that it works in PowerShell 2.0 (Windows 7) to 5.1
+  // (Windows 10/11), including in Constrained Language Mode.
+  private static int stopProcesses(String processIds, boolean wait) {
+    try {
+      Process stopper = (new ProcessBuilder("powershell", "-NoProfile", "-NonInteractive", "-Command", "$p = @(" + processIds + "); if ($p.Count) {Stop-Process -Id"
+              + " $p -Force -ErrorAction SilentlyContinue; Wait-Process -Id $p -Timeout 10 -ErrorAction SilentlyContinue}; $p.Count")).redirectErrorStream(true)
+              .start();
+      stopper.getOutputStream().close(); // Or PowerShell can wait for input
+      if (!wait) {
+        return -1;
+      }
+      if (!stopper.waitFor(30, TimeUnit.SECONDS)) {
+        stopper.destroy();
+        if (Debug.DEBUG) {
+          Debug.println("timed out stopping processes");
+        }
+        return -1;
+      }
+      String numStopped = Regex.firstMatch(new String(IOUtils.toByteArray(stopper.getInputStream())), "\\d++(?=\\s*+\\z)");
+      return numStopped.isEmpty() ? -1 : Integer.parseInt(numStopped);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt(); // The started PowerShell still stops the processes
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+    }
+    return -1;
+  }
+
+  // A single-quoted PowerShell string, which PowerShell also lets typographic single quotes end
+  private static String powerShellString(String str) {
+    return '\'' + str.replaceAll("['\\u2018\\u2019\\u201A\\u201B]", "$0$0") + '\'';
+  }
+
+  // curl's exit code when ECH (Encrypted Client Hello) is rejected
+  private static final int CURLE_ECH_REQUIRED = 101;
+
   private static String curl(String url, String outputPath, String referer, int maxNumRedirects, String cookie, Proxy proxy, Supplier<Boolean> isCancelled,
           ThrowingBiFunction<Integer, CharSequence, String> retry) throws Exception {
-    List<String> curlArgs = Lists.newArrayList(curl.get());
+    List<String> curlArgs = new ArrayList<>(curlCommand());
     Collections.addAll(curlArgs, Regex.split(913, Constant.SEPARATOR1));
     if (outputPath != null) {
       Collections.addAll(curlArgs, Regex.split(914, Constant.SEPARATOR1));
@@ -948,41 +1340,68 @@ public class Connection {
     Optional.ofNullable(postData(urlObj)).ifPresent(postData -> Collections.addAll(curlArgs, Str.get(919), quote.apply(postData)));
     Optional.ofNullable(cookie).ifPresent(cookieData -> Collections.addAll(curlArgs, Str.get(928), quote.apply(cookieData)));
     webBrowserCookies.values().stream().sorted().forEach(cookieData -> Collections.addAll(curlArgs, Str.get(928), quote.apply(cookieData)));
+    boolean greaseEch = echRejectingHosts.contains(urlObj.getHost());
+    if (greaseEch) {
+      Collections.addAll(curlArgs, "--ech", "grease");
+    }
     String output = (outputPath == null ? Constant.TEMP_DIR + UUID.randomUUID().toString() : outputPath);
     Collections.addAll(curlArgs, Str.get(920), quote.apply(output));
     curlArgs.add(quote.apply(url));
-    ProcessBuilder curlBuilder = new ProcessBuilder(curlArgs);
-    curlBuilder.redirectErrorStream(true);
-    Process curlProcess = curlBuilder.start();
+    Process curlProcess = startCurl(curlArgs);
     try {
       if (isCancelled.get()) {
         return null;
       }
 
-      StringBuilder curlOutput = new StringBuilder(8192);
-      try (BufferedReader br = new BufferedReader(new InputStreamReader(curlProcess.getInputStream(), Constant.UTF8))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-          if (isCancelled.get()) {
-            return null;
-          }
-          curlOutput.append(line).append(Constant.NEWLINE);
-          if (!Regex.firstMatch(line, 921).isEmpty()) {
-            if (Debug.DEBUG) {
-              Debug.println("\n" + curlOutput);
+      // The output is read on another thread, so that this one can stop curl as soon as the request is cancelled, or if curl hangs without writing anything
+      // (as it once did at startup right after a cold boot), instead of waiting for curl to write or exit
+      StringBuffer curlOutput = new StringBuffer(8192);
+      AtomicBoolean isErrorOutput = new AtomicBoolean();
+      Worker outputReader = Worker.submit(() -> {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(curlProcess.getInputStream(), Constant.UTF8))) {
+          String line;
+          while ((line = br.readLine()) != null) {
+            curlOutput.append(line).append(Constant.NEWLINE);
+            if (!Regex.firstMatch(line, 921).isEmpty()) {
+              isErrorOutput.set(true);
+              curlProcess.destroy();
             }
-            throw new IOException(error(url));
           }
         }
+      });
+      long hangNanoTime = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout + 30);
+      while (!curlProcess.waitFor(250, TimeUnit.MILLISECONDS)) {
+        if (isCancelled.get()) {
+          return null;
+        }
+        if (curlOutput.length() == 0 && System.nanoTime() - hangNanoTime >= 0) {
+          if (Debug.DEBUG) {
+            Debug.println("Curl request hung.");
+          }
+          throw new IOException(error(url));
+        }
       }
-      if (!curlProcess.waitFor(timeout + 30, TimeUnit.SECONDS)) {
-        curlProcess.destroy();
+      try {
+        outputReader.get(30, TimeUnit.SECONDS); // The rest of the output, which ends when curl exits
+      } catch (java.util.concurrent.TimeoutException e) {
+        throw new IOException(error(url), e);
+      }
+      if (isErrorOutput.get()) {
         if (Debug.DEBUG) {
-          Debug.println("Curl request timed out.");
+          Debug.println("\n" + curlOutput);
         }
         throw new IOException(error(url));
       }
       int exitValue = curlProcess.exitValue();
+      if (exitValue == CURLE_ECH_REQUIRED && !greaseEch) {
+        // Unlike a web browser, curl doesn't retry without ECH when ECH is rejected, such as by antivirus HTTPS scanning, which intercepts TLS without
+        // supporting ECH and so rejects it without the retry configs a server would send. Retry with ECH GREASE, as a browser without an ECH config sends.
+        if (Debug.DEBUG) {
+          Debug.println("retrying without ECH because it was rejected: " + url + " (curl)");
+        }
+        echRejectingHosts.add(urlObj.getHost());
+        return curl(url, outputPath, referer, maxNumRedirects, cookie, proxy, isCancelled, retry);
+      }
       if (exitValue != 0) {
         if (Debug.DEBUG) {
           Debug.println("Curl request bad exit value: " + exitValue + ".");
@@ -1003,7 +1422,7 @@ public class Connection {
       IO.fileOp(output, IO.RM_FILE);
       throw e;
     } finally {
-      curlProcess.destroy();
+      stopCurl(curlProcess);
     }
   }
 
@@ -1225,13 +1644,13 @@ public class Connection {
 
   public static String saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer, int maxNumRedirects, String cookie,
           boolean useWebBrowser) throws Exception {
-    boolean useCurl = Regex.isMatch(url, 924) && curl.get() != null;
+    boolean useCurl = Regex.isMatch(url, 924) && curlCommand() != null;
     if ((useWebBrowser || (Regex.isMatch(url, 872) && !useCurl)) && createWebBrowser(false) != null) {
       return getSourceCode(url, domainType, showStatus, true, -1, new WebBrowserRequest(outputPath, referer, cookie) {
         @Override
         public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
           long startTime = System.currentTimeMillis();
-          driver.get("about:about");
+          load(driver, "about:about");
           Duration timeout = driver.manage().timeouts().getPageLoadTimeout();
           (new WebDriverWait(driver, timeout)).until(ExpectedConditions.presenceOfElementLocated(By.xpath(Str.get(874))));
 
@@ -1242,7 +1661,7 @@ public class Connection {
                     url, UUID.randomUUID().toString())), driver);
             sleep.run();
 
-            driver.get("about:downloads");
+            load(driver, "about:downloads");
             sleep.run();
             clearDownloads = () -> {
               try {
@@ -1526,7 +1945,7 @@ public class Connection {
     }
   }
 
-  private static void saveCookies() throws Exception {
+  private static synchronized void saveCookies() throws Exception {
     IO.write(COOKIES, webBrowserCookies.entrySet().stream().map(currCookie -> currCookie.getKey() + '\t' + currCookie.getValue()).sorted().collect(
             Collectors.joining(Constant.NEWLINE)));
   }
@@ -1684,10 +2103,13 @@ public class Connection {
     }).execute();
   }
 
+  // A web browser request. Plain page requests share the web browser with each other, while overriding get() gives a request exclusive use of the web browser
+  // in its main window. FirefoxDriver.get() doesn't wait for pages to load (the web browser's page load strategy is none), so use load() to navigate instead.
   public static class WebBrowserRequest {
 
     public volatile String urlAfterEvt, cookiesAfterEvt;
     final String outputPath, referer, cookie;
+    final boolean exclusive;
 
     public WebBrowserRequest() {
       this(null, null, null);
@@ -1697,6 +2119,12 @@ public class Connection {
       this.outputPath = outputPath;
       this.referer = referer;
       this.cookie = cookie;
+      try {
+        exclusive = (getClass().getMethod("get", String.class, FirefoxDriver.class, ThrowingRunnable.class, long.class).getDeclaringClass()
+                != WebBrowserRequest.class);
+      } catch (NoSuchMethodException e) {
+        throw new IllegalStateException(e);
+      }
     }
 
     public String retry() throws Exception {
@@ -1704,42 +2132,38 @@ public class Connection {
     }
 
     public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
-      return get(url, driver, sleep, cacheExpirationMs, true);
+      return get(url, new WebBrowserWindow(driver, driver.manage().timeouts().getPageLoadTimeout()), cacheExpirationMs, true);
     }
 
-    private String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs, boolean loadCookies) throws Exception {
+    // Navigates to the URL and waits for the page to load
+    protected void load(FirefoxDriver driver, String url) throws Exception {
+      (new WebBrowserWindow(driver, driver.manage().timeouts().getPageLoadTimeout())).load(url, false);
+    }
+
+    private String get(String url, WebBrowserWindow window, long cacheExpirationMs, boolean loadCookies) throws Exception {
       File sourceCodeFile = new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML);
       if (cacheExpirationMs <= 0 || !sourceCodeFile.exists() || IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
         long startTime = System.currentTimeMillis();
-        loadCookies(driver);
-        driver.get(url);
-        (new WebDriverWait(driver, driver.manage().timeouts().getPageLoadTimeout())).until(driver2 -> "complete".equals(driver.executeScript(
-                "window.alert = function() { return true; };"
-                + "window.confirm = function() { return true; };"
-                + "window.prompt = function() { return true; };"
-                + "return document.readyState;")));
-        String src = Optional.ofNullable(driver.getPageSource()).orElse("");
-        while (true) { // Give asynchronous JavaScript with variable/unpredictable page changes time to finish
-          webBrowserAsyncSleep.run();
-          String src2 = Optional.ofNullable(driver.getPageSource()).orElse("");
-          if (src.equals(src2)) {
-            break;
-          }
-          src = src2;
-        }
+        String host = (new URL(url)).getHost();
+        window.run(this::loadCookies);
+        boolean isHostCookiesLoaded = webBrowserHosts.contains(host);
+        window.load(url, true);
+        String src = Optional.ofNullable(window.run(FirefoxDriver::getPageSource)).orElse("");
         long endTime = System.currentTimeMillis();
         if (Debug.DEBUG) {
           Debug.println(url + " (web browser" + (loadCookies ? "" : " retry with updated cookies") + " took " + ((endTime - startTime) / 1_000) + "s)");
         }
 
-        if (loadCookies && !Regex.firstMatch(src, 942).isEmpty() && loadCookies(driver)) {
-          return get(url, driver, sleep, cacheExpirationMs, false);
+        // Also retry if another window loaded the host's cookies while this one loaded the page
+        if (loadCookies && !Regex.firstMatch(src, 942).isEmpty() && window.run(driver -> (!isHostCookiesLoaded && webBrowserHosts.contains(host))
+                || loadCookies(driver))) {
+          return get(url, window, cacheExpirationMs, false);
         }
 
-        webBrowserHosts.add((new URL(url)).getHost());
+        webBrowserHosts.add(host);
         cache(url, src);
-        driver.manage().getCookies().stream().filter(currCookie -> Regex.isMatch(currCookie.toString(), 935)).forEach(currCookie -> webBrowserCookies.put(
-                currCookie.getDomain() + ' ' + currCookie.getName(), currCookie.toString()));
+        window.run(driver -> driver.manage().getCookies()).stream().filter(currCookie -> Regex.isMatch(currCookie.toString(), 935)).forEach(currCookie
+                -> webBrowserCookies.put(currCookie.getDomain() + ' ' + currCookie.getName(), currCookie.toString()));
         saveCookies();
         return src;
       }
@@ -1807,7 +2231,18 @@ public class Connection {
 
     void cache(String url, String source) throws Exception {
       if (!Regex.isMatch(source, 898)) {
-        IO.write(new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML), source);
+        // Written to a temporary file that then replaces the cached page, because concurrent requests for the URL can read the cached page meanwhile
+        File temp = new File(Constant.TEMP_DIR, UUID.randomUUID().toString());
+        IO.write(temp, source);
+        try {
+          Files.move(temp.toPath(), (new File(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML)).toPath(), StandardCopyOption.REPLACE_EXISTING,
+                  StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) { // Such as while another request reads the cached page on Windows
+          IO.fileOp(temp, IO.RM_FILE);
+          if (Debug.DEBUG) {
+            Debug.print(e);
+          }
+        }
       }
     }
 
@@ -1835,6 +2270,302 @@ public class Connection {
       } finally {
         urlListener.set(null);
       }
+    }
+  }
+
+  // A window of the web browser: the session's current window, unless shared through WebBrowserWindows
+  private static class WebBrowserWindow {
+
+    // Checking on a loading page quickly at first catches quick loads, and then less often leaves the session free for other windows. Late checks don't delay
+    // pages whose changes are waited for because the wait counts from when the page finished loading.
+    private static final long MIN_POLL_MS = 50, MAX_POLL_MS = 400;
+    private static final String SAME_PAGE = "samePage";
+    // Marks the page as old, unless navigating to the URL only changes the page's fragment (such as for a hash-routed page), which keeps the page. Then it
+    // returns SAME_PAGE and counts the navigation as a change of the page.
+    private static final String MARK_OLD_PAGE_SCRIPT = "var d = document, u = null;"
+            + "try {"
+            + "  u = new URL(arguments[0], location.href).href;"
+            + "} catch (e) {"
+            + "}"
+            + "if (u !== null && u.indexOf('#') !== -1 && u.split('#')[0] === location.href.split('#')[0]) {"
+            + "  if (d.__vidMastaPage) {"
+            + "    d.__vidMastaPage.lastChange = Date.now();"
+            + "  }"
+            + "  return '" + SAME_PAGE + "';"
+            + "}"
+            + "if (!d.__vidMastaOldPage) {"
+            + "  Object.defineProperty(d, '__vidMastaOldPage', {value: true});"
+            + "}"
+            + "return d.__vidMastaOldPage === true;";
+    // Returns null until the new page replaces the old one (unless arguments[1] says the page is kept), the URI of an error page, -1 while loading, and then the
+    // milliseconds since the page last changed or finished loading. Changes are watched for from the first check, so that the time since the last change
+    // includes time spent loading.
+    private static final String PAGE_STATE_SCRIPT = "var d = document, s = d.__vidMastaPage;"
+            + "if ((d.__vidMastaOldPage && !arguments[1]) || (location.href === 'about:blank' && arguments[0] !== 'about:blank')) {"
+            + "  return null;"
+            + "}"
+            + "if (/^about:((neterror)|(certerror)|(blocked)|(tabcrashed))/.test(d.documentURI)) {"
+            + "  return d.documentURI;"
+            + "}"
+            + "window.alert = function() { return true; };"
+            + "window.confirm = function() { return true; };"
+            + "window.prompt = function() { return true; };"
+            + "if (!s) {"
+            + "  Object.defineProperty(d, '__vidMastaPage', {value: s = {lastChange: Date.now()}});"
+            + "  new MutationObserver(function() { s.lastChange = Date.now(); }).observe(d, {attributes: true, characterData: true, childList: true,"
+            + " subtree: true});"
+            + "}"
+            + "if (d.readyState !== 'complete') {"
+            + "  return -1;"
+            + "}"
+            + "if (!s.loaded) {"
+            + "  s.loaded = (window.performance && performance.timing && performance.timing.loadEventEnd) || Date.now();"
+            + "}"
+            + "return Math.max(0, Date.now() - Math.max(s.lastChange, s.loaded));";
+    final FirefoxDriver driver;
+    final Duration pageLoadTimeout;
+
+    WebBrowserWindow(FirefoxDriver driver, Duration pageLoadTimeout) {
+      this.driver = driver;
+      this.pageLoadTimeout = pageLoadTimeout;
+    }
+
+    // Runs WebDriver commands in this window
+    <T> T run(ThrowingFunction<FirefoxDriver, T> commands) throws Exception {
+      return commands.applyWithException(driver);
+    }
+
+    // Navigates to the URL and waits for the page to load. Then, optionally, gives asynchronous JavaScript with variable/unpredictable page changes time to
+    // finish by waiting until the page hasn't changed for a while.
+    void load(String url, boolean waitForChangesToStop) throws Exception {
+      Object mark = null;
+      for (int attempt = 1;; attempt++) { // Mark the old page to tell it apart from the new one
+        try {
+          mark = run(currDriver -> currDriver.executeScript(MARK_OLD_PAGE_SCRIPT, url));
+          if (Boolean.TRUE.equals(mark) || SAME_PAGE.equals(mark)) {
+            break;
+          }
+          if (attempt == 10) {
+            throw new WebDriverException("unable to mark page before loading " + url);
+          }
+        } catch (WebDriverException e) { // Such as while the old page is being replaced. A timeout (an unresponsive web browser) isn't retried.
+          if (attempt == 10 || e instanceof TimeoutException || isWebBrowserDead(e)) {
+            throw e;
+          }
+        }
+        Thread.sleep(MIN_POLL_MS * 2);
+      }
+      boolean isSamePage = SAME_PAGE.equals(mark);
+      try {
+        run(currDriver -> {
+          currDriver.get(url);
+          return null;
+        });
+      } catch (WebDriverException e) {
+        if (e instanceof TimeoutException || isWebBrowserDead(e)) {
+          throw e;
+        }
+        try {
+          run(FirefoxDriver::getWindowHandle);
+        } catch (WebDriverException e2) { // The web browser broke, which restarting it can fix
+          e.addSuppressed(e2);
+          throw e;
+        }
+        throw new WebBrowserErrorPageException("unable to load " + url + ": " + e.getRawMessage(), e); // Such as for a restricted port
+      }
+
+      long startTime = System.currentTimeMillis(), timeoutMs = pageLoadTimeout.toMillis(), quietMs = Long.parseLong(Str.get(932)), maxEndTime = -1;
+      long sleepMs = MIN_POLL_MS, loadingSleepMs = MIN_POLL_MS, sourceCheckTime = -1;
+      String prevSource = null;
+      for (int numErrors = 0;;) {
+        Thread.sleep(sleepMs);
+        Object pageState;
+        try {
+          pageState = run(currDriver -> currDriver.executeScript(PAGE_STATE_SCRIPT, url, isSamePage));
+          numErrors = 0;
+        } catch (WebDriverException e) { // Such as while the page is being replaced
+          if (++numErrors == 10 || e instanceof TimeoutException || isWebBrowserDead(e)) {
+            throw e;
+          }
+          pageState = null;
+        }
+        if (pageState instanceof String) {
+          throw new WebBrowserErrorPageException("Reached error page: " + pageState);
+        }
+
+        long now = System.currentTimeMillis(), msSinceChange = (pageState instanceof Number ? ((Number) pageState).longValue() : -1);
+        if (msSinceChange < 0) {
+          if (maxEndTime == -1 && now - startTime >= timeoutMs) {
+            throw new TimeoutException("Timed out waiting for page to load: " + url);
+          }
+          sleepMs = loadingSleepMs = Math.min(loadingSleepMs * 2, MAX_POLL_MS);
+        } else if (!waitForChangesToStop || msSinceChange >= quietMs) {
+          return;
+        } else {
+          if (maxEndTime == -1) {
+            maxEndTime = now + quietMs + (timeoutMs * 2);
+            sourceCheckTime = now + (quietMs * 2);
+          }
+          if (now >= sourceCheckTime) { // Changes can leave the page as it was (such as setting an attribute to its value), so also compare the page itself
+            String source;
+            try {
+              source = run(FirefoxDriver::getPageSource);
+            } catch (WebDriverException e) {
+              if (e instanceof TimeoutException || isWebBrowserDead(e)) {
+                throw e;
+              }
+              source = null;
+            }
+            if (source != null && source.equals(prevSource)) {
+              return;
+            }
+            prevSource = source;
+            sourceCheckTime = now + quietMs;
+          }
+          sleepMs = quietMs - msSinceChange;
+        }
+        if (maxEndTime != -1) {
+          if (now >= maxEndTime) {
+            if (Debug.DEBUG) {
+              Debug.println("web browser page kept changing: " + url);
+            }
+            return;
+          }
+          sleepMs = Math.min(sleepMs, maxEndTime - now);
+        }
+      }
+    }
+
+    private static boolean isWebBrowserDead(WebDriverException e) {
+      return e instanceof NoSuchSessionException || e instanceof UnreachableBrowserException;
+    }
+  }
+
+  // The web browser's windows, which let page loads share the web browser by loading in separate windows. Since WebDriver commands go to the session's
+  // current window, commands for a shared window run while holding a command lock, after switching to that window.
+  private static final class WebBrowserWindows {
+
+    final FirefoxDriver driver;
+    final String mainWindow;
+    private final Lock commandLock = new ReentrantLock();
+    private String currWindow; // Guarded by commandLock
+    private final Deque<String> idleWindows = new ArrayDeque<>(MAX_NUM_WEB_BROWSER_WINDOWS); // Guarded by this
+    private final Map<String, String> windowHosts = new HashMap<>(MAX_NUM_WEB_BROWSER_WINDOWS * 2); // Guarded by this
+    private int numWindows = 1, maxNumWindows = MAX_NUM_WEB_BROWSER_WINDOWS; // Guarded by this
+
+    WebBrowserWindows(FirefoxDriver driver) {
+      this.driver = driver;
+      idleWindows.add(mainWindow = currWindow = driver.getWindowHandle());
+    }
+
+    WebBrowserWindow window(String window, Duration pageLoadTimeout) {
+      return new WebBrowserWindow(driver, pageLoadTimeout) {
+        @Override
+        <T> T run(ThrowingFunction<FirefoxDriver, T> commands) throws Exception {
+          commandLock.lockInterruptibly();
+          try {
+            if (!window.equals(currWindow)) {
+              currWindow = null; // Unknown if switching fails
+              driver.switchTo().window(window);
+              currWindow = window;
+            }
+            return commands.applyWithException(driver);
+          } finally {
+            commandLock.unlock();
+          }
+        }
+      };
+    }
+
+    // Waits for a window that isn't in use, preferring one showing a page from the host (whose cookies can then be loaded before navigating), or opens a new
+    // window if there are fewer than the maximum number of windows
+    String acquire(String host) throws Exception {
+      int windowNum;
+      synchronized (this) {
+        while (idleWindows.isEmpty() && numWindows >= maxNumWindows) {
+          wait();
+        }
+        if (!idleWindows.isEmpty()) {
+          for (Iterator<String> it = idleWindows.iterator(); it.hasNext();) {
+            String window = it.next();
+            if (host.equals(windowHosts.get(window))) {
+              it.remove();
+              return window;
+            }
+          }
+          return idleWindows.pop();
+        }
+        windowNum = ++numWindows;
+      }
+
+      boolean opened = false;
+      try {
+        commandLock.lockInterruptibly();
+        try {
+          currWindow = null;
+          driver.switchTo().newWindow(WindowType.WINDOW);
+          String window = currWindow = driver.getWindowHandle();
+          opened = true;
+          if (Debug.DEBUG) {
+            Debug.println("web browser window " + windowNum + " opened");
+          }
+          return window;
+        } finally {
+          commandLock.unlock();
+        }
+      } catch (WebDriverException e) {
+        if (Thread.interrupted()) { // Such as when the request was cancelled, which Selenium reports as an unreachable web browser
+          InterruptedException interruption = new InterruptedException("web browser window not opened");
+          interruption.initCause(e);
+          throw interruption;
+        }
+        if (e instanceof TimeoutException || WebBrowserWindow.isWebBrowserDead(e)) { // Not because of the number of windows
+          throw e;
+        }
+        if (Debug.DEBUG) {
+          Debug.print(e);
+        }
+        synchronized (this) {
+          maxNumWindows = numWindows - 1; // Make do with the windows already open
+        }
+      } finally {
+        if (!opened) {
+          synchronized (this) {
+            numWindows--;
+            notifyAll();
+          }
+        }
+      }
+      return acquire(host);
+    }
+
+    synchronized void release(String window, String host) {
+      windowHosts.put(window, host);
+      idleWindows.push(window);
+      notify();
+    }
+
+    void forgetCurrentWindow() {
+      commandLock.lock();
+      try {
+        currWindow = null;
+      } finally {
+        commandLock.unlock();
+      }
+    }
+  }
+
+  // A web browser error page instead of the requested page, which restarting the web browser wouldn't fix
+  private static class WebBrowserErrorPageException extends WebDriverException {
+
+    private static final long serialVersionUID = 1L;
+
+    WebBrowserErrorPageException(String msg) {
+      super(msg);
+    }
+
+    WebBrowserErrorPageException(String msg, Throwable cause) {
+      super(msg, cause);
     }
   }
 

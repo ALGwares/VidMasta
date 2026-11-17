@@ -1,7 +1,6 @@
 package util.function;
 
 import java.util.function.BiFunction;
-import util.ThrowableUtil;
 
 @FunctionalInterface
 public interface ThrowingBiFunction<T, U, R> extends BiFunction<T, U, R> {
@@ -13,7 +12,7 @@ public interface ThrowingBiFunction<T, U, R> extends BiFunction<T, U, R> {
     try {
       return applyWithException(t, u);
     } catch (Exception e) {
-      ThrowableUtil.sneakyThrow(e);
+      ThrowingUtil.sneakyThrow(e);
       return null;
     }
   }

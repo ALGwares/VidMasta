@@ -1,7 +1,6 @@
 package util.function;
 
 import java.util.function.Supplier;
-import util.ThrowableUtil;
 
 @FunctionalInterface
 public interface ThrowingSupplier<T> extends Supplier<T> {
@@ -13,7 +12,7 @@ public interface ThrowingSupplier<T> extends Supplier<T> {
     try {
       return getWithException();
     } catch (Exception e) {
-      ThrowableUtil.sneakyThrow(e);
+      ThrowingUtil.sneakyThrow(e);
       return null;
     }
   }

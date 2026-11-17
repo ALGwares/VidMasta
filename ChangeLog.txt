@@ -1,6 +1,15 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.11.16   | VidMasta 31.0
+
+CHANGE: CORE | Fixed connectivity issues and download issues
+CHANGE: UI   | Improved automatic adding of next TV show episode to playlist
+CHANGE: UI   | Fixed system tray icon on Windows 11
+
+
+
+
 2026.10.16   | VidMasta 30.9
 
 CHANGE: CORE | Fixed connectivity issues

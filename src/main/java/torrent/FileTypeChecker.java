@@ -34,6 +34,9 @@ public class FileTypeChecker {
   }
 
   private boolean checkFileType(File torrent) throws Exception {
+    if (!Magnet.awaitAzureusConfig()) { // Parsing a torrent initializes BiglyBT if nothing has yet
+      return true;
+    }
     TOTorrentFile[] files = (new TOTorrentDeserialiseImpl(torrent)).getFiles();
     if (files == null) {
       return true;

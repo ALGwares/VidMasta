@@ -1,7 +1,6 @@
 package util.function;
 
 import java.util.function.Consumer;
-import util.ThrowableUtil;
 
 @FunctionalInterface
 public interface ThrowingConsumer<T> extends Consumer<T> {
@@ -13,7 +12,7 @@ public interface ThrowingConsumer<T> extends Consumer<T> {
     try {
       acceptWithException(t);
     } catch (Exception e) {
-      ThrowableUtil.sneakyThrow(e);
+      ThrowingUtil.sneakyThrow(e);
     }
   }
 

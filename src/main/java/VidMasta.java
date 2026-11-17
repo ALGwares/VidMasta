@@ -32,8 +32,8 @@ public class VidMasta {
               "--add-opens", "java.base/java.net=ALL-UNNAMED", "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens",
               "java.desktop/sun.swing=ALL-UNNAMED", "--add-opens", "java.desktop/javax.swing.plaf.synth=ALL-UNNAMED", "--add-opens",
               "java.desktop/sun.swing.plaf.synth=ALL-UNNAMED", "--add-opens", "java.desktop/sun.swing.table=ALL-UNNAMED", "--add-opens",
-              "java.desktop/javax.swing.plaf.basic=ALL-UNNAMED", "--add-opens", "java.base/java.lang=ALL-UNNAMED", "-DstartFlag=\"true\"",
-              VidMasta.class.getName())).redirectErrorStream(true).start();
+              "java.desktop/javax.swing.plaf.basic=ALL-UNNAMED", "--add-opens", "java.base/java.lang=ALL-UNNAMED", "--enable-native-access=ALL-UNNAMED",
+              "-DstartFlag=\"true\"", VidMasta.class.getName())).redirectErrorStream(true).start();
       if (Debug.DEBUG) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
           String line;

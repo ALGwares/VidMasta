@@ -1,7 +1,5 @@
 package util.function;
 
-import util.ThrowableUtil;
-
 @FunctionalInterface
 public interface ThrowingRunnable extends Runnable {
 
@@ -12,7 +10,7 @@ public interface ThrowingRunnable extends Runnable {
     try {
       runWithException();
     } catch (Exception e) {
-      ThrowableUtil.sneakyThrow(e);
+      ThrowingUtil.sneakyThrow(e);
     }
   }
 

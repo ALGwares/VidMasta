@@ -1,4 +1,4 @@
-454
+456
 https://www.google.com/search?q=
 https://search.brave.com/search?q=
 https://www.ecosia.org/search?q=
@@ -821,8 +821,8 @@ https://www.imdb.com/video/%s/
 true
 yt-dlp_x86.exe
 yt-dlp_x86.exe
-https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_x86.exe
-https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_x86.exe
+https://github.com/ALGwares/VidMasta/releases/download/none/yt-dlp_x86_2026.11.01.034503.exe
+https://github.com/ALGwares/VidMasta/releases/download/none/yt-dlp_x86_2026.11.01.034503.exe
 true
 (?i)https?+://www\.youtube\.com/.+
 --no-part:::--no-cache-dir:::--verbose:::--no-update:::--format-sort:::aext,vext:::--format:::best[height<=?1080]
@@ -835,7 +835,7 @@ res:%s
 524288
 true
 true
-firefox-113.0.2-2
+firefox-113.0.2-3
 Mozilla Firefox/geckodriver.exe
 Mozilla Firefox/firefox.exe
 https://github.com/ALGwares/VidMasta/releases/download/none/firefox113.0.2-2-win32.zip
@@ -848,7 +848,7 @@ firefox/geckodriver
 firefox/firefox
 https://github.com/ALGwares/VidMasta/releases/download/none/firefox88.0-2-linux32.zip
 -headless:::--allow-downgrade
-app.update.enabled:::false~~~app.update.service.enabled:::false~~~app.update.background.enabled:::false~~~app.update.background.rolledout:::false~~~media.volume_scale:::0.0~~~browser.aboutConfig.showWarning:::false~~~permissions.default.image:::2~~~permissions.default.stylesheet:::2~~~dom.ipc.plugins.enabled.libflashplayer.so:::false~~~browser.display.use_document_fonts:::0~~~dom.media.autoplay-policy-detection.enabled:::true~~~media.autoplay.default:::5~~~media.autoplay.blocking_policy:::2~~~media.autoplay.allow-extension-background-pages:::false~~~media.autoplay.block-event.enabled:::true~~~media.autoplay.block-webaudio:::true~~~browser.download.useDownloadDir:::true~~~browser.download.folderList:::2~~~browser.helperApps.neverAsk.saveToDisk:::application/epub+zip;application/gzip;application/java-archive;application/json;application/ld+json;application/msword;application/octet-stream;application/ogg;application/pdf;application/rtf;application/vnd.amazon.ebook;application/vnd.apple.installer+xml;application/vnd.mozilla.xul+xml;application/vnd.ms-excel;application/vnd.ms-fontobject;application/vnd.ms-powerpoint;application/vnd.oasis.opendocument.presentation;application/vnd.oasis.opendocument.spreadsheet;application/vnd.oasis.opendocument.text;application/vnd.openxmlformats-officedocument.presentationml.presentation;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/vnd.rar;application/vnd.visio;application/x-7z-compressed;application/x-abiword;application/x-bzip;application/x-bzip2;application/x-cdf;application/x-csh;application/x-freearc;application/x-httpd-php;application/x-sh;application/x-tar;application/xhtml+xml;application/xml;application/zip;audio/3gpp;audio/3gpp2;audio/aac;audio/midi;audio/mp3;audio/mpeg;audio/ogg;audio/opus;audio/wav;audio/webm;audio/x-midi;font/otf;font/ttf;font/woff;font/woff2;image/apng;image/avif;image/bmp;image/gif;image/jpeg;image/png;image/svg+xml;image/tiff;image/vnd.microsoft.icon;image/webp;text/calendar;text/css;text/csv;text/html;text/javascript;text/plain;video/3gpp;video/3gpp2;video/mp2t;video/mp4;video/mpeg;video/ogg;video/webm;video/x-msvideo~~~security.ssl.enable_ocsp_stapling:::false~~~devtools.jsonview.enabled:::false~~~browser.sessionstore.resume_from_crash:::false~~~toolkit.startup.max_resumed_crashes:::-1
+app.update.enabled:::false~~~app.update.service.enabled:::false~~~app.update.background.enabled:::false~~~app.update.background.rolledout:::false~~~media.volume_scale:::0.0~~~browser.aboutConfig.showWarning:::false~~~permissions.default.image:::2~~~permissions.default.stylesheet:::2~~~dom.ipc.plugins.enabled.libflashplayer.so:::false~~~browser.display.use_document_fonts:::0~~~dom.media.autoplay-policy-detection.enabled:::true~~~media.autoplay.default:::5~~~media.autoplay.blocking_policy:::2~~~media.autoplay.allow-extension-background-pages:::false~~~media.autoplay.block-event.enabled:::true~~~media.autoplay.block-webaudio:::true~~~browser.download.useDownloadDir:::true~~~browser.download.folderList:::2~~~browser.helperApps.neverAsk.saveToDisk:::application/epub+zip;application/gzip;application/java-archive;application/json;application/ld+json;application/msword;application/octet-stream;application/ogg;application/pdf;application/rtf;application/vnd.amazon.ebook;application/vnd.apple.installer+xml;application/vnd.mozilla.xul+xml;application/vnd.ms-excel;application/vnd.ms-fontobject;application/vnd.ms-powerpoint;application/vnd.oasis.opendocument.presentation;application/vnd.oasis.opendocument.spreadsheet;application/vnd.oasis.opendocument.text;application/vnd.openxmlformats-officedocument.presentationml.presentation;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;application/vnd.openxmlformats-officedocument.wordprocessingml.document;application/vnd.rar;application/vnd.visio;application/x-7z-compressed;application/x-abiword;application/x-bzip;application/x-bzip2;application/x-cdf;application/x-csh;application/x-freearc;application/x-httpd-php;application/x-sh;application/x-tar;application/xhtml+xml;application/xml;application/zip;audio/3gpp;audio/3gpp2;audio/aac;audio/midi;audio/mp3;audio/mpeg;audio/ogg;audio/opus;audio/wav;audio/webm;audio/x-midi;font/otf;font/ttf;font/woff;font/woff2;image/apng;image/avif;image/bmp;image/gif;image/jpeg;image/png;image/svg+xml;image/tiff;image/vnd.microsoft.icon;image/webp;text/calendar;text/css;text/csv;text/html;text/javascript;text/plain;video/3gpp;video/3gpp2;video/mp2t;video/mp4;video/mpeg;video/ogg;video/webm;video/x-msvideo~~~security.ssl.enable_ocsp_stapling:::false~~~devtools.jsonview.enabled:::false~~~browser.sessionstore.resume_from_crash:::false~~~toolkit.startup.max_resumed_crashes:::-1~~~network.dns.localDomains:::s.amazon-adsystem.com,c.amazon-adsystem.com,aax.amazon-adsystem.com,aax-us-east.amazon-adsystem.com,aax-us-iad.amazon-adsystem.com,images-na.ssl-images-amazon.com,cdn.prod.metrics.imdb.com,unagi.amazon.com,fls-na.amazon.com~~~browser.privacySegmentation.createdShortcut:::true
 2000
 about:config
 var prefs=Components.classes['@mozilla.org/preferences-service;1'].getService(Components.interfaces.nsIPrefBranch);NEWLINEprefs.setIntPref('network.proxy.type',0);
@@ -891,7 +891,7 @@ C
 .+?(?=&POST\=\z)
 https://itorrents.org/torrent/%S.torrent:::https://magnet2torrent.com/upload/index.php?magnet=magnet%%3A%%3Fxt%%3Durn%%3Abtih%%3A%S&POST=
 false
-a^
+.+&POST\=
 (?i)ERROR:.*?((Requested format is not available\.)|( 403: Forbidden))
 1
 https://1337x.torrentbay.st:::https://1337x.to
@@ -918,7 +918,7 @@ curl-impersonate-2.2.3
 --max-redirs
 --referer
 --proxy
---data-urlencode
+--data-raw
 --output
 a^
 (?<=\< HTTP/\d(\.\d)?+ )\d++(?!(?s).*?\< HTTP/\d(\.\d)?+ \d++)
@@ -937,15 +937,15 @@ true
 (?i)aws\-waf\-token\=.++
 %s?
 40[135]
--headless:::-new-instance:::-private
+-headless:::-new-instance:::-private:::--allow-downgrade
 -profile
 -new-tab
 (?i)((aws\-waf\-token)|(cf_)|(techaro\.lol\-anubis)|(__Secure\-((session)|(token))#brave\-search\-captcha)).*
 (?i)((Enable JavaScript and then reload the page)|(Failed to calculate challenge)|(Performing security verification)|(You are being redirected)|(if you are not redirected within)|(please enable javascript on your web browser)|(your browser does not seem to have JavaScript enabled))
 20
 10
--new-instance:::-private
-user_pref("browser.shell.checkDefaultBrowser", false);NEWLINEuser_pref("app.update.enabled", false);NEWLINEuser_pref("app.update.service.enabled", false);NEWLINEuser_pref("app.update.background.enabled", false);NEWLINEuser_pref("app.update.background.rolledout", false);NEWLINEuser_pref("media.volume_scale", "0.0");NEWLINEuser_pref("dom.media.autoplay-policy-detection.enabled", true);NEWLINEuser_pref("media.autoplay.default", 5);NEWLINEuser_pref("media.autoplay.blocking_policy", 2);NEWLINEuser_pref("media.autoplay.allow-extension-background-pages", false);NEWLINEuser_pref("media.autoplay.block-event.enabled", true);NEWLINEuser_pref("media.autoplay.block-webaudio", true);NEWLINEuser_pref("browser.sessionstore.resume_from_crash", false);NEWLINEuser_pref("toolkit.startup.max_resumed_crashes", -1);NEWLINE
+-new-instance:::-private:::--allow-downgrade
+user_pref("browser.shell.checkDefaultBrowser", false);NEWLINEuser_pref("app.update.enabled", false);NEWLINEuser_pref("app.update.service.enabled", false);NEWLINEuser_pref("app.update.background.enabled", false);NEWLINEuser_pref("app.update.background.rolledout", false);NEWLINEuser_pref("media.volume_scale", "0.0");NEWLINEuser_pref("dom.media.autoplay-policy-detection.enabled", true);NEWLINEuser_pref("media.autoplay.default", 5);NEWLINEuser_pref("media.autoplay.blocking_policy", 2);NEWLINEuser_pref("media.autoplay.allow-extension-background-pages", false);NEWLINEuser_pref("media.autoplay.block-event.enabled", true);NEWLINEuser_pref("media.autoplay.block-webaudio", true);NEWLINEuser_pref("browser.sessionstore.resume_from_crash", false);NEWLINEuser_pref("toolkit.startup.max_resumed_crashes", -1);NEWLINEuser_pref("network.dns.localDomains", "s.amazon-adsystem.com,c.amazon-adsystem.com,aax.amazon-adsystem.com,aax-us-east.amazon-adsystem.com,aax-us-iad.amazon-adsystem.com,cdn.prod.metrics.imdb.com,unagi.amazon.com,fls-na.amazon.com");NEWLINEuser_pref("browser.privacySegmentation.createdShortcut", true);NEWLINE
 40
 .*?(?i)application\.ini
 (?<=(\A|\s)(?i)Version\=)\d++
