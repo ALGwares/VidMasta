@@ -45,11 +45,12 @@ public class Prefetcher extends Worker {
         continue;
       }
       try {
-        Connection.awaitSearchCompletion();
-        if (Debug.DEBUG) {
-          Debug.println("prefetching " + contentType.name() + " links");
-        }
-        (new VideoFinder(contentType, videoFinder)).prefetch();
+        Connection.runWhenNotSearching(() -> {
+          if (Debug.DEBUG) {
+            Debug.println("prefetching " + contentType.name() + " links");
+          }
+          (new VideoFinder(contentType, videoFinder)).prefetch();
+        });
       } catch (Exception e) {
         if (Debug.DEBUG) {
           Debug.print(e);

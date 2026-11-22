@@ -26,7 +26,6 @@ import util.ConnectionException;
 import util.Constant;
 import util.IO;
 import util.Regex;
-import util.Worker;
 
 public class VideoSearch {
 
@@ -68,10 +67,7 @@ public class VideoSearch {
     if (result.isEmpty()) {
       return getTitleLinkHelper(encodedQuery, true, cacheExpirationMs);
     }
-    Worker.submit(() -> {
-      Connection.awaitSearchCompletion();
-      getTitleLinkHelper(encodedQuery, false, cacheExpirationMs);
-    });
+    Connection.refreshInBackground(() -> getTitleLinkHelper(encodedQuery, false, cacheExpirationMs));
     return result;
   }
 

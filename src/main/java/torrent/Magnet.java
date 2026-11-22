@@ -37,9 +37,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.management.LockInfo;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Field;
@@ -80,6 +77,7 @@ import util.Connection;
 import util.Constant;
 import util.IO;
 import util.Regex;
+import util.ThreadUtil;
 import util.ThrowableUtil;
 import util.Worker;
 
@@ -351,13 +349,13 @@ public class Magnet extends Thread {
         }
       }, "Azureus config init");
       // Get this before configInit starts: BiglyBT initializes the JDK's management classes too, and if configInit got stuck in them, so would this thread
-      ThreadMXBean threadMXBean = threadMXBean();
+      ThreadMXBean threadMXBean = ThreadUtil.threadMXBean();
       configInit.start();
       File deadlock = new File(Constant.APP_DIR, "deadlock");
       try {
         String stuckReason = awaitAzureusConfigInit(configInit, threadMXBean);
         if (stuckReason != null) {
-          Exception e = new Exception("deadlock: " + stuckReason + Constant.NEWLINE + threadDump(threadMXBean));
+          Exception e = new Exception("deadlock: " + stuckReason + Constant.NEWLINE + ThreadUtil.threadDump(threadMXBean));
           e.setStackTrace(configInit.getStackTrace());
           IO.write(Constant.APP_DIR + Constant.ERROR_LOG, e);
           if (deadlock.exists()) {
@@ -580,63 +578,6 @@ public class Magnet extends Thread {
     stacks.put(id, frames);
     return !frames.equals(lastStacks.get(id)) || state == Thread.State.TIMED_WAITING || (state == Thread.State.RUNNABLE && stack.length != 0
             && stack[0].isNativeMethod());
-  }
-
-  private static ThreadMXBean threadMXBean() {
-    try {
-      return ManagementFactory.getThreadMXBean();
-    } catch (Exception | LinkageError e) {
-      if (Debug.DEBUG) {
-        Debug.print(e);
-      }
-      return null;
-    }
-  }
-
-  // Every thread's stack, with the locks it holds and the lock it waits for: a deadlock always involves more than one thread
-  private static String threadDump(ThreadMXBean threadMXBean) {
-    StringBuilder dump = new StringBuilder(32_768);
-    if (threadMXBean != null) {
-      try {
-        for (ThreadInfo info : threadMXBean.dumpAllThreads(true, true)) {
-          dump.append('"').append(info.getThreadName()).append("\" ").append(info.getThreadState());
-          if (info.getLockName() != null) {
-            dump.append(" on ").append(info.getLockName());
-          }
-          if (info.getLockOwnerName() != null) {
-            dump.append(" owned by \"").append(info.getLockOwnerName()).append('"');
-          }
-          dump.append(Constant.NEWLINE);
-          StackTraceElement[] stack = info.getStackTrace();
-          for (int i = 0; i < stack.length; i++) {
-            dump.append("\tat ").append(stack[i]).append(Constant.NEWLINE);
-            for (MonitorInfo monitor : info.getLockedMonitors()) {
-              if (monitor.getLockedStackDepth() == i) {
-                dump.append("\t- locked ").append(monitor).append(Constant.NEWLINE);
-              }
-            }
-          }
-          for (LockInfo lock : info.getLockedSynchronizers()) {
-            dump.append("\t- locked ").append(lock).append(Constant.NEWLINE);
-          }
-          dump.append(Constant.NEWLINE);
-        }
-        return dump.toString();
-      } catch (Exception e) {
-        if (Debug.DEBUG) {
-          Debug.print(e);
-        }
-        dump.setLength(0);
-      }
-    }
-    for (Map.Entry<Thread, StackTraceElement[]> thread : Thread.getAllStackTraces().entrySet()) {
-      dump.append('"').append(thread.getKey().getName()).append("\" ").append(thread.getKey().getState()).append(Constant.NEWLINE);
-      for (StackTraceElement frame : thread.getValue()) {
-        dump.append("\tat ").append(frame).append(Constant.NEWLINE);
-      }
-      dump.append(Constant.NEWLINE);
-    }
-    return dump.toString();
   }
 
   private static synchronized void initAzureus(GuiListener guiListener) {

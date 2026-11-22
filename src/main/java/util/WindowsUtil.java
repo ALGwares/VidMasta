@@ -1,5 +1,6 @@
 package util;
 
+import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Guid.GUID;
 import com.sun.jna.platform.win32.Kernel32;
@@ -10,8 +11,10 @@ import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShellAPI.SHELLEXECUTEINFO;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinReg;
 import com.sun.jna.platform.win32.WinUser;
+import com.sun.jna.ptr.IntByReference;
 import debug.Debug;
 import java.awt.AWTException;
 import java.awt.SystemTray;
@@ -19,6 +22,7 @@ import java.awt.TrayIcon;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -138,6 +142,32 @@ public class WindowsUtil {
       return true;
     }
     return false;
+  }
+
+  // The ID of a process that this JVM started: Process.pid() in Java 9 and later, or from the process's handle in Java 8
+  public static int processId(Process process) throws Exception {
+    try {
+      return ((Long) Process.class.getMethod("pid").invoke(process)).intValue();
+    } catch (NoSuchMethodException e) {
+      Field handle = process.getClass().getDeclaredField("handle");
+      handle.setAccessible(true);
+      return Kernel32.INSTANCE.GetProcessId(new HANDLE(Pointer.createConstant(handle.getLong(process))));
+    }
+  }
+
+  // Whether the process has a visible top-level window
+  public static boolean hasVisibleWindow(int processId) {
+    AtomicBoolean hasVisibleWindow = new AtomicBoolean();
+    User32.INSTANCE.EnumWindows((hwnd, data) -> {
+      IntByReference windowProcessId = new IntByReference();
+      User32.INSTANCE.GetWindowThreadProcessId(hwnd, windowProcessId);
+      if (windowProcessId.getValue() == processId && User32.INSTANCE.IsWindowVisible(hwnd)) {
+        hasVisibleWindow.set(true);
+        return false; // Stops the enumeration
+      }
+      return true;
+    }, null);
+    return hasVisibleWindow.get();
   }
 
   public static void addTrayIcon(TrayIcon trayIcon) throws AWTException {

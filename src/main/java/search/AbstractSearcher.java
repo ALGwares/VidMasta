@@ -319,15 +319,16 @@ public abstract class AbstractSearcher extends Worker {
 
     prefetcher = new Worker() {
       @Override
-      protected void doWork() throws Exception {
-        Connection.awaitSearchCompletion();
-        if (Debug.DEBUG) {
-          Debug.println("prefetching search page " + (currSearchPage + 2));
-        }
+      protected void doWork() {
         try {
-          for (String url : getUrls(currSearchPage + 1).values()) {
-            Connection.getSourceCode(url, domainType(), false, cacheExpirationMs);
-          }
+          Connection.runWhenNotSearching(() -> {
+            if (Debug.DEBUG) {
+              Debug.println("prefetching search page " + (currSearchPage + 2));
+            }
+            for (String url : getUrls(currSearchPage + 1).values()) {
+              Connection.getSourceCode(url, domainType(), false, cacheExpirationMs);
+            }
+          });
         } catch (Exception e) {
           if (Debug.DEBUG) {
             Debug.print(e);

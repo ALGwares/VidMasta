@@ -1,6 +1,25 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.11.22   | VidMasta 31.1
+
+CHANGE: CORE | Added a second download link source to download link searches and popular movies and popular TV shows searches
+CHANGE: CORE | Fixed connectivity issues
+CHANGE: CORE | Improved search speed by pausing background work while searching
+CHANGE: CORE | Fixed trailer playback on 32-bit Windows
+CHANGE: CORE | Fixed trailer downloading when antivirus software scans HTTPS connections
+CHANGE: CORE | Fixed issue that can prevent proper closing of application
+CHANGE: CORE | Updated and fixed movie box sets for download link searches
+CHANGE: CORE | Improved error handling
+CHANGE: UI   | Added 30 languages: Albanian, Bulgarian, Catalan, Croatian, Czech, Danish, Estonian, Filipino, Finnish, German, Greek, Hungarian, Indonesian, Latvian, Lithuanian, Macedonian, Malay, Norwegian, Polish, Portuguese (Brazil), Romanian, Russian, Serbian, Slovak, Slovenian, Spanish (Latin America), Swedish, Thai, Ukrainian, and Vietnamese
+CHANGE: UI   | Improved Dutch, French, Italian, Portuguese (Portugal), Spanish (Spain), and Turkish translations
+CHANGE: UI   | Added status bar messages for initializing, converting trailers, and opening the media player
+CHANGE: UI   | Updated autocompletion titles
+CHANGE: UI   | Fixed appearance of the automatic update dialog and PeerBlock error messages
+
+
+
+
 2026.11.16   | VidMasta 31.0
 
 CHANGE: CORE | Fixed connectivity issues and download issues

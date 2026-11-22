@@ -14,9 +14,11 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -72,6 +74,8 @@ public class VideoFinder extends Worker {
   private static volatile Worker summaryFinder, episodeFinder;
   private Collection<Torrent> torrents;
   private Collection<TorrentFinder> torrentFinders;
+  private Collection<TorrentFinder2> torrentFinders2; // For the torrent site searched along with The Pirate Bay (by torrentFinders)
+  private Set<String> queries2; // Of torrentFinders2, which are only added for new queries
   private TorrentSearchState searchState;
   private static final Object TV_CHOICES_LOCK = new Object(), DOWNLOAD_LOCK = new Object(), VIDEO_LOCK = new Object();
   private final Runnable rerunner;
@@ -97,6 +101,8 @@ public class VideoFinder extends Worker {
     if (contentType == ContentType.DOWNLOAD1 || contentType == ContentType.DOWNLOAD2 || contentType == ContentType.DOWNLOAD3) {
       torrents = new CopyOnWriteArrayList<Torrent>();
       torrentFinders = new ArrayList<TorrentFinder>(12);
+      torrentFinders2 = new ArrayList<TorrentFinder2>(4);
+      queries2 = new HashSet<String>(8);
     }
   }
 
@@ -142,8 +148,12 @@ public class VideoFinder extends Worker {
     torrents.clear();
     if (torrentFinders == null) {
       torrentFinders = new ArrayList<TorrentFinder>(12);
+      torrentFinders2 = new ArrayList<TorrentFinder2>(4);
+      queries2 = new HashSet<String>(8);
     } else {
       torrentFinders.clear();
+      torrentFinders2.clear();
+      queries2.clear();
     }
     startPeerblock = false;
   }
@@ -240,6 +250,7 @@ public class VideoFinder extends Worker {
                   && String.format(Constant.TV_EPISODE_FORMAT, 1).equals(video.season) && !Connection.downloadLinkInfoFail()) { // Assumes TV show with
             // season 1 just released and download listed with 'episode #' in name; worst case is false positive of newer season with desired episode
             torrentFinders.clear();
+            torrentFinders2.clear();
             String prevSeason = video.season;
             try {
               video.season = Constant.ANY;
@@ -946,6 +957,11 @@ public class VideoFinder extends Worker {
       }
     }
     addTVFinders(seasonAndEpisodes);
+    String seasonAndEpisode = seasonAndEpisodes.iterator().next(); // The other torrent site's searches find the other ways of writing it
+    addFinder2(video.title, seasonAndEpisode, true, false);
+    if (!video.oldTitle.isEmpty()) {
+      addFinder2(video.oldTitle, seasonAndEpisode, true, true);
+    }
 
     findDownloadLink();
     return true;
@@ -965,8 +981,10 @@ public class VideoFinder extends Worker {
     }
 
     addMovieFinders(video.title, false);
+    addFinder2(video.title, "", false, false);
     if (!video.oldTitle.isEmpty()) {
       addMovieFinders(video.oldTitle, true);
+      addFinder2(video.oldTitle, "", false, true);
     }
 
     if ((Calendar.getInstance().get(Calendar.YEAR) - Integer.parseInt(video.year)) > Integer.parseInt(Str.get(337))) {
@@ -1047,49 +1065,68 @@ public class VideoFinder extends Worker {
     }
   }
 
+  // Searches the other torrent site once for each new query (not separately for each way of writing a title or episode, like The Pirate Bay)
+  private void addFinder2(String title, String seasonAndEpisode, boolean ignoreYear, boolean isOldTitle) {
+    Video vid = new Video(video.id, title, video.year, video.isTVShow, video.isTVShowAndMovie);
+    vid.season = video.season;
+    vid.episode = video.episode;
+    TorrentFinder2 finder = new TorrentFinder2(guiListener, torrents, vid, seasonAndEpisode, isDownload1, magnetLinkOnly(), ignoreYear, isOldTitle,
+            new TorrentSearchState(searchState));
+    if (queries2.add(finder.query())) {
+      torrentFinders2.add(finder);
+    }
+  }
+
   private void findDownloadLink() throws Exception {
     Connection.runDownloadLinkInfoDeproxier(() -> {
-      if (prefetch) {
+      if (prefetch) { // Not the other torrent site, whose pages might each need the web browser
         for (TorrentFinder finder : torrentFinders) {
           finder.getTorrents(true, true);
         }
         return;
       }
 
-      boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+      // The other torrent site is searched alongside The Pirate Bay, apart from it: when The Pirate Bay is deproxied, its finders are stopped and run again,
+      // which the other site's finders are kept out of
+      Worker finders2 = Worker.submit(() -> runFinders(torrentFinders2));
       try {
-        if (foreground) {
-          AbstractWorker.executeAndWaitFor(torrentFinders);
-        } else {
-          for (Worker torrentFinder : torrentFinders) {
-            AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
+        boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+        try {
+          runFinders(torrentFinders);
+        } catch (CancellationException e) {
+          if (Debug.DEBUG) {
+            Debug.println(e);
           }
         }
-      } catch (CancellationException e) {
-        if (Debug.DEBUG) {
-          Debug.println(e);
+        if (isCancelled()) {
+          return;
         }
-      }
-      if (isCancelled()) {
-        return;
-      }
 
-      if (!isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
-        Collection<TorrentFinder> newTorrentFinders = new ArrayList<TorrentFinder>(torrentFinders.size());
-        for (TorrentFinder torrentFinder : torrentFinders) {
-          newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
-        }
-        if (foreground) {
-          AbstractWorker.executeAndWaitFor(newTorrentFinders);
-        } else {
-          for (Worker torrentFinder : newTorrentFinders) {
-            AbstractWorker.executeAndWaitFor(Arrays.asList(torrentFinder));
+        if (!isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
+          Collection<TorrentFinder> newTorrentFinders = new ArrayList<TorrentFinder>(torrentFinders.size());
+          for (TorrentFinder torrentFinder : torrentFinders) {
+            newTorrentFinders.add(new TorrentFinder(torrentFinder, newTorrentFinders));
           }
+          runFinders(newTorrentFinders);
         }
+        AbstractWorker.get(finders2);
+      } finally {
+        finders2.cancel(true);
       }
     });
     if (!isCancelled()) {
       findAlt2DownloadLink(false);
+    }
+  }
+
+  // Runs the finders all at once in the foreground, or else one at a time
+  private void runFinders(Collection<? extends TorrentFinder> finders) throws Exception {
+    if (foreground) {
+      AbstractWorker.executeAndWaitFor(finders);
+    } else {
+      for (Worker finder : finders) {
+        AbstractWorker.executeAndWaitFor(Arrays.asList(finder));
+      }
     }
   }
 

@@ -4,16 +4,21 @@ import debug.Debug;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import listener.DomainType;
 import listener.GuiListener;
 import listener.Video;
 import search.util.TitleParts;
+import search.util.TorrentSite2;
 import search.util.VideoSearch;
 import str.Str;
+import util.AbstractWorker;
 import util.Connection;
 import util.ConnectionException;
 import util.Constant;
@@ -26,6 +31,8 @@ public class PopularSearcher extends AbstractSearcher {
   private String[] languages, countries;
   private boolean isFeed, startAsap;
   private final List<String[]> titleNames;
+  // The popular torrents of the torrent site searched along with The Pirate Bay, in apibay.org's JSON. Stopped along with the search (see cancel()).
+  private volatile AbstractWorker<String> popular2;
   private final int sleep = Integer.parseInt(Str.get(571));
 
   public PopularSearcher(GuiListener guiListener, int numResultsPerSearch, boolean isTVShow, String[] languages, String[] countries, boolean isFeed,
@@ -45,6 +52,7 @@ public class PopularSearcher extends AbstractSearcher {
     isFeed = searcher.isFeed;
     startAsap = searcher.startAsap;
     titleNames = searcher.titleNames;
+    popular2 = searcher.popular2;
   }
 
   private static String[] locales(String[] locales, Map<String, String> localeCodes) {
@@ -96,16 +104,88 @@ public class PopularSearcher extends AbstractSearcher {
 
   @Override
   protected void initCurrVideos() throws Exception {
-    Connection.runDownloadLinkInfoDeproxier(() -> {
-      boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
-      String currSource = currSourceCode, prevSource = prevSourceCode;
-      PopularSearcher.super.initCurrVideos();
-      if (!isCancelled() && !isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
-        currSourceCode = currSource;
-        prevSourceCode = prevSource;
-        PopularSearcher.super.initCurrVideos();
+    // The other torrent site's popular videos are searched for along with The Pirate Bay's, which are on the page after the pages of titleNames
+    boolean search2 = (currSearchPage == titleNames.size());
+    AbstractWorker<String> currPopular2 = popular2;
+    if (search2 && (currPopular2 == null || currPopular2.isCancelled())) { // Such as when a search that was stopped is continued
+      (popular2 = currPopular2 = new AbstractWorker<String>() {
+        @Override
+        protected String doInBackground() throws Exception {
+          return TorrentSite2.popular(isTVShow, cacheExpirationMs, this::isCancelled);
+        }
+      }).execute();
+      if (isCancelled()) { // The search could have been stopped before cancel() saw this worker
+        currPopular2.cancel(true);
       }
-    });
+    }
+
+    try {
+      Connection.runDownloadLinkInfoDeproxier(() -> {
+        boolean isDownloadLinkInfoDeproxied = Connection.isDownloadLinkInfoDeproxied();
+        String currSource = currSourceCode, prevSource = prevSourceCode;
+        PopularSearcher.super.initCurrVideos();
+        if (!isCancelled() && !isDownloadLinkInfoDeproxied && Connection.isDownloadLinkInfoDeproxied()) {
+          currSourceCode = currSource;
+          prevSourceCode = prevSource;
+          PopularSearcher.super.initCurrVideos();
+        }
+      });
+    } catch (Exception e) {
+      if (!search2 || isCancelled() || !addVideos2()) {
+        throw e;
+      }
+      if (currSourceCode == null) {
+        currSourceCode = ""; // So that the search ends instead of searching The Pirate Bay again
+      }
+      return;
+    }
+
+    if (search2 && !isCancelled()) {
+      addVideos2();
+    }
+  }
+
+  // Adds the other torrent site's popular videos to the videos found, alternating with The Pirate Bay's. Returns whether any were added.
+  private boolean addVideos2() throws Exception {
+    String popularVideos;
+    try {
+      popularVideos = AbstractWorker.get(popular2);
+    } catch (InterruptedException | CancellationException e) {
+      throw e;
+    } catch (Exception e) {
+      popular2 = null; // Searched for again if the page is loaded again
+      if (Debug.DEBUG) { // Not shown, because the other site's videos only add to The Pirate Bay's, whose errors are shown
+        Debug.print(e);
+      }
+      return false;
+    }
+
+    List<Video> videos = new ArrayList<Video>(videoBuffer);
+    videoBuffer.clear();
+    Matcher titleMatcher = Regex.matcher(122, popularVideos);
+    for (Iterator<Video> videosIt = videos.iterator(); videosIt.hasNext() || !titleMatcher.hitEnd();) {
+      if (videosIt.hasNext()) {
+        videoBuffer.add(videosIt.next());
+      }
+      for (int numVideos = videoBuffer.size(); videoBuffer.size() == numVideos && !titleMatcher.hitEnd();) { // The next video that wasn't found already
+        if (titleMatcher.find()) {
+          addVideo(popularVideos.substring(titleMatcher.end()));
+        }
+      }
+    }
+    return videoBuffer.size() > videos.size();
+  }
+
+  // Also stops the search of the other torrent site, whose requests (and their status, or the web browser window of a bot check) would otherwise outlive
+  // the search. A stopped search that is continued searches the other site again unless that search was done.
+  @Override
+  public boolean cancel(boolean mayInterruptIfRunning) {
+    boolean isCancelled = super.cancel(mayInterruptIfRunning);
+    AbstractWorker<String> currPopular2 = popular2;
+    if (currPopular2 != null) {
+      currPopular2.cancel(true);
+    }
+    return isCancelled;
   }
 
   @Override

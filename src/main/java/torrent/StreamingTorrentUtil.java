@@ -378,7 +378,7 @@ public class StreamingTorrentUtil {
       File saveLocation = downloadManager.getAbsoluteSaveLocation().getParentFile();
       if (!saveDir.getCanonicalPath().equals(saveLocation.getCanonicalPath()) && downloadManager.canMoveDataFiles()) {
         downloadManager.moveDataFiles(saveDir);
-        downloadManager.copyDataFiles(saveLocation, null);
+        downloadManager.copyDataFiles(saveLocation, null, null);
       }
     } catch (Exception e) {
       if (Debug.DEBUG) {

@@ -12,6 +12,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
@@ -535,6 +536,7 @@ public class GUI extends JFrame implements GuiListener {
     UI.initCountComboBoxes(414, 502, regularResultsPerSearchComboBox);
     UI.initCountComboBoxes(412, 413, popularMoviesResultsPerSearchComboBox, popularTVShowsResultsPerSearchComboBox);
 
+    initLanguageMenu();
     AbstractButton[] languageButtons = languageButtons();
     UI.add(languageButtonGroup, languageButtons);
     for (final AbstractButton languageButton : languageButtons) {
@@ -6256,9 +6258,100 @@ public class GUI extends JFrame implements GuiListener {
       movieSubtitleDialog};
   }
 
+  // The languages of the language menu besides English: language and country of the locale, name in the language itself, and English name. Thai has no country,
+  // because Java uses the Buddhist calendar (and so years such as 2569) for th_TH, which would also become the default locale.
+  private static final String[][] LANGUAGES = {
+    {"sq", "AL", "shqip", "Albanian"},
+    {"bg", "BG", "\u0431\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438", "Bulgarian"},
+    {"ca", "ES", "catal\u00e0", "Catalan"},
+    {"hr", "HR", "hrvatski", "Croatian"},
+    {"cs", "CZ", "\u010de\u0161tina", "Czech"},
+    {"da", "DK", "dansk", "Danish"},
+    {"nl", "NL", "Nederlands", "Dutch"},
+    {"et", "EE", "eesti", "Estonian"},
+    {"tl", "PH", "Filipino", "Filipino"},
+    {"fi", "FI", "suomi", "Finnish"},
+    {"fr", "FR", "fran\u00e7ais", "French"},
+    {"de", "DE", "Deutsch", "German"},
+    {"el", "GR", "\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac", "Greek"},
+    {"hu", "HU", "magyar", "Hungarian"},
+    {"id", "ID", "Bahasa Indonesia", "Indonesian"},
+    {"it", "IT", "italiano", "Italian"},
+    {"lv", "LV", "latvie\u0161u", "Latvian"},
+    {"lt", "LT", "lietuvi\u0173", "Lithuanian"},
+    {"mk", "MK", "\u043c\u0430\u043a\u0435\u0434\u043e\u043d\u0441\u043a\u0438", "Macedonian"},
+    {"ms", "MY", "Bahasa Melayu", "Malay"},
+    {"nb", "NO", "norsk bokm\u00e5l", "Norwegian"},
+    {"pl", "PL", "polski", "Polish"},
+    {"pt", "BR", "portugu\u00eas (Brasil)", "Portuguese (Brazil)"},
+    {"pt", "PT", "portugu\u00eas (Portugal)", "Portuguese (Portugal)"},
+    {"ro", "RO", "rom\u00e2n\u0103", "Romanian"},
+    {"ru", "RU", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439", "Russian"},
+    {"sr", "RS", "\u0441\u0440\u043f\u0441\u043a\u0438", "Serbian"},
+    {"sk", "SK", "sloven\u010dina", "Slovak"},
+    {"sl", "SI", "sloven\u0161\u010dina", "Slovenian"},
+    {"es", "MX", "espa\u00f1ol (Latinoam\u00e9rica)", "Spanish (Latin America)"},
+    {"es", "ES", "espa\u00f1ol (Espa\u00f1a)", "Spanish (Spain)"},
+    {"sv", "SE", "svenska", "Swedish"},
+    {"th", "", "\u0e44\u0e17\u0e22", "Thai"},
+    {"tr", "TR", "T\u00fcrk\u00e7e", "Turkish"},
+    {"uk", "UA", "\u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430", "Ukrainian"},
+    {"vi", "VN", "Ti\u1ebfng Vi\u1ec7t", "Vietnamese"}};
+  private AbstractButton[] languageMenuButtons;
+  private static final String VERDANA = "Verdana", HTML_VERDANA = VERDANA + ", Geneva, sans-serif", TAHOMA = "Tahoma";
+
   private AbstractButton[] languageButtons() {
-    return new AbstractButton[]{englishRadioButtonMenuItem, spanishRadioButtonMenuItem, frenchRadioButtonMenuItem, italianRadioButtonMenuItem,
-      dutchRadioButtonMenuItem, portugueseRadioButtonMenuItem, turkishRadioButtonMenuItem};
+    return languageMenuButtons;
+  }
+
+  // Verdana (the font of some components, and of htmlFont1 in HTML such as summaries) lacks some languages' scripts, such as Thai, which Tahoma has. So for
+  // such a language, those components and htmlFont1 use Tahoma instead.
+  private void updateFonts() {
+    boolean isVerdanaOk = new Font(VERDANA, Font.PLAIN, 10).canDisplayUpTo(Str.str("results") + Str.str("GUI.languageMenu.text") + Str.str("transferring")
+            + Str.str("storyline")) == -1;
+    for (JComponent component : new JComponent[]{msgEditorPane, commentsTextPane, statusBarTextField, searchProgressTextField}) {
+      Font font = component.getFont();
+      component.setFont(new Font(isVerdanaOk ? VERDANA : TAHOMA, font.getStyle(), font.getSize()));
+    }
+    String htmlFont1 = System.getProperty("htmlFont1");
+    if (htmlFont1 != null) {
+      System.setProperty("htmlFont1", isVerdanaOk ? htmlFont1.replace("face=\"" + TAHOMA + '"', "face=\"" + HTML_VERDANA + '"') : htmlFont1.replace(
+              HTML_VERDANA, TAHOMA));
+    }
+  }
+
+  // Puts an item for each language in the language menu: English first, then the others in alphabetical order of their English names, in two columns so that
+  // the menu fits on small screens. The form's items are kept for its languages. An item's name is its locale's, which is made at run time because Java 17 and
+  // later name some locales differently than Java 8 (Indonesian is in_ID before and id_ID after) and the selected item is found by its locale's name.
+  private void initLanguageMenu() {
+    Map<String, AbstractButton> formButtons = new HashMap<>(8);
+    for (AbstractButton button : new AbstractButton[]{spanishRadioButtonMenuItem, frenchRadioButtonMenuItem, italianRadioButtonMenuItem,
+      dutchRadioButtonMenuItem, portugueseRadioButtonMenuItem, turkishRadioButtonMenuItem}) {
+      formButtons.put(button.getName(), button);
+    }
+    List<AbstractButton> buttons = new ArrayList<>(LANGUAGES.length + 1);
+    buttons.add(englishRadioButtonMenuItem);
+    for (String[] language : LANGUAGES) {
+      String name = new Locale(language[0], language[1]).toString();
+      AbstractButton button = formButtons.get(name);
+      if (button == null) {
+        button = UI.newJRadioButtonMenuItem();
+        button.setName(name);
+      }
+      button.setText(language[2].equals(language[3]) ? language[3] : language[2] + " - " + language[3]);
+      buttons.add(button);
+    }
+    languageMenuButtons = buttons.toArray(new AbstractButton[0]);
+
+    languageMenu.removeAll();
+    int numColumns = 2, numRows = (languageMenuButtons.length + numColumns - 1) / numColumns;
+    languageMenu.getPopupMenu().setLayout(new GridLayout(numRows, numColumns));
+    for (int row = 0; row < numRows; row++) {
+      for (int column = 0; column < numColumns; column++) {
+        int i = column * numRows + row; // Down each column
+        languageMenu.add(i < languageMenuButtons.length ? languageMenuButtons[i] : new JLabel());
+      }
+    }
   }
 
   private class Settings {
@@ -7825,7 +7918,8 @@ public class GUI extends JFrame implements GuiListener {
 
   void changeLocale(String locale) {
     try {
-      changeLocale(locale == null || locale.equals(Constant.NULL) ? null : new Locale(locale.substring(0, 2), locale.substring(3)));
+      String[] languageAndCountry = (locale == null || locale.equals(Constant.NULL) ? null : locale.split("_", 2)); // Thai has no country
+      changeLocale(languageAndCountry == null ? null : new Locale(languageAndCountry[0], languageAndCountry.length == 2 ? languageAndCountry[1] : ""));
     } catch (Exception e) {
       if (Debug.DEBUG) {
         Debug.print(e);
@@ -7836,6 +7930,7 @@ public class GUI extends JFrame implements GuiListener {
   private void changeLocale(Locale locale) {
     NumberFormat prevNumFormat = Str.getNumFormat();
     workerListener.changeLocale(locale);
+    updateFonts();
 
     languageButtonGroup.clearSelection();
     for (AbstractButton languageButton : languageButtons()) {

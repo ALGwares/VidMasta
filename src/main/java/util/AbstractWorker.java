@@ -14,6 +14,7 @@ public abstract class AbstractWorker<T> implements RunnableFuture<T> {
 
   private static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
   private static final ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
+  private static final ThreadLocal<AbstractWorker<?>> currentWorker = new ThreadLocal<>();
   private final ExecutorService threadPool;
 
   public AbstractWorker() {
@@ -35,7 +36,17 @@ public abstract class AbstractWorker<T> implements RunnableFuture<T> {
     @Override
     public T call() throws Exception {
       state = StateValue.STARTED;
-      return doInBackground();
+      AbstractWorker<?> prevWorker = currentWorker.get(); // Set if this worker is run in another worker's thread
+      currentWorker.set(AbstractWorker.this);
+      try {
+        return doInBackground();
+      } finally {
+        if (prevWorker == null) {
+          currentWorker.remove();
+        } else {
+          currentWorker.set(prevWorker);
+        }
+      }
     }
   }) {
     @Override
@@ -53,6 +64,11 @@ public abstract class AbstractWorker<T> implements RunnableFuture<T> {
 
   public StateValue getState() {
     return state;
+  }
+
+  // The worker that the current thread is running, or null if there's none
+  static AbstractWorker<?> current() {
+    return currentWorker.get();
   }
 
   protected abstract T doInBackground() throws Exception;

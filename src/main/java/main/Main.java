@@ -53,11 +53,13 @@ import util.Constant;
 import util.IO;
 import util.MediaPlayer;
 import util.ModClass;
+import util.ThreadUtil;
 import util.ThrowableUtil;
 import util.Worker;
 
 public class Main implements WorkerListener {
 
+  private static final long SHUTDOWN_TIMEOUT_SECS = 30;
   private static File appLockFile;
   private static FileChannel appLockFileChannel;
   private static FileLock appLockFileLock;
@@ -135,6 +137,10 @@ public class Main implements WorkerListener {
     runtime.addShutdownHook(new Thread() {
       @Override
       public void run() {
+        // The JVM exits only once every shutdown hook is done, including BiglyBT's own. But stopping BiglyBT's downloads can take minutes or never end (such
+        // as when it waits for disk writes that stalled), long after VidMasta's window is gone, and BiglyBT's own way out (System.exit()) doesn't work
+        // during shutdown.
+        ThreadUtil.haltIfShutdownHangs(SHUTDOWN_TIMEOUT_SECS);
         gui.saveUserSettings();
         gui.savePlaylist();
         AbstractWorker.shutdown();

@@ -134,6 +134,13 @@ public class Connection {
 
   private static GuiListener guiListener;
   private static Callable<Boolean> isSearchingDone;
+  // Tasks that runWhenNotSearching() is running, which are paused if a search starts before they finish
+  private static final Set<PausableTask> pausableTasks = ConcurrentHashMap.newKeySet();
+  private static final ThreadLocal<PausableTask> currentPausableTask = new ThreadLocal<>();
+  private static final AtomicBoolean isWatchingForSearches = new AtomicBoolean();
+  private static final AtomicInteger numCacheRefreshes = new AtomicInteger(); // Unfinished background refreshes of cached pages
+  // Set once the JVM is shutting down, after which no web browser or curl process is started, since it could outlive the JVM
+  private static final AtomicBoolean isShuttingDown = new AtomicBoolean();
   private static final StatusBar statusBar = new StatusBar();
   public static final int MAX_NUM_REDIRECTS = 3;
   private static final Lock downloadLinkInfoProxyLock = new ReentrantLock();
@@ -159,10 +166,10 @@ public class Connection {
   private static final ThrowingRunnable webBrowserSleep = () -> Thread.sleep(Integer.parseInt(Str.get(931)));
   private static final AtomicBoolean webBrowserInitShowStatus = new AtomicBoolean(), curlInitShowStatus = new AtomicBoolean();
   private static final AtomicBoolean webBrowserInitialized = new AtomicBoolean();
-  private static final AtomicReference<String> webBrowserInitStatusMsg = new AtomicReference<>();
-  private static final AtomicReference<LazyInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
+  private static final AtomicReference<HttpClientInitializer<FirefoxDriver>> webBrowserDriver = new AtomicReference<>();
   private static final AtomicReference<FirefoxDriver> lastWebBrowserDriver = new AtomicReference<>();
   private static final AtomicBoolean webBrowserQuit = new AtomicBoolean(), webBrowserShutdownHookAdded = new AtomicBoolean();
+  private static final int WEB_BROWSER_QUIT_TIMEOUT_SECS = 10;
   private static volatile long webBrowserRetryTime;
   private static volatile int numWebBrowserFailures;
   private static final ConcurrentMap<String, String> webBrowserCookies = new ConcurrentHashMap<>(4);
@@ -170,7 +177,7 @@ public class Connection {
   private static final Set<String> initErrors = new CopyOnWriteArraySet<>();
   // Requests wait for the first initialization of curl. After it fails, initialization is retried in the background, without requests waiting for it, since the
   // cause can be temporary: right after a cold boot, curl once hung at startup without any output, for hours.
-  private static final LazyInitializer<List<String>> firstCurlInit = new LazyInitializer<List<String>>() {
+  private static final HttpClientInitializer<List<String>> firstCurlInit = new HttpClientInitializer<List<String>>() {
     @Override
     protected List<String> initialize() {
       return initCurl();
@@ -187,7 +194,12 @@ public class Connection {
 
   // Returns the command (curl and its arguments) that a request's arguments are added to, or null if curl is unavailable
   private static List<String> curlCommand() throws ConcurrentException {
-    List<String> curlCmd = firstCurlInit.get();
+    return curlCommand(false);
+  }
+
+  // Like curlCommand(), for a request that shows its status: while it waits for curl's first initialization, the status bar shows that it's initializing
+  private static List<String> curlCommand(boolean showStatus) throws ConcurrentException {
+    List<String> curlCmd = firstCurlInit.get(showStatus);
     if (curlCmd == null && (curlCmd = retriedCurlCmd) == null && System.nanoTime() - curlInitRetryNanoTime >= 0 && isRetryingCurlInit.compareAndSet(false,
             true)) {
       Worker.submit(() -> {
@@ -199,6 +211,34 @@ public class Connection {
       });
     }
     return curlCmd;
+  }
+
+  // A lazy initialization of curl or the web browser. While a request that shows its status waits for it, whether the initialization runs in the request's
+  // thread or in another one (such as at startup), the status bar shows that the request is initializing.
+  private abstract static class HttpClientInitializer<T> extends LazyInitializer<T> {
+
+    private volatile boolean isInitialized;
+
+    @Override
+    public T get() throws ConcurrentException {
+      T httpClient = super.get();
+      isInitialized = true;
+      return httpClient;
+    }
+
+    T get(boolean showStatus) throws ConcurrentException {
+      if (!showStatus || isInitialized) {
+        return get();
+      }
+      Thread thread = Thread.currentThread();
+      String prevMsg = statusBar.get(thread), msg = ' ' + Str.str("initializing") + "...";
+      statusBar.set(thread, msg);
+      try {
+        return get();
+      } finally {
+        statusBar.replace(thread, msg, prevMsg); // Back to the request's own message, if it had one
+      }
+    }
   }
 
   // Returns curl's command, or null if curl is unavailable
@@ -248,8 +288,8 @@ public class Connection {
       return Collections.unmodifiableList(curlCmd);
     } catch (Exception e) {
       Throwable cause = ThrowableUtil.rootCause(e);
-      if (cause instanceof InterruptedException || cause instanceof CancellationException) {
-        ThrowingUtil.sneakyThrow(e); // Not a failure
+      if (cause instanceof InterruptedException || cause instanceof CancellationException || isShuttingDown.get()) {
+        ThrowingUtil.sneakyThrow(e); // Not a failure, such as when the curl stopper killed curl
       }
       int numFailures = ++numCurlInitFailures;
       if (numFailures == 1) { // Not reported, since initialization is retried right away: a new process can work where one hung
@@ -267,11 +307,37 @@ public class Connection {
   // Starts curl, which is killed if the app exits while it runs
   private static Process startCurl(List<String> curlArgs) throws IOException {
     if (curlShutdownHookAdded.compareAndSet(false, true)) {
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> curlProcesses.forEach(Process::destroy), "curl stopper"));
+      addShutdownHook(new Thread(() -> {
+        isShuttingDown.set(true);
+        curlProcesses.forEach(Process::destroy);
+      }, "curl stopper"));
     }
+    checkNotShuttingDown();
     Process curlProcess = (new ProcessBuilder(curlArgs)).redirectErrorStream(true).start();
     curlProcesses.add(curlProcess);
+    if (isShuttingDown.get()) { // The curl stopper could have run before this process was added
+      stopCurl(curlProcess);
+      checkNotShuttingDown();
+    }
     return curlProcess;
+  }
+
+  // Fails once the JVM is shutting down, so that a request doesn't start a web browser or curl process that could outlive the JVM
+  private static void checkNotShuttingDown() {
+    if (isShuttingDown.get()) {
+      throw new CancellationException("shutting down");
+    }
+  }
+
+  // Fails like checkNotShuttingDown() if the JVM is already shutting down, which is when the JVM refuses new shutdown hooks (such as when the app is closed
+  // while the web browser starts for the first time)
+  private static void addShutdownHook(Thread hook) {
+    try {
+      Runtime.getRuntime().addShutdownHook(hook);
+    } catch (IllegalStateException e) {
+      isShuttingDown.set(true);
+      checkNotShuttingDown();
+    }
   }
 
   // Kills curl unless it has exited. On Windows, that's curl itself rather than its wrapper (see curlCommand(File)).
@@ -319,17 +385,20 @@ public class Connection {
     return Lists.newArrayList(wrapper.getPath());
   }
 
-  private static FirefoxDriver createWebBrowser(boolean restart) throws Exception {
-    LazyInitializer<FirefoxDriver> prevWebBrowserDriver;
+  // Returns the web browser, or null if it's unavailable. While a request that shows its status waits for the web browser to be created, the status bar shows
+  // that it's initializing.
+  private static FirefoxDriver createWebBrowser(boolean restart, boolean showStatus) throws Exception {
+    checkNotShuttingDown(); // Such as a restart after the shutdown hook quit the web browser
+    HttpClientInitializer<FirefoxDriver> prevWebBrowserDriver;
     if (restart) {
       webBrowserDriver.set(null);
-    } else if ((prevWebBrowserDriver = webBrowserDriver.get()) != null && prevWebBrowserDriver.get() == null
+    } else if ((prevWebBrowserDriver = webBrowserDriver.get()) != null && prevWebBrowserDriver.get(showStatus) == null
             && System.currentTimeMillis() >= webBrowserRetryTime && !standaloneWebBrowserLock.isLocked()) {
       // Try again in case the failure to create it was temporary, but not during a standalone web browser run: creating the web browser stops every process
       // started from its executable, which the standalone web browser shares
       webBrowserDriver.compareAndSet(prevWebBrowserDriver, null);
     }
-    webBrowserDriver.compareAndSet(null, new LazyInitializer<FirefoxDriver>() {
+    webBrowserDriver.compareAndSet(null, new HttpClientInitializer<FirefoxDriver>() {
       @Override
       protected FirefoxDriver initialize() {
         try {
@@ -344,9 +413,6 @@ public class Connection {
             String zipFile = firefoxIndicator.getPath() + Constant.ZIP;
             try {
               saveData(Str.get(Constant.WINDOWS ? 839 : (Constant.MAC ? 843 : 847)), zipFile, DomainType.UPDATE, webBrowserInitShowStatus.get());
-              if (webBrowserInitShowStatus.get()) {
-                setStatusBar(webBrowserInitStatusMsg.updateAndGet(prev -> Str.str("initializing") + "..."));
-              }
               try {
                 IO.fileOp(webBrowserDir, IO.RM_DIR);
                 IO.unzip(zipFile, IO.dir(webBrowserDir.getPath()));
@@ -361,9 +427,6 @@ public class Connection {
           }
           disableWebBrowserUpdates(firefoxBinary);
 
-          if (webBrowserInitShowStatus.get()) {
-            setStatusBar(webBrowserInitStatusMsg.updateAndGet(prev -> Str.str("initializing") + "..."));
-          }
           System.setProperty(GeckoDriverService.GECKO_DRIVER_EXE_PROPERTY, firefoxDriver.getPath());
           System.setProperty(SystemProperty.BROWSER_BINARY, firefoxBinary.getPath());
           FirefoxOptions options = new FirefoxOptions();
@@ -381,17 +444,12 @@ public class Connection {
           Arrays.asList(869, 870).forEach(i -> profile.setPreference(Str.get(i), Constant.TEMP_DIR));
           options.setProfile(profile);
           if (webBrowserShutdownHookAdded.compareAndSet(false, true)) { // Once instead of for every web browser
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            addShutdownHook(new Thread(() -> {
+              isShuttingDown.set(true);
+              webBrowserQuit.set(true);
               FirefoxDriver tempDriver = lastWebBrowserDriver.get();
               if (tempDriver != null) {
-                webBrowserQuit.set(true);
-                try {
-                  tempDriver.quit();
-                } catch (Exception e) {
-                  if (Debug.DEBUG) {
-                    Debug.print(e);
-                  }
-                }
+                quitWebBrowser(tempDriver);
               }
               killWebBrowser.accept(false);
             }));
@@ -425,6 +483,7 @@ public class Connection {
             try {
               driver = new FirefoxDriver(options);
             } catch (WebDriverException e) { // Such as when Firefox briefly can't read its own files and quits while starting
+              checkNotShuttingDown(); // The shutdown hook could have stopped it
               if (attempt == 3) {
                 throw e;
               }
@@ -436,6 +495,10 @@ public class Connection {
             }
           }
           lastWebBrowserDriver.set(driver);
+          if (isShuttingDown.get()) { // The shutdown hook could have missed this web browser
+            killWebBrowser.accept(false);
+            checkNotShuttingDown();
+          }
           DevTools devTools = driver.getDevTools();
           devTools.createSessionIfThereIsNotOne();
           devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
@@ -482,12 +545,38 @@ public class Connection {
           return null;
         } finally {
           webBrowserInitialized.set(true);
-          webBrowserInitStatusMsg.set(null);
-          unsetStatusBar();
         }
       }
     });
-    return webBrowserDriver.get().get();
+    return webBrowserDriver.get().get(showStatus);
+  }
+
+  // Quitting lets the web browser save its profile, but it can take a while or never end (such as when its driver doesn't stop), so after a few seconds, the
+  // web browser is left to be killed instead of keeping the JVM from exiting
+  private static void quitWebBrowser(FirefoxDriver driver) {
+    AtomicBoolean isQuitTimedOut = new AtomicBoolean();
+    Thread quitter = new Thread(() -> {
+      try {
+        driver.quit();
+      } catch (Exception e) {
+        if (Debug.DEBUG && !isQuitTimedOut.get()) { // Not because the web browser was killed
+          Debug.print(e);
+        }
+      }
+    }, "web browser quitter");
+    quitter.setDaemon(true);
+    quitter.start();
+    try {
+      quitter.join(TimeUnit.SECONDS.toMillis(WEB_BROWSER_QUIT_TIMEOUT_SECS));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+    if (quitter.isAlive()) {
+      isQuitTimedOut.set(true);
+      if (Debug.DEBUG) {
+        Debug.println("web browser didn't quit within " + WEB_BROWSER_QUIT_TIMEOUT_SECS + " seconds");
+      }
+    }
   }
 
   // A window for each processor (2 to 4), but no more than one for each GB of memory, such as on 32-bit Windows with little memory
@@ -544,7 +633,8 @@ public class Connection {
 
   private static void handleInitError(Exception e, boolean isStartup) {
     Throwable cause = ThrowableUtil.rootCause(e);
-    if (cause instanceof InterruptedException || cause instanceof CancellationException) {
+    // Not a failure if shutting down, which can make initialization fail in other ways, such as when the curl stopper kills the web browser's download
+    if (cause instanceof InterruptedException || cause instanceof CancellationException || isShuttingDown.get()) {
       ThrowingUtil.sneakyThrow(e);
     }
     String msg = Str.str("connectionInitError") + ' ' + Regex.firstMatch(String.valueOf(cause), ".+");
@@ -566,14 +656,153 @@ public class Connection {
       curlInitShowStatus.set(true);
     }
     if (Boolean.parseBoolean(Str.get(927))) {
-      Worker.submit(() -> createWebBrowser(false));
+      Worker.submit(() -> createWebBrowser(false, false));
     } else {
       webBrowserInitShowStatus.set(true);
     }
   }
 
-  public static void awaitSearchCompletion() throws Exception {
-    Awaitility.await().forever().until(isSearchingDone);
+  // Runs the task once no search is running. If a search starts while the task runs, the task is paused: its requests are cancelled and new ones fail, so that
+  // they don't slow down searching. Once searching is done, the task runs again, getting the pages that it already fetched from the cache, so that it resumes
+  // about where it left off. Only requests made in the task's own thread are paused (along with their redirects and retries).
+  public static void runWhenNotSearching(ThrowingRunnable task) throws Exception {
+    if (currentPausableTask.get() != null) { // Paused along with the task that this is part of
+      task.runWithException();
+      return;
+    }
+
+    AbstractWorker<?> worker = AbstractWorker.current();
+    // Awaitility ignores interruptions until its condition holds (and then reasserts them), so a cancellation ends the wait through the condition
+    Callable<Boolean> canRun = (worker == null ? isSearchingDone : () -> worker.isCancelled() || isSearchingDone.call());
+    for (String pausedAt = null;;) { // The URL of the request at which a search paused the last run
+      // By default, Awaitility takes over every thread's uncaught exceptions while it waits: they would go unreported, and fail this wait instead
+      Awaitility.await().dontCatchUncaughtExceptions().forever().until(canRun);
+      boolean isInterrupted = Thread.interrupted();
+      if (isInterrupted || (worker != null && worker.isCancelled())) { // Such as during a run that a pause disrupted, whose exception was ignored
+        debugResumption("not resuming", "it was stopped", pausedAt);
+        throw (isInterrupted ? new InterruptedException() : new CancellationException());
+      }
+      debugResumption("resuming", "searching is done", pausedAt);
+
+      PausableTask pausableTask = new PausableTask();
+      try {
+        currentPausableTask.set(pausableTask);
+        pausableTasks.add(pausableTask);
+        startSearchWatcher();
+        task.runWithException();
+      } catch (Exception e) {
+        String pausedHere = pausableTask.end();
+        if (e instanceof InterruptedException) { // Not because of a pause, which doesn't interrupt the task
+          debugResumption("not resuming", "it was stopped", pausedHere);
+          throw e;
+        }
+        if (pausedHere == null) {
+          throw e;
+        }
+      } finally {
+        pausedAt = pausableTask.end();
+        pausableTasks.remove(pausableTask);
+        currentPausableTask.remove();
+      }
+      if (pausedAt == null) {
+        return;
+      }
+    }
+  }
+
+  private static void debugResumption(String action, String reason, String pausedAt) {
+    if (pausedAt != null && Debug.DEBUG) {
+      Debug.println(action + ' ' + Thread.currentThread().getName() + " because " + reason + " (paused at its request for " + pausedAt + ')');
+    }
+  }
+
+  private static void startSearchWatcher() {
+    if (isWatchingForSearches.compareAndSet(false, true)) {
+      try {
+        Worker.submit(Connection::watchForSearches);
+      } catch (RuntimeException | Error e) { // Such as when a thread can't be created, so that a later task can start the watcher
+        isWatchingForSearches.set(false);
+        throw e;
+      }
+    }
+  }
+
+  // Pauses the tasks that runWhenNotSearching() runs when a search starts. Runs until there are none.
+  private static void watchForSearches() throws Exception {
+    do {
+      try {
+        while (!pausableTasks.isEmpty()) {
+          Thread.sleep(100);
+          if (!isSearchingDone.call()) {
+            pausableTasks.forEach(PausableTask::pause);
+          }
+        }
+      } finally {
+        isWatchingForSearches.set(false);
+      }
+    } while (!pausableTasks.isEmpty() && isWatchingForSearches.compareAndSet(false, true)); // A task added after the last check didn't start a watcher
+  }
+
+  // Runs the request for the URL, which a search cancels if a task that runWhenNotSearching() runs makes it
+  private static <T> T executeRequest(String url, AbstractWorker<T> request) throws Exception {
+    PausableTask task = currentPausableTask.get();
+    if (task == null) {
+      return request.executeAndGet();
+    }
+    task.requestStarting(url, request);
+    try {
+      return request.executeAndGet();
+    } finally {
+      task.requestEnded(request);
+    }
+  }
+
+  // A run of a task that runWhenNotSearching() runs. A search pauses it by cancelling its requests and failing new ones until the run ends.
+  private static final class PausableTask {
+
+    private final String threadName = Thread.currentThread().getName();
+    private final Map<AbstractWorker<?>, String> requestUrls = new HashMap<>(4); // Guarded by this
+    private boolean isRunning = true, isPaused; // Guarded by this
+    private String pausedAt; // The URL of the request that a pause stopped or kept from starting. Guarded by this.
+
+    synchronized void requestStarting(String url, AbstractWorker<?> request) {
+      if (isPaused) {
+        disrupt("before its request for", url);
+        throw new CancellationException("paused while searching");
+      }
+      requestUrls.put(request, url);
+    }
+
+    synchronized void requestEnded(AbstractWorker<?> request) {
+      requestUrls.remove(request);
+    }
+
+    synchronized void pause() {
+      if (!isRunning || isPaused) {
+        return;
+      }
+      isPaused = true;
+      requestUrls.forEach((request, url) -> {
+        if (request.cancel(true)) {
+          disrupt("stopping its request for", url);
+        }
+      });
+    }
+
+    private synchronized void disrupt(String how, String url) {
+      if (pausedAt == null) {
+        pausedAt = String.valueOf(url);
+        if (Debug.DEBUG) {
+          Debug.println("pausing " + threadName + " because a search started, " + how + ' ' + url);
+        }
+      }
+    }
+
+    // Ends the run. Returns the URL of the request at which a pause disrupted it, so that the task needs to run again, or null if none did.
+    synchronized String end() {
+      isRunning = false;
+      return pausedAt;
+    }
   }
 
   public static void init(GuiListener guiListener, Callable<Boolean> isSearchingDone) {
@@ -702,11 +931,8 @@ public class Connection {
         }
         try {
           if (IO.isFileTooOld(sourceCodeFile, cacheExpirationMs)) {
-            Worker.submit(() -> {
-              awaitSearchCompletion();
-              addToCache(getSourceCodeHelper(url, originalUrl, domainType, false, emptyOK, cacheExpirationMs, maxNumRedirects,
-                      webBrowserRequest, throwables), sourceCodeFile);
-            });
+            refreshInBackground(() -> addToCache(getSourceCodeHelper(url, originalUrl, domainType, false, emptyOK, cacheExpirationMs, maxNumRedirects,
+                    webBrowserRequest, throwables), sourceCodeFile));
           }
         } catch (Exception e) {
           if (Debug.DEBUG) {
@@ -730,6 +956,28 @@ public class Connection {
     return sourceCode;
   }
 
+  // Refreshes a cached page in the background, once no search is running (see runWhenNotSearching()). isRefreshingCache() is true until it's done.
+  public static void refreshInBackground(ThrowingRunnable refresh) {
+    numCacheRefreshes.incrementAndGet();
+    try {
+      Worker.submit(() -> {
+        try {
+          runWhenNotSearching(refresh);
+        } finally {
+          numCacheRefreshes.decrementAndGet();
+        }
+      });
+    } catch (RuntimeException | Error e) { // Not started, such as when shutting down
+      numCacheRefreshes.decrementAndGet();
+      throw e;
+    }
+  }
+
+  // Whether cached pages are being refreshed in the background, which waits for searching to be done (see runWhenNotSearching())
+  public static boolean isRefreshingCache() {
+    return numCacheRefreshes.get() != 0;
+  }
+
   private static String getSourceCodeHelper(String url, String originalUrl, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
           int maxNumRedirects, WebBrowserRequest webBrowserRequest, Class<?>... throwables) throws Exception {
     return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, webBrowserRequest, true, throwables);
@@ -737,10 +985,10 @@ public class Connection {
 
   private static String getSourceCodeHelper(String url, String originalUrl, DomainType domainType, boolean showStatus, boolean emptyOK, long cacheExpirationMs,
           int maxNumRedirects, WebBrowserRequest webBrowserRequest, boolean canRetry, Class<?>... throwables) throws Exception {
-    boolean useCurl = Regex.isMatch(url, 933) && curlCommand() != null;
+    boolean useCurl = Regex.isMatch(url, 933) && curlCommand(showStatus) != null;
     // A repeated request (canRetry is false) keeps its original client instead of switching to the web browser: it can run while its original request uses
     // the web browser (in retry()), which a nested web browser request could wait for forever
-    if (webBrowserRequest == null && canRetry && Regex.isMatch(url, 871) && !useCurl && createWebBrowser(false) != null) {
+    if (webBrowserRequest == null && canRetry && Regex.isMatch(url, 871) && !useCurl && createWebBrowser(false, showStatus) != null) {
       if (!Regex.isMatch(url, 873)) {
         return getSourceCodeHelper(url, originalUrl, domainType, showStatus, emptyOK, cacheExpirationMs, maxNumRedirects, new WebBrowserRequest(), canRetry,
                 throwables);
@@ -752,7 +1000,7 @@ public class Connection {
       return str;
     }
 
-    return (new AbstractWorker<String>() {
+    return executeRequest(url, new AbstractWorker<String>() {
       @Override
       protected String doInBackground() throws Exception {
         HttpURLConnection connection = null;
@@ -762,13 +1010,7 @@ public class Connection {
           boolean useWebBrowser = false;
           if (webBrowserRequest != null) {
             webBrowserInitShowStatus.set(showStatus);
-            if (showStatus) {
-              String msg = webBrowserInitStatusMsg.get();
-              if (msg != null) {
-                setStatusBar(msg);
-              }
-            }
-            useWebBrowser = createWebBrowser(false) != null;
+            useWebBrowser = createWebBrowser(false, showStatus) != null;
           }
 
           if (Debug.DEBUG) {
@@ -787,7 +1029,7 @@ public class Connection {
                   webBrowserRequest, false, throwables);
           String client = (useWebBrowser ? "web browser" : (useCurl ? "curl" : "direct request"));
           retry.set((responseCode, response) -> {
-            if (!canRetry || !Regex.isMatch(String.valueOf(responseCode), 934) || createWebBrowser(false) == null) {
+            if (!canRetry || !Regex.isMatch(String.valueOf(responseCode), 934) || createWebBrowser(false, showStatus) == null) {
               return retry2.get().apply(responseCode, response);
             }
 
@@ -820,7 +1062,7 @@ public class Connection {
               return null;
             }
             String prevWebBrowserCookies = cookiesStr.get();
-            createWebBrowser(false);
+            createWebBrowser(false, showStatus);
             if (!(new File(Constant.APP_DIR, Str.get(Constant.WINDOWS ? 836 : (Constant.MAC ? 840 : 844)))).exists()) {
               return null;
             }
@@ -858,8 +1100,10 @@ public class Connection {
                 Collections.addAll(args, Regex.split(headless ? 938 : 945, Constant.SEPARATOR1));
                 Collections.addAll(args, Str.get(939), WEB_BROWSER_PROFILE.getPath());
                 Collections.addAll(args, Str.get(940), url);
+                checkNotShuttingDown();
                 Process firefox = (new ProcessBuilder(args)).redirectErrorStream(true).start();
                 try {
+                  checkNotShuttingDown(); // The shutdown hook could have missed this process
                   final AtomicInteger timer = new AtomicInteger();
                   int prevCookieCount = -1;
                   for (int timeout = Integer.parseInt(Str.get(headless ? 943 : 947)); timer.get() < timeout; timer.incrementAndGet()) {
@@ -921,6 +1165,7 @@ public class Connection {
               if (prevWebBrowserCookies.equals(cookiesStr.get()) && Optional.ofNullable(IO.findFile(webBrowser, Regex.pattern(Str.get(948)))).map(
                       ThrowingFunction.of(IO::read)).map(appInfo -> Regex.firstMatch(appInfo, 949)).filter(majorVersion -> !majorVersion.isEmpty()).map(
                       Integer::parseInt).filter(version -> version >= Integer.parseInt(Str.get(950))).isPresent()) {
+                checkNotShuttingDown();
                 guiListener.timedMsg(Str.str("checkStandaloneWebBrowser", (new URL(url)).getHost()));
                 runStandaloneWebBrowser.accept(false);
               }
@@ -1012,7 +1257,8 @@ public class Connection {
             AtomicReference<FirefoxDriver> webBrowserUsed = new AtomicReference<>();
             ThrowingConsumer<Boolean> getSourceCode = restartWebBrowser -> {
               AtomicBoolean retried = new AtomicBoolean();
-              String sourceCode = useWebBrowser(url, proxy, webBrowserRequest, restartWebBrowser ? webBrowserUsed.get() : null, webBrowserUsed, window -> {
+              FirefoxDriver deadWebBrowser = (restartWebBrowser ? webBrowserUsed.get() : null);
+              String sourceCode = useWebBrowser(url, proxy, webBrowserRequest, deadWebBrowser, webBrowserUsed, showStatus, window -> {
                 if (!restartWebBrowser) {
                   String retrySourceCode = webBrowserRequest.retry(); // Now that it's this request's turn to use the web browser
                   if (retrySourceCode != null) {
@@ -1045,7 +1291,7 @@ public class Connection {
                 } catch (TimeoutException e2) {
                   throw e2;
                 } catch (WebDriverException e2) {
-                  if (!Regex.isMatch(url, 930) || curlCommand() == null) {
+                  if (!Regex.isMatch(url, 930) || curlCommand(showStatus) == null) {
                     throw e2;
                   }
                   if (Debug.DEBUG) {
@@ -1120,14 +1366,14 @@ public class Connection {
 
         return domainType == DomainType.UPDATE ? source.toString() : Regex.replaceAll(source.toString(), 741);
       }
-    }).executeAndGet();
+    });
   }
 
   // Runs a task with the web browser. Page loads share the web browser by loading in separate windows, while requests that drive the web browser themselves
   // get exclusive use of it in its main window (whose DevTools session the request and response listeners use). The web browser is restarted if it's
-  // deadWebBrowser, unless that's already been done.
+  // deadWebBrowser, unless that's already been done. showStatus is whether the request shows its status, such as while it waits for the web browser to start.
   private static String useWebBrowser(String url, Proxy proxy, WebBrowserRequest request, FirefoxDriver deadWebBrowser,
-          AtomicReference<FirefoxDriver> webBrowserUsed, ThrowingFunction<WebBrowserWindow, String> task) throws Exception {
+          AtomicReference<FirefoxDriver> webBrowserUsed, boolean showStatus, ThrowingFunction<WebBrowserWindow, String> task) throws Exception {
     Duration pageLoadTimeout = Duration.ofSeconds(shortTimeoutUrls.getIfPresent((new URL(url)).getHost()) == null ? (guiListener.getTimeout() + 45) : 45);
     Lock readLock = webBrowserLock.readLock(), writeLock = webBrowserLock.writeLock(), lock = null;
     try {
@@ -1135,7 +1381,7 @@ public class Connection {
       if (request.exclusive) {
         writeLock.lockInterruptibly();
         lock = writeLock;
-        driver = changeWebBrowser(deadWebBrowser, proxy, pageLoadTimeout, webBrowserUsed);
+        driver = changeWebBrowser(deadWebBrowser, proxy, pageLoadTimeout, webBrowserUsed, showStatus);
       } else {
         while (lock == null) {
           if (!isWebBrowserChangeNeeded(deadWebBrowser, proxy)) {
@@ -1143,7 +1389,7 @@ public class Connection {
             lock = readLock;
             // Get the web browser before checking its proxy, because creating the web browser resets its proxy. Then, while the lock is held, the web
             // browser can't be replaced.
-            if ((driver = createWebBrowser(false)) != null && !webBrowserProxy.equals(proxy)) {
+            if ((driver = createWebBrowser(false, showStatus)) != null && !webBrowserProxy.equals(proxy)) {
               lock = null;
               readLock.unlock();
             }
@@ -1156,7 +1402,7 @@ public class Connection {
             if (isWebBrowserChangeNeeded(deadWebBrowser, proxy)) {
               writeLock.lockInterruptibly();
               lock = writeLock;
-              driver = changeWebBrowser(deadWebBrowser, proxy, pageLoadTimeout, webBrowserUsed);
+              driver = changeWebBrowser(deadWebBrowser, proxy, pageLoadTimeout, webBrowserUsed, showStatus);
               readLock.lock(); // Downgrade to share the web browser
               writeLock.unlock();
               lock = readLock;
@@ -1210,12 +1456,12 @@ public class Connection {
 
   // Restarts the web browser and sets its proxy as needed, while having exclusive use of it. Returns the web browser, or null if it's unavailable.
   private static FirefoxDriver changeWebBrowser(FirefoxDriver deadWebBrowser, Proxy proxy, Duration pageLoadTimeout,
-          AtomicReference<FirefoxDriver> webBrowserUsed) throws Exception {
+          AtomicReference<FirefoxDriver> webBrowserUsed, boolean showStatus) throws Exception {
     if (isWebBrowserRestartNeeded(deadWebBrowser)) {
       restartedWebBrowser.set(deadWebBrowser);
-      createWebBrowser(true);
+      createWebBrowser(true, showStatus);
     }
-    FirefoxDriver driver = createWebBrowser(false); // Before checking the proxy, because creating the web browser resets its proxy
+    FirefoxDriver driver = createWebBrowser(false, showStatus); // Before checking the proxy, because creating the web browser resets its proxy
     if (driver == null || webBrowserProxy.equals(proxy)) {
       return driver;
     }
@@ -1444,7 +1690,7 @@ public class Connection {
       }
       deproxier.run();
     } finally {
-      downloadLinkInfoProxyLock.lockInterruptibly();
+      downloadLinkInfoProxyLock.lock(); // Even when interrupted (such as by a cancellation after the deproxier's last wait), so that it's always counted out
       try {
         if (--numDownloadLinkInfoDeproxiers == 0 && Str.containsListener(deproxyDownloadLinkInfo)) {
           Str.removeListener(deproxyDownloadLinkInfo);
@@ -1463,7 +1709,8 @@ public class Connection {
   public static boolean deproxyDownloadLinkInfo() throws Exception {
     downloadLinkInfoProxyLock.lockInterruptibly();
     try {
-      if (Str.containsListener(deproxyDownloadLinkInfo)) {
+      // Not if already deproxied, or if not proxied to begin with (the URLs are the site's own), since searching again would then be the same search
+      if (Str.containsListener(deproxyDownloadLinkInfo) || Str.get(727).equals(Str.get(731))) {
         return false;
       }
 
@@ -1628,6 +1875,7 @@ public class Connection {
 
   public static void removeFromCache(String url) {
     IO.fileOp(Constant.CACHE_DIR + Str.hashPath(url) + Constant.HTML, IO.RM_FILE);
+    IO.fileOp(Constant.TEMP_DIR + Str.hashCode(url) + Constant.HTML, IO.RM_FILE); // The web browser's copy, which it reuses for as long as the request allows
   }
 
   public static String saveData(String url, String outputPath, DomainType domainType) throws Exception {
@@ -1644,8 +1892,8 @@ public class Connection {
 
   public static String saveData(String url, String outputPath, DomainType domainType, boolean showStatus, String referer, int maxNumRedirects, String cookie,
           boolean useWebBrowser) throws Exception {
-    boolean useCurl = Regex.isMatch(url, 924) && curlCommand() != null;
-    if ((useWebBrowser || (Regex.isMatch(url, 872) && !useCurl)) && createWebBrowser(false) != null) {
+    boolean useCurl = Regex.isMatch(url, 924) && curlCommand(showStatus) != null;
+    if ((useWebBrowser || (Regex.isMatch(url, 872) && !useCurl)) && createWebBrowser(false, showStatus) != null) {
       return getSourceCode(url, domainType, showStatus, true, -1, new WebBrowserRequest(outputPath, referer, cookie) {
         @Override
         public String get(String url, FirefoxDriver driver, ThrowingRunnable sleep, long cacheExpirationMs) throws Exception {
@@ -1718,7 +1966,7 @@ public class Connection {
     if (Debug.DEBUG) {
       Debug.println(url + " (" + (useCurl ? "curl " : "") + "save)");
     }
-    (new Worker() {
+    executeRequest(url, new Worker() {
       @Override
       protected void doWork() throws Exception {
         HttpURLConnection connection = null;
@@ -1802,7 +2050,7 @@ public class Connection {
           IO.close(is, os);
         }
       }
-    }).executeAndGet();
+    });
     return outputPath;
   }
 
@@ -1986,6 +2234,28 @@ public class Connection {
 
     void unset(Thread thread) {
       msgs.remove(new Msg(thread, null));
+    }
+
+    // The thread's message, or null if it has none
+    String get(Thread thread) {
+      for (Msg msg : msgs) {
+        if (msg.thread.equals(thread)) {
+          return msg.msg;
+        }
+      }
+      return null;
+    }
+
+    // Replaces the thread's message, str, with newStr, or removes it if newStr is null. Nothing changes if the thread's message is no longer str, such as when
+    // the cancellation of the thread's request removed it.
+    void replace(Thread thread, String str, String newStr) {
+      if (str.equals(get(thread))) {
+        if (newStr == null) {
+          unset(thread);
+        } else {
+          set(thread, newStr);
+        }
+      }
     }
 
     void clear() {

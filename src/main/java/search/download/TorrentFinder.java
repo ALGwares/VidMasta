@@ -34,9 +34,10 @@ public class TorrentFinder extends Worker {
   private GuiListener guiListener;
   private Iterable<? extends Future<?>> cohort;
   private Collection<Torrent> torrents;
-  private Video video;
-  private String seasonAndEpisode;
-  private boolean orderByLeechers, magnetLinkOnly, ignoreYear, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch, altSearch, singleOrderByMode;
+  final Video video;
+  final String seasonAndEpisode;
+  final boolean orderByLeechers, ignoreYear;
+  private boolean magnetLinkOnly, isOldTitle, isTitlePrefix, possiblyInconsistent, generalSearch, altSearch, singleOrderByMode;
   private final int maxNumAttempts, counter1Max, counter2Max;
   private int attemptNum, counter1, counter2;
   private String categorySearch, url;
@@ -116,7 +117,7 @@ public class TorrentFinder extends Worker {
         newTorrents = getTorrents(false, generalSearch = !generalSearch);
       } catch (Exception e) {
         if (!isCancelled()) {
-          guiListener.error(e);
+          error(e);
           possiblyInconsistent = false;
         }
       }
@@ -125,7 +126,7 @@ public class TorrentFinder extends Worker {
         return;
       }
 
-      if (possiblyInconsistent && ++attemptNum < maxNumAttempts) {
+      if (possiblyInconsistent && ++attemptNum < maxNumAttempts()) {
         if (url != null) {
           Connection.removeDownloadLinkInfoFromCache(url);
         }
@@ -181,7 +182,7 @@ public class TorrentFinder extends Worker {
 
     int currPageNum = Integer.parseInt(Str.get(662));
     while (counter2 != counter2Max) {
-      Collection<Torrent> newTorrents = getTorrents(722, sourceCode);
+      Collection<Torrent> newTorrents = getTorrents(Str.get(722), sourceCode);
 
       if (counter1 == counter1Max || isCancelled()) {
         return null;
@@ -233,14 +234,15 @@ public class TorrentFinder extends Worker {
     String sourceCode = Connection.getSourceCode(Str.get(700) + URLEncoder.encode(video.id, Constant.UTF8), DomainType.DOWNLOAD_LINK_INFO, !prefetch, true,
             Constant.MS_1HR);
     if (!isCancelled() && !sourceCode.isEmpty() && !prefetch) {
-      Collection<Torrent> newTorrents = getTorrents(700, sourceCode);
+      Collection<Torrent> newTorrents = getTorrents(Str.get(700), sourceCode);
       if (!newTorrents.isEmpty() && !isCancelled()) {
         torrents.addAll(newTorrents);
       }
     }
   }
 
-  private Collection<Torrent> getTorrents(int urlIndex, String sourceCode) throws Exception {
+  // The torrents in a page of search results in apibay.org's JSON. The URL is the search's, for errors.
+  Collection<Torrent> getTorrents(String url, String sourceCode) throws Exception {
     int i = 0, j = Integer.parseInt(Str.get(764));
     Collection<Torrent> newTorrents = new ArrayList<Torrent>(j);
     Matcher titleMatcher = Regex.matcher(48, sourceCode);
@@ -261,7 +263,7 @@ public class TorrentFinder extends Worker {
       i++;
       possiblyInconsistent = false;
 
-      String torrentID = Regex.match(Regex.firstMatch(videoStr, 460), 461);
+      String torrentID = torrentID(videoStr);
       Boolean prevOrderByLeechers;
       boolean isBoxSet;
       if ((!singleOrderByMode && (prevOrderByLeechers = orderings.get(new TorrentSearchID(torrentID, video.season, video.episode))) != null
@@ -333,9 +335,15 @@ public class TorrentFinder extends Worker {
         numSourcesNum += 1000000;
       }
 
-      String magnetLink = Regex.match(videoStr, 389);
+      String magnetLink = infoHash(videoStr);
+      if (isCancelled()) {
+        break;
+      }
+      if (magnetLink == null) {
+        continue;
+      }
       if (magnetLink.isEmpty()) {
-        throw new ConnectionException(Connection.serverError(Str.get(urlIndex)));
+        throw new ConnectionException(Connection.serverError(url));
       }
       Magnet magnet = new Magnet(Str.get(388) + magnetLink);
       boolean isTorrentDownloaded = magnet.download(guiListener, this, magnetLinkOnly);
@@ -370,6 +378,23 @@ public class TorrentFinder extends Worker {
       }
     }
     return newTorrents;
+  }
+
+  int maxNumAttempts() {
+    return maxNumAttempts;
+  }
+
+  void error(Exception e) {
+    guiListener.error(e);
+  }
+
+  String torrentID(String videoStr) {
+    return Regex.match(Regex.firstMatch(videoStr, 460), 461);
+  }
+
+  // The info hash of the torrent in the search result, or null to skip the torrent
+  String infoHash(String videoStr) throws Exception {
+    return Regex.match(videoStr, 389);
   }
 
   private String episode(String title, int startRegex) {
