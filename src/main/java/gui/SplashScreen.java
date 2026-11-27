@@ -1,5 +1,6 @@
 package gui;
 
+import debug.Debug;
 import i18n.Bundle;
 import i18n.I18nStr;
 import java.awt.Color;
@@ -9,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -31,16 +33,19 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import util.Constant;
+import util.IO;
 
 public class SplashScreen extends JFrame {
 
   private static final long serialVersionUID = 1L;
 
   private final ResourceBundle bundle;
+  private final Locale bundleLocale; // Not yet the app's locale, which the GUI sets once it loads the settings
 
   public SplashScreen() {
-    Bundle newBundle = new Bundle(null);
+    Bundle newBundle = new Bundle(savedLocale());
     bundle = newBundle.bundle;
+    bundleLocale = newBundle.locale;
 
     initComponents();
 
@@ -57,7 +62,25 @@ public class SplashScreen extends JFrame {
     UI.centerOnScreen(this);
   }
 
+  // The user's language, so that the splash screen is not in another language than the GUI (which loads the settings later), or null if none is saved yet
+  private static Locale savedLocale() {
+    try {
+      // Not with Regex, whose initialization fails if the update file is invalid, which only the GUI's initialization reports
+      return UI.locale(IO.read(Constant.APP_DIR + Constant.USER_SETTINGS).split(Constant.NEWLINE)[Constant.LOCALE_SETTING_INDEX]);
+    } catch (Exception e) {
+      if (Debug.DEBUG) {
+        Debug.print(e);
+      }
+      return null;
+    }
+  }
+
   private void initComponents() {
+    Font statusBarFont = new Font("Verdana", Font.PLAIN, 10);
+    if (statusBarFont.canDisplayUpTo(bundle.getString("results")) != -1) { // Verdana lacks some languages' scripts, such as Thai (see GUI.updateFonts())
+      statusBarFont = new Font("Tahoma", Font.PLAIN, 10);
+    }
+
     resultsPanel = new JPanel();
     resultsScrollPane = new JScrollPane();
     resultsTable = new JTable();
@@ -276,15 +299,16 @@ public class SplashScreen extends JFrame {
     loadingLabel.setText(null);
 
     statusBarTextField.setEditable(false);
-    statusBarTextField.setFont(new Font("Verdana", 0, 10));
+    statusBarTextField.setFont(statusBarFont);
     statusBarTextField.setBorder(BorderFactory.createEtchedBorder());
 
     searchProgressTextField.setEditable(false);
-    searchProgressTextField.setFont(new Font("Verdana", 0, 10));
+    searchProgressTextField.setFont(statusBarFont);
     searchProgressTextField.setHorizontalAlignment(JTextField.RIGHT);
-    searchProgressTextField.setText(' ' + I18nStr.replace(bundle.getString("results"), 0, I18nStr.percent(0, 0)) + ' ');
-    UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + I18nStr.replace(bundle.getString("results"), 11111, I18nStr.percent(1, 0)) + ' ',
-            searchProgressTextField.getText());
+    // Percentages in the splash screen's language, as the GUI shows them (such as %0 in Turkish and 0 % in French)
+    searchProgressTextField.setText(' ' + I18nStr.replace(bundle.getString("results"), 0, I18nStr.percent(bundleLocale, 0, 0)) + ' ');
+    UI.resize(AbstractComponent.newInstance(searchProgressTextField), ' ' + I18nStr.replace(bundle.getString("results"), 11111, I18nStr.percent(bundleLocale,
+            1, 0)) + ' ', searchProgressTextField.getText());
     searchProgressTextField.setBorder(BorderFactory.createEtchedBorder());
 
     connectionIssueButton.setText(null);

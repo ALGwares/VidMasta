@@ -41,7 +41,7 @@ public class Constant implements IOConstant {
   public static final int UPDATE_FILE_VERSION = 111;
   public static final String UPDATE_FILE = "update" + UPDATE_FILE_VERSION + TXT;
   public static final String UPDATE_BACKUP_FILE = "updateBackup" + UPDATE_FILE_VERSION + TXT;
-  public static final int SETTINGS_LEN = 81;
+  public static final int SETTINGS_LEN = 81, LOCALE_SETTING_INDEX = SETTINGS_LEN - 8;
   public static final int SETTINGS_VERSION = 11;
   public static final String PROFILE = "profile" + SETTINGS_VERSION + "_";
   public static final String USER_SETTINGS = "userSettings" + SETTINGS_VERSION + TXT;

@@ -40,11 +40,20 @@ public class I18nStr {
   }
 
   public static String percent(double ratio, int numFractionDigits) {
-    return getPercentFormat(numFractionDigits).format(ratio);
+    return percent(locale(), ratio, numFractionDigits);
+  }
+
+  // For a locale other than the app's, such as the splash screen's, which shows the user's language before the GUI sets it as the app's
+  public static String percent(Locale locale, double ratio, int numFractionDigits) {
+    return getPercentFormat(locale, numFractionDigits).format(ratio);
   }
 
   public static NumberFormat getPercentFormat(int numFractionDigits) {
-    NumberFormat percentFormat = NumberFormat.getPercentInstance(locale());
+    return getPercentFormat(locale(), numFractionDigits);
+  }
+
+  private static NumberFormat getPercentFormat(Locale locale, int numFractionDigits) {
+    NumberFormat percentFormat = NumberFormat.getPercentInstance(locale);
     percentFormat.setMinimumFractionDigits(numFractionDigits);
     percentFormat.setMaximumFractionDigits(numFractionDigits);
     percentFormat.setRoundingMode(RoundingMode.DOWN);

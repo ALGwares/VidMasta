@@ -1,6 +1,25 @@
 VIDMASTA CHANGELOG
 ------------------
 
+2026.11.27   | VidMasta 31.2
+
+CHANGE: CORE | Fixed download stalls that can delay playlist items and prevent proper closing of application
+CHANGE: CORE | Fixed issues that can leave processes running after closing of application
+CHANGE: CORE | Fixed occasional initialization error when the computer is busy
+CHANGE: CORE | Fixed rare freezing of initialization, which can prevent searches from finishing
+CHANGE: CORE | Updated BitTorrent plugins
+CHANGE: UI   | Automatically selected the operating system's language, if supported, on first start
+CHANGE: UI   | Fixed splash screen to use the selected language
+CHANGE: UI   | Added languages to the installers
+CHANGE: UI   | Updated Windows installers to create only one shortcut that can be pinned to the taskbar and to not show a command prompt
+CHANGE: UI   | Fixed freezing of the Linux installer, which prevents creation of its shortcuts and uninstaller
+CHANGE: UI   | Fixed Readme and Uninstall shortcuts for Linux
+CHANGE: UI   | Fixed uninstaller of the jar installer when using Java 17 and higher
+CHANGE: UI   | Fixed uninstaller leaving files behind on Linux and Mac
+
+
+
+
 2026.11.22   | VidMasta 31.1
 
 CHANGE: CORE | Added a second download link source to download link searches and popular movies and popular TV shows searches

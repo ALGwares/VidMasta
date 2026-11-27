@@ -119,6 +119,7 @@ import org.openqa.selenium.firefox.GeckoDriverService;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.remote.UnreachableBrowserException;
+import org.openqa.selenium.remote.http.netty.NettyClient;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.rauschig.jarchivelib.ArchiverFactory;
@@ -479,29 +480,40 @@ public class Connection {
           }));
 
           FirefoxDriver driver = null;
-          for (int attempt = 1; driver == null; attempt++) {
+          DevTools tempDevTools = null;
+          for (int attempt = 1; tempDevTools == null; attempt++) {
             try {
+              checkNotShuttingDown(); // Such as when the app was closed since the previous attempt
+              initWebBrowserHttpClient();
               driver = new FirefoxDriver(options);
+              lastWebBrowserDriver.set(driver);
+              if (isShuttingDown.get()) { // The shutdown hook could have missed this web browser
+                killWebBrowser.accept(false);
+                checkNotShuttingDown();
+              }
+              // Firefox usually answers within a tenth of a second, but while the computer is busy (such as when the app starts), its first answers can miss
+              // Selenium's 10-second timeout, so its DevTools session is part of the attempt
+              DevTools sessionDevTools = driver.getDevTools();
+              sessionDevTools.createSessionIfThereIsNotOne();
+              sessionDevTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
+              tempDevTools = sessionDevTools;
             } catch (WebDriverException e) { // Such as when Firefox briefly can't read its own files and quits while starting
-              checkNotShuttingDown(); // The shutdown hook could have stopped it
+              checkNotShuttingDown(); // The shutdown hook could have stopped it (the hook also quits lastWebBrowserDriver)
+              if (driver != null) { // Firefox started, but its DevTools session failed
+                quitWebBrowser(driver);
+                driver = null;
+              }
+              killWebBrowser.accept(true); // Waits so that it can't stop a standalone web browser run that starts after the last attempt
               if (attempt == 3) {
                 throw e;
               }
               if (Debug.DEBUG) {
                 Debug.println("retrying web browser creation: " + Regex.firstMatch(e.toString(), ".+"));
               }
-              killWebBrowser.accept(true);
               Thread.sleep(attempt * 2_000L);
             }
           }
-          lastWebBrowserDriver.set(driver);
-          if (isShuttingDown.get()) { // The shutdown hook could have missed this web browser
-            killWebBrowser.accept(false);
-            checkNotShuttingDown();
-          }
-          DevTools devTools = driver.getDevTools();
-          devTools.createSessionIfThereIsNotOne();
-          devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
+          DevTools devTools = tempDevTools;
           TriFunction<String, String, AtomicReference<Consumer<String>>, Void> addUrlListener = (evtName, urlType, urlHandler) -> {
             devTools.addListener(new Event<>("Network." + evtName, input -> {
               String url = "";
@@ -549,6 +561,49 @@ public class Connection {
       }
     });
     return webBrowserDriver.get().get(showStatus);
+  }
+
+  // Selenium creates its HTTP client in NettyClient's static initializer, which opens Java NIO selectors. On Windows, each selector's wakeup pipe is a loopback
+  // TCP connection whose handshake (in sun.nio.ch.PipeImpl) reads without a timeout, and that read once never returned, which left the web browser's creation
+  // hung forever (2026-11-26, Java 8). Interrupting the read makes the JDK retry the handshake on a new connection, so the client is created once, in a thread
+  // of its own that is interrupted while it takes too long. If it still doesn't finish, an attempt to create the web browser fails instead of hanging; a later
+  // attempt waits for the same thread again.
+  private static final Object webBrowserHttpClientInitLock = new Object();
+  private static Thread webBrowserHttpClientInit; // Guarded by webBrowserHttpClientInitLock
+  private static volatile Throwable webBrowserHttpClientInitError;
+
+  private static void initWebBrowserHttpClient() throws InterruptedException {
+    Thread init;
+    synchronized (webBrowserHttpClientInitLock) {
+      if ((init = webBrowserHttpClientInit) == null) {
+        init = new Thread(() -> {
+          try {
+            Class.forName(NettyClient.class.getName(), true, NettyClient.class.getClassLoader());
+          } catch (Throwable e) { // Such as an ExceptionInInitializerError, after which the class can't be used
+            webBrowserHttpClientInitError = e;
+          }
+        }, "web browser HTTP client initializer");
+        init.setDaemon(true);
+        init.start();
+        webBrowserHttpClientInit = init;
+      }
+    }
+    for (int i = 0; i < 4 && init.isAlive(); i++) { // Up to 20 seconds, while initialization normally takes about a second
+      init.join(5_000);
+      if (init.isAlive()) {
+        if (Debug.DEBUG) {
+          Debug.println("interrupting the web browser's HTTP client initialization, which is taking long");
+        }
+        init.interrupt(); // Harmless if it isn't stuck: the JDK then sets up its pipes in other threads
+      }
+    }
+    if (init.isAlive()) {
+      throw new WebDriverException("web browser HTTP client initialization timed out");
+    }
+    Throwable error = webBrowserHttpClientInitError;
+    if (error != null) {
+      throw new WebDriverException("web browser HTTP client initialization failed", error);
+    }
   }
 
   // Quitting lets the web browser save its profile, but it can take a while or never end (such as when its driver doesn't stop), so after a few seconds, the
@@ -1488,9 +1543,9 @@ public class Connection {
   // stops (and waits for) any web browser process using the standalone web browser's profile, which a following run couldn't otherwise use.
   private static void stopStandaloneWebBrowser(Process firefox, File firefoxBinary) {
     firefox.destroy();
-    if (Constant.WINDOWS) { // The profile path is matched with -like, so its wildcard characters are escaped
+    if (Constant.WINDOWS) {
       int numStopped = stopProcesses("Get-WmiObject Win32_Process -Filter " + powerShellString("Name='" + firefoxBinary.getName() + '\'') + " | Where-Object"
-              + " {$_.CommandLine -like " + powerShellString('*' + WEB_BROWSER_PROFILE.getPath().replaceAll("[`\\[\\]*?]", "`$0") + '*') + "} | ForEach-Object"
+              + " {$_.CommandLine -like " + powerShellPattern(WEB_BROWSER_PROFILE.getPath()) + "} | ForEach-Object"
               + " {$_.ProcessId}", true);
       if (numStopped > 0 && Debug.DEBUG) {
         Debug.println("stopped " + numStopped + " standalone web browser process(es) that outlived its launcher process");
@@ -1507,6 +1562,8 @@ public class Connection {
           if (wait) {
             process.waitFor();
           }
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt(); // The started pkill still stops the processes
         } catch (Exception e) {
           if (Debug.DEBUG) {
             Debug.print(e);
@@ -1517,11 +1574,15 @@ public class Connection {
     }
 
     // Executable paths are matched through WMI because in 32-bit PowerShell (which 32-bit Java starts), Get-Process can't see the paths of 64-bit processes, so it
-    // can't tell VidMasta's processes from others with the same name, such as the user's own 64-bit Firefox. Get-Process is the fallback if WMI fails.
+    // can't tell VidMasta's processes from others with the same name, such as the user's own 64-bit Firefox. Get-Process is the fallback if WMI fails. A process
+    // that was created suspended and never resumed (such as a Firefox child process whose parent stopped while starting it) has no executable path yet, only a
+    // command line, and would otherwise never end.
     UnaryOperator<String> isExe = pathProperty -> Arrays.stream(exes).map(exe -> "$_." + pathProperty + " -eq " + powerShellString(exe.getPath())).collect(
             Collectors.joining(" -or "));
     int numStopped = stopProcesses("try {Get-WmiObject Win32_Process -Filter " + powerShellString(Arrays.stream(exes).map(exe -> "Name='" + exe.getName() + '\'')
-            .collect(Collectors.joining(" OR "))) + " -ErrorAction Stop | Where-Object {" + isExe.apply("ExecutablePath") + "} | ForEach-Object {$_.ProcessId}}"
+            .collect(Collectors.joining(" OR "))) + " -ErrorAction Stop | Where-Object {" + isExe.apply("ExecutablePath") + " -or (-not $_.ExecutablePath -and ("
+            + Arrays.stream(exes).map(exe -> "$_.CommandLine -like " + powerShellPattern(exe.getPath())).collect(Collectors.joining(" -or "))
+            + "))} | ForEach-Object {$_.ProcessId}}"
             + " catch {Get-Process -Name " + Arrays.stream(exes).map(exe -> powerShellString(StringUtils.substringBeforeLast(exe.getName(), "."))).collect(
                     Collectors.joining(",")) + " -ErrorAction SilentlyContinue | Where-Object {" + isExe.apply("Path") + "} | ForEach-Object {$_.Id}}", wait);
     if (numStopped > 0 && Debug.DEBUG) {
@@ -1563,6 +1624,11 @@ public class Connection {
   // A single-quoted PowerShell string, which PowerShell also lets typographic single quotes end
   private static String powerShellString(String str) {
     return '\'' + str.replaceAll("['\\u2018\\u2019\\u201A\\u201B]", "$0$0") + '\'';
+  }
+
+  // A PowerShell pattern for the -like operator that matches strings containing the given one, whose own wildcard characters are escaped
+  private static String powerShellPattern(String str) {
+    return powerShellString('*' + str.replaceAll("[`\\[\\]*?]", "`$0") + '*');
   }
 
   // curl's exit code when ECH (Encrypted Client Hello) is rejected

@@ -6258,45 +6258,6 @@ public class GUI extends JFrame implements GuiListener {
       movieSubtitleDialog};
   }
 
-  // The languages of the language menu besides English: language and country of the locale, name in the language itself, and English name. Thai has no country,
-  // because Java uses the Buddhist calendar (and so years such as 2569) for th_TH, which would also become the default locale.
-  private static final String[][] LANGUAGES = {
-    {"sq", "AL", "shqip", "Albanian"},
-    {"bg", "BG", "\u0431\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438", "Bulgarian"},
-    {"ca", "ES", "catal\u00e0", "Catalan"},
-    {"hr", "HR", "hrvatski", "Croatian"},
-    {"cs", "CZ", "\u010de\u0161tina", "Czech"},
-    {"da", "DK", "dansk", "Danish"},
-    {"nl", "NL", "Nederlands", "Dutch"},
-    {"et", "EE", "eesti", "Estonian"},
-    {"tl", "PH", "Filipino", "Filipino"},
-    {"fi", "FI", "suomi", "Finnish"},
-    {"fr", "FR", "fran\u00e7ais", "French"},
-    {"de", "DE", "Deutsch", "German"},
-    {"el", "GR", "\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac", "Greek"},
-    {"hu", "HU", "magyar", "Hungarian"},
-    {"id", "ID", "Bahasa Indonesia", "Indonesian"},
-    {"it", "IT", "italiano", "Italian"},
-    {"lv", "LV", "latvie\u0161u", "Latvian"},
-    {"lt", "LT", "lietuvi\u0173", "Lithuanian"},
-    {"mk", "MK", "\u043c\u0430\u043a\u0435\u0434\u043e\u043d\u0441\u043a\u0438", "Macedonian"},
-    {"ms", "MY", "Bahasa Melayu", "Malay"},
-    {"nb", "NO", "norsk bokm\u00e5l", "Norwegian"},
-    {"pl", "PL", "polski", "Polish"},
-    {"pt", "BR", "portugu\u00eas (Brasil)", "Portuguese (Brazil)"},
-    {"pt", "PT", "portugu\u00eas (Portugal)", "Portuguese (Portugal)"},
-    {"ro", "RO", "rom\u00e2n\u0103", "Romanian"},
-    {"ru", "RU", "\u0440\u0443\u0441\u0441\u043a\u0438\u0439", "Russian"},
-    {"sr", "RS", "\u0441\u0440\u043f\u0441\u043a\u0438", "Serbian"},
-    {"sk", "SK", "sloven\u010dina", "Slovak"},
-    {"sl", "SI", "sloven\u0161\u010dina", "Slovenian"},
-    {"es", "MX", "espa\u00f1ol (Latinoam\u00e9rica)", "Spanish (Latin America)"},
-    {"es", "ES", "espa\u00f1ol (Espa\u00f1a)", "Spanish (Spain)"},
-    {"sv", "SE", "svenska", "Swedish"},
-    {"th", "", "\u0e44\u0e17\u0e22", "Thai"},
-    {"tr", "TR", "T\u00fcrk\u00e7e", "Turkish"},
-    {"uk", "UA", "\u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430", "Ukrainian"},
-    {"vi", "VN", "Ti\u1ebfng Vi\u1ec7t", "Vietnamese"}};
   private AbstractButton[] languageMenuButtons;
   private static final String VERDANA = "Verdana", HTML_VERDANA = VERDANA + ", Geneva, sans-serif", TAHOMA = "Tahoma";
 
@@ -6329,9 +6290,9 @@ public class GUI extends JFrame implements GuiListener {
       dutchRadioButtonMenuItem, portugueseRadioButtonMenuItem, turkishRadioButtonMenuItem}) {
       formButtons.put(button.getName(), button);
     }
-    List<AbstractButton> buttons = new ArrayList<>(LANGUAGES.length + 1);
+    List<AbstractButton> buttons = new ArrayList<>(Bundle.LANGUAGES.length + 1);
     buttons.add(englishRadioButtonMenuItem);
-    for (String[] language : LANGUAGES) {
+    for (String[] language : Bundle.LANGUAGES) {
       String name = new Locale(language[0], language[1]).toString();
       AbstractButton button = formButtons.get(name);
       if (button == null) {
@@ -6372,7 +6333,7 @@ public class GUI extends JFrame implements GuiListener {
           settings = defaultSettings;
         }
         int i = -1;
-        changeLocale(settings[Constant.SETTINGS_LEN - 8]);
+        changeLocale(settings[Constant.LOCALE_SETTING_INDEX]);
         i += restoreComboBoxes(settings, i, comboBoxSet1());
         i += restoreButtons(settings, i, buttonSet1());
         ++i; // Backward compatibility
@@ -7918,8 +7879,7 @@ public class GUI extends JFrame implements GuiListener {
 
   void changeLocale(String locale) {
     try {
-      String[] languageAndCountry = (locale == null || locale.equals(Constant.NULL) ? null : locale.split("_", 2)); // Thai has no country
-      changeLocale(languageAndCountry == null ? null : new Locale(languageAndCountry[0], languageAndCountry.length == 2 ? languageAndCountry[1] : ""));
+      changeLocale(UI.locale(locale));
     } catch (Exception e) {
       if (Debug.DEBUG) {
         Debug.print(e);

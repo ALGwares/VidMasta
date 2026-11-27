@@ -33,6 +33,7 @@ import debug.Debug;
 import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,6 +89,7 @@ public class Magnet extends Thread {
   private static final AtomicBoolean isAzureusConfigured = new AtomicBoolean();
   public static final String VUZE_VERSION = "biglybt" + Constants.BIGLYBT_VERSION.replace(".", "");
   private static final String VUZE_DIR = Constant.APP_DIR + VUZE_VERSION + Constant.FILE_SEPARATOR + "biglybt" + Constant.FILE_SEPARATOR;
+  private static final Pattern VERSIONED_PLUGIN_FILE = Pattern.compile("(.+?)_(\\d[\\d.]*)(\\.\\w+)"); // Such as mlDHT_2.6.14.jar
   private static volatile Core core;
   public final String magnetLink;
   public final File torrent;
@@ -314,6 +316,11 @@ public class Magnet extends Thread {
       System.setProperty(SystemProperties.SYSPROP_SECURITY_MANAGER_PERMITEXIT, "1");
       System.setProperty("MULTI_INSTANCE", String.valueOf(true));
       System.setProperty(SystemProperties.SYSPROP_PLATFORM_MANAGER_DISABLE, String.valueOf(true));
+      // BiglyBT's instance manager (which looks for other BiglyBT instances on the local network, so the LAN Peer Finder plugin is disabled too) has a multicast
+      // socket on every network adapter, including virtual ones such as VMware's and VirtualBox's, and sends packets through them, also as BiglyBT stops. Windows
+      // closes a socket only once its sends are finished, so a network driver that never finishes one keeps the JVM's process, with all of its memory, from
+      // ending after VidMasta exits.
+      System.setProperty("az.instance.manager.enable", "0");
       IO.fileOp(VUZE_DIR, IO.MK_DIR);
       System.setProperty(SystemProperties.SYSPROP_INSTALL_PATH, VUZE_DIR);
       System.setProperty(SystemProperties.SYSPROP_CONFIG_PATH, VUZE_DIR);
@@ -393,6 +400,9 @@ public class Magnet extends Thread {
       COConfigurationManager.setParameter("network.transport.encrypted.fallback.incoming", true);
       COConfigurationManager.setParameter("network.transport.encrypted.use.crypto.port", false);
       COConfigurationManager.setParameter("Enable incremental file creation", true);
+      // A new download file grows as pieces arrive, so on NTFS a piece written past the end of the data so far first has the whole gap zero-filled, which
+      // blocked BiglyBT's disk writes (a 16 KB write past 1 GB took 57 seconds) and with them downloads and shutdown. A sparse file has no gap to fill.
+      COConfigurationManager.setParameter("Enable Sparse Files", true);
 
       changeLocale();
 
@@ -648,24 +658,24 @@ public class Magnet extends Thread {
 
       Arrays.stream(IO.listFiles(Constant.PROGRAM_DIR + "plugins")).forEach(plugin -> {
         File dest = new File(VUZE_DIR + "plugins", plugin.getName());
+        boolean isNew = !dest.exists();
         try {
-          if (!dest.exists()) {
-            FileUtils.copyDirectory(plugin, dest);
-          }
+          installPlugin(plugin, dest);
         } catch (Exception e) {
           if (Debug.DEBUG) {
             Debug.print(e);
           }
-          FileUtils.deleteQuietly(dest);
+          if (isNew) {
+            FileUtils.deleteQuietly(dest);
+          }
         }
       });
 
       Collection<String> enabledPluginNames = new ArrayList<String>(16), enabledPluginIDs = new ArrayList<String>(8);
-      Collections.addAll(enabledPluginNames, "DHT", "DHT Tracker", "Local Tracker", "Tracker Peer Auth", "uTP Plugin", "Distributed DB",
-              "Distributed Tracker", "Magnet URI Handler", "External Seed", "LAN Peer Finder", "Client Identification", "Location Provider",
-              "Swarm Discoveries", "uTP Plugin", "mlDHT");
-      Collections.addAll(enabledPluginIDs, "azutp", "azbpdht", "azbpdhdtracker", "azbpmagnet", "azextseed", "azlocaltracker", "bgclientid", "azlocprov",
-              "aercm", "azutp", "mldht");
+      Collections.addAll(enabledPluginNames, "DHT", "DHT Tracker", "Tracker Peer Auth", "uTP Plugin", "Distributed DB", "Distributed Tracker",
+              "Magnet URI Handler", "External Seed", "Client Identification", "Location Provider", "Swarm Discoveries", "uTP Plugin", "mlDHT");
+      Collections.addAll(enabledPluginIDs, "azutp", "azbpdht", "azbpdhdtracker", "azbpmagnet", "azextseed", "bgclientid", "azlocprov", "aercm", "azutp",
+              "mldht");
 
       PluginManagerDefaults pluginManagerDefaults = core.getPluginManagerDefaults();
       for (String pluginName : pluginManagerDefaults.getDefaultPlugins()) {
@@ -724,6 +734,33 @@ public class Magnet extends Thread {
     } finally {
       Connection.unsetStatusBar();
     }
+  }
+
+  // Copies a plugin to BiglyBT's folder, where a previous version of it can be (VidMasta's updates keep BiglyBT's folder, and only add files to the program's
+  // plugins). BiglyBT's folder for a plugin also has the plugin's own data (such as mlDHT's node table), so only files with another version in their name (such
+  // as the previous version's mlDHT_2.6.7.jar) are removed.
+  private static void installPlugin(File plugin, File dest) throws IOException {
+    Map<String, String> newestVersions = new HashMap<>();
+    for (File file : IO.listFiles(plugin)) {
+      Matcher matcher = VERSIONED_PLUGIN_FILE.matcher(file.getName());
+      if (matcher.matches()) {
+        newestVersions.merge(matcher.group(1) + matcher.group(3), matcher.group(2), (version1, version2) -> Constants.compareVersions(version1, version2) < 0
+                ? version2 : version1);
+      }
+    }
+    FileFilter isOtherVersion = file -> {
+      Matcher matcher = VERSIONED_PLUGIN_FILE.matcher(file.getName());
+      String newestVersion = matcher.matches() ? newestVersions.get(matcher.group(1) + matcher.group(3)) : null;
+      return newestVersion != null && !newestVersion.equals(matcher.group(2));
+    };
+    if (Arrays.stream(IO.listFiles(plugin)).filter(file -> !isOtherVersion.accept(file)).allMatch(file -> {
+      File installed = new File(dest, file.getName());
+      return installed.exists() && installed.length() == file.length();
+    })) {
+      return;
+    }
+    FileUtils.copyDirectory(plugin, dest, file -> !isOtherVersion.accept(file));
+    Arrays.stream(IO.listFiles(dest)).filter(isOtherVersion::accept).forEach(FileUtils::deleteQuietly);
   }
 
   // MagnetPlugin gets a magnet link's torrent from peers with a metadata download that it only force starts, leaving the Start/Stop Rules plugin to initialize

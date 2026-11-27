@@ -56,6 +56,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -1216,6 +1217,15 @@ public class UI {
         }
       }
     };
+  }
+
+  // The locale with a name such as pt_BR, or th because Thai has no country. Null (the system's language) if the name, such as that of the settings, is null.
+  static Locale locale(String name) {
+    if (name == null || name.equals(Constant.NULL)) {
+      return null;
+    }
+    String[] languageAndCountry = name.split("_", 2);
+    return new Locale(languageAndCountry[0], languageAndCountry.length == 2 ? languageAndCountry[1] : "");
   }
 
   private UI() {
